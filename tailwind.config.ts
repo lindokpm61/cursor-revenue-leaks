@@ -52,6 +52,13 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				revenue: {
+					primary: 'hsl(var(--revenue-primary))',
+					growth: 'hsl(var(--revenue-growth))',
+					warning: 'hsl(var(--revenue-warning))',
+					danger: 'hsl(var(--revenue-danger))',
+					success: 'hsl(var(--revenue-success))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
