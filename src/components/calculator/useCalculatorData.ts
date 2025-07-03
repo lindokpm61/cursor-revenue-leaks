@@ -2,73 +2,67 @@ import { useState, useMemo } from "react";
 
 export interface CompanyInfo {
   companyName: string;
+  email: string;
   industry: string;
-  companySize: string;
-  monthlyRevenue: number;
+  currentARR: number;
 }
 
-export interface LeadMetrics {
+export interface LeadGeneration {
   monthlyLeads: number;
-  leadQualificationRate: number;
-  avgLeadValue: number;
-  leadResponseTime: number;
+  averageDealValue: number;
+  leadResponseTimeHours: number;
 }
 
-export interface ConversionData {
-  leadToOpportunityRate: number;
-  opportunityToCustomerRate: number;
-  avgSalesCycleLength: number;
-  avgDealSize: number;
+export interface SelfServeMetrics {
+  monthlyFreeSignups: number;
+  freeToPaidConversionRate: number;
+  monthlyMRR: number;
 }
 
 export interface OperationsData {
-  customerChurnRate: number;
-  customerLifetimeValue: number;
-  upsellRate: number;
-  customerSatisfactionScore: number;
+  failedPaymentRate: number;
+  manualHoursPerWeek: number;
+  hourlyRate: number;
 }
 
 export interface CalculatorData {
   companyInfo: CompanyInfo;
-  leadMetrics: LeadMetrics;
-  conversionData: ConversionData;
+  leadGeneration: LeadGeneration;
+  selfServeMetrics: SelfServeMetrics;
   operationsData: OperationsData;
 }
 
 export interface Calculations {
+  leadResponseLoss: number;
+  failedPaymentLoss: number;
+  selfServeGap: number;
+  processLoss: number;
   totalLeakage: number;
-  leadQualificationLeak: number;
-  conversionLeak: number;
-  retentionLeak: number;
-  potentialRecovery: number;
-  monthlyImpact: number;
-  annualImpact: number;
+  potentialRecovery70: number;
+  potentialRecovery85: number;
 }
 
 const initialData: CalculatorData = {
   companyInfo: {
     companyName: "",
+    email: "",
     industry: "",
-    companySize: "",
-    monthlyRevenue: 0,
+    currentARR: 0,
   },
-  leadMetrics: {
+  leadGeneration: {
     monthlyLeads: 0,
-    leadQualificationRate: 0,
-    avgLeadValue: 0,
-    leadResponseTime: 0,
+    averageDealValue: 0,
+    leadResponseTimeHours: 0,
   },
-  conversionData: {
-    leadToOpportunityRate: 0,
-    opportunityToCustomerRate: 0,
-    avgSalesCycleLength: 0,
-    avgDealSize: 0,
+  selfServeMetrics: {
+    monthlyFreeSignups: 0,
+    freeToPaidConversionRate: 0,
+    monthlyMRR: 0,
   },
   operationsData: {
-    customerChurnRate: 0,
-    customerLifetimeValue: 0,
-    upsellRate: 0,
-    customerSatisfactionScore: 0,
+    failedPaymentRate: 0,
+    manualHoursPerWeek: 0,
+    hourlyRate: 0,
   },
 };
 
@@ -86,42 +80,35 @@ export const useCalculatorData = () => {
   };
 
   const calculations = useMemo((): Calculations => {
-    const { leadMetrics, conversionData, operationsData } = data;
+    const { leadGeneration, selfServeMetrics, operationsData } = data;
 
-    // Lead qualification leak
-    const qualifiedLeads = leadMetrics.monthlyLeads * (leadMetrics.leadQualificationRate / 100);
-    const unqualifiedLeads = leadMetrics.monthlyLeads - qualifiedLeads;
-    const leadQualificationLeak = unqualifiedLeads * leadMetrics.avgLeadValue;
+    // Lead Response Loss = Monthly Leads × Average Deal × 0.48 × 12
+    const leadResponseLoss = leadGeneration.monthlyLeads * leadGeneration.averageDealValue * 0.48 * 12;
 
-    // Conversion leak
-    const opportunities = qualifiedLeads * (conversionData.leadToOpportunityRate / 100);
-    const lostOpportunities = qualifiedLeads - opportunities;
-    const conversionLeak = lostOpportunities * conversionData.avgDealSize;
+    // Failed Payment Loss = Monthly MRR × (Failed Rate / 100) × 12
+    const failedPaymentLoss = selfServeMetrics.monthlyMRR * (operationsData.failedPaymentRate / 100) * 12;
 
-    // Customer conversion leak
-    const customers = opportunities * (conversionData.opportunityToCustomerRate / 100);
-    const lostCustomers = opportunities - customers;
-    const customerConversionLeak = lostCustomers * conversionData.avgDealSize;
+    // Self-Serve Gap = Free Signups × Deal Value × ((15 - Conversion%) / 100) × 0.4 × 12
+    const selfServeGap = selfServeMetrics.monthlyFreeSignups * leadGeneration.averageDealValue * 
+      ((15 - selfServeMetrics.freeToPaidConversionRate) / 100) * 0.4 * 12;
 
-    // Retention leak
-    const churnedCustomers = customers * (operationsData.customerChurnRate / 100);
-    const retentionLeak = churnedCustomers * operationsData.customerLifetimeValue;
+    // Process Loss = Manual Hours × Hourly Rate × 0.25 × 52
+    const processLoss = operationsData.manualHoursPerWeek * operationsData.hourlyRate * 0.25 * 52;
 
-    const totalLeakage = leadQualificationLeak + conversionLeak + customerConversionLeak + retentionLeak;
+    const totalLeakage = leadResponseLoss + failedPaymentLoss + selfServeGap + processLoss;
     
-    // Recovery potential based on industry benchmarks
-    const potentialRecovery = totalLeakage * 0.3; // Conservative 30% recovery estimate
-    const monthlyImpact = potentialRecovery;
-    const annualImpact = monthlyImpact * 12;
+    // Recovery potential at 70% and 85%
+    const potentialRecovery70 = totalLeakage * 0.7;
+    const potentialRecovery85 = totalLeakage * 0.85;
 
     return {
+      leadResponseLoss,
+      failedPaymentLoss,
+      selfServeGap,
+      processLoss,
       totalLeakage,
-      leadQualificationLeak,
-      conversionLeak: conversionLeak + customerConversionLeak,
-      retentionLeak,
-      potentialRecovery,
-      monthlyImpact,
-      annualImpact,
+      potentialRecovery70,
+      potentialRecovery85,
     };
   }, [data]);
 

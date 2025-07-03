@@ -4,17 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ChevronRight, ChevronLeft, Calculator, TrendingUp, AlertTriangle } from "lucide-react";
 import { CompanyInfoStep } from "./calculator/CompanyInfoStep";
-import { LeadMetricsStep } from "./calculator/LeadMetricsStep";
-import { ConversionDataStep } from "./calculator/ConversionDataStep";
-import { OperationsDataStep } from "./calculator/OperationsDataStep";
+import { LeadGenerationStep } from "./calculator/LeadGenerationStep";
+import { SelfServeStep } from "./calculator/SelfServeStep";
+import { OperationsStep } from "./calculator/OperationsStep";
 import { ResultsStep } from "./calculator/ResultsStep";
 import { useCalculatorData } from "./calculator/useCalculatorData";
 
 const steps = [
   { id: 1, title: "Company Info", description: "Basic company information" },
-  { id: 2, title: "Lead Metrics", description: "Lead generation and qualification" },
-  { id: 3, title: "Conversion Data", description: "Sales conversion metrics" },
-  { id: 4, title: "Operations", description: "Customer success and retention" },
+  { id: 2, title: "Lead Generation", description: "Lead generation metrics" },
+  { id: 3, title: "Self-Serve Metrics", description: "Free-to-paid conversion data" },
+  { id: 4, title: "Operations", description: "Operational efficiency metrics" },
   { id: 5, title: "Results", description: "Revenue leak analysis" }
 ];
 
@@ -39,11 +39,11 @@ export const RevenueCalculator = () => {
       case 1:
         return <CompanyInfoStep data={data.companyInfo} onUpdate={(updates) => updateData('companyInfo', updates)} />;
       case 2:
-        return <LeadMetricsStep data={data.leadMetrics} onUpdate={(updates) => updateData('leadMetrics', updates)} />;
+        return <LeadGenerationStep data={data.leadGeneration} onUpdate={(updates) => updateData('leadGeneration', updates)} />;
       case 3:
-        return <ConversionDataStep data={data.conversionData} onUpdate={(updates) => updateData('conversionData', updates)} />;
+        return <SelfServeStep data={data.selfServeMetrics} onUpdate={(updates) => updateData('selfServeMetrics', updates)} />;
       case 4:
-        return <OperationsDataStep data={data.operationsData} onUpdate={(updates) => updateData('operationsData', updates)} />;
+        return <OperationsStep data={data.operationsData} onUpdate={(updates) => updateData('operationsData', updates)} />;
       case 5:
         return <ResultsStep data={data} calculations={calculations} />;
       default:
