@@ -59,7 +59,7 @@ export const useSaveResults = () => {
       const { data: savedSubmission, error } = await submissionService.create(submissionData);
       
       if (error) {
-        console.error('Supabase error:', error);
+        console.error('Supabase error:', JSON.stringify(error, null, 2));
         throw error;
       }
 
