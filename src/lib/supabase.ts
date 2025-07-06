@@ -56,9 +56,24 @@ export const submissionService = {
   async getAll(limit = 50) {
     const { data, error } = await supabase
       .from('submissions')
-      .select('*')
+      .select(`
+        *,
+        user_profiles!inner(
+          company_name,
+          role
+        )
+      `)
       .order('created_at', { ascending: false })
       .limit(limit);
+    
+    return { data, error };
+  },
+
+  async getAllWithUserData(limit = 100) {
+    // Get submissions with user data using raw SQL
+    const { data, error } = await supabase.rpc('get_submissions_with_users', {
+      limit_count: limit
+    });
     
     return { data, error };
   },
