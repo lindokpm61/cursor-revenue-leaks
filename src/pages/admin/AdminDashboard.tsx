@@ -9,6 +9,10 @@ import {
 import { Link } from "react-router-dom";
 import { submissionService, analyticsService, leadScoringService } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import IntegrationStatusWidget from "@/components/admin/IntegrationStatusWidget";
+import QuickActionsPanel from "@/components/admin/QuickActionsPanel";
+import DataFreshnessIndicator from "@/components/admin/DataFreshnessIndicator";
+import ActivityLogWidget from "@/components/admin/ActivityLogWidget";
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -173,6 +177,15 @@ const AdminDashboard = () => {
         </div>
       </div>
 
+      {/* Data Freshness */}
+      <DataFreshnessIndicator />
+
+      {/* Operational Widgets */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <IntegrationStatusWidget />
+        <QuickActionsPanel />
+      </div>
+
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="border-border/50 shadow-lg">
@@ -285,6 +298,9 @@ const AdminDashboard = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Activity Log */}
+      <ActivityLogWidget />
     </div>
   );
 };
