@@ -106,6 +106,7 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
       return;
     }
 
+    console.log('Starting save with user:', user.id);
     setSaving(true);
     try {
       const submissionData = {
@@ -135,9 +136,11 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
         user_id: user.id,
       };
 
+      console.log('Submitting data:', submissionData);
       const { data: savedSubmission, error } = await submissionService.create(submissionData);
       
       if (error) {
+        console.error('Supabase error:', error);
         throw error;
       }
 
