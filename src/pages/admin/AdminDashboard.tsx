@@ -7,11 +7,13 @@ import {
   Eye, ArrowRight
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { submissionService, analyticsService } from "@/lib/supabase";
+import { submissionService, analyticsService, leadScoringService } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
+  const [recalculatingScores, setRecalculatingScores] = useState(false);
+  const [scoreStats, setScoreStats] = useState({ total: 0, scored: 0, unscored: 0 });
   const [metrics, setMetrics] = useState({
     totalSubmissions: 0,
     weeklySubmissions: 0,
@@ -24,9 +26,13 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     loadDashboardData();
+    loadScoreStats();
     
     // Set up real-time updates every 30 seconds
-    const interval = setInterval(loadDashboardData, 30000);
+    const interval = setInterval(() => {
+      loadDashboardData();
+      loadScoreStats();
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -76,6 +82,43 @@ const AdminDashboard = () => {
     }
   };
 
+  const loadScoreStats = async () => {
+    try {
+      const response = await leadScoringService.getScoreStats();
+      if (response.data) {
+        setScoreStats(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading score stats:', error);
+    }
+  };
+
+  const handleRecalculateAllScores = async () => {
+    setRecalculatingScores(true);
+    try {
+      const response = await leadScoringService.recalculateAllScores();
+      if (response.error) {
+        throw response.error;
+      }
+      
+      toast({
+        title: "Scores Recalculated",
+        description: `Successfully updated ${response.data?.updated || 0} lead scores`,
+      });
+      
+      // Refresh data
+      await Promise.all([loadDashboardData(), loadScoreStats()]);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to recalculate lead scores",
+        variant: "destructive",
+      });
+    } finally {
+      setRecalculatingScores(false);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { 
       style: 'currency', 
@@ -104,11 +147,30 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-        <p className="text-muted-foreground">
-          Overview of revenue leak calculator performance and key metrics
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+          <p className="text-muted-foreground">
+            Overview of revenue leak calculator performance and key metrics
+          </p>
+        </div>
+        <div className="flex gap-3">
+          {scoreStats.unscored > 0 && (
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">
+                {scoreStats.unscored} leads need score calculation
+              </p>
+              <Button 
+                onClick={handleRecalculateAllScores}
+                disabled={recalculatingScores}
+                variant="outline"
+                size="sm"
+              >
+                {recalculatingScores ? "Recalculating..." : "Recalculate All Scores"}
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Metrics Cards */}

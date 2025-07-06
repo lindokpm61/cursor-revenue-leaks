@@ -6,16 +6,17 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  Search, Filter, Download, Eye, ArrowUpDown
+  Search, Filter, Download, Eye, ArrowUpDown, RefreshCw, AlertCircle
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { submissionService } from "@/lib/supabase";
+import { submissionService, leadScoringService } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
 const AdminLeads = () => {
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [filteredSubmissions, setFilteredSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [recalculatingScores, setRecalculatingScores] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
   const [industryFilter, setIndustryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -130,6 +131,50 @@ const AdminLeads = () => {
     if (score >= 60) return 'text-revenue-warning';
     if (score >= 40) return 'text-yellow-500';
     return 'text-revenue-success';
+  };
+
+  const handleRecalculateScore = async (submissionId: string) => {
+    setRecalculatingScores(prev => new Set([...prev, submissionId]));
+    try {
+      const response = await leadScoringService.recalculateScore(submissionId);
+      if (response.error) {
+        throw response.error;
+      }
+      
+      // Update the submission in state
+      setSubmissions(prev => prev.map(sub => 
+        sub.id === submissionId 
+          ? { ...sub, lead_score: response.data?.lead_score, updated_at: response.data?.updated_at }
+          : sub
+      ));
+      
+      toast({
+        title: "Score Updated",
+        description: `Lead score recalculated to ${response.data?.lead_score}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to recalculate lead score",
+        variant: "destructive",
+      });
+    } finally {
+      setRecalculatingScores(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(submissionId);
+        return newSet;
+      });
+    }
+  };
+
+  const getScoreStatus = (submission: any) => {
+    const score = submission.lead_score || 0;
+    const isLegacy = score === 0;
+    return {
+      isLegacy,
+      status: isLegacy ? 'Legacy' : 'Calculated',
+      lastUpdated: submission.updated_at ? new Date(submission.updated_at).toLocaleDateString() : 'Unknown'
+    };
   };
 
   const industries = [...new Set(submissions.map(s => s.industry).filter(Boolean))];
@@ -262,10 +307,11 @@ const AdminLeads = () => {
                       Date
                       <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
-                  </TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
+                     </TableHead>
+                   <TableHead>Score Status</TableHead>
+                   <TableHead>Actions</TableHead>
+                 </TableRow>
+               </TableHeader>
               <TableBody>
                 {filteredSubmissions.map((submission) => (
                   <TableRow key={submission.id}>
@@ -286,24 +332,60 @@ const AdminLeads = () => {
                     <TableCell className="text-revenue-danger">
                       {formatCurrency(submission.total_leak || 0)}
                     </TableCell>
-                    <TableCell>
-                      <span className={`font-bold ${getLeadScoreColor(submission.lead_score || 0)}`}>
-                        {submission.lead_score || 0}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {submission.created_at ? 
-                        new Date(submission.created_at).toLocaleDateString() : 
-                        'N/A'
-                      }
-                    </TableCell>
-                    <TableCell>
-                      <Link to={`/results/${submission.id}`}>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                    </TableCell>
+                     <TableCell>
+                       <div className="flex items-center gap-2">
+                         <span className={`font-bold ${getLeadScoreColor(submission.lead_score || 0)}`}>
+                           {submission.lead_score || 0}
+                         </span>
+                          {(submission.lead_score || 0) === 0 && (
+                            <div title="Score needs calculation">
+                              <AlertCircle className="h-4 w-4 text-revenue-warning" />
+                            </div>
+                          )}
+                       </div>
+                     </TableCell>
+                     <TableCell className="text-muted-foreground">
+                       {submission.created_at ? 
+                         new Date(submission.created_at).toLocaleDateString() : 
+                         'N/A'
+                       }
+                     </TableCell>
+                     <TableCell>
+                       {(() => {
+                         const scoreStatus = getScoreStatus(submission);
+                         return (
+                           <div className="flex flex-col gap-1">
+                             <Badge 
+                               variant={scoreStatus.isLegacy ? "destructive" : "outline"}
+                               className="w-fit"
+                             >
+                               {scoreStatus.status}
+                             </Badge>
+                             <span className="text-xs text-muted-foreground">
+                               Updated: {scoreStatus.lastUpdated}
+                             </span>
+                           </div>
+                         );
+                       })()}
+                     </TableCell>
+                     <TableCell>
+                       <div className="flex gap-2">
+                         <Link to={`/results/${submission.id}`}>
+                           <Button variant="outline" size="sm">
+                             <Eye className="h-4 w-4" />
+                           </Button>
+                         </Link>
+                         <Button 
+                           variant="outline" 
+                           size="sm"
+                           onClick={() => handleRecalculateScore(submission.id)}
+                           disabled={recalculatingScores.has(submission.id)}
+                           title="Recalculate Score"
+                         >
+                           <RefreshCw className={`h-4 w-4 ${recalculatingScores.has(submission.id) ? 'animate-spin' : ''}`} />
+                         </Button>
+                       </div>
+                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

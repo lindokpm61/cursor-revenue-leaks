@@ -195,6 +195,127 @@ export const integrationLogService = {
   }
 };
 
+// Lead scoring utilities
+export const calculateLeadScore = (submission: any): number => {
+  let score = 0;
+  
+  // ARR Points
+  const arr = submission.current_arr || 0;
+  if (arr >= 5000000) {
+    score += 50; // $5M+
+  } else if (arr >= 1000000) {
+    score += 40; // $1M-5M
+  } else if (arr >= 500000) {
+    score += 30; // $500K-1M
+  } else {
+    score += 20; // <$500K
+  }
+  
+  // Leak Impact Points
+  const totalLeak = submission.total_leak || 0;
+  if (totalLeak >= 1000000) {
+    score += 40; // $1M+ leak
+  } else if (totalLeak >= 500000) {
+    score += 30; // $500K-1M leak
+  } else if (totalLeak >= 250000) {
+    score += 20; // $250K-500K leak
+  } else {
+    score += 10; // <$250K leak
+  }
+  
+  // Industry Multiplier
+  const industry = submission.industry?.toLowerCase() || '';
+  if (industry.includes('technology') || industry.includes('saas') || industry.includes('software')) {
+    score += 10; // Technology/SaaS
+  } else if (industry.includes('finance') || industry.includes('financial') || industry.includes('fintech')) {
+    score += 8; // Finance
+  } else {
+    score += 5; // Other
+  }
+  
+  return Math.min(score, 100); // Cap at 100
+};
+
+// Lead scoring operations
+export const leadScoringService = {
+  async recalculateAllScores() {
+    // Get all submissions with missing or zero scores
+    const { data: submissions, error: fetchError } = await supabase
+      .from('submissions')
+      .select('*')
+      .or('lead_score.is.null,lead_score.eq.0');
+    
+    if (fetchError) return { data: null, error: fetchError };
+    if (!submissions || submissions.length === 0) return { data: { updated: 0 }, error: null };
+    
+    // Update each submission individually
+    const updatePromises = submissions.map(async (submission) => {
+      const newScore = calculateLeadScore(submission);
+      return supabase
+        .from('submissions')
+        .update({ 
+          lead_score: newScore,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', submission.id);
+    });
+    
+    const results = await Promise.all(updatePromises);
+    const hasErrors = results.some(result => result.error);
+    
+    if (hasErrors) {
+      return { data: null, error: new Error('Some updates failed') };
+    }
+    
+    return { data: { updated: submissions.length }, error: null };
+  },
+
+  async recalculateScore(submissionId: string) {
+    const { data: submission, error: fetchError } = await supabase
+      .from('submissions')
+      .select('*')
+      .eq('id', submissionId)
+      .single();
+    
+    if (fetchError) return { data: null, error: fetchError };
+    
+    const newScore = calculateLeadScore(submission);
+    
+    const { data, error } = await supabase
+      .from('submissions')
+      .update({ 
+        lead_score: newScore,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', submissionId)
+      .select()
+      .single();
+    
+    return { data, error };
+  },
+
+  async getScoreStats() {
+    const { data, error } = await supabase
+      .from('submissions')
+      .select('lead_score');
+    
+    if (error) return { data: null, error };
+    
+    const totalSubmissions = data.length;
+    const scoredSubmissions = data.filter(s => s.lead_score && s.lead_score > 0).length;
+    const unScoredSubmissions = totalSubmissions - scoredSubmissions;
+    
+    return { 
+      data: { 
+        total: totalSubmissions, 
+        scored: scoredSubmissions, 
+        unscored: unScoredSubmissions 
+      }, 
+      error: null 
+    };
+  }
+};
+
 // User profile operations
 export const userProfileService = {
   async create(data: UserProfileInsert) {
