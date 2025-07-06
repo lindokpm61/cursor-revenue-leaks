@@ -44,6 +44,100 @@ export type Database = {
           },
         ]
       }
+      email_sequences: {
+        Row: {
+          clicked_at: string | null
+          created_at: string | null
+          email_step: number
+          id: string
+          opened_at: string | null
+          replied_at: string | null
+          sent_at: string | null
+          sequence_type: string
+          smartlead_campaign_id: string | null
+          smartlead_prospect_id: string | null
+          status: string | null
+          submission_id: string | null
+        }
+        Insert: {
+          clicked_at?: string | null
+          created_at?: string | null
+          email_step: number
+          id?: string
+          opened_at?: string | null
+          replied_at?: string | null
+          sent_at?: string | null
+          sequence_type: string
+          smartlead_campaign_id?: string | null
+          smartlead_prospect_id?: string | null
+          status?: string | null
+          submission_id?: string | null
+        }
+        Update: {
+          clicked_at?: string | null
+          created_at?: string | null
+          email_step?: number
+          id?: string
+          opened_at?: string | null
+          replied_at?: string | null
+          sent_at?: string | null
+          sequence_type?: string
+          smartlead_campaign_id?: string | null
+          smartlead_prospect_id?: string | null
+          status?: string | null
+          submission_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_sequences_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          integration_type: string
+          response_data: Json | null
+          retry_count: number | null
+          status: string
+          submission_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          integration_type: string
+          response_data?: Json | null
+          retry_count?: number | null
+          status: string
+          submission_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          integration_type?: string
+          response_data?: Json | null
+          retry_count?: number | null
+          status?: string
+          submission_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_logs_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       submissions: {
         Row: {
           average_deal_value: number | null
@@ -140,6 +234,45 @@ export type Database = {
           twenty_contact_id?: string | null
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          companies_analyzed: number | null
+          company_name: string | null
+          created_at: string | null
+          engagement_tier: string | null
+          id: string
+          last_analysis_date: string | null
+          role: string | null
+          total_opportunity: number | null
+          updated_at: string | null
+          user_type: string | null
+        }
+        Insert: {
+          companies_analyzed?: number | null
+          company_name?: string | null
+          created_at?: string | null
+          engagement_tier?: string | null
+          id: string
+          last_analysis_date?: string | null
+          role?: string | null
+          total_opportunity?: number | null
+          updated_at?: string | null
+          user_type?: string | null
+        }
+        Update: {
+          companies_analyzed?: number | null
+          company_name?: string | null
+          created_at?: string | null
+          engagement_tier?: string | null
+          id?: string
+          last_analysis_date?: string | null
+          role?: string | null
+          total_opportunity?: number | null
+          updated_at?: string | null
+          user_type?: string | null
         }
         Relationships: []
       }

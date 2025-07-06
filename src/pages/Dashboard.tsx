@@ -3,14 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, Plus, BarChart3, TrendingUp, DollarSign, Users, LogOut } from "lucide-react";
+import { Calculator, Plus, BarChart3, TrendingUp, DollarSign, Users, LogOut, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { submissionService, analyticsService, type Submission } from "@/lib/supabase";
+import { submissionService, analyticsService, userProfileService, type Submission, type UserProfile } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalSubmissions: 0,
@@ -35,9 +36,13 @@ const Dashboard = () => {
     if (!user) return;
 
     try {
-      const submissionsResponse = isAdmin 
-        ? await submissionService.getAll(50)
-        : await submissionService.getByUserId(user.id, 10);
+      // Load submissions and user profile in parallel
+      const [submissionsResponse, profileResponse] = await Promise.all([
+        isAdmin 
+          ? submissionService.getAll(50)
+          : submissionService.getByUserId(user.id, 10),
+        userProfileService.getByUserId(user.id)
+      ]);
       
       if (submissionsResponse.data) {
         setSubmissions(submissionsResponse.data);
@@ -62,6 +67,11 @@ const Dashboard = () => {
           averageLeakage: avgLeakage,
           topIndustry
         });
+      }
+
+      // Set user profile if found
+      if (profileResponse.data) {
+        setUserProfile(profileResponse.data);
       }
     } catch (error) {
       console.error('Dashboard load error:', error);
@@ -201,10 +211,17 @@ const Dashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Top Industry</p>
-                  <p className="text-2xl font-bold capitalize">{stats.topIndustry || "N/A"}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {userProfile ? "Total Opportunity" : "Top Industry"}
+                  </p>
+                  <p className="text-2xl font-bold text-revenue-success">
+                    {userProfile 
+                      ? formatCurrency(userProfile.total_opportunity || 0)
+                      : (stats.topIndustry || "N/A")
+                    }
+                  </p>
                 </div>
-                <Users className="h-8 w-8 text-revenue-success" />
+                <User className="h-8 w-8 text-revenue-success" />
               </div>
             </CardContent>
           </Card>

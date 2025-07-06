@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { submissionService, analyticsService } from "@/lib/supabase";
+import { submissionService, analyticsService, userProfileService, integrationLogService } from "@/lib/supabase";
 import { CalculatorData, Calculations } from "../useCalculatorData";
 
 export const useSaveResults = () => {
@@ -65,6 +65,27 @@ export const useSaveResults = () => {
 
       // Track analytics
       await analyticsService.track('submission_saved', savedSubmission?.id);
+
+      // Update user profile analytics
+      try {
+        await userProfileService.incrementAnalysis(user.id, calculations.totalLeakage);
+      } catch (profileError) {
+        // If profile doesn't exist, create it
+        await userProfileService.create({
+          id: user.id,
+          companies_analyzed: 1,
+          total_opportunity: calculations.totalLeakage,
+          last_analysis_date: new Date().toISOString()
+        });
+      }
+
+      // Log integration activity
+      await integrationLogService.create({
+        submission_id: savedSubmission?.id,
+        integration_type: 'calculator_save',
+        status: 'success',
+        response_data: { submission_id: savedSubmission?.id, total_leak: calculations.totalLeakage }
+      });
 
       toast({
         title: "Results Saved",
