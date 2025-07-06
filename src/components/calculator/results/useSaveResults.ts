@@ -5,6 +5,46 @@ import { useToast } from "@/hooks/use-toast";
 import { submissionService, analyticsService, userProfileService, integrationLogService } from "@/lib/supabase";
 import { CalculatorData, Calculations } from "../useCalculatorData";
 
+const calculateLeadScore = (data: CalculatorData, calculations: Calculations): number => {
+  let score = 0;
+  
+  // ARR Points
+  const arr = data.companyInfo.currentARR || 0;
+  if (arr >= 5000000) {
+    score += 50; // $5M+
+  } else if (arr >= 1000000) {
+    score += 40; // $1M-5M
+  } else if (arr >= 500000) {
+    score += 30; // $500K-1M
+  } else {
+    score += 20; // <$500K
+  }
+  
+  // Leak Impact Points
+  const totalLeak = calculations.totalLeakage || 0;
+  if (totalLeak >= 1000000) {
+    score += 40; // $1M+ leak
+  } else if (totalLeak >= 500000) {
+    score += 30; // $500K-1M leak
+  } else if (totalLeak >= 250000) {
+    score += 20; // $250K-500K leak
+  } else {
+    score += 10; // <$250K leak
+  }
+  
+  // Industry Multiplier
+  const industry = data.companyInfo.industry?.toLowerCase() || '';
+  if (industry.includes('technology') || industry.includes('saas') || industry.includes('software')) {
+    score += 10; // Technology/SaaS
+  } else if (industry.includes('finance') || industry.includes('financial')) {
+    score += 8; // Finance
+  } else {
+    score += 5; // Other
+  }
+  
+  return Math.min(score, 100); // Cap at 100
+};
+
 export const useSaveResults = () => {
   const [saving, setSaving] = useState(false);
   const { user } = useAuth();
@@ -28,6 +68,8 @@ export const useSaveResults = () => {
     console.log('User auth data:', { id: user.id, email: user.email });
     setSaving(true);
     try {
+      const leadScore = calculateLeadScore(data, calculations);
+      
       const submissionData = {
         company_name: data.companyInfo.companyName,
         contact_email: data.companyInfo.email,
@@ -52,6 +94,7 @@ export const useSaveResults = () => {
         leak_percentage: data.companyInfo.currentARR > 0 
           ? Math.round((calculations.totalLeakage / data.companyInfo.currentARR) * 100)
           : 0,
+        lead_score: leadScore,
         user_id: user.id,
       };
 
