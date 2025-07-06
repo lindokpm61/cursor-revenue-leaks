@@ -6,11 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Calculator, Plus, BarChart3, TrendingUp, DollarSign, Users, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { db, CalculatorSubmission } from "@/lib/database";
+import { submissionService, analyticsService, type Submission } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
-  const [submissions, setSubmissions] = useState<CalculatorSubmission[]>([]);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalSubmissions: 0,
@@ -32,19 +32,26 @@ const Dashboard = () => {
   }, [user, navigate]);
 
   const loadDashboardData = async () => {
+    if (!user) return;
+
     try {
-      const submissionsResponse = await db.getSubmissions({ limit: 10 });
+      const submissionsResponse = isAdmin 
+        ? await submissionService.getAll(50)
+        : await submissionService.getByUserId(user.id, 10);
+      
       if (submissionsResponse.data) {
         setSubmissions(submissionsResponse.data);
         
         // Calculate stats
         const total = submissionsResponse.data.length;
-        const totalLeakage = submissionsResponse.data.reduce((sum, s) => sum + (s.calculations?.totalLeakage || 0), 0);
+        const totalLeakage = submissionsResponse.data.reduce((sum, s) => sum + (s.total_leak || 0), 0);
         const avgLeakage = total > 0 ? totalLeakage / total : 0;
         
         // Find top industry
         const industries = submissionsResponse.data.reduce((acc, s) => {
-          acc[s.industry] = (acc[s.industry] || 0) + 1;
+          if (s.industry) {
+            acc[s.industry] = (acc[s.industry] || 0) + 1;
+          }
           return acc;
         }, {} as Record<string, number>);
         const topIndustry = Object.entries(industries).sort(([,a], [,b]) => b - a)[0]?.[0] || "";
@@ -57,6 +64,7 @@ const Dashboard = () => {
         });
       }
     } catch (error) {
+      console.error('Dashboard load error:', error);
       toast({
         title: "Error",
         description: "Failed to load dashboard data",
@@ -67,8 +75,8 @@ const Dashboard = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/");
   };
 
@@ -245,17 +253,17 @@ const Dashboard = () => {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="capitalize">
-                          {submission.industry}
+                          {submission.industry || 'N/A'}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {formatCurrency(submission.current_arr)}
+                        {formatCurrency(submission.current_arr || 0)}
                       </TableCell>
-                      <TableCell className={getLeakageColor(submission.calculations?.totalLeakage || 0)}>
-                        {formatCurrency(submission.calculations?.totalLeakage || 0)}
+                      <TableCell className={getLeakageColor(submission.total_leak || 0)}>
+                        {formatCurrency(submission.total_leak || 0)}
                       </TableCell>
                       <TableCell className="text-revenue-success">
-                        {formatCurrency(submission.calculations?.potentialRecovery70 || 0)}
+                        {formatCurrency(submission.recovery_potential_70 || 0)}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {submission.created_at ? 

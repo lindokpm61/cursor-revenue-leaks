@@ -9,7 +9,140 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      analytics_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          properties: Json | null
+          submission_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          properties?: Json | null
+          submission_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          properties?: Json | null
+          submission_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      submissions: {
+        Row: {
+          average_deal_value: number | null
+          company_name: string
+          contact_email: string
+          created_at: string | null
+          current_arr: number | null
+          failed_payment_loss: number | null
+          failed_payment_rate: number | null
+          free_to_paid_conversion: number | null
+          hourly_rate: number | null
+          id: string
+          industry: string | null
+          lead_response_loss: number | null
+          lead_response_time: number | null
+          lead_score: number | null
+          leak_percentage: number | null
+          manual_hours: number | null
+          monthly_free_signups: number | null
+          monthly_leads: number | null
+          monthly_mrr: number | null
+          n8n_triggered: boolean | null
+          process_inefficiency_loss: number | null
+          recovery_potential_70: number | null
+          recovery_potential_85: number | null
+          selfserve_gap_loss: number | null
+          smartlead_campaign_id: string | null
+          synced_to_self_hosted: boolean | null
+          total_leak: number | null
+          twenty_contact_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          average_deal_value?: number | null
+          company_name: string
+          contact_email: string
+          created_at?: string | null
+          current_arr?: number | null
+          failed_payment_loss?: number | null
+          failed_payment_rate?: number | null
+          free_to_paid_conversion?: number | null
+          hourly_rate?: number | null
+          id?: string
+          industry?: string | null
+          lead_response_loss?: number | null
+          lead_response_time?: number | null
+          lead_score?: number | null
+          leak_percentage?: number | null
+          manual_hours?: number | null
+          monthly_free_signups?: number | null
+          monthly_leads?: number | null
+          monthly_mrr?: number | null
+          n8n_triggered?: boolean | null
+          process_inefficiency_loss?: number | null
+          recovery_potential_70?: number | null
+          recovery_potential_85?: number | null
+          selfserve_gap_loss?: number | null
+          smartlead_campaign_id?: string | null
+          synced_to_self_hosted?: boolean | null
+          total_leak?: number | null
+          twenty_contact_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          average_deal_value?: number | null
+          company_name?: string
+          contact_email?: string
+          created_at?: string | null
+          current_arr?: number | null
+          failed_payment_loss?: number | null
+          failed_payment_rate?: number | null
+          free_to_paid_conversion?: number | null
+          hourly_rate?: number | null
+          id?: string
+          industry?: string | null
+          lead_response_loss?: number | null
+          lead_response_time?: number | null
+          lead_score?: number | null
+          leak_percentage?: number | null
+          manual_hours?: number | null
+          monthly_free_signups?: number | null
+          monthly_leads?: number | null
+          monthly_mrr?: number | null
+          n8n_triggered?: boolean | null
+          process_inefficiency_loss?: number | null
+          recovery_potential_70?: number | null
+          recovery_potential_85?: number | null
+          selfserve_gap_loss?: number | null
+          smartlead_campaign_id?: string | null
+          synced_to_self_hosted?: boolean | null
+          total_leak?: number | null
+          twenty_contact_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -9,6 +9,10 @@ interface ResultsStepProps {
 }
 
 export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
+  const [saving, setSaving] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',

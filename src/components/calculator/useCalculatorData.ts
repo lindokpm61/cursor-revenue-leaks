@@ -79,6 +79,10 @@ export const useCalculatorData = () => {
     }));
   };
 
+  const resetData = () => {
+    setData(initialData);
+  };
+
   const calculations = useMemo((): Calculations => {
     const { leadGeneration, selfServeMetrics, operationsData } = data;
 
@@ -115,6 +119,7 @@ export const useCalculatorData = () => {
   return {
     data,
     updateData,
+    resetData,
     calculations,
   };
 };

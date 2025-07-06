@@ -1,12 +1,14 @@
 import React, { createContext } from 'react';
 import { useAuthProvider } from '@/hooks/useAuth';
+import type { User, Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
-  user: any;
+  user: User | null;
+  session: Session | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isAdmin: boolean;
 }
 
