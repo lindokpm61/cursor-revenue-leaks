@@ -9,9 +9,19 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
+  console.log("Login component rendering");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  try {
+    const { login } = useAuth();
+    console.log("useAuth hook loaded successfully");
+  } catch (error) {
+    console.error("Error loading useAuth:", error);
+    return <div>Auth Error: {String(error)}</div>;
+  }
+  
   const { login } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
