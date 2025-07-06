@@ -1,7 +1,15 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { CalculatorData, Calculations } from "./useCalculatorData";
-import { TrendingUp, TrendingDown, DollarSign, AlertTriangle, Target, Zap, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, AlertTriangle, Target, Zap, BarChart3, Save, Share2, Download } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { submissionService, analyticsService } from "@/lib/supabase";
+import { integrations } from "@/lib/integrations";
 
 interface ResultsStepProps {
   data: CalculatorData;
