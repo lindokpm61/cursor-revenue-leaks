@@ -12,7 +12,10 @@ export const useSaveResults = () => {
   const navigate = useNavigate();
 
   const handleSave = async (data: CalculatorData, calculations: Calculations) => {
+    console.log('Save button clicked, user:', user);
+    
     if (!user) {
+      console.log('No user found, showing auth required toast');
       toast({
         title: "Authentication Required",
         description: "Please log in to save your results",
@@ -22,6 +25,7 @@ export const useSaveResults = () => {
     }
 
     console.log('Starting save with user:', user.id);
+    console.log('User auth data:', { id: user.id, email: user.email });
     setSaving(true);
     try {
       const submissionData = {
