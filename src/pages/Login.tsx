@@ -124,8 +124,7 @@ const Login = () => {
             <div className="text-sm">
               <p className="font-medium text-revenue-warning mb-2">Demo Account</p>
               <p className="text-muted-foreground">
-                Email: demo@example.com<br />
-                Password: demo123
+                Create a test account using the "Create one here" link above to try the platform.
               </p>
             </div>
           </CardContent>
