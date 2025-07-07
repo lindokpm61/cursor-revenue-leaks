@@ -409,7 +409,7 @@ const Results = () => {
                         <BarChart3 className="h-6 w-6 text-primary" />
                       </div>
                       <div className="text-left">
-                        <h3 className="text-h2 font-bold">Detailed Revenue Breakdown</h3>
+                        <h3 className="text-2xl font-semibold">Detailed Revenue Breakdown</h3>
                         <div className="flex items-center gap-3 mt-1">
                           <Badge variant="secondary" className="text-xs font-semibold px-3 py-1">📊 Detailed</Badge>
                           <span className="text-small text-muted-foreground">5 min read</span>
@@ -431,7 +431,7 @@ const Results = () => {
                                   <Icon className="h-5 w-5 text-primary" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <CardTitle className="text-lg leading-tight">{item.title}</CardTitle>
+                                  <CardTitle className="font-semibold leading-tight">{item.title}</CardTitle>
                                   <CardDescription className="text-sm mt-1 line-clamp-2">
                                     {item.description}
                                   </CardDescription>
@@ -462,7 +462,7 @@ const Results = () => {
                             <Settings className="h-6 w-6 text-muted-foreground" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <CardTitle className="text-lg leading-tight">Technical Metrics & Operations</CardTitle>
+                            <CardTitle className="font-semibold leading-tight">Technical Metrics & Operations</CardTitle>
                             <CardDescription className="text-sm mt-1">
                               Operational data and system metrics
                             </CardDescription>
@@ -472,7 +472,7 @@ const Results = () => {
                       <CardContent className="pt-0">
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                           <div className="space-y-4">
-                            <h4 className="font-medium flex items-center gap-2 text-base">
+                            <h4 className="text-lg font-semibold flex items-center gap-2">
                               <Users className="h-4 w-4" />
                               Lead Generation
                             </h4>
@@ -493,7 +493,7 @@ const Results = () => {
                           </div>
 
                           <div className="space-y-4">
-                            <h4 className="font-medium flex items-center gap-2 text-base">
+                            <h4 className="text-lg font-semibold flex items-center gap-2">
                               <Target className="h-4 w-4" />
                               Self-Serve Metrics
                             </h4>
@@ -514,7 +514,7 @@ const Results = () => {
                           </div>
 
                           <div className="space-y-4">
-                            <h4 className="font-medium flex items-center gap-2 text-base">
+                            <h4 className="text-lg font-semibold flex items-center gap-2">
                               <Settings className="h-4 w-4" />
                               Operations
                             </h4>
