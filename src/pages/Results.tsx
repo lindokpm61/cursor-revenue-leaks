@@ -235,7 +235,7 @@ const Results = () => {
                   Dashboard
                 </Button>
               </Link>
-              <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-3">
                 <div className="p-1.5 sm:p-2 rounded-lg bg-gradient-to-r from-primary to-revenue-primary">
                   <Calculator className="h-4 w-4 sm:h-6 sm:w-6 text-primary-foreground" />
                 </div>
