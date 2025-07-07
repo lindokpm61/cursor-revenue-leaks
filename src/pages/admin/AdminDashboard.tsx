@@ -180,12 +180,6 @@ const AdminDashboard = () => {
       {/* Data Freshness */}
       <DataFreshnessIndicator />
 
-      {/* Operational Widgets */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <IntegrationStatusWidget />
-        <QuickActionsPanel />
-      </div>
-
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="border-border/50 shadow-lg">
@@ -241,7 +235,7 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      {/* Recent Submissions */}
+      {/* Recent Submissions - Moved up */}
       <Card className="border-border/50 shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -298,6 +292,12 @@ const AdminDashboard = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Operational Widgets - Moved down */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <IntegrationStatusWidget />
+        <QuickActionsPanel />
+      </div>
 
       {/* Activity Log */}
       <ActivityLogWidget />
