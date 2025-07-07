@@ -168,7 +168,7 @@ export const ImplementationTimeline = ({ submission, formatCurrency }: Implement
               </div>
             </div>
             <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="ml-4">
+              <Button variant="outline" size="sm" className="ml-4 flex-shrink-0">
                 <ChevronDown className={`h-4 w-4 transition-transform ${isContentOpen ? 'rotate-180' : ''}`} />
               </Button>
             </CollapsibleTrigger>
