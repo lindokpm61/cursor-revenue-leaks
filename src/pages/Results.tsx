@@ -418,122 +418,125 @@ const Results = () => {
                     </div>
                 </AccordionTrigger>
                 <AccordionContent className="pb-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    {leakageBreakdown.map((item, index) => {
-                      const Icon = item.icon;
-                      return (
-                        <Card key={index} className="border-border/50 shadow-lg">
-                          <CardHeader className="pb-3">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 rounded-lg bg-primary/10">
-                                <Icon className="h-5 w-5 text-primary" />
+                  <div className="space-y-6">
+                    {/* Revenue Breakdown Cards */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {leakageBreakdown.map((item, index) => {
+                        const Icon = item.icon;
+                        return (
+                          <Card key={index} className="border-border/50 shadow-lg h-full">
+                            <CardHeader className="pb-4">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                                  <Icon className="h-5 w-5 text-primary" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <CardTitle className="text-lg leading-tight">{item.title}</CardTitle>
+                                  <CardDescription className="text-sm mt-1 line-clamp-2">
+                                    {item.description}
+                                  </CardDescription>
+                                </div>
                               </div>
-                              <div>
-                                <CardTitle className="text-lg">{item.title}</CardTitle>
-                                <CardDescription className="text-sm">
-                                  {item.description}
-                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="pt-0">
+                              <div className={`text-2xl font-bold ${getLeakageColor(item.amount)} mb-2`}>
+                                {formatCurrency(item.amount)}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {submission.current_arr && submission.current_arr > 0 
+                                  ? `${((item.amount / submission.current_arr) * 100).toFixed(1)}% of ARR`
+                                  : 'N/A'
+                                }
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+
+                    {/* Technical Metrics & Operations */}
+                    <Card className="border-border/50 shadow-lg">
+                      <CardHeader className="pb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-muted/50 flex-shrink-0">
+                            <Settings className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-lg leading-tight">Technical Metrics & Operations</CardTitle>
+                            <CardDescription className="text-sm mt-1">
+                              Operational data and system metrics
+                            </CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                          <div className="space-y-4">
+                            <h4 className="font-medium flex items-center gap-2 text-base">
+                              <Users className="h-4 w-4" />
+                              Lead Generation
+                            </h4>
+                            <div className="space-y-3">
+                              <div className="flex justify-between items-center py-1">
+                                <span className="text-sm text-muted-foreground">Monthly Leads</span>
+                                <span className="font-medium text-sm">{submission.monthly_leads || 0}</span>
+                              </div>
+                              <div className="flex justify-between items-center py-1">
+                                <span className="text-sm text-muted-foreground">Avg Deal Value</span>
+                                <span className="font-medium text-sm">{formatCurrency(submission.average_deal_value || 0)}</span>
+                              </div>
+                              <div className="flex justify-between items-center py-1">
+                                <span className="text-sm text-muted-foreground">Response Time</span>
+                                <span className="font-medium text-sm">{submission.lead_response_time || 0}h</span>
                               </div>
                             </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className={`text-2xl font-bold ${getLeakageColor(item.amount)}`}>
-                              {formatCurrency(item.amount)}
+                          </div>
+
+                          <div className="space-y-4">
+                            <h4 className="font-medium flex items-center gap-2 text-base">
+                              <Target className="h-4 w-4" />
+                              Self-Serve Metrics
+                            </h4>
+                            <div className="space-y-3">
+                              <div className="flex justify-between items-center py-1">
+                                <span className="text-sm text-muted-foreground">Free Signups</span>
+                                <span className="font-medium text-sm">{submission.monthly_free_signups || 0}/month</span>
+                              </div>
+                              <div className="flex justify-between items-center py-1">
+                                <span className="text-sm text-muted-foreground">Conversion Rate</span>
+                                <span className="font-medium text-sm">{submission.free_to_paid_conversion || 0}%</span>
+                              </div>
+                              <div className="flex justify-between items-center py-1">
+                                <span className="text-sm text-muted-foreground">Monthly MRR</span>
+                                <span className="font-medium text-sm">{formatCurrency(submission.monthly_mrr || 0)}</span>
+                              </div>
                             </div>
-                            <div className="text-sm text-muted-foreground mt-1">
-                              {submission.current_arr && submission.current_arr > 0 
-                                ? `${((item.amount / submission.current_arr) * 100).toFixed(1)}% of ARR`
-                                : 'N/A'
-                              }
+                          </div>
+
+                          <div className="space-y-4">
+                            <h4 className="font-medium flex items-center gap-2 text-base">
+                              <Settings className="h-4 w-4" />
+                              Operations
+                            </h4>
+                            <div className="space-y-3">
+                              <div className="flex justify-between items-center py-1">
+                                <span className="text-sm text-muted-foreground">Failed Payment Rate</span>
+                                <span className="font-medium text-sm">{submission.failed_payment_rate || 0}%</span>
+                              </div>
+                              <div className="flex justify-between items-center py-1">
+                                <span className="text-sm text-muted-foreground">Manual Hours/Week</span>
+                                <span className="font-medium text-sm">{submission.manual_hours || 0}h</span>
+                              </div>
+                              <div className="flex justify-between items-center py-1">
+                                <span className="text-sm text-muted-foreground">Hourly Rate</span>
+                                <span className="font-medium text-sm">{formatCurrency(submission.hourly_rate || 0)}</span>
+                              </div>
                             </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-
-                  {/* Technical Metrics & Operations */}
-                  <Card className="border-border/50 shadow-lg">
-                    <CardHeader>
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-muted/50">
-                          <Settings className="h-6 w-6 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <CardTitle className="text-lg">Technical Metrics & Operations</CardTitle>
-                          <CardDescription className="text-sm">
-                            Operational data and system metrics
-                          </CardDescription>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="space-y-4">
-                          <h4 className="font-medium flex items-center gap-2">
-                            <Users className="h-4 w-4" />
-                            Lead Generation
-                          </h4>
-                          <div className="space-y-3 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Monthly Leads</span>
-                              <span className="font-medium">{submission.monthly_leads || 0}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Avg Deal Value</span>
-                              <span className="font-medium">{formatCurrency(submission.average_deal_value || 0)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Response Time</span>
-                              <span className="font-medium">{submission.lead_response_time || 0}h</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          <h4 className="font-medium flex items-center gap-2">
-                            <Target className="h-4 w-4" />
-                            Self-Serve Metrics
-                          </h4>
-                          <div className="space-y-3 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Free Signups</span>
-                              <span className="font-medium">{submission.monthly_free_signups || 0}/month</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Conversion Rate</span>
-                              <span className="font-medium">{submission.free_to_paid_conversion || 0}%</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Monthly MRR</span>
-                              <span className="font-medium">{formatCurrency(submission.monthly_mrr || 0)}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          <h4 className="font-medium flex items-center gap-2">
-                            <Settings className="h-4 w-4" />
-                            Operations
-                          </h4>
-                          <div className="space-y-3 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Failed Payment Rate</span>
-                              <span className="font-medium">{submission.failed_payment_rate || 0}%</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Manual Hours/Week</span>
-                              <span className="font-medium">{submission.manual_hours || 0}h</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Hourly Rate</span>
-                              <span className="font-medium">{formatCurrency(submission.hourly_rate || 0)}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
