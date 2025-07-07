@@ -399,6 +399,15 @@ const Results = () => {
               estimatedTime={getEstimatedReadTime()}
             />
 
+            {userIntent && (
+              <TldrSummary 
+                submission={submission}
+                userIntent={userIntent}
+                formatCurrency={formatCurrency}
+                onExpandSection={handleExpandSection}
+              />
+            )}
+
             {/* Detailed Breakdown - Moved here */}
             <Accordion type="multiple" className="space-y-6 mb-12">
               <AccordionItem value="breakdown" className="border rounded-lg px-6">
@@ -539,15 +548,6 @@ const Results = () => {
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
-
-            {userIntent && (
-              <TldrSummary 
-                submission={submission}
-                userIntent={userIntent}
-                formatCurrency={formatCurrency}
-                onExpandSection={handleExpandSection}
-              />
-            )}
 
             <ProgressIndicator sections={sections} />
 
