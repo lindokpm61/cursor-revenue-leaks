@@ -408,11 +408,6 @@ const Results = () => {
               />
             )}
 
-            {/* Implementation Timeline & ROI - Moved here */}
-            <section id="timeline" className="mb-12">
-              <ImplementationTimeline submission={submission} formatCurrency={formatCurrency} />
-            </section>
-
             {/* Detailed Breakdown - Moved here */}
             <Accordion type="multiple" className="space-y-6 mb-12">
               <AccordionItem value="breakdown" className="border rounded-lg px-6">
@@ -569,6 +564,11 @@ const Results = () => {
                 formatCurrency={formatCurrency}
               />
             )}
+
+            {/* Implementation Timeline & ROI */}
+            <section id="timeline" className="mb-12">
+              <ImplementationTimeline submission={submission} formatCurrency={formatCurrency} />
+            </section>
 
             {/* Priority Actions */}
             <section id="priority-actions" className="mb-12">
