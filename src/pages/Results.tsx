@@ -401,7 +401,7 @@ const Results = () => {
             />
 
             {/* Detailed Breakdown - Moved here */}
-            <Accordion type="single" collapsible className="space-y-6 mb-12">
+            <Accordion type="multiple" className="space-y-6 mb-12">
               <AccordionItem value="breakdown" className="border rounded-lg px-6">
                 <AccordionTrigger className="py-4">
                     <div className="flex items-center gap-4">
