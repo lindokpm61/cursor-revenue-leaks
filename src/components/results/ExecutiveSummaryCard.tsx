@@ -117,15 +117,6 @@ export const ExecutiveSummaryCard = ({
             </div>
           </div>
 
-          {/* SECONDARY LEVEL: Quick win with 24px font */}
-          <div className="text-center p-6 rounded-xl bg-revenue-success/10 border-2 border-revenue-success/20">
-            <div className="text-[24px] font-bold text-revenue-success mb-2">
-              ⚡ Quick Win: {formatCurrency(quickWinValue)}
-            </div>
-            <div className="text-[16px] text-muted-foreground">
-              Recoverable in 30 days
-            </div>
-          </div>
 
           {/* PRIMARY CTA - 56px height minimum */}
           <Button 
@@ -182,15 +173,6 @@ export const ExecutiveSummaryCard = ({
           </Badge>
         </div>
 
-        {/* SECONDARY LEVEL: Key insight preview */}
-        <div className="text-center p-6 rounded-xl bg-revenue-success/10 border-2 border-revenue-success/20 mb-6">
-          <div className="text-[24px] font-bold text-revenue-success mb-2">
-            💡 Quick Win: Recover {formatCurrency(quickWinValue)} in 30 Days
-          </div>
-          <div className="text-muted-foreground">
-            Focus on {biggestOpportunity.name.toLowerCase()} for fastest impact
-          </div>
-        </div>
       </CardHeader>
       
       <CardContent className="space-y-8">
