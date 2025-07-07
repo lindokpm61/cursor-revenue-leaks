@@ -295,8 +295,8 @@ const Results = () => {
             {/* Revenue Overview - Essential Metrics */}
             <section id="revenue-overview" className="mb-12">
               <div className="flex items-center gap-4 mb-8">
-                <div className="p-4 rounded-2xl bg-revenue-warning/10 border-2 border-revenue-warning/20">
-                  <GrowthIcon className="h-8 w-8 text-revenue-warning" />
+                <div className="p-3 rounded-2xl bg-revenue-warning/10 border-2 border-revenue-warning/20">
+                  <GrowthIcon className="h-5 w-5 text-revenue-warning" />
                 </div>
                 <div>
                   <h2 className="text-h1 font-bold mb-2">Revenue Optimization Opportunity</h2>
@@ -354,9 +354,9 @@ const Results = () => {
               <AccordionItem value="breakdown" className="border rounded-lg px-6">
                 <AccordionTrigger className="py-4">
                     <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
-                        <BarChart className="h-6 w-6 text-primary" />
-                      </div>
+                       <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
+                         <BarChart className="h-4 w-4 text-primary" />
+                       </div>
                       <div className="text-left">
                         <h3 className="text-2xl font-semibold">Detailed Revenue Breakdown</h3>
                         <div className="flex items-center gap-3 mt-1">
@@ -376,9 +376,9 @@ const Results = () => {
                           <Card key={index} className="border-border/50 shadow-lg h-full">
                             <CardHeader className="pb-4">
                               <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-                                  <Icon className="h-5 w-5 text-primary" />
-                                </div>
+                                 <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                                   <Icon className="h-4 w-4 text-primary" />
+                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <CardTitle className="font-semibold leading-tight">{item.title}</CardTitle>
                                   <CardDescription className="text-sm mt-1 line-clamp-2">
@@ -407,9 +407,9 @@ const Results = () => {
                     <Card className="border-border/50 shadow-lg">
                       <CardHeader className="pb-4">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-muted/50 flex-shrink-0">
-                            <Settings className="h-6 w-6 text-muted-foreground" />
-                          </div>
+                           <div className="p-2 rounded-lg bg-muted/50 flex-shrink-0">
+                             <Settings className="h-4 w-4 text-muted-foreground" />
+                           </div>
                           <div className="flex-1 min-w-0">
                             <CardTitle className="font-semibold leading-tight">Technical Metrics & Operations</CardTitle>
                             <CardDescription className="text-sm mt-1">
@@ -524,9 +524,9 @@ const Results = () => {
                 <AccordionItem value="integrations" className="border rounded-lg px-6">
                   <AccordionTrigger className="py-4">
                     <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-xl bg-muted/50 border border-border">
-                        <BarChart3 className="h-6 w-6 text-muted-foreground" />
-                      </div>
+                       <div className="p-2 rounded-xl bg-muted/50 border border-border">
+                         <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                       </div>
                       <div className="text-left">
                         <h3 className="text-h3 font-semibold text-muted-foreground">Integration Status</h3>
                         <div className="flex items-center gap-3 mt-1">
