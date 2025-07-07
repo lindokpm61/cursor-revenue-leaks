@@ -354,21 +354,6 @@ const Results = () => {
               />
             </section>
 
-            <UserIntentSelector 
-              selectedIntent={userIntent}
-              onIntentChange={setUserIntent}
-              estimatedTime={getEstimatedReadTime()}
-            />
-
-            {userIntent && (
-              <TldrSummary 
-                submission={submission}
-                userIntent={userIntent}
-                formatCurrency={formatCurrency}
-                onExpandSection={handleExpandSection}
-              />
-            )}
-
             {/* Revenue Overview - Essential Metrics */}
             <section id="revenue-overview" className="mb-12">
               <div className="flex items-center gap-4 mb-8">
@@ -408,6 +393,23 @@ const Results = () => {
                 </div>
               </div>
             </section>
+
+            <UserIntentSelector
+              selectedIntent={userIntent}
+              onIntentChange={setUserIntent}
+              estimatedTime={getEstimatedReadTime()}
+            />
+
+            {userIntent && (
+              <TldrSummary 
+                submission={submission}
+                userIntent={userIntent}
+                formatCurrency={formatCurrency}
+                onExpandSection={handleExpandSection}
+              />
+            )}
+
+            <ProgressIndicator sections={sections} />
 
             {/* Industry Benchmarking */}
             <section id="benchmarking" className="mb-12">
