@@ -127,7 +127,7 @@ export const ProgressiveNavigation = ({
                     </Badge>
                   </div>
                 </div>
-                <p className="text-small text-muted-foreground">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   Get the essentials: your biggest problem and the top action to take
                 </p>
               </div>
@@ -151,7 +151,7 @@ export const ProgressiveNavigation = ({
                     </Badge>
                   </div>
                 </div>
-                <p className="text-small text-muted-foreground">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   Complete analysis with detailed breakdowns and implementation guidance
                 </p>
               </div>
