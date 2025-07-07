@@ -246,29 +246,20 @@ const Results = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{submission.company_name}</h1>
-              <div className="flex items-center gap-4 text-muted-foreground">
-                <span>{submission.contact_email}</span>
-                {submission.industry && (
-                  <>
-                    <span>•</span>
-                    <Badge variant="outline" className="capitalize">
-                      {submission.industry}
-                    </Badge>
-                  </>
-                )}
-                <span>•</span>
-                <span>{new Date(submission.created_at!).toLocaleDateString()}</span>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-small text-muted-foreground mb-1">Lead Score</div>
-              <div className={`text-h1 font-bold ${getLeadScoreColor(submission.lead_score || 0)} leading-none`}>
-                {submission.lead_score || 0}
-              </div>
-              <div className="text-small text-muted-foreground mt-1">/100</div>
+          <div className="mb-4">
+            <h1 className="text-3xl font-bold mb-2">{submission.company_name}</h1>
+            <div className="flex items-center gap-4 text-muted-foreground">
+              <span>{submission.contact_email}</span>
+              {submission.industry && (
+                <>
+                  <span>•</span>
+                  <Badge variant="outline" className="capitalize">
+                    {submission.industry}
+                  </Badge>
+                </>
+              )}
+              <span>•</span>
+              <span>{new Date(submission.created_at!).toLocaleDateString()}</span>
             </div>
           </div>
         </div>
