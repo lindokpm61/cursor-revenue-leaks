@@ -350,7 +350,7 @@ export const userProfileService = {
       .from('user_profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
     
     return { data, error };
   },
