@@ -11,7 +11,7 @@ interface ExecutiveSummaryProps {
 export const ExecutiveSummary = ({ data, calculations, formatCurrency }: ExecutiveSummaryProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-      <Card className="border-destructive/20 bg-destructive/5">
+      <Card className="bg-gradient-to-br from-white to-red-50 border-red-200 shadow-soft">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <TrendingDown className="h-5 w-5 text-destructive" />
@@ -26,7 +26,7 @@ export const ExecutiveSummary = ({ data, calculations, formatCurrency }: Executi
         </CardContent>
       </Card>
 
-      <Card className="border-revenue-success/20 bg-revenue-success/5">
+      <Card className="bg-gradient-to-br from-white to-green-50 border-green-200 shadow-soft">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <Target className="h-5 w-5 text-revenue-success" />
@@ -41,7 +41,7 @@ export const ExecutiveSummary = ({ data, calculations, formatCurrency }: Executi
         </CardContent>
       </Card>
 
-      <Card className="border-primary/20 bg-primary/5">
+      <Card className="bg-gradient-to-br from-white to-blue-50 border-blue-200 shadow-soft">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <Zap className="h-5 w-5 text-primary" />
@@ -56,15 +56,15 @@ export const ExecutiveSummary = ({ data, calculations, formatCurrency }: Executi
         </CardContent>
       </Card>
 
-      <Card className="border-accent/20 bg-accent/5">
+      <Card className="bg-gradient-to-br from-white to-green-50 border-green-200 shadow-soft">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-accent" />
+            <BarChart3 className="h-5 w-5 text-revenue-success" />
             ROI Potential
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold text-accent">
+          <p className="text-3xl font-bold text-revenue-success">
             {data.companyInfo.currentARR > 0 
               ? Math.round((calculations.potentialRecovery70 / data.companyInfo.currentARR) * 100)
               : 0}%

@@ -11,15 +11,15 @@ interface DetailedBreakdownProps {
 export const DetailedBreakdown = ({ data, calculations, formatCurrency }: DetailedBreakdownProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Card className="border-destructive/20 bg-destructive/5">
+      <Card className="bg-gradient-to-br from-white to-orange-50 border-orange-200 shadow-soft">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-destructive" />
+            <AlertTriangle className="h-5 w-5 text-revenue-warning" />
             Lead Response Loss
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-bold text-destructive mb-2">
+          <p className="text-2xl font-bold text-revenue-warning mb-2">
             {formatCurrency(calculations.leadResponseLoss)}
           </p>
           <p className="text-sm text-muted-foreground mb-4">
@@ -33,7 +33,7 @@ export const DetailedBreakdown = ({ data, calculations, formatCurrency }: Detail
         </CardContent>
       </Card>
 
-      <Card className="border-revenue-warning/20 bg-revenue-warning/5">
+      <Card className="bg-gradient-to-br from-white to-orange-50 border-orange-200 shadow-soft">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingDown className="h-5 w-5 text-revenue-warning" />
@@ -54,11 +54,11 @@ export const DetailedBreakdown = ({ data, calculations, formatCurrency }: Detail
         </CardContent>
       </Card>
 
-      <Card className="border-primary/20 bg-primary/5">
+      <Card className="bg-gradient-to-br from-white to-blue-50 border-blue-200 shadow-soft">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5 text-primary" />
-            Self-Serve Gap
+            Self-Serve Opportunity
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -76,15 +76,15 @@ export const DetailedBreakdown = ({ data, calculations, formatCurrency }: Detail
         </CardContent>
       </Card>
 
-      <Card className="border-revenue-danger/20 bg-revenue-danger/5">
+      <Card className="bg-gradient-to-br from-white to-blue-50 border-blue-200 shadow-soft">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-revenue-danger" />
-            Process Loss
+            <Zap className="h-5 w-5 text-primary" />
+            Process Optimization
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-bold text-revenue-danger mb-2">
+          <p className="text-2xl font-bold text-primary mb-2">
             {formatCurrency(calculations.processLoss)}
           </p>
           <p className="text-sm text-muted-foreground mb-4">
