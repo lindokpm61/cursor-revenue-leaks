@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, Circle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, Circle, X } from "lucide-react";
 
 interface Section {
   id: string;
@@ -18,6 +19,7 @@ export const ProgressIndicator = ({ sections, className = "" }: ProgressIndicato
   const [currentSection, setCurrentSection] = useState<string | null>(null);
   const [viewedSections, setViewedSections] = useState<Set<string>>(new Set());
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -58,14 +60,37 @@ export const ProgressIndicator = ({ sections, className = "" }: ProgressIndicato
   const currentIndex = sections.findIndex(section => section.id === currentSection);
   const progressPercentage = currentIndex >= 0 ? ((currentIndex + 1) / sections.length) * 100 : 0;
 
+  if (!isVisible) {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setIsVisible(true)}
+        className="fixed top-20 right-6 z-40 hidden lg:flex h-8 w-8 p-0"
+      >
+        <Circle className="h-4 w-4" />
+      </Button>
+    );
+  }
+
   return (
     <div className={`fixed top-20 right-6 z-40 bg-background/95 backdrop-blur-sm border border-border/50 rounded-xl p-4 shadow-lg max-w-xs hidden lg:block ${className}`}>
       <div className="mb-3">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-medium text-muted-foreground">Reading Progress</span>
-          <Badge variant="outline" className="text-xs px-2 py-0.5">
-            {Math.round(scrollProgress)}%
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs px-2 py-0.5">
+              {Math.round(scrollProgress)}%
+            </Badge>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsVisible(false)}
+              className="h-4 w-4 p-0 hover:bg-muted"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
         </div>
         <Progress value={scrollProgress} className="h-1" />
       </div>
