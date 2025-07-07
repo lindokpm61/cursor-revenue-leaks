@@ -5,6 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { 
   Calculator, 
   ArrowLeft, 
   TrendingUp, 
@@ -18,7 +24,9 @@ import {
   CreditCard,
   Settings,
   Download,
-  Share2
+  Share2,
+  ChevronDown,
+  Info
 } from "lucide-react";
 import { submissionService, type Submission } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,6 +34,8 @@ import { useToast } from "@/hooks/use-toast";
 import { PriorityActions } from "@/components/calculator/results/PriorityActions";
 import { ImplementationTimeline } from "@/components/calculator/results/ImplementationTimeline";
 import { IndustryBenchmarking } from "@/components/calculator/results/IndustryBenchmarking";
+import { ExecutiveSummaryCard } from "@/components/results/ExecutiveSummaryCard";
+import { SectionNavigation } from "@/components/results/SectionNavigation";
 
 const Results = () => {
   const { id } = useParams<{ id: string }>();
@@ -89,6 +99,22 @@ const Results = () => {
     if (score >= 80) return "text-revenue-danger";
     if (score >= 60) return "text-revenue-warning";
     return "text-revenue-success";
+  };
+
+  const sections = [
+    { id: 'executive-summary', label: 'Summary', readTime: '2 min' },
+    { id: 'revenue-overview', label: 'Revenue Overview', readTime: '3 min' },
+    { id: 'benchmarking', label: 'Benchmarking', readTime: '4 min' },
+    { id: 'priority-actions', label: 'Actions', readTime: '3 min' },
+    { id: 'timeline', label: 'Timeline', readTime: '2 min' },
+    { id: 'technical-details', label: 'Details', readTime: '5 min' },
+  ];
+
+  const scrollToActions = () => {
+    const element = document.getElementById('priority-actions');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   if (loading) {
@@ -185,6 +211,9 @@ const Results = () => {
         </div>
       </nav>
 
+      {/* Section Navigation */}
+      <SectionNavigation sections={sections} />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -214,218 +243,282 @@ const Results = () => {
           </div>
         </div>
 
+        {/* LAYER 1: Always Visible */}
         {/* Executive Summary */}
-        <Card className="mb-8 border-revenue-danger/20 bg-gradient-to-r from-background to-revenue-danger/5">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="h-8 w-8 text-revenue-danger" />
-              <div>
-                <CardTitle className="text-2xl text-revenue-danger">
-                  Revenue Leak Analysis
-                </CardTitle>
-                <p className="text-muted-foreground mt-1">
-                  Annual revenue impact and recovery opportunities
-                </p>
+        <section id="executive-summary" className="mb-12">
+          <ExecutiveSummaryCard 
+            submission={submission} 
+            formatCurrency={formatCurrency} 
+            onGetActionPlan={scrollToActions}
+          />
+        </section>
+
+        {/* Revenue Overview - Essential Metrics */}
+        <section id="revenue-overview" className="mb-12">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 rounded-lg bg-revenue-danger/10">
+              <AlertTriangle className="h-6 w-6 text-revenue-danger" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">Revenue Leak Overview</h2>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">Essential</Badge>
+                <span className="text-sm text-muted-foreground">3 min read</span>
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold mb-2">
-                  {formatCurrency(submission.current_arr || 0)}
-                </div>
-                <p className="text-sm text-muted-foreground">Current ARR</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 p-6 bg-gradient-to-r from-background to-revenue-danger/5 rounded-lg border border-revenue-danger/20">
+            <div className="text-center">
+              <div className="text-2xl font-bold mb-2">
+                {formatCurrency(submission.current_arr || 0)}
               </div>
-              <div className="text-center">
-                <div className={`text-2xl font-bold mb-2 ${getLeakageColor(submission.total_leak || 0)}`}>
-                  {formatCurrency(submission.total_leak || 0)}
-                </div>
-                <p className="text-sm text-muted-foreground">Total Revenue Leak</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-revenue-success mb-2">
-                  {formatCurrency(submission.recovery_potential_70 || 0)}
-                </div>
-                <p className="text-sm text-muted-foreground">Recovery Potential (70%)</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-revenue-primary mb-2">
-                  {formatCurrency(submission.recovery_potential_85 || 0)}
-                </div>
-                <p className="text-sm text-muted-foreground">Max Recovery (85%)</p>
-              </div>
+              <p className="text-sm text-muted-foreground">Current ARR</p>
             </div>
-            
-            {submission.leak_percentage && (
-              <div className="mb-4">
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Revenue Leak Percentage</span>
-                  <span className="font-medium">{submission.leak_percentage}%</span>
+            <div className="text-center">
+              <div className={`text-2xl font-bold mb-2 ${getLeakageColor(submission.total_leak || 0)}`}>
+                {formatCurrency(submission.total_leak || 0)}
+              </div>
+              <p className="text-sm text-muted-foreground">Total Revenue Leak</p>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-revenue-success mb-2">
+                {formatCurrency(submission.recovery_potential_70 || 0)}
+              </div>
+              <p className="text-sm text-muted-foreground">Recovery Potential (70%)</p>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-revenue-primary mb-2">
+                {formatCurrency(submission.recovery_potential_85 || 0)}
+              </div>
+              <p className="text-sm text-muted-foreground">Max Recovery (85%)</p>
+            </div>
+          </div>
+
+          {submission.leak_percentage && (
+            <div className="mb-4">
+              <div className="flex justify-between text-sm mb-2">
+                <span>Revenue Leak Percentage</span>
+                <span className="font-medium">{submission.leak_percentage}%</span>
+              </div>
+              <Progress value={Math.min(submission.leak_percentage, 100)} className="h-2" />
+            </div>
+          )}
+        </section>
+
+        {/* LAYER 2: Expandable Content */}
+        <Accordion type="multiple" className="space-y-6 mb-12">
+          {/* Detailed Breakdown */}
+          <AccordionItem value="breakdown" className="border rounded-lg px-6">
+            <AccordionTrigger className="py-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <BarChart3 className="h-5 w-5 text-primary" />
                 </div>
-                <Progress value={Math.min(submission.leak_percentage, 100)} className="h-2" />
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold">Detailed Revenue Breakdown</h3>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">Detailed</Badge>
+                    <span className="text-sm text-muted-foreground">5 min read</span>
+                  </div>
+                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </AccordionTrigger>
+            <AccordionContent className="pb-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {leakageBreakdown.map((item, index) => {
+                  const Icon = item.icon;
+                  return (
+                    <Card key={index} className="border-border/50 shadow-lg">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-primary/10">
+                            <Icon className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg">{item.title}</CardTitle>
+                            <CardDescription className="text-sm">
+                              {item.description}
+                            </CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className={`text-2xl font-bold ${getLeakageColor(item.amount)}`}>
+                          {formatCurrency(item.amount)}
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {submission.current_arr && submission.current_arr > 0 
+                            ? `${((item.amount / submission.current_arr) * 100).toFixed(1)}% of ARR`
+                            : 'N/A'
+                          }
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
 
-        {/* Leakage Breakdown */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {leakageBreakdown.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <Card key={index} className="border-border/50 shadow-lg">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <Icon className="h-5 w-5 text-primary" />
+          {/* Technical Metrics */}
+          <AccordionItem value="metrics" className="border rounded-lg px-6" id="technical-details">
+            <AccordionTrigger className="py-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Settings className="h-5 w-5 text-primary" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold">Technical Metrics & Operations</h3>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">Optional</Badge>
+                    <span className="text-sm text-muted-foreground">5 min read</span>
+                  </div>
+                </div>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pb-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Card className="border-border/50 shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      Lead Generation
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Monthly Leads</span>
+                      <span className="font-medium">{submission.monthly_leads || 0}</span>
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">{item.title}</CardTitle>
-                      <CardDescription className="text-sm">
-                        {item.description}
-                      </CardDescription>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Avg Deal Value</span>
+                      <span className="font-medium">{formatCurrency(submission.average_deal_value || 0)}</span>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className={`text-2xl font-bold ${getLeakageColor(item.amount)}`}>
-                    {formatCurrency(item.amount)}
-                  </div>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    {submission.current_arr && submission.current_arr > 0 
-                      ? `${((item.amount / submission.current_arr) * 100).toFixed(1)}% of ARR`
-                      : 'N/A'
-                    }
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Response Time</span>
+                      <span className="font-medium">{submission.lead_response_time || 0}h</span>
+                    </div>
+                  </CardContent>
+                </Card>
 
-        {/* Metrics Overview */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <Card className="border-border/50 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Lead Generation
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Monthly Leads</span>
-                <span className="font-medium">{submission.monthly_leads || 0}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Avg Deal Value</span>
-                <span className="font-medium">{formatCurrency(submission.average_deal_value || 0)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Response Time</span>
-                <span className="font-medium">{submission.lead_response_time || 0}h</span>
-              </div>
-            </CardContent>
-          </Card>
+                <Card className="border-border/50 shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      Self-Serve Metrics
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Free Signups</span>
+                      <span className="font-medium">{submission.monthly_free_signups || 0}/month</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Conversion Rate</span>
+                      <span className="font-medium">{submission.free_to_paid_conversion || 0}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Monthly MRR</span>
+                      <span className="font-medium">{formatCurrency(submission.monthly_mrr || 0)}</span>
+                    </div>
+                  </CardContent>
+                </Card>
 
-          <Card className="border-border/50 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5" />
-                Self-Serve Metrics
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Free Signups</span>
-                <span className="font-medium">{submission.monthly_free_signups || 0}/month</span>
+                <Card className="border-border/50 shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Settings className="h-5 w-5" />
+                      Operations
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Failed Payment Rate</span>
+                      <span className="font-medium">{submission.failed_payment_rate || 0}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Manual Hours/Week</span>
+                      <span className="font-medium">{submission.manual_hours || 0}h</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Hourly Rate</span>
+                      <span className="font-medium">{formatCurrency(submission.hourly_rate || 0)}</span>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Conversion Rate</span>
-                <span className="font-medium">{submission.free_to_paid_conversion || 0}%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Monthly MRR</span>
-                <span className="font-medium">{formatCurrency(submission.monthly_mrr || 0)}</span>
-              </div>
-            </CardContent>
-          </Card>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
 
-          <Card className="border-border/50 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Operations
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Failed Payment Rate</span>
-                <span className="font-medium">{submission.failed_payment_rate || 0}%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Manual Hours/Week</span>
-                <span className="font-medium">{submission.manual_hours || 0}h</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Hourly Rate</span>
-                <span className="font-medium">{formatCurrency(submission.hourly_rate || 0)}</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
+        {/* LAYER 1 Continued: Key Sections */}
         {/* Industry Benchmarking */}
-        <IndustryBenchmarking submission={submission} formatCurrency={formatCurrency} />
+        <section id="benchmarking" className="mb-12">
+          <IndustryBenchmarking submission={submission} formatCurrency={formatCurrency} />
+        </section>
 
         {/* Priority Actions */}
-        <PriorityActions submission={submission} formatCurrency={formatCurrency} />
+        <section id="priority-actions" className="mb-12">
+          <PriorityActions submission={submission} formatCurrency={formatCurrency} />
+        </section>
 
         {/* Implementation Timeline & ROI */}
-        <ImplementationTimeline submission={submission} formatCurrency={formatCurrency} />
+        <section id="timeline" className="mb-12">
+          <ImplementationTimeline submission={submission} formatCurrency={formatCurrency} />
+        </section>
 
-        {/* Integration Status */}
+        {/* LAYER 3: On-Demand Content */}
         {(submission.twenty_contact_id || submission.n8n_triggered || submission.smartlead_campaign_id || submission.synced_to_self_hosted) && (
-          <Card className="border-border/50 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
-                Integration Status
-              </CardTitle>
-              <CardDescription>
-                External system integration and sync status
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {submission.twenty_contact_id && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
-                    <span className="text-sm">Twenty CRM Synced</span>
+          <Accordion type="single" collapsible className="mb-8">
+            <AccordionItem value="integrations" className="border rounded-lg px-6">
+              <AccordionTrigger className="py-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <BarChart3 className="h-5 w-5 text-primary" />
                   </div>
-                )}
-                {submission.n8n_triggered && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
-                    <span className="text-sm">N8N Workflow Triggered</span>
+                  <div className="text-left">
+                    <h3 className="text-lg font-semibold">Integration Status</h3>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">Technical</Badge>
+                      <span className="text-sm text-muted-foreground">1 min read</span>
+                    </div>
                   </div>
-                )}
-                {submission.smartlead_campaign_id && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
-                    <span className="text-sm">Smartlead Campaign Added</span>
-                  </div>
-                )}
-                {submission.synced_to_self_hosted && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
-                    <span className="text-sm">Self-Hosted Synced</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pb-6">
+                <p className="text-muted-foreground mb-4">
+                  External system integration and sync status
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {submission.twenty_contact_id && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
+                      <span className="text-sm">Twenty CRM Synced</span>
+                    </div>
+                  )}
+                  {submission.n8n_triggered && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
+                      <span className="text-sm">N8N Workflow Triggered</span>
+                    </div>
+                  )}
+                  {submission.smartlead_campaign_id && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
+                      <span className="text-sm">Smartlead Campaign Added</span>
+                    </div>
+                  )}
+                  {submission.synced_to_self_hosted && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
+                      <span className="text-sm">Self-Hosted Synced</span>
+                    </div>
+                  )}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         )}
       </div>
     </div>
