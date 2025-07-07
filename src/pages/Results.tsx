@@ -117,7 +117,6 @@ const Results = () => {
     { id: 'benchmarking', label: 'Benchmarking', readTime: '4 min' },
     { id: 'priority-actions', label: 'Actions', readTime: '3 min' },
     { id: 'timeline', label: 'Timeline', readTime: '2 min' },
-    { id: 'technical-details', label: 'Details', readTime: '5 min' },
   ];
 
   const scrollToActions = () => {
