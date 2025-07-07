@@ -235,10 +235,11 @@ const Results = () => {
               </div>
             </div>
             <div className="text-right">
-              <div className="text-sm text-muted-foreground">Lead Score</div>
-              <div className={`text-2xl font-bold ${getLeadScoreColor(submission.lead_score || 0)}`}>
-                {submission.lead_score || 0}/100
+              <div className="text-small text-muted-foreground mb-1">Lead Score</div>
+              <div className={`text-h1 font-bold ${getLeadScoreColor(submission.lead_score || 0)} leading-none`}>
+                {submission.lead_score || 0}
               </div>
+              <div className="text-small text-muted-foreground mt-1">/100</div>
             </div>
           </div>
         </div>
@@ -255,43 +256,46 @@ const Results = () => {
 
         {/* Revenue Overview - Essential Metrics */}
         <section id="revenue-overview" className="mb-12">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-revenue-danger/10">
-              <AlertTriangle className="h-6 w-6 text-revenue-danger" />
+          <div className="flex items-center gap-4 mb-8">
+            <div className="p-4 rounded-2xl bg-revenue-danger/10 border-2 border-revenue-danger/20">
+              <AlertTriangle className="h-8 w-8 text-revenue-danger" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold">Revenue Leak Overview</h2>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs">Essential</Badge>
-                <span className="text-sm text-muted-foreground">3 min read</span>
+              <h2 className="text-h1 font-bold mb-2">Revenue Leak Overview</h2>
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="text-xs font-bold px-3 py-1 bg-revenue-danger/10 border-revenue-danger/30 text-revenue-danger">
+                  🚨 Essential
+                </Badge>
+                <span className="text-small text-muted-foreground">3 min read</span>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 p-6 bg-gradient-to-r from-background to-revenue-danger/5 rounded-lg border border-revenue-danger/20">
-            <div className="text-center">
-              <div className="text-2xl font-bold mb-2">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 p-8 bg-gradient-to-br from-background via-revenue-danger/5 to-revenue-warning/5 rounded-2xl border-2 border-revenue-danger/20 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent"></div>
+            <div className="text-center relative">
+              <div className="text-h2 font-bold mb-3 text-foreground">
                 {formatCurrency(submission.current_arr || 0)}
               </div>
-              <p className="text-sm text-muted-foreground">Current ARR</p>
+              <p className="text-small font-medium text-muted-foreground">Current ARR</p>
             </div>
-            <div className="text-center">
-              <div className={`text-2xl font-bold mb-2 ${getLeakageColor(submission.total_leak || 0)}`}>
+            <div className="text-center relative border-l-4 border-revenue-danger/30 pl-4">
+              <div className={`text-h1 font-bold mb-3 ${getLeakageColor(submission.total_leak || 0)} leading-none`}>
                 {formatCurrency(submission.total_leak || 0)}
               </div>
-              <p className="text-sm text-muted-foreground">Total Revenue Leak</p>
+              <p className="text-small font-medium text-revenue-danger">🚨 Total Revenue Leak</p>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-revenue-success mb-2">
+            <div className="text-center relative border-l-4 border-revenue-success/30 pl-4">
+              <div className="text-h2 font-bold text-revenue-success mb-3 leading-none">
                 {formatCurrency(submission.recovery_potential_70 || 0)}
               </div>
-              <p className="text-sm text-muted-foreground">Recovery Potential (70%)</p>
+              <p className="text-small font-medium text-revenue-success">✅ Recovery Potential (70%)</p>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-revenue-primary mb-2">
+            <div className="text-center relative border-l-4 border-revenue-primary/30 pl-4">
+              <div className="text-h2 font-bold text-revenue-primary mb-3 leading-none">
                 {formatCurrency(submission.recovery_potential_85 || 0)}
               </div>
-              <p className="text-sm text-muted-foreground">Max Recovery (85%)</p>
+              <p className="text-small font-medium text-revenue-primary">🎯 Max Recovery (85%)</p>
             </div>
           </div>
 
@@ -311,18 +315,18 @@ const Results = () => {
           {/* Detailed Breakdown */}
           <AccordionItem value="breakdown" className="border rounded-lg px-6">
             <AccordionTrigger className="py-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <BarChart3 className="h-5 w-5 text-primary" />
-                </div>
-                <div className="text-left">
-                  <h3 className="text-lg font-semibold">Detailed Revenue Breakdown</h3>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">Detailed</Badge>
-                    <span className="text-sm text-muted-foreground">5 min read</span>
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
+                    <BarChart3 className="h-6 w-6 text-primary" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-h2 font-bold">Detailed Revenue Breakdown</h3>
+                    <div className="flex items-center gap-3 mt-1">
+                      <Badge variant="secondary" className="text-xs font-semibold px-3 py-1">📊 Detailed</Badge>
+                      <span className="text-small text-muted-foreground">5 min read</span>
+                    </div>
                   </div>
                 </div>
-              </div>
             </AccordionTrigger>
             <AccordionContent className="pb-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -364,18 +368,18 @@ const Results = () => {
           {/* Technical Metrics */}
           <AccordionItem value="metrics" className="border rounded-lg px-6" id="technical-details">
             <AccordionTrigger className="py-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Settings className="h-5 w-5 text-primary" />
-                </div>
-                <div className="text-left">
-                  <h3 className="text-lg font-semibold">Technical Metrics & Operations</h3>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">Optional</Badge>
-                    <span className="text-sm text-muted-foreground">5 min read</span>
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-muted/50 border border-border">
+                    <Settings className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-h3 font-semibold text-muted-foreground">Technical Metrics & Operations</h3>
+                    <div className="flex items-center gap-3 mt-1">
+                      <Badge variant="outline" className="text-xs px-3 py-1 text-muted-foreground">⚙️ Optional</Badge>
+                      <span className="text-small text-muted-foreground">5 min read</span>
+                    </div>
                   </div>
                 </div>
-              </div>
             </AccordionTrigger>
             <AccordionContent className="pb-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -473,15 +477,15 @@ const Results = () => {
           <Accordion type="single" collapsible className="mb-8">
             <AccordionItem value="integrations" className="border rounded-lg px-6">
               <AccordionTrigger className="py-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <BarChart3 className="h-5 w-5 text-primary" />
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-muted/50 border border-border">
+                    <BarChart3 className="h-6 w-6 text-muted-foreground" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-lg font-semibold">Integration Status</h3>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-xs">Technical</Badge>
-                      <span className="text-sm text-muted-foreground">1 min read</span>
+                    <h3 className="text-h3 font-semibold text-muted-foreground">Integration Status</h3>
+                    <div className="flex items-center gap-3 mt-1">
+                      <Badge variant="outline" className="text-xs px-3 py-1 text-muted-foreground">🔧 Technical</Badge>
+                      <span className="text-small text-muted-foreground">1 min read</span>
                     </div>
                   </div>
                 </div>

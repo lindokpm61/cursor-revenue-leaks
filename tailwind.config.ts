@@ -93,9 +93,35 @@ export default {
 					}
 				}
 			},
+			fontSize: {
+				hero: 'var(--text-hero)',
+				h1: 'var(--text-h1)',
+				h2: 'var(--text-h2)',
+				h3: 'var(--text-h3)',
+				body: 'var(--text-body)',
+				small: 'var(--text-small)',
+				xs: 'var(--text-xs)'
+			},
+			boxShadow: {
+				'attention-glow': 'var(--attention-glow)',
+				'attention-pulse': 'var(--attention-pulse)'
+			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'attention-pulse': 'attention-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+			},
+			keyframes: {
+				'attention-pulse': {
+					'0%, 100%': {
+						opacity: '1',
+						boxShadow: 'var(--attention-glow)'
+					},
+					'50%': {
+						opacity: '0.8',
+						boxShadow: 'var(--attention-pulse)'
+					}
+				}
 			}
 		}
 	},

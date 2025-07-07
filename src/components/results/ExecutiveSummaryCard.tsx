@@ -64,126 +64,176 @@ export const ExecutiveSummaryCard = ({
     : 0;
 
   return (
-    <Card className={`${config.bg} ${config.border} border-2 shadow-xl mb-8`}>
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`p-3 rounded-xl ${config.bg}`}>
-              <UrgencyIcon className={`h-8 w-8 ${config.color}`} />
+    <Card className={`${config.bg} ${config.border} border-2 shadow-xl mb-8 ${urgencyLevel === 'critical' ? 'animate-attention-pulse' : ''}`}>
+      <CardHeader className="pb-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className={`p-4 rounded-2xl ${config.bg} border ${config.border}`}>
+              <UrgencyIcon className={`h-10 w-10 ${config.color}`} />
             </div>
             <div>
-              <CardTitle className="text-2xl font-bold">Executive Summary</CardTitle>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant={urgencyLevel === 'critical' ? 'destructive' : 'outline'} className="uppercase text-xs font-semibold">
-                  {urgencyLevel} Priority
+              <CardTitle className="text-h1 font-bold mb-2">Executive Summary</CardTitle>
+              <div className="flex items-center gap-3">
+                <Badge 
+                  variant={urgencyLevel === 'critical' ? 'destructive' : 'outline'} 
+                  className={`uppercase text-xs font-bold px-3 py-1 ${urgencyLevel === 'critical' ? 'bg-revenue-danger text-white' : ''}`}
+                >
+                  {urgencyLevel === 'critical' ? '🚨' : urgencyLevel === 'high' ? '⚡' : '🎯'} {urgencyLevel} Priority
                 </Badge>
-                <span className="text-sm text-muted-foreground">• 2 min read</span>
+                <span className="text-small text-muted-foreground">• 2 min read</span>
               </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-sm text-muted-foreground">Revenue Health Score</div>
-            <div className={`text-3xl font-bold ${config.color}`}>
+            <div className="text-small text-muted-foreground mb-1">Revenue Health Score</div>
+            <div className={`text-hero font-bold ${config.color} leading-none`}>
               {submission.current_arr && submission.total_leak 
                 ? Math.max(0, Math.round(100 - ((submission.total_leak / submission.current_arr) * 100)))
                 : 'N/A'
-              }/100
+              }
             </div>
+            <div className="text-small text-muted-foreground mt-1">/100</div>
           </div>
         </div>
       </CardHeader>
       
       <CardContent>
-        {/* Key Metrics Grid */}
+        {/* Key Metrics Grid - Priority Level 1 */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="text-center p-4 rounded-lg bg-background/50 border">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <AlertTriangle className="h-5 w-5 text-revenue-danger" />
-              <span className="text-sm font-medium text-muted-foreground">Annual Leak</span>
-            </div>
-            <div className="text-2xl font-bold text-revenue-danger">
-              {formatCurrency(submission.total_leak || 0)}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {submission.current_arr && submission.current_arr > 0 
-                ? `${((submission.total_leak || 0) / submission.current_arr * 100).toFixed(1)}% of ARR`
-                : 'N/A'
-              }
-            </div>
-          </div>
-
-          <div className="text-center p-4 rounded-lg bg-background/50 border">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Target className="h-5 w-5 text-revenue-warning" />
-              <span className="text-sm font-medium text-muted-foreground">Biggest Opportunity</span>
-            </div>
-            <div className="text-2xl font-bold text-revenue-warning">
-              {formatCurrency(biggestOpportunity.value)}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {biggestOpportunity.name}
+          <div className="text-center p-6 rounded-xl bg-revenue-danger/10 border-2 border-revenue-danger/20 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-revenue-danger/5 to-revenue-danger/10"></div>
+            <div className="relative">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <AlertTriangle className="h-6 w-6 text-revenue-danger" />
+                <span className="text-small font-semibold text-revenue-danger">Annual Leak</span>
+              </div>
+              <div className="text-hero font-bold text-revenue-danger leading-none mb-2">
+                {formatCurrency(submission.total_leak || 0)}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {submission.current_arr && submission.current_arr > 0 
+                  ? `${((submission.total_leak || 0) / submission.current_arr * 100).toFixed(1)}% of ARR`
+                  : 'N/A'
+                }
+              </div>
             </div>
           </div>
 
-          <div className="text-center p-4 rounded-lg bg-background/50 border">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Zap className="h-5 w-5 text-revenue-success" />
-              <span className="text-sm font-medium text-muted-foreground">Quick Win Value</span>
-            </div>
-            <div className="text-2xl font-bold text-revenue-success">
-              {formatCurrency(quickWinValue)}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              30-60 days
+          <div className="text-center p-6 rounded-xl bg-revenue-warning/10 border-2 border-revenue-warning/20 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-revenue-warning/5 to-revenue-warning/10"></div>
+            <div className="relative">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Target className="h-6 w-6 text-revenue-warning" />
+                <span className="text-small font-semibold text-revenue-warning">Biggest Opportunity</span>
+              </div>
+              <div className="text-h1 font-bold text-revenue-warning leading-none mb-2">
+                {formatCurrency(biggestOpportunity.value)}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                📈 {biggestOpportunity.name}
+              </div>
             </div>
           </div>
 
-          <div className="text-center p-4 rounded-lg bg-background/50 border">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <TrendingUp className="h-5 w-5 text-revenue-primary" />
-              <span className="text-sm font-medium text-muted-foreground">ROI Potential</span>
+          <div className="text-center p-6 rounded-xl bg-revenue-success/10 border-2 border-revenue-success/20 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-revenue-success/5 to-revenue-success/10"></div>
+            <div className="relative">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Zap className="h-6 w-6 text-revenue-success" />
+                <span className="text-small font-semibold text-revenue-success">Quick Win Value</span>
+              </div>
+              <div className="text-h1 font-bold text-revenue-success leading-none mb-2">
+                {formatCurrency(quickWinValue)}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                ⚡ 30-60 days
+              </div>
             </div>
-            <div className="text-2xl font-bold text-revenue-primary">
-              {roiPotential}%
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              of current ARR
+          </div>
+
+          <div className="text-center p-6 rounded-xl bg-revenue-primary/10 border-2 border-revenue-primary/20 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-revenue-primary/5 to-revenue-primary/10"></div>
+            <div className="relative">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <TrendingUp className="h-6 w-6 text-revenue-primary" />
+                <span className="text-small font-semibold text-revenue-primary">ROI Potential</span>
+              </div>
+              <div className="text-h1 font-bold text-revenue-primary leading-none mb-2">
+                {roiPotential}%
+              </div>
+              <div className="text-xs text-muted-foreground">
+                of current ARR
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Action CTAs */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        {/* Action CTAs - Priority Level 1 */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
           <Button 
             onClick={onGetActionPlan}
             size="lg" 
-            className="bg-gradient-to-r from-revenue-primary to-primary hover:from-revenue-primary/90 hover:to-primary/90"
+            className="bg-gradient-to-r from-revenue-primary to-primary hover:from-revenue-primary/90 hover:to-primary/90 shadow-attention-glow hover:shadow-attention-pulse text-h3 px-8 py-4 h-auto min-h-[56px] transition-all duration-300"
           >
-            <Target className="h-5 w-5 mr-2" />
+            <Target className="h-6 w-6 mr-3" />
             Get Action Plan
           </Button>
           <Button 
             variant="outline" 
             size="lg"
-            className="border-primary text-primary hover:bg-primary/10"
+            className="border-2 border-primary text-primary hover:bg-primary/10 text-h3 px-8 py-4 h-auto min-h-[56px] transition-all duration-300"
           >
-            <Calendar className="h-5 w-5 mr-2" />
+            <Calendar className="h-6 w-6 mr-3" />
             Book Expert Call
           </Button>
         </div>
 
-        {/* Quick Insights */}
-        <div className="mt-6 p-4 rounded-lg bg-primary/5 border border-primary/20">
-          <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-            <Zap className="h-4 w-4 text-primary" />
+        {/* Key Insights - Priority Level 2 */}
+        <div className="p-6 rounded-xl bg-gradient-to-r from-primary/10 to-revenue-primary/5 border-l-4 border-primary">
+          <h4 className="font-bold text-h3 mb-4 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/20">
+              <Zap className="h-5 w-5 text-primary" />
+            </div>
             Key Insights
           </h4>
-          <ul className="text-sm space-y-1 text-muted-foreground">
-            <li>• Revenue leak represents {submission.current_arr && submission.total_leak ? ((submission.total_leak / submission.current_arr) * 100).toFixed(1) : 'N/A'}% of your current ARR</li>
-            <li>• {biggestOpportunity.name} offers the largest single improvement opportunity</li>
-            <li>• Conservative recovery estimates show {formatCurrency(submission.recovery_potential_70 || 0)} potential</li>
-            <li>• Implementation can begin immediately with quick wins in 30-60 days</li>
-          </ul>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
+              <div className="w-2 h-2 rounded-full bg-revenue-danger mt-2 flex-shrink-0"></div>
+              <div>
+                <div className="font-medium text-small">Revenue Impact</div>
+                <div className="text-xs text-muted-foreground">
+                  Leak represents {submission.current_arr && submission.total_leak ? ((submission.total_leak / submission.current_arr) * 100).toFixed(1) : 'N/A'}% of your current ARR
+                </div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
+              <div className="w-2 h-2 rounded-full bg-revenue-warning mt-2 flex-shrink-0"></div>
+              <div>
+                <div className="font-medium text-small">Top Opportunity</div>
+                <div className="text-xs text-muted-foreground">
+                  {biggestOpportunity.name} offers the largest improvement potential
+                </div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
+              <div className="w-2 h-2 rounded-full bg-revenue-success mt-2 flex-shrink-0"></div>
+              <div>
+                <div className="font-medium text-small">Recovery Potential</div>
+                <div className="text-xs text-muted-foreground">
+                  Conservative estimates show {formatCurrency(submission.recovery_potential_70 || 0)} potential
+                </div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
+              <div className="w-2 h-2 rounded-full bg-revenue-primary mt-2 flex-shrink-0"></div>
+              <div>
+                <div className="font-medium text-small">Implementation</div>
+                <div className="text-xs text-muted-foreground">
+                  Begin immediately with quick wins in 30-60 days
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

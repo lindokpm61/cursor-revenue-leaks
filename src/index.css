@@ -53,9 +53,31 @@ All colors MUST be HSL.
     --shadow-card: 0 8px 25px -8px hsl(217.2 91.2% 59.8% / 0.1);
     --shadow-glow: 0 0 20px hsl(217.2 91.2% 59.8% / 0.15);
     
+    /* Typography Hierarchy */
+    --text-hero: 3rem; /* 48px */
+    --text-h1: 2rem; /* 32px */
+    --text-h2: 1.5rem; /* 24px */
+    --text-h3: 1.125rem; /* 18px */
+    --text-body: 1rem; /* 16px */
+    --text-small: 0.875rem; /* 14px */
+    --text-xs: 0.75rem; /* 12px */
+    
+    /* Visual Priority Levels */
+    --priority-1-bg: hsl(0 84.2% 60.2% / 0.08);
+    --priority-1-border: hsl(0 84.2% 60.2% / 0.2);
+    --priority-2-bg: hsl(25 95% 53% / 0.08);
+    --priority-2-border: hsl(25 95% 53% / 0.2);
+    --priority-3-bg: hsl(217.2 32.6% 17.5% / 0.3);
+    --priority-3-border: hsl(217.2 32.6% 17.5% / 0.5);
+    
+    /* Attention Management */
+    --attention-glow: 0 0 16px hsl(217.2 91.2% 59.8% / 0.3);
+    --attention-pulse: 0 0 0 4px hsl(217.2 91.2% 59.8% / 0.15);
+    
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --transition-attention: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
     --radius: 0.5rem;
 
