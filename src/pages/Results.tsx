@@ -405,8 +405,8 @@ const Results = () => {
               <AccordionItem value="breakdown" className="border rounded-lg px-6">
                 <AccordionTrigger className="py-4">
                     <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
-                        <BarChart3 className="h-6 w-6 text-primary" />
+                      <div className="p-3 rounded-xl bg-revenue-danger/10 border border-revenue-danger/20">
+                        <DollarSign className="h-6 w-6 text-revenue-danger" />
                       </div>
                       <div className="text-left">
                         <h3 className="text-2xl font-semibold">Detailed Revenue Breakdown</h3>
