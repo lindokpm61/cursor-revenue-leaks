@@ -7,7 +7,11 @@ import {
   Target, 
   TrendingUp,
   Calendar,
-  Phone
+  Phone,
+  ArrowUp,
+  CheckCircle,
+  BarChart3,
+  Mail
 } from "lucide-react";
 import { type Submission } from "@/lib/supabase";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -36,8 +40,8 @@ export const ExecutiveSummaryCard = ({
   const urgencyLevel = getUrgencyLevel(submission.total_leak || 0, submission.current_arr || 0);
   
   const urgencyConfig = {
-    critical: { icon: AlertTriangle, color: 'text-revenue-danger', bg: 'bg-revenue-danger/10', border: 'border-revenue-danger/20' },
-    high: { icon: AlertTriangle, color: 'text-revenue-warning', bg: 'bg-revenue-warning/10', border: 'border-revenue-warning/20' },
+    critical: { icon: TrendingUp, color: 'text-revenue-warning', bg: 'bg-revenue-warning/10', border: 'border-revenue-warning/20' },
+    high: { icon: TrendingUp, color: 'text-revenue-warning', bg: 'bg-revenue-warning/10', border: 'border-revenue-warning/20' },
     medium: { icon: Target, color: 'text-revenue-primary', bg: 'bg-revenue-primary/10', border: 'border-revenue-primary/20' },
     low: { icon: Target, color: 'text-revenue-success', bg: 'bg-revenue-success/10', border: 'border-revenue-success/20' }
   };
@@ -73,8 +77,8 @@ export const ExecutiveSummaryCard = ({
   );
 
   const getSimplifiedMessage = () => {
-    if (totalLeak >= 10000000) return "Revenue Crisis Detected";
-    if (totalLeak >= 5000000) return "Major Revenue Leak"; 
+    if (totalLeak >= 10000000) return "Revenue Optimization Opportunity";
+    if (totalLeak >= 5000000) return "Major Growth Potential Identified"; 
     if (totalLeak >= 1000000) return "Revenue Opportunity Found";
     return "Revenue Analysis Complete";
   };
@@ -94,10 +98,10 @@ export const ExecutiveSummaryCard = ({
                 {getSimplifiedMessage()}
               </CardTitle>
               <Badge 
-                variant={urgencyLevel === 'critical' ? 'destructive' : 'outline'} 
-                className={`uppercase text-sm font-bold px-4 py-2 ${urgencyLevel === 'critical' ? 'bg-revenue-danger text-white' : ''}`}
+                variant={urgencyLevel === 'critical' ? 'default' : 'outline'} 
+                className={`uppercase text-sm font-bold px-4 py-2 ${urgencyLevel === 'critical' ? 'bg-revenue-warning text-white' : ''}`}
               >
-                {urgencyLevel === 'critical' ? '🚨' : urgencyLevel === 'high' ? '⚡' : '🎯'} {urgencyLevel} Priority
+                {urgencyLevel === 'critical' ? '💡' : urgencyLevel === 'high' ? '⚡' : '🎯'} {urgencyLevel} Opportunity
               </Badge>
             </div>
           </div>
@@ -105,14 +109,15 @@ export const ExecutiveSummaryCard = ({
         
         <CardContent className="px-6 pb-8 space-y-8">
           {/* PRIMARY LEVEL: Single key metric with 48px font */}
-          <div className="text-center p-8 rounded-xl bg-revenue-danger/10 border-2 border-revenue-danger/20 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-revenue-danger/5 to-revenue-danger/10"></div>
+          <div className="text-center p-8 rounded-xl bg-revenue-warning/10 border-2 border-revenue-warning/20 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-revenue-warning/5 to-revenue-warning/10"></div>
             <div className="relative space-y-4">
-              <div className="text-[48px] font-black text-revenue-danger leading-none">
+              <div className="text-[48px] font-black text-revenue-warning leading-none flex items-center justify-center gap-3">
+                <ArrowUp className="h-12 w-12" />
                 {formatCurrency(totalLeak)}
               </div>
               <div className="text-[16px] text-muted-foreground">
-                Annual Revenue Loss
+                Annual Recovery Opportunity
               </div>
             </div>
           </div>
@@ -122,7 +127,8 @@ export const ExecutiveSummaryCard = ({
           <Button 
             onClick={onGetActionPlan}
             size="lg" 
-            className="w-full bg-gradient-to-r from-revenue-primary to-primary hover:from-revenue-primary/90 hover:to-primary/90 shadow-attention-glow hover:shadow-attention-pulse text-[20px] font-bold px-8 py-4 h-[56px] transition-all duration-300"
+            variant="gradient"
+            className="w-full text-[20px] font-bold px-8 py-4 h-[56px] transition-all duration-300 shadow-lg hover:shadow-xl"
           >
             <Target className="h-6 w-6 mr-3" />
             Get Action Plan
@@ -133,8 +139,9 @@ export const ExecutiveSummaryCard = ({
             <Button 
               variant="outline" 
               size="lg"
-              className="w-full border-2 border-primary text-primary hover:bg-primary/10 text-[16px] px-8 py-3 h-[48px] transition-all duration-300"
+              className="w-full text-[16px] px-8 py-3 h-[48px] transition-all duration-300"
             >
+              <Mail className="h-5 w-5 mr-2" />
               Email Me Results
             </Button>
             
@@ -162,14 +169,15 @@ export const ExecutiveSummaryCard = ({
           <CardTitle className="text-[48px] leading-tight font-black text-foreground">
             {getSimplifiedMessage()}
           </CardTitle>
-          <div className="text-[24px] font-semibold text-revenue-danger">
-            Losing {formatCurrency(totalLeak)} Annually
+          <div className="text-[24px] font-semibold text-revenue-warning flex items-center justify-center gap-3">
+            <ArrowUp className="h-6 w-6" />
+            {formatCurrency(totalLeak)} Recovery Opportunity
           </div>
           <Badge 
-            variant={urgencyLevel === 'critical' ? 'destructive' : 'outline'} 
-            className={`uppercase text-sm font-bold px-4 py-2 ${urgencyLevel === 'critical' ? 'bg-revenue-danger text-white' : ''}`}
+            variant={urgencyLevel === 'critical' ? 'default' : 'outline'} 
+            className={`uppercase text-sm font-bold px-4 py-2 ${urgencyLevel === 'critical' ? 'bg-revenue-warning text-white' : ''}`}
           >
-            {urgencyLevel === 'critical' ? '🚨' : urgencyLevel === 'high' ? '⚡' : '🎯'} {urgencyLevel} Priority
+            {urgencyLevel === 'critical' ? '💡' : urgencyLevel === 'high' ? '⚡' : '🎯'} {urgencyLevel} Opportunity
           </Badge>
         </div>
 
@@ -180,7 +188,8 @@ export const ExecutiveSummaryCard = ({
         <Button 
           onClick={onGetActionPlan}
           size="lg" 
-          className="w-full bg-gradient-to-r from-revenue-primary to-primary hover:from-revenue-primary/90 hover:to-primary/90 shadow-attention-glow hover:shadow-attention-pulse text-[20px] font-bold px-8 py-4 h-[56px] transition-all duration-300"
+          variant="gradient"
+          className="w-full text-[20px] font-bold px-8 py-4 h-[56px] transition-all duration-300 shadow-lg hover:shadow-xl"
         >
           <Target className="h-6 w-6 mr-3" />
           Get Action Plan
@@ -191,14 +200,15 @@ export const ExecutiveSummaryCard = ({
           <Button 
             variant="outline" 
             size="lg"
-            className="border-2 border-primary text-primary hover:bg-primary/10 text-[16px] px-6 py-3 h-[48px] transition-all duration-300"
+            className="text-[16px] px-6 py-3 h-[48px] transition-all duration-300"
           >
+            <Mail className="h-5 w-5 mr-2" />
             Email Me Results
           </Button>
           <Button 
             variant="outline" 
             size="lg"
-            className="border-2 border-muted-foreground/30 text-muted-foreground hover:bg-muted/10 text-[16px] px-6 py-3 h-[48px] transition-all duration-300"
+            className="text-[16px] px-6 py-3 h-[48px] transition-all duration-300"
           >
             <Calendar className="h-5 w-5 mr-2" />
             Book Expert Call

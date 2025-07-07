@@ -33,9 +33,9 @@ const intentOptions = [
     label: "Fix This Fast",
     description: "Quick wins focus",
     icon: Zap,
-    color: "text-revenue-success",
-    bg: "bg-revenue-success/10",
-    border: "border-revenue-success/20",
+    color: "text-revenue-warning",
+    bg: "bg-revenue-warning/10",
+    border: "border-revenue-warning/30",
     time: "2 min"
   },
   {
@@ -45,7 +45,7 @@ const intentOptions = [
     icon: Calendar,
     color: "text-revenue-primary",
     bg: "bg-revenue-primary/10", 
-    border: "border-revenue-primary/20",
+    border: "border-revenue-primary/30",
     time: "15 min"
   },
   {
@@ -53,9 +53,9 @@ const intentOptions = [
     label: "Compare to Industry",
     description: "Benchmarking focus",
     icon: BarChart3,
-    color: "text-revenue-warning",
-    bg: "bg-revenue-warning/10",
-    border: "border-revenue-warning/20",
+    color: "text-purple-600",
+    bg: "bg-purple-50",
+    border: "border-purple-200",
     time: "5 min"
   },
   {
@@ -63,9 +63,9 @@ const intentOptions = [
     label: "Just Exploring",
     description: "High-level overview", 
     icon: Target,
-    color: "text-revenue-danger",
-    bg: "bg-revenue-danger/10",
-    border: "border-revenue-danger/20",
+    color: "text-muted-foreground",
+    bg: "bg-muted/10",
+    border: "border-muted",
     time: "3 min"
   }
 ];

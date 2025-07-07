@@ -26,7 +26,13 @@ import {
   Download,
   Share2,
   ChevronDown,
-  Info
+  Info,
+  ArrowUp,
+  CheckCircle,
+  TrendingUp as GrowthIcon,
+  BarChart,
+  Zap,
+  Eye
 } from "lucide-react";
 import { submissionService, type Submission } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
@@ -356,36 +362,38 @@ const Results = () => {
             {/* Revenue Overview - Essential Metrics */}
             <section id="revenue-overview" className="mb-12">
               <div className="flex items-center gap-4 mb-8">
-                <div className="p-4 rounded-2xl bg-revenue-danger/10 border-2 border-revenue-danger/20">
-                  <AlertTriangle className="h-8 w-8 text-revenue-danger" />
+                <div className="p-4 rounded-2xl bg-revenue-warning/10 border-2 border-revenue-warning/20">
+                  <GrowthIcon className="h-8 w-8 text-revenue-warning" />
                 </div>
                 <div>
-                  <h2 className="text-h1 font-bold mb-2">Revenue Leak Overview</h2>
+                  <h2 className="text-h1 font-bold mb-2">Revenue Optimization Opportunity</h2>
                   <div className="flex items-center gap-3">
-                    <Badge variant="outline" className="text-xs font-bold px-3 py-1 bg-revenue-danger/10 border-revenue-danger/30 text-revenue-danger">
-                      🚨 Essential
+                    <Badge variant="outline" className="text-xs font-bold px-3 py-1 bg-revenue-warning/10 border-revenue-warning/30 text-revenue-warning">
+                      💡 Essential
                     </Badge>
                     <span className="text-small text-muted-foreground">3 min read</span>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-8 bg-gradient-to-br from-background via-revenue-danger/5 to-revenue-warning/5 rounded-2xl border-2 border-revenue-danger/20 relative overflow-hidden">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-8 bg-gradient-to-br from-background via-revenue-warning/5 to-revenue-success/5 rounded-2xl border-2 border-revenue-warning/20 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent"></div>
-                <div className="text-center relative border-l-4 border-revenue-danger/30 pl-4">
+                <div className="text-center relative border-l-4 border-revenue-warning/30 pl-4">
                   <div className={`text-h1 font-bold mb-3 ${getLeakageColor(submission.total_leak || 0)} leading-none`}>
                     {formatCurrency(submission.total_leak || 0)}
                   </div>
-                  <p className="text-small font-medium text-revenue-danger">🚨 Total Revenue Leak</p>
+                  <p className="text-small font-medium text-revenue-warning">💰 Opportunity Size</p>
                 </div>
                 <div className="text-center relative border-l-4 border-revenue-success/30 pl-4">
-                  <div className="text-h2 font-bold text-revenue-success mb-3 leading-none">
+                  <div className="text-h2 font-bold text-revenue-success mb-3 leading-none flex items-center justify-center gap-2">
+                    <ArrowUp className="h-5 w-5" />
                     {formatCurrency(submission.recovery_potential_70 || 0)}
                   </div>
                   <p className="text-small font-medium text-revenue-success">✅ Recovery Potential (70%)</p>
                 </div>
                 <div className="text-center relative border-l-4 border-revenue-primary/30 pl-4">
-                  <div className="text-h2 font-bold text-revenue-primary mb-3 leading-none">
+                  <div className="text-h2 font-bold text-revenue-primary mb-3 leading-none flex items-center justify-center gap-2">
+                    <ArrowUp className="h-5 w-5" />
                     {formatCurrency(submission.recovery_potential_85 || 0)}
                   </div>
                   <p className="text-small font-medium text-revenue-primary">🎯 Max Recovery (85%)</p>
@@ -413,8 +421,8 @@ const Results = () => {
               <AccordionItem value="breakdown" className="border rounded-lg px-6">
                 <AccordionTrigger className="py-4">
                     <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-xl bg-blue-500 border border-blue-500">
-                        <DollarSign className="h-6 w-6 text-black" />
+                      <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
+                        <BarChart className="h-6 w-6 text-primary" />
                       </div>
                       <div className="text-left">
                         <h3 className="text-2xl font-semibold">Detailed Revenue Breakdown</h3>
