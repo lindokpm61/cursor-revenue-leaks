@@ -489,9 +489,11 @@ const Results = () => {
                   </div>
                 </AccordionContent>
               </AccordionItem>
+            </Accordion>
 
-              {/* Technical Metrics */}
-              <AccordionItem value="metrics" className="border rounded-lg px-6" id="technical-details">
+            {/* Technical Metrics */}
+            <Accordion type="single" collapsible className="space-y-6 mb-12" id="technical-details">
+              <AccordionItem value="metrics" className="border rounded-lg px-6">
                 <AccordionTrigger className="py-4">
                     <div className="flex items-center gap-4">
                       <div className="p-3 rounded-xl bg-muted/50 border border-border">
