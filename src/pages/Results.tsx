@@ -23,6 +23,7 @@ import {
 import { submissionService, type Submission } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { PriorityActions } from "@/components/calculator/results/PriorityActions";
 
 const Results = () => {
   const { id } = useParams<{ id: string }>();
@@ -372,6 +373,9 @@ const Results = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Priority Actions */}
+        <PriorityActions submission={submission} formatCurrency={formatCurrency} />
 
         {/* Integration Status */}
         {(submission.twenty_contact_id || submission.n8n_triggered || submission.smartlead_campaign_id || submission.synced_to_self_hosted) && (
