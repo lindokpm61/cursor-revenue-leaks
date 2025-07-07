@@ -25,6 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { PriorityActions } from "@/components/calculator/results/PriorityActions";
 import { ImplementationTimeline } from "@/components/calculator/results/ImplementationTimeline";
+import { IndustryBenchmarking } from "@/components/calculator/results/IndustryBenchmarking";
 
 const Results = () => {
   const { id } = useParams<{ id: string }>();
@@ -374,6 +375,9 @@ const Results = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Industry Benchmarking */}
+        <IndustryBenchmarking submission={submission} formatCurrency={formatCurrency} />
 
         {/* Priority Actions */}
         <PriorityActions submission={submission} formatCurrency={formatCurrency} />
