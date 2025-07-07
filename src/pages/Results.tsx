@@ -277,11 +277,12 @@ const Results = () => {
               currentStep={progressiveStep}
               onStepChange={setProgressiveStep}
               totalSteps={4}
+              className="mx-2"
             />
             
             {/* Step-by-step content revelation */}
             {progressiveStep === 0 && (
-              <section id="executive-summary" className="mb-12">
+              <section id="executive-summary" className="mb-8 px-2">
                 <ExecutiveSummaryCard 
                   submission={submission} 
                   formatCurrency={formatCurrency} 
@@ -291,58 +292,60 @@ const Results = () => {
             )}
 
             {progressiveStep === 1 && (
-              <section id="priority-actions" className="mb-12">
+              <section id="priority-actions" className="mb-8 px-2">
                 <PriorityActions submission={submission} formatCurrency={formatCurrency} />
               </section>
             )}
 
             {progressiveStep === 2 && (
-              <section id="timeline" className="mb-12">
+              <section id="timeline" className="mb-8 px-2">
                 <ImplementationTimeline submission={submission} formatCurrency={formatCurrency} />
               </section>
             )}
 
             {progressiveStep === 3 && (
               <>
-                <section id="benchmarking" className="mb-12">
+                <section id="benchmarking" className="mb-8 px-2">
                   <IndustryBenchmarking submission={submission} formatCurrency={formatCurrency} />
                 </section>
                 
-                <Accordion type="multiple" className="space-y-6 mb-12">
-                  <AccordionItem value="breakdown" className="border rounded-lg px-6">
-                    <AccordionTrigger className="py-4">
-                      <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
-                          <BarChart3 className="h-6 w-6 text-primary" />
+                <div className="px-2">
+                  <Accordion type="multiple" className="space-y-4 mb-8">
+                    <AccordionItem value="breakdown" className="border rounded-lg px-4">
+                      <AccordionTrigger className="py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
+                            <BarChart3 className="h-5 w-5 text-primary" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="text-sm font-bold">Detailed Breakdown</h3>
+                          </div>
                         </div>
-                        <div className="text-left">
-                          <h3 className="text-h3 font-bold">Detailed Breakdown</h3>
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-4">
+                        <div className="space-y-3">
+                          {leakageBreakdown.map((item, index) => {
+                            const Icon = item.icon;
+                            return (
+                              <div key={index} className="p-3 rounded-lg border border-border/50 bg-background/50">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Icon className="h-4 w-4 text-primary" />
+                                  <span className="font-medium text-xs">{item.title}</span>
+                                </div>
+                                <div className={`text-lg font-bold ${getLeakageColor(item.amount)} mb-1`}>
+                                  {formatCurrency(item.amount)}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {item.description}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-6">
-                      <div className="space-y-4">
-                        {leakageBreakdown.map((item, index) => {
-                          const Icon = item.icon;
-                          return (
-                            <div key={index} className="p-4 rounded-lg border border-border/50 bg-background/50">
-                              <div className="flex items-center gap-3 mb-2">
-                                <Icon className="h-5 w-5 text-primary" />
-                                <span className="font-medium text-small">{item.title}</span>
-                              </div>
-                              <div className={`text-h3 font-bold ${getLeakageColor(item.amount)} mb-1`}>
-                                {formatCurrency(item.amount)}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                {item.description}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </div>
               </>
             )}
           </>

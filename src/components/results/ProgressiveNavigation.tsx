@@ -163,15 +163,15 @@ export const ProgressiveNavigation = ({
   }
 
   return (
-    <Card className={`mb-8 bg-gradient-to-r from-background to-primary/5 border-primary/20 ${className}`}>
-      <CardContent className="p-6">
+    <Card className={`mb-6 bg-gradient-to-r from-background to-primary/5 border-primary/20 ${className}`}>
+      <CardContent className="p-4 sm:p-6">
         {/* Progress Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <Badge variant="outline" className="text-xs px-3 py-1">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Badge variant="outline" className="text-xs px-2 sm:px-3 py-1">
               Step {currentStep + 1} of {totalSteps}
             </Badge>
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs hidden sm:flex items-center">
               <Clock className="h-3 w-3 mr-1" />
               {pathPreference === "quick" ? "Quick Path" : "Deep Dive"}
             </Badge>
@@ -183,19 +183,19 @@ export const ProgressiveNavigation = ({
         </div>
 
         {/* Progress Bar */}
-        <Progress value={progress} className="h-2 mb-6" />
+        <Progress value={progress} className="h-2 mb-4 sm:mb-6" />
 
         {/* Current Step Info */}
         {currentStepData && (
-          <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
-              <currentStepData.icon className="h-6 w-6 text-primary" />
+          <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div className="p-2 sm:p-3 rounded-xl bg-primary/10 border border-primary/20 shrink-0">
+              <currentStepData.icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
             </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-h3 mb-1">{currentStepData.title}</h3>
-              <div className="flex items-center gap-3">
-                <p className="text-small text-muted-foreground">{currentStepData.description}</p>
-                <Badge variant="outline" className="text-xs">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-sm sm:text-h3 mb-1">{currentStepData.title}</h3>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                <p className="text-xs sm:text-small text-muted-foreground">{currentStepData.description}</p>
+                <Badge variant="outline" className="text-xs w-fit">
                   <Clock className="h-3 w-3 mr-1" />
                   {currentStepData.readTime}
                 </Badge>
@@ -205,24 +205,25 @@ export const ProgressiveNavigation = ({
         )}
 
         {/* Navigation Controls */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={handlePrevious}
             disabled={currentStep === 0}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground px-2 sm:px-3"
           >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Previous
+            <ChevronLeft className="h-4 w-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Previous</span>
+            <span className="sm:hidden">Back</span>
           </Button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setPathPreference(null)}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground text-xs px-2 sm:px-3"
             >
               Change Path
             </Button>
@@ -233,10 +234,10 @@ export const ProgressiveNavigation = ({
             size="sm"
             onClick={handleNext}
             disabled={currentStep === totalSteps - 1}
-            className={currentStep === totalSteps - 1 ? "bg-primary" : "text-muted-foreground hover:text-foreground"}
+            className={`px-2 sm:px-3 ${currentStep === totalSteps - 1 ? "bg-primary" : "text-muted-foreground hover:text-foreground"}`}
           >
             {currentStep === totalSteps - 1 ? "Complete" : "Next"}
-            <ChevronRight className="h-4 w-4 ml-2" />
+            <ChevronRight className="h-4 w-4 ml-1 sm:ml-2" />
           </Button>
         </div>
 
