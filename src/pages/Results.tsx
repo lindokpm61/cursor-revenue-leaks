@@ -408,7 +408,7 @@ const Results = () => {
               />
             )}
 
-            {/* Detailed Breakdown - Moved here */}
+            {/* Detailed Breakdown */}
             <Accordion type="multiple" className="space-y-6 mb-12">
               <AccordionItem value="breakdown" className="border rounded-lg px-6">
                 <AccordionTrigger className="py-4">
