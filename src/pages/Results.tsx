@@ -236,10 +236,10 @@ const Results = () => {
                 </Button>
               </Link>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-revenue-primary">
-                  <Calculator className="h-6 w-6 text-primary-foreground" />
+                <div className="p-1.5 sm:p-2 rounded-lg bg-gradient-to-r from-primary to-revenue-primary">
+                  <Calculator className="h-4 w-4 sm:h-6 sm:w-6 text-primary-foreground" />
                 </div>
-                <span className="text-xl font-bold">Revenue Analysis Results</span>
+                <span className="text-lg sm:text-xl font-bold">Revenue Analysis Results</span>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -263,7 +263,7 @@ const Results = () => {
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4">
-            <h1 className="text-3xl font-bold mb-2">{submission.company_name}</h1>
+            <h1 className="text-xl sm:text-3xl font-bold mb-2">{submission.company_name}</h1>
             <div className="flex items-center gap-4 text-muted-foreground">
               <span>{submission.contact_email}</span>
               {submission.industry && (
