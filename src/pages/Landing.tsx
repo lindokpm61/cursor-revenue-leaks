@@ -46,16 +46,13 @@ const Landing = () => {
               analyzes lead response times, payment failures, conversion gaps, and operational inefficiencies 
               to show you exactly how much revenue you're losing.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex justify-center">
               <Link to="/calculator">
                 <Button size="lg" className="bg-gradient-to-r from-primary to-revenue-primary text-lg px-8 py-4">
                   Calculate Your Revenue Leaks
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-4">
-                Watch Demo
-              </Button>
             </div>
           </div>
 
