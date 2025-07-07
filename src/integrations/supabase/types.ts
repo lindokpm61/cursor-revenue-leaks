@@ -281,7 +281,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_users_with_analytics: {
+        Args: { limit_count?: number }
+        Returns: {
+          user_id: string
+          email: string
+          created_at: string
+          email_confirmed_at: string
+          last_sign_in_at: string
+          user_role: string
+          user_company: string
+          user_type: string
+          total_submissions: number
+          companies_analyzed: number
+          first_submission_date: string
+          last_submission_date: string
+          avg_lead_score: number
+          total_pipeline_value: number
+          account_status: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

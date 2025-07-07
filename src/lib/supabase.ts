@@ -141,6 +141,14 @@ export const userService = {
   async signOut() {
     const { error } = await supabase.auth.signOut();
     return { error };
+  },
+
+  async getUsersWithAnalytics(limit = 100) {
+    const { data, error } = await supabase.rpc('get_users_with_analytics', {
+      limit_count: limit
+    });
+    
+    return { data, error };
   }
 };
 
