@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   Target, 
   Zap, 
@@ -75,6 +76,7 @@ export const UserIntentSelector = ({
   estimatedTime 
 }: UserIntentSelectorProps) => {
   const [isExpanded, setIsExpanded] = useState(!selectedIntent);
+  const [isContentOpen, setIsContentOpen] = useState(!selectedIntent);
 
   const selectedOption = intentOptions.find(option => option.id === selectedIntent);
 
@@ -115,70 +117,81 @@ export const UserIntentSelector = ({
   return (
     <Card className="mb-8 bg-gradient-to-r from-primary/5 to-revenue-primary/5 border-primary/20">
       <CardContent className="p-6">
-        <div className="text-center mb-6">
-          <h3 className="font-bold text-h1 mb-2">What's Your Priority Today?</h3>
-          <p className="text-body text-muted-foreground">Choose your focus for personalized insights</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {intentOptions.map((option) => {
-            const Icon = option.icon;
-            const isSelected = selectedIntent === option.id;
-            
-            return (
-              <Button
-                key={option.id}
-                variant={isSelected ? "default" : "outline"}
-                className={`h-auto p-4 justify-start text-left transition-all duration-200 ${
-                  isSelected 
-                    ? `${option.bg} ${option.border} border-2 shadow-lg`
-                    : "hover:shadow-md border-border/50"
-                }`}
-                onClick={() => {
-                  onIntentChange(option.id);
-                  setIsExpanded(false);
-                }}
-              >
-                <div className="flex items-start gap-4 w-full">
-                  <div className={`p-2 rounded-lg ${isSelected ? option.bg : 'bg-muted/50'} border ${isSelected ? option.border : 'border-border/30'}`}>
-                    <Icon className={`h-5 w-5 ${isSelected ? option.color : 'text-muted-foreground'}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className={`font-medium text-small mb-1 ${isSelected ? option.color : 'text-foreground'}`}>
-                      {option.label}
-                    </div>
-                    <div className="text-xs text-muted-foreground mb-2">
-                      {option.description}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge 
-                        variant="secondary" 
-                        className={`text-xs px-2 py-0.5 ${isSelected ? option.bg : 'bg-muted/50'}`}
-                      >
-                        <Clock className="h-3 w-3 mr-1" />
-                        {option.time}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
+        <Collapsible open={isContentOpen} onOpenChange={setIsContentOpen}>
+          <div className="flex items-center justify-between mb-6">
+            <div className="text-center flex-1">
+              <h3 className="font-bold text-h1 mb-2">What's Your Priority Today?</h3>
+              <p className="text-body text-muted-foreground">Choose your focus for personalized insights</p>
+            </div>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="ml-4">
+                <ChevronDown className={`h-4 w-4 transition-transform ${isContentOpen ? 'rotate-180' : ''}`} />
               </Button>
-            );
-          })}
-        </div>
+            </CollapsibleTrigger>
+          </div>
 
-        {selectedIntent && (
-          <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-background to-primary/5 border border-primary/20">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              <div>
-                <div className="font-medium text-small">Analysis Personalized</div>
-                <div className="text-xs text-muted-foreground">
-                  Content has been tailored to your selected focus area
+          <CollapsibleContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {intentOptions.map((option) => {
+                const Icon = option.icon;
+                const isSelected = selectedIntent === option.id;
+                
+                return (
+                  <Button
+                    key={option.id}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`h-auto p-4 justify-start text-left transition-all duration-200 ${
+                      isSelected 
+                        ? `${option.bg} ${option.border} border-2 shadow-lg`
+                        : "hover:shadow-md border-border/50"
+                    }`}
+                    onClick={() => {
+                      onIntentChange(option.id);
+                      setIsExpanded(false);
+                    }}
+                  >
+                    <div className="flex items-start gap-4 w-full">
+                      <div className={`p-2 rounded-lg ${isSelected ? option.bg : 'bg-muted/50'} border ${isSelected ? option.border : 'border-border/30'}`}>
+                        <Icon className={`h-5 w-5 ${isSelected ? option.color : 'text-muted-foreground'}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className={`font-medium text-small mb-1 ${isSelected ? option.color : 'text-foreground'}`}>
+                          {option.label}
+                        </div>
+                        <div className="text-xs text-muted-foreground mb-2">
+                          {option.description}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            variant="secondary" 
+                            className={`text-xs px-2 py-0.5 ${isSelected ? option.bg : 'bg-muted/50'}`}
+                          >
+                            <Clock className="h-3 w-3 mr-1" />
+                            {option.time}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </Button>
+                );
+              })}
+            </div>
+
+            {selectedIntent && (
+              <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-background to-primary/5 border border-primary/20">
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  <div>
+                    <div className="font-medium text-small">Analysis Personalized</div>
+                    <div className="text-xs text-muted-foreground">
+                      Content has been tailored to your selected focus area
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            )}
+          </CollapsibleContent>
+        </Collapsible>
       </CardContent>
     </Card>
   );
