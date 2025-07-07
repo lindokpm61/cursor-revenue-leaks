@@ -436,7 +436,7 @@ const Results = () => {
             </section>
 
             {/* LAYER 2: Expandable Content */}
-            <Accordion type="multiple" className="space-y-6 mb-12">
+            <Accordion type="single" collapsible className="space-y-6 mb-12">
               {/* Detailed Breakdown */}
               <AccordionItem value="breakdown" className="border rounded-lg px-6">
                 <AccordionTrigger className="py-4">
