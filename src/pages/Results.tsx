@@ -244,12 +244,12 @@ const Results = () => {
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export PDF
+                <Download className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Export PDF</span>
               </Button>
               <Button variant="outline" size="sm">
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
+                <Share2 className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Share</span>
               </Button>
             </div>
           </div>
