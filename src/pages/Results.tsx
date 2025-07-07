@@ -36,11 +36,17 @@ import { ImplementationTimeline } from "@/components/calculator/results/Implemen
 import { IndustryBenchmarking } from "@/components/calculator/results/IndustryBenchmarking";
 import { ExecutiveSummaryCard } from "@/components/results/ExecutiveSummaryCard";
 import { SectionNavigation } from "@/components/results/SectionNavigation";
+import { UserIntentSelector, type UserIntent } from "@/components/results/UserIntentSelector";
+import { DecisionSupportPanel } from "@/components/results/DecisionSupportPanel";
+import { TldrSummary } from "@/components/results/TldrSummary";
+import { ProgressIndicator } from "@/components/results/ProgressIndicator";
 
 const Results = () => {
   const { id } = useParams<{ id: string }>();
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userIntent, setUserIntent] = useState<UserIntent>(null);
+  const [viewMode, setViewMode] = useState<"simple" | "detailed">("simple");
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -114,6 +120,25 @@ const Results = () => {
     const element = document.getElementById('priority-actions');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const handleExpandSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const getEstimatedReadTime = () => {
+    if (!userIntent) return "15 min";
+    
+    switch (userIntent) {
+      case "understand-problem": return "8 min";
+      case "quick-wins": return "5 min";
+      case "plan-implementation": return "12 min";
+      case "compare-competitors": return "10 min";
+      default: return "15 min";
     }
   };
 
@@ -243,6 +268,27 @@ const Results = () => {
             </div>
           </div>
         </div>
+
+        {/* COGNITIVE LOAD OPTIMIZATION */}
+        {/* User Intent Selector */}
+        <UserIntentSelector 
+          selectedIntent={userIntent}
+          onIntentChange={setUserIntent}
+          estimatedTime={getEstimatedReadTime()}
+        />
+
+        {/* TL;DR Summary based on user intent */}
+        {userIntent && (
+          <TldrSummary 
+            submission={submission}
+            userIntent={userIntent}
+            formatCurrency={formatCurrency}
+            onExpandSection={handleExpandSection}
+          />
+        )}
+
+        {/* Progress Indicator */}
+        <ProgressIndicator sections={sections} />
 
         {/* LAYER 1: Always Visible */}
         {/* Executive Summary */}
@@ -461,6 +507,15 @@ const Results = () => {
         <section id="benchmarking" className="mb-12">
           <IndustryBenchmarking submission={submission} formatCurrency={formatCurrency} />
         </section>
+
+        {/* Decision Support Panel - Intelligent Content Based on User Intent */}
+        {userIntent && (
+          <DecisionSupportPanel 
+            submission={submission}
+            userIntent={userIntent}
+            formatCurrency={formatCurrency}
+          />
+        )}
 
         {/* Priority Actions */}
         <section id="priority-actions" className="mb-12">
