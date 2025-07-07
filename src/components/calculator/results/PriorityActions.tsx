@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   AlertTriangle, 
   TrendingUp, 
@@ -11,7 +13,8 @@ import {
   Settings,
   Users,
   Zap,
-  ChevronRight
+  ChevronRight,
+  ChevronDown
 } from "lucide-react";
 import { type Submission } from "@/lib/supabase";
 
@@ -36,6 +39,8 @@ interface ActionItem {
 }
 
 export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsProps) => {
+  const [isContentOpen, setIsContentOpen] = useState(false);
+
   const getActionItems = (): ActionItem[] => {
     const actions: ActionItem[] = [];
 
@@ -182,161 +187,173 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
   return (
     <Card className="border-border/50 shadow-lg">
       <CardHeader>
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-revenue-primary">
-            <TrendingUp className="h-6 w-6 text-primary-foreground" />
+        <Collapsible open={isContentOpen} onOpenChange={setIsContentOpen}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-revenue-primary">
+                <TrendingUp className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl">Priority Actions</CardTitle>
+                <p className="text-muted-foreground mt-1">
+                  Ranked revenue recovery opportunities by impact and implementation difficulty
+                </p>
+              </div>
+            </div>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="ml-4">
+                <ChevronDown className={`h-4 w-4 transition-transform ${isContentOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
           </div>
-          <div>
-            <CardTitle className="text-2xl">Priority Actions</CardTitle>
-            <p className="text-muted-foreground mt-1">
-              Ranked revenue recovery opportunities by impact and implementation difficulty
-            </p>
-          </div>
-        </div>
+
+          <CollapsibleContent>
+            <CardContent className="space-y-6 pt-6">
+              {urgentActions.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <AlertTriangle className="h-5 w-5 text-revenue-danger" />
+                    <h3 className="text-lg font-semibold text-revenue-danger">
+                      🚨 URGENT PRIORITY (High Impact, Quick Wins)
+                    </h3>
+                  </div>
+                  <div className="space-y-4">
+                    {urgentActions.map((action) => {
+                      const Icon = action.icon;
+                      return (
+                        <Card key={action.id} className="border-revenue-danger/20 bg-gradient-to-r from-background to-revenue-danger/5">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-revenue-danger/10">
+                                  <Icon className="h-5 w-5 text-revenue-danger" />
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-lg">{action.title}</h4>
+                                  <p className="text-sm text-muted-foreground">{action.description}</p>
+                                </div>
+                              </div>
+                              <Button variant="outline" size="sm">
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                              <div>
+                                <div className="text-sm text-muted-foreground">Current</div>
+                                <div className="font-medium">{action.currentMetric}</div>
+                              </div>
+                              <div>
+                                <div className="text-sm text-muted-foreground">Target</div>
+                                <div className="font-medium text-revenue-success">{action.targetMetric}</div>
+                              </div>
+                              <div>
+                                <div className="text-sm text-muted-foreground">Recovery Potential</div>
+                                <div className="font-bold text-revenue-primary">{formatCurrency(action.potentialRecovery)}</div>
+                              </div>
+                              <div>
+                                <div className="text-sm text-muted-foreground">Timeline</div>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant={getDifficultyBadgeVariant(action.difficulty)}>
+                                    {action.difficulty}
+                                  </Badge>
+                                  <span className="text-sm">{action.timeframe}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span>Current Performance</span>
+                                <span>{Math.round(action.currentProgress)}%</span>
+                              </div>
+                              <Progress value={action.currentProgress} className="h-2" />
+                              <div className="flex justify-between text-sm text-muted-foreground">
+                                <span>Target: {Math.round(action.targetProgress)}%</span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {mediumActions.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <TrendingUp className="h-5 w-5 text-revenue-warning" />
+                    <h3 className="text-lg font-semibold text-revenue-warning">
+                      📈 MEDIUM PRIORITY (Medium Impact)
+                    </h3>
+                  </div>
+                  <div className="space-y-4">
+                    {mediumActions.map((action) => {
+                      const Icon = action.icon;
+                      return (
+                        <Card key={action.id} className="border-revenue-warning/20 bg-gradient-to-r from-background to-revenue-warning/5">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-revenue-warning/10">
+                                  <Icon className="h-5 w-5 text-revenue-warning" />
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold">{action.title}</h4>
+                                  <p className="text-sm text-muted-foreground">{action.description}</p>
+                                </div>
+                              </div>
+                              <Button variant="outline" size="sm">
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                              <div>
+                                <div className="text-sm text-muted-foreground">Current</div>
+                                <div className="font-medium">{action.currentMetric}</div>
+                              </div>
+                              <div>
+                                <div className="text-sm text-muted-foreground">Target</div>
+                                <div className="font-medium text-revenue-success">{action.targetMetric}</div>
+                              </div>
+                              <div>
+                                <div className="text-sm text-muted-foreground">Recovery Potential</div>
+                                <div className="font-bold text-revenue-primary">{formatCurrency(action.potentialRecovery)}</div>
+                              </div>
+                              <div>
+                                <div className="text-sm text-muted-foreground">Timeline</div>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant={getDifficultyBadgeVariant(action.difficulty)}>
+                                    {action.difficulty}
+                                  </Badge>
+                                  <span className="text-sm">{action.timeframe}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span>Current Performance</span>
+                                <span>{Math.round(action.currentProgress)}%</span>
+                              </div>
+                              <Progress value={action.currentProgress} className="h-2" />
+                              <div className="flex justify-between text-sm text-muted-foreground">
+                                <span>Target: {Math.round(action.targetProgress)}%</span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {urgentActions.length > 0 && (
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <AlertTriangle className="h-5 w-5 text-revenue-danger" />
-              <h3 className="text-lg font-semibold text-revenue-danger">
-                🚨 URGENT PRIORITY (High Impact, Quick Wins)
-              </h3>
-            </div>
-            <div className="space-y-4">
-              {urgentActions.map((action) => {
-                const Icon = action.icon;
-                return (
-                  <Card key={action.id} className="border-revenue-danger/20 bg-gradient-to-r from-background to-revenue-danger/5">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-revenue-danger/10">
-                            <Icon className="h-5 w-5 text-revenue-danger" />
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-lg">{action.title}</h4>
-                            <p className="text-sm text-muted-foreground">{action.description}</p>
-                          </div>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                        <div>
-                          <div className="text-sm text-muted-foreground">Current</div>
-                          <div className="font-medium">{action.currentMetric}</div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-muted-foreground">Target</div>
-                          <div className="font-medium text-revenue-success">{action.targetMetric}</div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-muted-foreground">Recovery Potential</div>
-                          <div className="font-bold text-revenue-primary">{formatCurrency(action.potentialRecovery)}</div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-muted-foreground">Timeline</div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant={getDifficultyBadgeVariant(action.difficulty)}>
-                              {action.difficulty}
-                            </Badge>
-                            <span className="text-sm">{action.timeframe}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Current Performance</span>
-                          <span>{Math.round(action.currentProgress)}%</span>
-                        </div>
-                        <Progress value={action.currentProgress} className="h-2" />
-                        <div className="flex justify-between text-sm text-muted-foreground">
-                          <span>Target: {Math.round(action.targetProgress)}%</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {mediumActions.length > 0 && (
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="h-5 w-5 text-revenue-warning" />
-              <h3 className="text-lg font-semibold text-revenue-warning">
-                📈 MEDIUM PRIORITY (Medium Impact)
-              </h3>
-            </div>
-            <div className="space-y-4">
-              {mediumActions.map((action) => {
-                const Icon = action.icon;
-                return (
-                  <Card key={action.id} className="border-revenue-warning/20 bg-gradient-to-r from-background to-revenue-warning/5">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-revenue-warning/10">
-                            <Icon className="h-5 w-5 text-revenue-warning" />
-                          </div>
-                          <div>
-                            <h4 className="font-semibold">{action.title}</h4>
-                            <p className="text-sm text-muted-foreground">{action.description}</p>
-                          </div>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                        <div>
-                          <div className="text-sm text-muted-foreground">Current</div>
-                          <div className="font-medium">{action.currentMetric}</div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-muted-foreground">Target</div>
-                          <div className="font-medium text-revenue-success">{action.targetMetric}</div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-muted-foreground">Recovery Potential</div>
-                          <div className="font-bold text-revenue-primary">{formatCurrency(action.potentialRecovery)}</div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-muted-foreground">Timeline</div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant={getDifficultyBadgeVariant(action.difficulty)}>
-                              {action.difficulty}
-                            </Badge>
-                            <span className="text-sm">{action.timeframe}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Current Performance</span>
-                          <span>{Math.round(action.currentProgress)}%</span>
-                        </div>
-                        <Progress value={action.currentProgress} className="h-2" />
-                        <div className="flex justify-between text-sm text-muted-foreground">
-                          <span>Target: {Math.round(action.targetProgress)}%</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </CardContent>
     </Card>
   );
 };
