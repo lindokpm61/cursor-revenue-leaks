@@ -280,112 +280,8 @@ const Results = () => {
           </div>
         </div>
 
-        {/* MOBILE-FIRST PROGRESSIVE DISCLOSURE */}
-        {isMobile ? (
-          // Progressive Navigation for Mobile
-          <>
-            <ProgressiveNavigation 
-              currentStep={progressiveStep}
-              onStepChange={setProgressiveStep}
-              totalSteps={4}
-              className="mx-2"
-            />
-            
-            {/* Step-by-step content revelation */}
-            {progressiveStep === 0 && (
-              <section id="executive-summary" className="mb-8 px-2">
-                <ExecutiveSummaryCard 
-                  submission={submission} 
-                  formatCurrency={formatCurrency} 
-                  onGetActionPlan={() => setProgressiveStep(1)}
-                />
-                
-                <div className="mt-6">
-                  <UserIntentSelector
-                    selectedIntent={userIntent}
-                    onIntentChange={setUserIntent}
-                    estimatedTime={getEstimatedReadTime()}
-                  />
-                </div>
-
-                {userIntent && (
-                  <div className="mt-4">
-                    <TldrSummary 
-                      submission={submission}
-                      userIntent={userIntent}
-                      formatCurrency={formatCurrency}
-                      onExpandSection={(sectionId) => {
-                        if (sectionId === 'priority-actions') setProgressiveStep(1);
-                        if (sectionId === 'timeline') setProgressiveStep(2);
-                        if (sectionId === 'benchmarking') setProgressiveStep(3);
-                      }}
-                    />
-                  </div>
-                )}
-              </section>
-            )}
-
-            {progressiveStep === 1 && (
-              <section id="priority-actions" className="mb-8 px-2">
-                <PriorityActions submission={submission} formatCurrency={formatCurrency} />
-              </section>
-            )}
-
-            {progressiveStep === 2 && (
-              <section id="timeline" className="mb-8 px-2">
-                <ImplementationTimeline submission={submission} formatCurrency={formatCurrency} />
-              </section>
-            )}
-
-            {progressiveStep === 3 && (
-              <>
-                <section id="benchmarking" className="mb-8 px-2">
-                  <IndustryBenchmarking submission={submission} formatCurrency={formatCurrency} />
-                </section>
-                
-                <div className="px-2">
-                  <Accordion type="multiple" className="space-y-4 mb-8">
-                    <AccordionItem value="breakdown" className="border rounded-lg px-4">
-                      <AccordionTrigger className="py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
-                            <BarChart3 className="h-5 w-5 text-primary" />
-                          </div>
-                          <div className="text-left">
-                            <h3 className="text-sm font-bold">Detailed Breakdown</h3>
-                          </div>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-4">
-                        <div className="space-y-3">
-                          {leakageBreakdown.map((item, index) => {
-                            const Icon = item.icon;
-                            return (
-                              <div key={index} className="p-3 rounded-lg border border-border/50 bg-background/50">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Icon className="h-4 w-4 text-primary" />
-                                  <span className="font-medium text-xs">{item.title}</span>
-                                </div>
-                                <div className={`text-lg font-bold ${getLeakageColor(item.amount)} mb-1`}>
-                                  {formatCurrency(item.amount)}
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  {item.description}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                </div>
-              </>
-            )}
-          </>
-        ) : (
-          // Desktop: Existing Layout with Cognitive Load Optimization
-          <>
+        {/* Unified Layout for All Devices */}
+        <>
             {/* LAYER 1: Always Visible */}
             {/* Executive Summary */}
             <section id="executive-summary" className="mb-12">
@@ -674,8 +570,7 @@ const Results = () => {
                 </AccordionItem>
               </Accordion>
             )}
-          </>
-        )}
+        </>
       </div>
     </div>
   );
