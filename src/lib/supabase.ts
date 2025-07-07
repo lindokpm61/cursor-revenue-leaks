@@ -56,13 +56,7 @@ export const submissionService = {
   async getAll(limit = 50) {
     const { data, error } = await supabase
       .from('submissions')
-      .select(`
-        *,
-        user_profiles!inner(
-          company_name,
-          role
-        )
-      `)
+      .select('*')
       .order('created_at', { ascending: false })
       .limit(limit);
     
