@@ -400,44 +400,8 @@ const Results = () => {
               estimatedTime={getEstimatedReadTime()}
             />
 
-            {userIntent && (
-              <TldrSummary 
-                submission={submission}
-                userIntent={userIntent}
-                formatCurrency={formatCurrency}
-                onExpandSection={handleExpandSection}
-              />
-            )}
-
-            <ProgressIndicator sections={sections} />
-
-            {/* Industry Benchmarking */}
-            <section id="benchmarking" className="mb-12">
-              <IndustryBenchmarking submission={submission} formatCurrency={formatCurrency} />
-            </section>
-
-            {/* Decision Support Panel - Intelligent Content Based on User Intent */}
-            {userIntent && (
-              <DecisionSupportPanel 
-                submission={submission}
-                userIntent={userIntent}
-                formatCurrency={formatCurrency}
-              />
-            )}
-
-            {/* Priority Actions */}
-            <section id="priority-actions" className="mb-12">
-              <PriorityActions submission={submission} formatCurrency={formatCurrency} />
-            </section>
-
-            {/* Implementation Timeline & ROI */}
-            <section id="timeline" className="mb-12">
-              <ImplementationTimeline submission={submission} formatCurrency={formatCurrency} />
-            </section>
-
-            {/* LAYER 2: Expandable Content */}
+            {/* Detailed Breakdown - Moved here */}
             <Accordion type="single" collapsible className="space-y-6 mb-12">
-              {/* Detailed Breakdown */}
               <AccordionItem value="breakdown" className="border rounded-lg px-6">
                 <AccordionTrigger className="py-4">
                     <div className="flex items-center gap-4">
@@ -489,6 +453,45 @@ const Results = () => {
                   </div>
                 </AccordionContent>
               </AccordionItem>
+            </Accordion>
+
+            {userIntent && (
+              <TldrSummary 
+                submission={submission}
+                userIntent={userIntent}
+                formatCurrency={formatCurrency}
+                onExpandSection={handleExpandSection}
+              />
+            )}
+
+            <ProgressIndicator sections={sections} />
+
+            {/* Industry Benchmarking */}
+            <section id="benchmarking" className="mb-12">
+              <IndustryBenchmarking submission={submission} formatCurrency={formatCurrency} />
+            </section>
+
+            {/* Decision Support Panel - Intelligent Content Based on User Intent */}
+            {userIntent && (
+              <DecisionSupportPanel 
+                submission={submission}
+                userIntent={userIntent}
+                formatCurrency={formatCurrency}
+              />
+            )}
+
+            {/* Priority Actions */}
+            <section id="priority-actions" className="mb-12">
+              <PriorityActions submission={submission} formatCurrency={formatCurrency} />
+            </section>
+
+            {/* Implementation Timeline & ROI */}
+            <section id="timeline" className="mb-12">
+              <ImplementationTimeline submission={submission} formatCurrency={formatCurrency} />
+            </section>
+
+            {/* LAYER 2: Expandable Content */}
+            <Accordion type="single" collapsible className="space-y-6 mb-12">
               {/* Technical Metrics */}
               <AccordionItem value="metrics" className="border rounded-lg px-6" id="technical-details">
                 <AccordionTrigger className="py-4">
