@@ -344,6 +344,16 @@ const Results = () => {
         ) : (
           // Desktop: Existing Layout with Cognitive Load Optimization
           <>
+            {/* LAYER 1: Always Visible */}
+            {/* Executive Summary */}
+            <section id="executive-summary" className="mb-12">
+              <ExecutiveSummaryCard 
+                submission={submission} 
+                formatCurrency={formatCurrency} 
+                onGetActionPlan={scrollToActions}
+              />
+            </section>
+
             <UserIntentSelector 
               selectedIntent={userIntent}
               onIntentChange={setUserIntent}
@@ -358,18 +368,6 @@ const Results = () => {
                 onExpandSection={handleExpandSection}
               />
             )}
-
-            <ProgressIndicator sections={sections} />
-
-            {/* LAYER 1: Always Visible */}
-            {/* Executive Summary */}
-            <section id="executive-summary" className="mb-12">
-              <ExecutiveSummaryCard 
-                submission={submission} 
-                formatCurrency={formatCurrency} 
-                onGetActionPlan={scrollToActions}
-              />
-            </section>
 
             {/* Revenue Overview - Essential Metrics */}
             <section id="revenue-overview" className="mb-12">
