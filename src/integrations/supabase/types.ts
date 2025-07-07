@@ -281,6 +281,45 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_submissions_with_user_data: {
+        Args: { limit_count?: number }
+        Returns: {
+          id: string
+          company_name: string
+          contact_email: string
+          industry: string
+          current_arr: number
+          monthly_leads: number
+          average_deal_value: number
+          lead_response_time: number
+          monthly_free_signups: number
+          free_to_paid_conversion: number
+          monthly_mrr: number
+          failed_payment_rate: number
+          manual_hours: number
+          hourly_rate: number
+          lead_response_loss: number
+          failed_payment_loss: number
+          selfserve_gap_loss: number
+          process_inefficiency_loss: number
+          total_leak: number
+          leak_percentage: number
+          recovery_potential_70: number
+          recovery_potential_85: number
+          lead_score: number
+          created_at: string
+          updated_at: string
+          user_id: string
+          user_email: string
+          user_registered_date: string
+          user_last_login: string
+          user_email_verified: boolean
+          user_role: string
+          user_company_name: string
+          user_type: string
+          user_total_submissions: number
+        }[]
+      }
       get_users_with_analytics: {
         Args: { limit_count?: number }
         Returns: {

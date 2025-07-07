@@ -34,7 +34,7 @@ const AdminLeads = () => {
 
   const loadSubmissions = async () => {
     try {
-      const response = await submissionService.getAll(100);
+      const response = await submissionService.getAllWithUserData(1000);
       if (response.data) {
         setSubmissions(response.data);
       }
@@ -56,7 +56,8 @@ const AdminLeads = () => {
     if (searchTerm) {
       filtered = filtered.filter(sub => 
         sub.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sub.contact_email.toLowerCase().includes(searchTerm.toLowerCase())
+        sub.contact_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (sub.user_email && sub.user_email.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -95,16 +96,20 @@ const AdminLeads = () => {
 
   const exportData = () => {
     const csvContent = [
-      'Company Name,Email,Industry,Current ARR,Total Leakage,Recovery Potential,Lead Score,Created Date',
+      'Company Name,Contact Email,User Email,User Company,User Submissions Count,Industry,Current ARR,Total Leakage,Recovery Potential,Lead Score,Created Date,User Registered',
       ...filteredSubmissions.map(sub => [
         sub.company_name,
         sub.contact_email,
+        sub.user_email || 'N/A',
+        sub.user_company_name || 'N/A',
+        sub.user_total_submissions || 0,
         sub.industry || '',
         sub.current_arr || 0,
         sub.total_leak || 0,
         sub.recovery_potential_70 || 0,
         sub.lead_score || 0,
-        sub.created_at || ''
+        sub.created_at || '',
+        sub.user_registered_date || ''
       ].join(','))
     ].join('\n');
 
@@ -220,7 +225,7 @@ const AdminLeads = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search companies or emails..."
+                  placeholder="Search companies, emails, or users..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -264,6 +269,16 @@ const AdminLeads = () => {
                       className="p-0 h-auto font-medium"
                     >
                       Company
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => handleSort('user_email')}
+                      className="p-0 h-auto font-medium"
+                    >
+                      Submitted By
                       <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
                   </TableHead>
@@ -313,81 +328,94 @@ const AdminLeads = () => {
                  </TableRow>
                </TableHeader>
               <TableBody>
-                {filteredSubmissions.map((submission) => (
-                  <TableRow key={submission.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{submission.company_name}</div>
-                        <div className="text-sm text-muted-foreground">{submission.contact_email}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {submission.industry && (
-                        <Badge variant="outline" className="capitalize">
-                          {submission.industry}
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>{formatCurrency(submission.current_arr || 0)}</TableCell>
-                    <TableCell className="text-revenue-danger">
-                      {formatCurrency(submission.total_leak || 0)}
-                    </TableCell>
+                 {filteredSubmissions.map((submission) => (
+                   <TableRow key={submission.id}>
                      <TableCell>
-                       <div className="flex items-center gap-2">
-                         <span className={`font-bold ${getLeadScoreColor(submission.lead_score || 0)}`}>
-                           {submission.lead_score || 0}
-                         </span>
-                          {(submission.lead_score || 0) === 0 && (
-                            <div title="Score needs calculation">
-                              <AlertCircle className="h-4 w-4 text-revenue-warning" />
-                            </div>
-                          )}
+                       <div>
+                         <div className="font-medium">{submission.company_name}</div>
+                         <div className="text-sm text-muted-foreground">{submission.contact_email}</div>
                        </div>
                      </TableCell>
-                     <TableCell className="text-muted-foreground">
-                       {submission.created_at ? 
-                         new Date(submission.created_at).toLocaleDateString() : 
-                         'N/A'
-                       }
-                     </TableCell>
                      <TableCell>
-                       {(() => {
-                         const scoreStatus = getScoreStatus(submission);
-                         return (
-                           <div className="flex flex-col gap-1">
-                             <Badge 
-                               variant={scoreStatus.isLegacy ? "destructive" : "outline"}
-                               className="w-fit"
-                             >
-                               {scoreStatus.status}
-                             </Badge>
-                             <span className="text-xs text-muted-foreground">
-                               Updated: {scoreStatus.lastUpdated}
+                       <div>
+                         <div className="font-medium">{submission.user_email || 'Unknown User'}</div>
+                         <div className="text-sm text-muted-foreground">
+                           {submission.user_company_name || 'No company set'}
+                           {submission.user_total_submissions > 1 && (
+                             <span className="ml-2 text-xs bg-revenue-primary text-white px-1 rounded">
+                               {submission.user_total_submissions} submissions
                              </span>
-                           </div>
-                         );
-                       })()}
-                     </TableCell>
-                     <TableCell>
-                       <div className="flex gap-2">
-                         <Link to={`/results/${submission.id}`}>
-                           <Button variant="outline" size="sm">
-                             <Eye className="h-4 w-4" />
-                           </Button>
-                         </Link>
-                         <Button 
-                           variant="outline" 
-                           size="sm"
-                           onClick={() => handleRecalculateScore(submission.id)}
-                           disabled={recalculatingScores.has(submission.id)}
-                           title="Recalculate Score"
-                         >
-                           <RefreshCw className={`h-4 w-4 ${recalculatingScores.has(submission.id) ? 'animate-spin' : ''}`} />
-                         </Button>
+                           )}
+                         </div>
                        </div>
                      </TableCell>
-                  </TableRow>
-                ))}
+                     <TableCell>
+                       {submission.industry && (
+                         <Badge variant="outline" className="capitalize">
+                           {submission.industry}
+                         </Badge>
+                       )}
+                     </TableCell>
+                     <TableCell>{formatCurrency(submission.current_arr || 0)}</TableCell>
+                     <TableCell className="text-revenue-danger">
+                       {formatCurrency(submission.total_leak || 0)}
+                     </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span className={`font-bold ${getLeadScoreColor(submission.lead_score || 0)}`}>
+                            {submission.lead_score || 0}
+                          </span>
+                           {(submission.lead_score || 0) === 0 && (
+                             <div title="Score needs calculation">
+                               <AlertCircle className="h-4 w-4 text-revenue-warning" />
+                             </div>
+                           )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {submission.created_at ? 
+                          new Date(submission.created_at).toLocaleDateString() : 
+                          'N/A'
+                        }
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                          const scoreStatus = getScoreStatus(submission);
+                          return (
+                            <div className="flex flex-col gap-1">
+                              <Badge 
+                                variant={scoreStatus.isLegacy ? "destructive" : "outline"}
+                                className="w-fit"
+                              >
+                                {scoreStatus.status}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                Updated: {scoreStatus.lastUpdated}
+                              </span>
+                            </div>
+                          );
+                        })()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Link to={`/results/${submission.id}`}>
+                            <Button variant="outline" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleRecalculateScore(submission.id)}
+                            disabled={recalculatingScores.has(submission.id)}
+                            title="Recalculate Score"
+                          >
+                            <RefreshCw className={`h-4 w-4 ${recalculatingScores.has(submission.id) ? 'animate-spin' : ''}`} />
+                          </Button>
+                        </div>
+                      </TableCell>
+                   </TableRow>
+                 ))}
               </TableBody>
             </Table>
           </div>
