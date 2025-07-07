@@ -78,6 +78,13 @@ All colors MUST be HSL.
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     --transition-attention: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    
+    /* Mobile-optimized spacing */
+    --mobile-touch-target: 44px;
+    --mobile-spacing-xs: 8px;
+    --mobile-spacing-sm: 16px;
+    --mobile-spacing-md: 24px;
+    --mobile-spacing-lg: 32px;
 
     --radius: 0.5rem;
 
@@ -144,5 +151,60 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Visual Hierarchy Utilities */
+  .text-hierarchy-1 {
+    font-size: var(--text-hero);
+    font-weight: 900;
+    line-height: 1.1;
+  }
+  
+  .text-hierarchy-2 {
+    font-size: var(--text-h2);
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  
+  .text-hierarchy-3 {
+    font-size: var(--text-small);
+    font-weight: 400;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Attention Management */
+  .shadow-attention-glow {
+    box-shadow: var(--attention-glow);
+  }
+  
+  .shadow-attention-pulse {
+    box-shadow: var(--attention-pulse);
+  }
+  
+  .animate-attention-pulse {
+    animation: attention-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Touch-friendly Mobile Utilities */
+  .touch-target {
+    min-height: var(--mobile-touch-target);
+    min-width: var(--mobile-touch-target);
+  }
+  
+  .mobile-spacing {
+    padding: var(--mobile-spacing-md);
+  }
+}
+
+@keyframes attention-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
   }
 }
