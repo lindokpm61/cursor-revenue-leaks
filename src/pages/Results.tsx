@@ -68,9 +68,14 @@ const Results = () => {
 
   const loadSubmission = async (submissionId: string) => {
     try {
+      console.log('Loading submission:', submissionId);
+      console.log('Current user:', user?.id);
+      console.log('User role:', user?.user_metadata?.role);
+      
       const { data, error } = await submissionService.getById(submissionId);
       
       if (error) {
+        console.error('Supabase error:', error);
         throw new Error(error.message);
       }
 
@@ -78,9 +83,15 @@ const Results = () => {
         throw new Error('Submission not found');
       }
 
+      console.log('Submission data:', { 
+        submissionUserId: data.user_id, 
+        currentUserId: user?.id,
+        userRole: user?.user_metadata?.role 
+      });
+
       // Check if user has access to this submission
       if (data.user_id !== user?.id && user?.user_metadata?.role !== 'admin') {
-        throw new Error('Access denied');
+        throw new Error(`Access denied. Submission belongs to user ${data.user_id}, current user is ${user?.id}`);
       }
 
       setSubmission(data);
@@ -88,7 +99,7 @@ const Results = () => {
       console.error('Error loading submission:', error);
       toast({
         title: "Error",
-        description: "Failed to load results. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to load results. Please try again.",
         variant: "destructive",
       });
     } finally {
