@@ -28,19 +28,9 @@ interface UserIntentSelectorProps {
 
 const intentOptions = [
   {
-    id: "understand-problem" as const,
-    label: "Understand my biggest problem",
-    description: "Focus on worst-performing metrics",
-    icon: Target,
-    color: "text-revenue-danger",
-    bg: "bg-revenue-danger/10",
-    border: "border-revenue-danger/20",
-    time: "3 min"
-  },
-  {
     id: "quick-wins" as const,
-    label: "See quick wins",
-    description: "Highlight easy implementation items", 
+    label: "Fix This Fast",
+    description: "Quick wins focus",
     icon: Zap,
     color: "text-revenue-success",
     bg: "bg-revenue-success/10",
@@ -49,23 +39,33 @@ const intentOptions = [
   },
   {
     id: "plan-implementation" as const,
-    label: "Plan implementation",
-    description: "Show timeline and resource requirements",
+    label: "See Full Analysis", 
+    description: "Complete assessment",
     icon: Calendar,
     color: "text-revenue-primary",
     bg: "bg-revenue-primary/10", 
     border: "border-revenue-primary/20",
-    time: "5 min"
+    time: "15 min"
   },
   {
     id: "compare-competitors" as const,
-    label: "Compare to competitors", 
-    description: "Emphasize industry benchmarking",
+    label: "Compare to Industry",
+    description: "Benchmarking focus",
     icon: BarChart3,
     color: "text-revenue-warning",
     bg: "bg-revenue-warning/10",
     border: "border-revenue-warning/20",
-    time: "4 min"
+    time: "5 min"
+  },
+  {
+    id: "understand-problem" as const,
+    label: "Just Exploring",
+    description: "High-level overview", 
+    icon: Target,
+    color: "text-revenue-danger",
+    bg: "bg-revenue-danger/10",
+    border: "border-revenue-danger/20",
+    time: "3 min"
   }
 ];
 
@@ -115,14 +115,9 @@ export const UserIntentSelector = ({
   return (
     <Card className="mb-8 bg-gradient-to-r from-primary/5 to-revenue-primary/5 border-primary/20">
       <CardContent className="p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
-            <Users className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <h3 className="font-bold text-h2">I want to...</h3>
-            <p className="text-small text-muted-foreground">Choose your focus to personalize your analysis</p>
-          </div>
+        <div className="text-center mb-6">
+          <h3 className="font-bold text-h1 mb-2">What's Your Priority Today?</h3>
+          <p className="text-body text-muted-foreground">Choose your focus for personalized insights</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

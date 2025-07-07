@@ -45,7 +45,22 @@ export const ExecutiveSummaryCard = ({
   const config = urgencyConfig[urgencyLevel];
   const UrgencyIcon = config.icon;
 
-  // Calculate biggest opportunity
+  // Single key metric focus
+  const totalLeak = submission.total_leak || 0;
+  const quickWinValue = Math.min(
+    submission.lead_response_loss || 0,
+    submission.failed_payment_loss || 0
+  );
+
+  // Simplified content based on lead score
+  const leadScore = submission.lead_score || 0;
+  const showSimplified = isMobile || leadScore < 70;
+
+  // Calculate required values
+  const roiPotential = submission.current_arr && submission.current_arr > 0 
+    ? Math.round(((submission.recovery_potential_70 || 0) / submission.current_arr) * 100)
+    : 0;
+
   const opportunities = [
     { name: 'Lead Response', value: submission.lead_response_loss || 0 },
     { name: 'Self-Serve Gap', value: submission.selfserve_gap_loss || 0 },
@@ -57,14 +72,12 @@ export const ExecutiveSummaryCard = ({
     opp.value > max.value ? opp : max
   );
 
-  const quickWinValue = Math.min(
-    submission.lead_response_loss || 0,
-    submission.failed_payment_loss || 0
-  );
-
-  const roiPotential = submission.current_arr && submission.current_arr > 0 
-    ? Math.round(((submission.recovery_potential_70 || 0) / submission.current_arr) * 100)
-    : 0;
+  const getSimplifiedMessage = () => {
+    if (totalLeak >= 10000000) return "Revenue Crisis Detected";
+    if (totalLeak >= 5000000) return "Major Revenue Leak"; 
+    if (totalLeak >= 1000000) return "Revenue Opportunity Found";
+    return "Revenue Analysis Complete";
+  };
 
   // Mobile-first layout with only 3 key metrics
   if (isMobile) {
