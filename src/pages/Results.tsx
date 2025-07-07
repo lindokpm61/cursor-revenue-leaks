@@ -40,6 +40,8 @@ import { UserIntentSelector, type UserIntent } from "@/components/results/UserIn
 import { DecisionSupportPanel } from "@/components/results/DecisionSupportPanel";
 import { TldrSummary } from "@/components/results/TldrSummary";
 import { ProgressIndicator } from "@/components/results/ProgressIndicator";
+import { ProgressiveNavigation } from "@/components/results/ProgressiveNavigation";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Results = () => {
   const { id } = useParams<{ id: string }>();
@@ -47,8 +49,10 @@ const Results = () => {
   const [loading, setLoading] = useState(true);
   const [userIntent, setUserIntent] = useState<UserIntent>(null);
   const [viewMode, setViewMode] = useState<"simple" | "detailed">("simple");
+  const [progressiveStep, setProgressiveStep] = useState(0);
   const { user } = useAuth();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (id) {
@@ -269,315 +273,376 @@ const Results = () => {
           </div>
         </div>
 
-        {/* COGNITIVE LOAD OPTIMIZATION */}
-        {/* User Intent Selector */}
-        <UserIntentSelector 
-          selectedIntent={userIntent}
-          onIntentChange={setUserIntent}
-          estimatedTime={getEstimatedReadTime()}
-        />
+        {/* MOBILE-FIRST PROGRESSIVE DISCLOSURE */}
+        {isMobile ? (
+          // Progressive Navigation for Mobile
+          <>
+            <ProgressiveNavigation 
+              currentStep={progressiveStep}
+              onStepChange={setProgressiveStep}
+              totalSteps={4}
+            />
+            
+            {/* Step-by-step content revelation */}
+            {progressiveStep === 0 && (
+              <section id="executive-summary" className="mb-12">
+                <ExecutiveSummaryCard 
+                  submission={submission} 
+                  formatCurrency={formatCurrency} 
+                  onGetActionPlan={() => setProgressiveStep(1)}
+                />
+              </section>
+            )}
 
-        {/* TL;DR Summary based on user intent */}
-        {userIntent && (
-          <TldrSummary 
-            submission={submission}
-            userIntent={userIntent}
-            formatCurrency={formatCurrency}
-            onExpandSection={handleExpandSection}
-          />
-        )}
+            {progressiveStep === 1 && (
+              <section id="priority-actions" className="mb-12">
+                <PriorityActions submission={submission} formatCurrency={formatCurrency} />
+              </section>
+            )}
 
-        {/* Progress Indicator */}
-        <ProgressIndicator sections={sections} />
+            {progressiveStep === 2 && (
+              <section id="timeline" className="mb-12">
+                <ImplementationTimeline submission={submission} formatCurrency={formatCurrency} />
+              </section>
+            )}
 
-        {/* LAYER 1: Always Visible */}
-        {/* Executive Summary */}
-        <section id="executive-summary" className="mb-12">
-          <ExecutiveSummaryCard 
-            submission={submission} 
-            formatCurrency={formatCurrency} 
-            onGetActionPlan={scrollToActions}
-          />
-        </section>
+            {progressiveStep === 3 && (
+              <>
+                <section id="benchmarking" className="mb-12">
+                  <IndustryBenchmarking submission={submission} formatCurrency={formatCurrency} />
+                </section>
+                
+                <Accordion type="multiple" className="space-y-6 mb-12">
+                  <AccordionItem value="breakdown" className="border rounded-lg px-6">
+                    <AccordionTrigger className="py-4">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
+                          <BarChart3 className="h-6 w-6 text-primary" />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="text-h3 font-bold">Detailed Breakdown</h3>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-6">
+                      <div className="space-y-4">
+                        {leakageBreakdown.map((item, index) => {
+                          const Icon = item.icon;
+                          return (
+                            <div key={index} className="p-4 rounded-lg border border-border/50 bg-background/50">
+                              <div className="flex items-center gap-3 mb-2">
+                                <Icon className="h-5 w-5 text-primary" />
+                                <span className="font-medium text-small">{item.title}</span>
+                              </div>
+                              <div className={`text-h3 font-bold ${getLeakageColor(item.amount)} mb-1`}>
+                                {formatCurrency(item.amount)}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {item.description}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </>
+            )}
+          </>
+        ) : (
+          // Desktop: Existing Layout with Cognitive Load Optimization
+          <>
+            <UserIntentSelector 
+              selectedIntent={userIntent}
+              onIntentChange={setUserIntent}
+              estimatedTime={getEstimatedReadTime()}
+            />
 
-        {/* Revenue Overview - Essential Metrics */}
-        <section id="revenue-overview" className="mb-12">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="p-4 rounded-2xl bg-revenue-danger/10 border-2 border-revenue-danger/20">
-              <AlertTriangle className="h-8 w-8 text-revenue-danger" />
-            </div>
-            <div>
-              <h2 className="text-h1 font-bold mb-2">Revenue Leak Overview</h2>
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="text-xs font-bold px-3 py-1 bg-revenue-danger/10 border-revenue-danger/30 text-revenue-danger">
-                  🚨 Essential
-                </Badge>
-                <span className="text-small text-muted-foreground">3 min read</span>
-              </div>
-            </div>
-          </div>
+            {userIntent && (
+              <TldrSummary 
+                submission={submission}
+                userIntent={userIntent}
+                formatCurrency={formatCurrency}
+                onExpandSection={handleExpandSection}
+              />
+            )}
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 p-8 bg-gradient-to-br from-background via-revenue-danger/5 to-revenue-warning/5 rounded-2xl border-2 border-revenue-danger/20 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent"></div>
-            <div className="text-center relative">
-              <div className="text-h2 font-bold mb-3 text-foreground">
-                {formatCurrency(submission.current_arr || 0)}
-              </div>
-              <p className="text-small font-medium text-muted-foreground">Current ARR</p>
-            </div>
-            <div className="text-center relative border-l-4 border-revenue-danger/30 pl-4">
-              <div className={`text-h1 font-bold mb-3 ${getLeakageColor(submission.total_leak || 0)} leading-none`}>
-                {formatCurrency(submission.total_leak || 0)}
-              </div>
-              <p className="text-small font-medium text-revenue-danger">🚨 Total Revenue Leak</p>
-            </div>
-            <div className="text-center relative border-l-4 border-revenue-success/30 pl-4">
-              <div className="text-h2 font-bold text-revenue-success mb-3 leading-none">
-                {formatCurrency(submission.recovery_potential_70 || 0)}
-              </div>
-              <p className="text-small font-medium text-revenue-success">✅ Recovery Potential (70%)</p>
-            </div>
-            <div className="text-center relative border-l-4 border-revenue-primary/30 pl-4">
-              <div className="text-h2 font-bold text-revenue-primary mb-3 leading-none">
-                {formatCurrency(submission.recovery_potential_85 || 0)}
-              </div>
-              <p className="text-small font-medium text-revenue-primary">🎯 Max Recovery (85%)</p>
-            </div>
-          </div>
+            <ProgressIndicator sections={sections} />
 
-          {submission.leak_percentage && (
-            <div className="mb-4">
-              <div className="flex justify-between text-sm mb-2">
-                <span>Revenue Leak Percentage</span>
-                <span className="font-medium">{submission.leak_percentage}%</span>
-              </div>
-              <Progress value={Math.min(submission.leak_percentage, 100)} className="h-2" />
-            </div>
-          )}
-        </section>
+            {/* LAYER 1: Always Visible */}
+            {/* Executive Summary */}
+            <section id="executive-summary" className="mb-12">
+              <ExecutiveSummaryCard 
+                submission={submission} 
+                formatCurrency={formatCurrency} 
+                onGetActionPlan={scrollToActions}
+              />
+            </section>
 
-        {/* LAYER 2: Expandable Content */}
-        <Accordion type="multiple" className="space-y-6 mb-12">
-          {/* Detailed Breakdown */}
-          <AccordionItem value="breakdown" className="border rounded-lg px-6">
-            <AccordionTrigger className="py-4">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
-                    <BarChart3 className="h-6 w-6 text-primary" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-h2 font-bold">Detailed Revenue Breakdown</h3>
-                    <div className="flex items-center gap-3 mt-1">
-                      <Badge variant="secondary" className="text-xs font-semibold px-3 py-1">📊 Detailed</Badge>
-                      <span className="text-small text-muted-foreground">5 min read</span>
-                    </div>
+            {/* Revenue Overview - Essential Metrics */}
+            <section id="revenue-overview" className="mb-12">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="p-4 rounded-2xl bg-revenue-danger/10 border-2 border-revenue-danger/20">
+                  <AlertTriangle className="h-8 w-8 text-revenue-danger" />
+                </div>
+                <div>
+                  <h2 className="text-h1 font-bold mb-2">Revenue Leak Overview</h2>
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline" className="text-xs font-bold px-3 py-1 bg-revenue-danger/10 border-revenue-danger/30 text-revenue-danger">
+                      🚨 Essential
+                    </Badge>
+                    <span className="text-small text-muted-foreground">3 min read</span>
                   </div>
                 </div>
-            </AccordionTrigger>
-            <AccordionContent className="pb-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {leakageBreakdown.map((item, index) => {
-                  const Icon = item.icon;
-                  return (
-                    <Card key={index} className="border-border/50 shadow-lg">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-primary/10">
-                            <Icon className="h-5 w-5 text-primary" />
-                          </div>
-                          <div>
-                            <CardTitle className="text-lg">{item.title}</CardTitle>
-                            <CardDescription className="text-sm">
-                              {item.description}
-                            </CardDescription>
-                          </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-8 bg-gradient-to-br from-background via-revenue-danger/5 to-revenue-warning/5 rounded-2xl border-2 border-revenue-danger/20 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent"></div>
+                <div className="text-center relative border-l-4 border-revenue-danger/30 pl-4">
+                  <div className={`text-h1 font-bold mb-3 ${getLeakageColor(submission.total_leak || 0)} leading-none`}>
+                    {formatCurrency(submission.total_leak || 0)}
+                  </div>
+                  <p className="text-small font-medium text-revenue-danger">🚨 Total Revenue Leak</p>
+                </div>
+                <div className="text-center relative border-l-4 border-revenue-success/30 pl-4">
+                  <div className="text-h2 font-bold text-revenue-success mb-3 leading-none">
+                    {formatCurrency(submission.recovery_potential_70 || 0)}
+                  </div>
+                  <p className="text-small font-medium text-revenue-success">✅ Recovery Potential (70%)</p>
+                </div>
+                <div className="text-center relative border-l-4 border-revenue-primary/30 pl-4">
+                  <div className="text-h2 font-bold text-revenue-primary mb-3 leading-none">
+                    {formatCurrency(submission.recovery_potential_85 || 0)}
+                  </div>
+                  <p className="text-small font-medium text-revenue-primary">🎯 Max Recovery (85%)</p>
+                </div>
+              </div>
+            </section>
+
+            {/* Industry Benchmarking */}
+            <section id="benchmarking" className="mb-12">
+              <IndustryBenchmarking submission={submission} formatCurrency={formatCurrency} />
+            </section>
+
+            {/* Decision Support Panel - Intelligent Content Based on User Intent */}
+            {userIntent && (
+              <DecisionSupportPanel 
+                submission={submission}
+                userIntent={userIntent}
+                formatCurrency={formatCurrency}
+              />
+            )}
+
+            {/* Priority Actions */}
+            <section id="priority-actions" className="mb-12">
+              <PriorityActions submission={submission} formatCurrency={formatCurrency} />
+            </section>
+
+            {/* Implementation Timeline & ROI */}
+            <section id="timeline" className="mb-12">
+              <ImplementationTimeline submission={submission} formatCurrency={formatCurrency} />
+            </section>
+
+            {/* LAYER 2: Expandable Content */}
+            <Accordion type="multiple" className="space-y-6 mb-12">
+              {/* Detailed Breakdown */}
+              <AccordionItem value="breakdown" className="border rounded-lg px-6">
+                <AccordionTrigger className="py-4">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
+                        <BarChart3 className="h-6 w-6 text-primary" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="text-h2 font-bold">Detailed Revenue Breakdown</h3>
+                        <div className="flex items-center gap-3 mt-1">
+                          <Badge variant="secondary" className="text-xs font-semibold px-3 py-1">📊 Detailed</Badge>
+                          <span className="text-small text-muted-foreground">5 min read</span>
                         </div>
+                      </div>
+                    </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {leakageBreakdown.map((item, index) => {
+                      const Icon = item.icon;
+                      return (
+                        <Card key={index} className="border-border/50 shadow-lg">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 rounded-lg bg-primary/10">
+                                <Icon className="h-5 w-5 text-primary" />
+                              </div>
+                              <div>
+                                <CardTitle className="text-lg">{item.title}</CardTitle>
+                                <CardDescription className="text-sm">
+                                  {item.description}
+                                </CardDescription>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className={`text-2xl font-bold ${getLeakageColor(item.amount)}`}>
+                              {formatCurrency(item.amount)}
+                            </div>
+                            <div className="text-sm text-muted-foreground mt-1">
+                              {submission.current_arr && submission.current_arr > 0 
+                                ? `${((item.amount / submission.current_arr) * 100).toFixed(1)}% of ARR`
+                                : 'N/A'
+                              }
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Technical Metrics */}
+              <AccordionItem value="metrics" className="border rounded-lg px-6" id="technical-details">
+                <AccordionTrigger className="py-4">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 rounded-xl bg-muted/50 border border-border">
+                        <Settings className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="text-h3 font-semibold text-muted-foreground">Technical Metrics & Operations</h3>
+                        <div className="flex items-center gap-3 mt-1">
+                          <Badge variant="outline" className="text-xs px-3 py-1 text-muted-foreground">⚙️ Optional</Badge>
+                          <span className="text-small text-muted-foreground">5 min read</span>
+                        </div>
+                      </div>
+                    </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <Card className="border-border/50 shadow-lg">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Users className="h-5 w-5" />
+                          Lead Generation
+                        </CardTitle>
                       </CardHeader>
-                      <CardContent>
-                        <div className={`text-2xl font-bold ${getLeakageColor(item.amount)}`}>
-                          {formatCurrency(item.amount)}
+                      <CardContent className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Monthly Leads</span>
+                          <span className="font-medium">{submission.monthly_leads || 0}</span>
                         </div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {submission.current_arr && submission.current_arr > 0 
-                            ? `${((item.amount / submission.current_arr) * 100).toFixed(1)}% of ARR`
-                            : 'N/A'
-                          }
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Avg Deal Value</span>
+                          <span className="font-medium">{formatCurrency(submission.average_deal_value || 0)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Response Time</span>
+                          <span className="font-medium">{submission.lead_response_time || 0}h</span>
                         </div>
                       </CardContent>
                     </Card>
-                  );
-                })}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
 
-          {/* Technical Metrics */}
-          <AccordionItem value="metrics" className="border rounded-lg px-6" id="technical-details">
-            <AccordionTrigger className="py-4">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-muted/50 border border-border">
-                    <Settings className="h-6 w-6 text-muted-foreground" />
+                    <Card className="border-border/50 shadow-lg">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Target className="h-5 w-5" />
+                          Self-Serve Metrics
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Free Signups</span>
+                          <span className="font-medium">{submission.monthly_free_signups || 0}/month</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Conversion Rate</span>
+                          <span className="font-medium">{submission.free_to_paid_conversion || 0}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Monthly MRR</span>
+                          <span className="font-medium">{formatCurrency(submission.monthly_mrr || 0)}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-border/50 shadow-lg">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Settings className="h-5 w-5" />
+                          Operations
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Failed Payment Rate</span>
+                          <span className="font-medium">{submission.failed_payment_rate || 0}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Manual Hours/Week</span>
+                          <span className="font-medium">{submission.manual_hours || 0}h</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Hourly Rate</span>
+                          <span className="font-medium">{formatCurrency(submission.hourly_rate || 0)}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                  <div className="text-left">
-                    <h3 className="text-h3 font-semibold text-muted-foreground">Technical Metrics & Operations</h3>
-                    <div className="flex items-center gap-3 mt-1">
-                      <Badge variant="outline" className="text-xs px-3 py-1 text-muted-foreground">⚙️ Optional</Badge>
-                      <span className="text-small text-muted-foreground">5 min read</span>
-                    </div>
-                  </div>
-                </div>
-            </AccordionTrigger>
-            <AccordionContent className="pb-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="border-border/50 shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5" />
-                      Lead Generation
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Monthly Leads</span>
-                      <span className="font-medium">{submission.monthly_leads || 0}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Avg Deal Value</span>
-                      <span className="font-medium">{formatCurrency(submission.average_deal_value || 0)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Response Time</span>
-                      <span className="font-medium">{submission.lead_response_time || 0}h</span>
-                    </div>
-                  </CardContent>
-                </Card>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
 
-                <Card className="border-border/50 shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Target className="h-5 w-5" />
-                      Self-Serve Metrics
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Free Signups</span>
-                      <span className="font-medium">{submission.monthly_free_signups || 0}/month</span>
+            {/* LAYER 3: On-Demand Content */}
+            {(submission.twenty_contact_id || submission.n8n_triggered || submission.smartlead_campaign_id || submission.synced_to_self_hosted) && (
+              <Accordion type="single" collapsible className="mb-8">
+                <AccordionItem value="integrations" className="border rounded-lg px-6">
+                  <AccordionTrigger className="py-4">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 rounded-xl bg-muted/50 border border-border">
+                        <BarChart3 className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="text-h3 font-semibold text-muted-foreground">Integration Status</h3>
+                        <div className="flex items-center gap-3 mt-1">
+                          <Badge variant="outline" className="text-xs px-3 py-1 text-muted-foreground">🔧 Technical</Badge>
+                          <span className="text-small text-muted-foreground">1 min read</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Conversion Rate</span>
-                      <span className="font-medium">{submission.free_to_paid_conversion || 0}%</span>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-6">
+                    <p className="text-muted-foreground mb-4">
+                      External system integration and sync status
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {submission.twenty_contact_id && (
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
+                          <span className="text-sm">Twenty CRM Synced</span>
+                        </div>
+                      )}
+                      {submission.n8n_triggered && (
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
+                          <span className="text-sm">N8N Workflow Triggered</span>
+                        </div>
+                      )}
+                      {submission.smartlead_campaign_id && (
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
+                          <span className="text-sm">Smartlead Campaign Added</span>
+                        </div>
+                      )}
+                      {submission.synced_to_self_hosted && (
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
+                          <span className="text-sm">Self-Hosted Synced</span>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Monthly MRR</span>
-                      <span className="font-medium">{formatCurrency(submission.monthly_mrr || 0)}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-border/50 shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Settings className="h-5 w-5" />
-                      Operations
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Failed Payment Rate</span>
-                      <span className="font-medium">{submission.failed_payment_rate || 0}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Manual Hours/Week</span>
-                      <span className="font-medium">{submission.manual_hours || 0}h</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Hourly Rate</span>
-                      <span className="font-medium">{formatCurrency(submission.hourly_rate || 0)}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-
-        {/* LAYER 1 Continued: Key Sections */}
-        {/* Industry Benchmarking */}
-        <section id="benchmarking" className="mb-12">
-          <IndustryBenchmarking submission={submission} formatCurrency={formatCurrency} />
-        </section>
-
-        {/* Decision Support Panel - Intelligent Content Based on User Intent */}
-        {userIntent && (
-          <DecisionSupportPanel 
-            submission={submission}
-            userIntent={userIntent}
-            formatCurrency={formatCurrency}
-          />
-        )}
-
-        {/* Priority Actions */}
-        <section id="priority-actions" className="mb-12">
-          <PriorityActions submission={submission} formatCurrency={formatCurrency} />
-        </section>
-
-        {/* Implementation Timeline & ROI */}
-        <section id="timeline" className="mb-12">
-          <ImplementationTimeline submission={submission} formatCurrency={formatCurrency} />
-        </section>
-
-        {/* LAYER 3: On-Demand Content */}
-        {(submission.twenty_contact_id || submission.n8n_triggered || submission.smartlead_campaign_id || submission.synced_to_self_hosted) && (
-          <Accordion type="single" collapsible className="mb-8">
-            <AccordionItem value="integrations" className="border rounded-lg px-6">
-              <AccordionTrigger className="py-4">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-muted/50 border border-border">
-                    <BarChart3 className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-h3 font-semibold text-muted-foreground">Integration Status</h3>
-                    <div className="flex items-center gap-3 mt-1">
-                      <Badge variant="outline" className="text-xs px-3 py-1 text-muted-foreground">🔧 Technical</Badge>
-                      <span className="text-small text-muted-foreground">1 min read</span>
-                    </div>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pb-6">
-                <p className="text-muted-foreground mb-4">
-                  External system integration and sync status
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {submission.twenty_contact_id && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
-                      <span className="text-sm">Twenty CRM Synced</span>
-                    </div>
-                  )}
-                  {submission.n8n_triggered && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
-                      <span className="text-sm">N8N Workflow Triggered</span>
-                    </div>
-                  )}
-                  {submission.smartlead_campaign_id && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
-                      <span className="text-sm">Smartlead Campaign Added</span>
-                    </div>
-                  )}
-                  {submission.synced_to_self_hosted && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
-                      <span className="text-sm">Self-Hosted Synced</span>
-                    </div>
-                  )}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            )}
+          </>
         )}
       </div>
     </div>

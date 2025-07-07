@@ -10,6 +10,7 @@ import {
   Phone
 } from "lucide-react";
 import { type Submission } from "@/lib/supabase";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ExecutiveSummaryCardProps {
   submission: Submission;
@@ -22,6 +23,8 @@ export const ExecutiveSummaryCard = ({
   formatCurrency, 
   onGetActionPlan 
 }: ExecutiveSummaryCardProps) => {
+  const isMobile = useIsMobile();
+  
   const getUrgencyLevel = (leak: number, arr: number) => {
     if (!arr || arr === 0) return 'low';
     const percentage = (leak / arr) * 100;
@@ -63,6 +66,107 @@ export const ExecutiveSummaryCard = ({
     ? Math.round(((submission.recovery_potential_70 || 0) / submission.current_arr) * 100)
     : 0;
 
+  // Mobile-first layout with only 3 key metrics
+  if (isMobile) {
+    return (
+      <Card className={`${config.bg} ${config.border} border-2 shadow-xl mb-8 ${urgencyLevel === 'critical' ? 'animate-attention-pulse' : ''}`}>
+        <CardHeader className="pb-4">
+          <div className="text-center space-y-4">
+            <div className={`p-4 rounded-2xl ${config.bg} border ${config.border} mx-auto w-fit`}>
+              <UrgencyIcon className={`h-8 w-8 ${config.color}`} />
+            </div>
+            <div>
+              <CardTitle className="text-h2 font-bold mb-2">Your Revenue Analysis</CardTitle>
+              <Badge 
+                variant={urgencyLevel === 'critical' ? 'destructive' : 'outline'} 
+                className={`uppercase text-xs font-bold px-3 py-1 ${urgencyLevel === 'critical' ? 'bg-revenue-danger text-white' : ''}`}
+              >
+                {urgencyLevel === 'critical' ? '🚨' : urgencyLevel === 'high' ? '⚡' : '🎯'} {urgencyLevel} Priority
+              </Badge>
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="px-6 pb-8 space-y-6">
+          {/* Mobile: Only 3 Key Metrics */}
+          <div className="space-y-4">
+            <div className="text-center p-6 rounded-xl bg-revenue-danger/10 border-2 border-revenue-danger/20 relative overflow-hidden min-h-[120px]">
+              <div className="absolute inset-0 bg-gradient-to-br from-revenue-danger/5 to-revenue-danger/10"></div>
+              <div className="relative">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <AlertTriangle className="h-6 w-6 text-revenue-danger" />
+                  <span className="text-small font-semibold text-revenue-danger">Annual Loss</span>
+                </div>
+                <div className="text-hero font-bold text-revenue-danger leading-none mb-2">
+                  {formatCurrency(submission.total_leak || 0)}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {submission.current_arr && submission.current_arr > 0 
+                    ? `${((submission.total_leak || 0) / submission.current_arr * 100).toFixed(1)}% of ARR`
+                    : 'N/A'
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center p-6 rounded-xl bg-revenue-success/10 border-2 border-revenue-success/20 relative overflow-hidden min-h-[120px]">
+              <div className="absolute inset-0 bg-gradient-to-br from-revenue-success/5 to-revenue-success/10"></div>
+              <div className="relative">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Zap className="h-6 w-6 text-revenue-success" />
+                  <span className="text-small font-semibold text-revenue-success">Quick Win</span>
+                </div>
+                <div className="text-hero font-bold text-revenue-success leading-none mb-2">
+                  {formatCurrency(quickWinValue)}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  ⚡ Recoverable in 30-60 days
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center p-6 rounded-xl bg-revenue-primary/10 border-2 border-revenue-primary/20 relative overflow-hidden min-h-[120px]">
+              <div className="absolute inset-0 bg-gradient-to-br from-revenue-primary/5 to-revenue-primary/10"></div>
+              <div className="relative">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <TrendingUp className="h-6 w-6 text-revenue-primary" />
+                  <span className="text-small font-semibold text-revenue-primary">ROI Potential</span>
+                </div>
+                <div className="text-hero font-bold text-revenue-primary leading-none mb-2">
+                  {roiPotential}%
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  of current ARR
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Single Primary CTA for Mobile */}
+          <Button 
+            onClick={onGetActionPlan}
+            size="lg" 
+            className="w-full bg-gradient-to-r from-revenue-primary to-primary hover:from-revenue-primary/90 hover:to-primary/90 shadow-attention-glow hover:shadow-attention-pulse text-h3 px-8 py-4 h-auto min-h-[56px] transition-all duration-300"
+          >
+            <Target className="h-6 w-6 mr-3" />
+            Get Your Action Plan
+          </Button>
+
+          {/* Simple Key Insight for Mobile */}
+          <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 to-revenue-primary/5 border-l-4 border-primary">
+            <div className="text-center">
+              <div className="font-bold text-small mb-2">💡 Key Insight</div>
+              <div className="text-xs text-muted-foreground">
+                Focus on {biggestOpportunity.name.toLowerCase()} first - it offers the largest improvement potential of {formatCurrency(biggestOpportunity.value)}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Desktop layout with full information
   return (
     <Card className={`${config.bg} ${config.border} border-2 shadow-xl mb-8 ${urgencyLevel === 'critical' ? 'animate-attention-pulse' : ''}`}>
       <CardHeader className="pb-6">
@@ -99,13 +203,13 @@ export const ExecutiveSummaryCard = ({
       
       <CardContent>
         {/* Key Metrics Grid - Priority Level 1 */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="text-center p-6 rounded-xl bg-revenue-danger/10 border-2 border-revenue-danger/20 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-revenue-danger/5 to-revenue-danger/10"></div>
             <div className="relative">
               <div className="flex items-center justify-center gap-2 mb-3">
                 <AlertTriangle className="h-6 w-6 text-revenue-danger" />
-                <span className="text-small font-semibold text-revenue-danger">Annual Leak</span>
+                <span className="text-small font-semibold text-revenue-danger">Annual Loss</span>
               </div>
               <div className="text-hero font-bold text-revenue-danger leading-none mb-2">
                 {formatCurrency(submission.total_leak || 0)}
@@ -119,30 +223,14 @@ export const ExecutiveSummaryCard = ({
             </div>
           </div>
 
-          <div className="text-center p-6 rounded-xl bg-revenue-warning/10 border-2 border-revenue-warning/20 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-revenue-warning/5 to-revenue-warning/10"></div>
-            <div className="relative">
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <Target className="h-6 w-6 text-revenue-warning" />
-                <span className="text-small font-semibold text-revenue-warning">Biggest Opportunity</span>
-              </div>
-              <div className="text-h1 font-bold text-revenue-warning leading-none mb-2">
-                {formatCurrency(biggestOpportunity.value)}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                📈 {biggestOpportunity.name}
-              </div>
-            </div>
-          </div>
-
           <div className="text-center p-6 rounded-xl bg-revenue-success/10 border-2 border-revenue-success/20 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-revenue-success/5 to-revenue-success/10"></div>
             <div className="relative">
               <div className="flex items-center justify-center gap-2 mb-3">
                 <Zap className="h-6 w-6 text-revenue-success" />
-                <span className="text-small font-semibold text-revenue-success">Quick Win Value</span>
+                <span className="text-small font-semibold text-revenue-success">Quick Win</span>
               </div>
-              <div className="text-h1 font-bold text-revenue-success leading-none mb-2">
+              <div className="text-hero font-bold text-revenue-success leading-none mb-2">
                 {formatCurrency(quickWinValue)}
               </div>
               <div className="text-xs text-muted-foreground">
@@ -158,7 +246,7 @@ export const ExecutiveSummaryCard = ({
                 <TrendingUp className="h-6 w-6 text-revenue-primary" />
                 <span className="text-small font-semibold text-revenue-primary">ROI Potential</span>
               </div>
-              <div className="text-h1 font-bold text-revenue-primary leading-none mb-2">
+              <div className="text-hero font-bold text-revenue-primary leading-none mb-2">
                 {roiPotential}%
               </div>
               <div className="text-xs text-muted-foreground">
