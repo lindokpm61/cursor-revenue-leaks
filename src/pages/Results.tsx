@@ -299,6 +299,29 @@ const Results = () => {
                   formatCurrency={formatCurrency} 
                   onGetActionPlan={() => setProgressiveStep(1)}
                 />
+                
+                <div className="mt-6">
+                  <UserIntentSelector
+                    selectedIntent={userIntent}
+                    onIntentChange={setUserIntent}
+                    estimatedTime={getEstimatedReadTime()}
+                  />
+                </div>
+
+                {userIntent && (
+                  <div className="mt-4">
+                    <TldrSummary 
+                      submission={submission}
+                      userIntent={userIntent}
+                      formatCurrency={formatCurrency}
+                      onExpandSection={(sectionId) => {
+                        if (sectionId === 'priority-actions') setProgressiveStep(1);
+                        if (sectionId === 'timeline') setProgressiveStep(2);
+                        if (sectionId === 'benchmarking') setProgressiveStep(3);
+                      }}
+                    />
+                  </div>
+                )}
               </section>
             )}
 
