@@ -111,23 +111,23 @@ export const ProgressiveNavigation = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Button
               variant="outline"
-              className="h-auto p-6 text-left border-2 hover:border-revenue-success/50 hover:bg-revenue-success/5 transition-all duration-200"
+              className="h-auto p-4 text-left border-2 hover:border-revenue-success/50 hover:bg-revenue-success/5 transition-all duration-200"
               onClick={() => handlePathSelection("quick")}
             >
-              <div className="w-full">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-revenue-success/10">
-                    <Target className="h-5 w-5 text-revenue-success" />
+              <div className="w-full space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-revenue-success/10 flex-shrink-0">
+                    <Target className="h-4 w-4 text-revenue-success" />
                   </div>
-                  <div>
-                    <div className="font-bold text-h3">Quick Path</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-sm">Quick Path</div>
                     <Badge variant="secondary" className="text-xs">
                       <Clock className="h-3 w-3 mr-1" />
                       2 min
                     </Badge>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed break-words">
                   Get the essentials: your biggest problem and the top action to take
                 </p>
               </div>
@@ -135,23 +135,23 @@ export const ProgressiveNavigation = ({
 
             <Button
               variant="outline"
-              className="h-auto p-6 text-left border-2 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200"
+              className="h-auto p-4 text-left border-2 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200"
               onClick={() => handlePathSelection("deep")}
             >
-              <div className="w-full">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <CheckCircle className="h-5 w-5 text-primary" />
+              <div className="w-full space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                    <CheckCircle className="h-4 w-4 text-primary" />
                   </div>
-                  <div>
-                    <div className="font-bold text-h3">Deep Dive</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-sm">Deep Dive</div>
                     <Badge variant="secondary" className="text-xs">
                       <Clock className="h-3 w-3 mr-1" />
                       15 min
                     </Badge>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed break-words">
                   Complete analysis with detailed breakdowns and implementation guidance
                 </p>
               </div>
