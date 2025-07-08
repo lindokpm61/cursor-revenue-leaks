@@ -251,15 +251,15 @@ export const DecisionSupportPanel = ({
           ))}
 
           {/* Quick Action Panel */}
-          <div className="p-6 rounded-xl bg-gradient-to-r from-primary/5 to-revenue-primary/5 border-2 border-primary/20">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-primary/20 border border-primary/30">
-                  <TrendingUp className="h-6 w-6 text-primary" />
+          <div className="p-4 sm:p-6 rounded-xl bg-gradient-to-r from-primary/5 to-revenue-primary/5 border-2 border-primary/20">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
+                <div className="p-2 sm:p-3 rounded-xl bg-primary/20 border border-primary/30 flex-shrink-0">
+                  <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
-                <div>
-                  <h4 className="font-bold text-h3">Ready to start?</h4>
-                  <p className="text-small text-muted-foreground">
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-lg sm:text-h3 leading-tight">Ready to start?</h4>
+                  <p className="text-sm sm:text-small text-muted-foreground mt-1 leading-relaxed">
                     {userIntent === "quick-wins" 
                       ? "Begin with the easiest high-impact action"
                       : "Start with your highest-priority opportunity"
@@ -267,11 +267,11 @@ export const DecisionSupportPanel = ({
                   </p>
                 </div>
               </div>
-              <div className="flex gap-3">
-                <Button variant="outline" size="sm">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+                <Button variant="outline" size="sm" className="w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4 py-2">
                   Download Plan
                 </Button>
-                <Button size="sm" className="bg-gradient-to-r from-primary to-revenue-primary">
+                <Button size="sm" className="w-full sm:w-auto bg-gradient-to-r from-primary to-revenue-primary text-xs sm:text-sm px-3 sm:px-4 py-2">
                   Get Started
                 </Button>
               </div>
