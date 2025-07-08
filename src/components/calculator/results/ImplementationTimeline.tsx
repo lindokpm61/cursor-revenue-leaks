@@ -234,28 +234,33 @@ export const ImplementationTimeline = ({ submission, formatCurrency }: Implement
                 <div className="space-y-6">
                   {phases.map((phase, index) => (
                     <Card key={phase.phase} className="border-border/30">
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary font-bold text-lg">
+                      <CardContent className="p-4 sm:p-6">
+                        <div className="space-y-4">
+                          {/* Header section with phase number and title */}
+                          <div className="flex items-start gap-3 sm:gap-4">
+                            <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 text-primary font-bold text-lg flex-shrink-0">
                               {phase.phase}
                             </div>
-                            <div>
-                              <div className="flex items-center gap-3 mb-1">
-                                <h4 className="text-lg font-semibold">{phase.title}</h4>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                                <h4 className="text-lg sm:text-xl font-semibold leading-tight">{phase.title}</h4>
                                 <Badge className={getDifficultyColor(phase.difficulty)}>
                                   {phase.difficulty}
                                 </Badge>
                               </div>
                               <p className="text-sm text-muted-foreground mb-1">{phase.months}</p>
-                              <p className="text-sm text-muted-foreground">{phase.description}</p>
+                              <p className="text-sm text-muted-foreground leading-relaxed">{phase.description}</p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <div className="text-xl font-bold text-revenue-primary mb-1">
-                              {formatCurrency(phase.recovery)}
+                          
+                          {/* Recovery potential - mobile optimized */}
+                          <div className="bg-primary/5 rounded-lg p-3 border border-primary/10">
+                            <div className="text-center sm:text-left">
+                              <div className="text-xl sm:text-2xl font-bold text-revenue-primary mb-1">
+                                {formatCurrency(phase.recovery)}
+                              </div>
+                              <p className="text-sm text-muted-foreground">Recovery Potential</p>
                             </div>
-                            <p className="text-sm text-muted-foreground">Recovery Potential</p>
                           </div>
                         </div>
 
