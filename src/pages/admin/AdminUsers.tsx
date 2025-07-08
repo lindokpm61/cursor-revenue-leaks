@@ -197,15 +197,23 @@ const AdminUsers = () => {
   };
 
   const getUserTypeBadge = (user: UserWithAnalytics) => {
-    // Determine user type based on activity patterns
+    // Determine user type based on activity patterns and new classification
     const isConsultant = user.companies_analyzed >= 3;
     const isEnterprise = user.user_type === 'enterprise' || user.total_pipeline_value > 5000000;
     const isAdmin = user.user_role === 'admin';
+    const isInvestor = user.companies_analyzed >= 4 && user.total_pipeline_value > 20000000;
     
     if (isAdmin) {
       return <Badge variant="default" className="flex items-center gap-1">
         <Shield className="h-3 w-3" />
         Admin
+      </Badge>;
+    }
+    
+    if (isInvestor) {
+      return <Badge variant="destructive" className="flex items-center gap-1">
+        <TrendingUp className="h-3 w-3" />
+        Investor/PE
       </Badge>;
     }
     
@@ -227,6 +235,22 @@ const AdminUsers = () => {
       <Users className="h-3 w-3" />
       Standard
     </Badge>;
+  };
+
+  const getBusinessModelBadge = (user: UserWithAnalytics) => {
+    // This would come from the enhanced user_profiles table
+    const businessModel = user.user_type; // Placeholder - would be actual business_model field
+    
+    switch (businessModel) {
+      case 'consulting':
+        return <Badge variant="outline" className="text-xs">Consulting</Badge>;
+      case 'investment':
+        return <Badge variant="outline" className="text-xs">Investment</Badge>;
+      case 'internal':
+        return <Badge variant="outline" className="text-xs">Internal</Badge>;
+      default:
+        return <Badge variant="outline" className="text-xs">Business</Badge>;
+    }
   };
 
   if (loading) {
