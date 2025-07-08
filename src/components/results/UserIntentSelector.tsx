@@ -83,20 +83,20 @@ export const UserIntentSelector = ({
   if (!isExpanded && selectedIntent) {
     return (
       <Card className="mb-8 bg-gradient-to-r from-primary/5 to-revenue-primary/5 border-primary/20">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-xl ${selectedOption?.bg} border ${selectedOption?.border}`}>
-                {selectedOption && <selectedOption.icon className={`h-6 w-6 ${selectedOption.color}`} />}
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className={`p-2 sm:p-3 rounded-xl ${selectedOption?.bg} border ${selectedOption?.border} flex-shrink-0`}>
+                {selectedOption && <selectedOption.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${selectedOption.color}`} />}
               </div>
-              <div>
-                <div className="font-semibold text-h3">I want to {selectedOption?.label?.toLowerCase()}</div>
-                <div className="flex items-center gap-3 mt-1">
-                  <Badge variant="outline" className="text-xs px-3 py-1">
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-lg sm:text-h3 leading-tight">I want to {selectedOption?.label?.toLowerCase()}</div>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mt-1">
+                  <Badge variant="outline" className="text-xs px-3 py-1 w-fit">
                     <Clock className="h-3 w-3 mr-1" />
                     {estimatedTime || selectedOption?.time} read
                   </Badge>
-                  <span className="text-small text-muted-foreground">{selectedOption?.description}</span>
+                  <span className="text-sm text-muted-foreground">{selectedOption?.description}</span>
                 </div>
               </div>
             </div>
@@ -104,7 +104,7 @@ export const UserIntentSelector = ({
               variant="ghost" 
               size="sm" 
               onClick={() => setIsExpanded(true)}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground self-start sm:self-center flex-shrink-0"
             >
               Change focus
             </Button>

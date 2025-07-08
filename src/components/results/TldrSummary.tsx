@@ -122,34 +122,36 @@ export const TldrSummary = ({
 
   return (
     <Card className={`mb-6 ${config.bg} ${config.border} border-2 shadow-lg`}>
-      <CardContent className="p-6">
-        <div className="flex items-start gap-4">
-          <div className={`p-3 rounded-xl ${config.bg} border ${config.border} flex-shrink-0`}>
-            <UrgencyIcon className={`h-6 w-6 ${config.color}`} />
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex items-start gap-3 sm:gap-4">
+          <div className={`p-2 sm:p-3 rounded-xl ${config.bg} border ${config.border} flex-shrink-0`}>
+            <UrgencyIcon className={`h-5 w-5 sm:h-6 sm:w-6 ${config.color}`} />
           </div>
           
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-3">
-              <h3 className="font-bold text-h2">{tldr.title}</h3>
-              <Badge variant="outline" className="text-xs font-bold px-3 py-1">
-                {config.badge}
-              </Badge>
-              <Badge variant="secondary" className="text-xs px-2 py-1">
-                <Clock className="h-3 w-3 mr-1" />
-                30 sec read
-              </Badge>
+            <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3 mb-3">
+              <h3 className="font-bold text-xl sm:text-h2 leading-tight">{tldr.title}</h3>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className="text-xs font-bold px-3 py-1">
+                  {config.badge}
+                </Badge>
+                <Badge variant="secondary" className="text-xs px-2 py-1">
+                  <Clock className="h-3 w-3 mr-1" />
+                  30 sec read
+                </Badge>
+              </div>
             </div>
             
-            <p className="text-body mb-4 leading-relaxed">
+            <p className="text-sm sm:text-body mb-4 leading-relaxed">
               {tldr.summary}
             </p>
             
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${config.bg} border ${config.border}`}>
+                <div className={`p-2 rounded-lg ${config.bg} border ${config.border} flex-shrink-0`}>
                   <Lightbulb className={`h-4 w-4 ${config.color}`} />
                 </div>
-                <span className="font-medium text-small">{tldr.actionText}</span>
+                <span className="font-medium text-sm sm:text-small">{tldr.actionText}</span>
               </div>
               
               {onExpandSection && (
@@ -157,7 +159,7 @@ export const TldrSummary = ({
                   variant="outline" 
                   size="sm"
                   onClick={() => onExpandSection(tldr.sectionId)}
-                  className="text-xs px-4 py-2 hover:shadow-md transition-all duration-200"
+                  className="text-xs px-4 py-2 hover:shadow-md transition-all duration-200 w-fit"
                 >
                   {tldr.nextStep}
                   <ChevronRight className="h-3 w-3 ml-2" />
