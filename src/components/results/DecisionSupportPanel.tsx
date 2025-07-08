@@ -164,16 +164,16 @@ export const DecisionSupportPanel = ({
       <CardContent>
         <div className="space-y-6">
           {sortedActions.slice(0, 3).map((action, index) => (
-            <div key={action.title} className="p-6 rounded-xl bg-gradient-to-r from-background to-card border border-border/50 relative overflow-hidden">
-              <div className="absolute top-4 right-4">
-                <Badge variant="outline" className="text-xs font-bold px-3 py-1">
+            <div key={action.title} className="p-4 sm:p-6 rounded-xl bg-gradient-to-r from-background to-card border border-border/50 relative overflow-hidden">
+              <div className="absolute top-3 sm:top-4 right-3 sm:right-4">
+                <Badge variant="outline" className="text-xs font-bold px-2 sm:px-3 py-1 whitespace-nowrap">
                   #{index + 1} Priority
                 </Badge>
               </div>
               
-              <div className="mb-4">
-                <h4 className="font-bold text-h3 mb-2">{action.title}</h4>
-                <p className="text-small text-muted-foreground">{action.description}</p>
+              <div className="mb-4 pr-20 sm:pr-24">
+                <h4 className="font-bold text-lg sm:text-h3 mb-2 leading-tight">{action.title}</h4>
+                <p className="text-sm sm:text-small text-muted-foreground leading-relaxed">{action.description}</p>
               </div>
 
               {/* Key Metrics Row */}
