@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -77,8 +77,39 @@ export const UserIntentSelector = ({
 }: UserIntentSelectorProps) => {
   const [isExpanded, setIsExpanded] = useState(!selectedIntent);
   const [isContentOpen, setIsContentOpen] = useState(!selectedIntent);
+  const [focusedCard, setFocusedCard] = useState<string | null>(null);
+  const cardRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
   const selectedOption = intentOptions.find(option => option.id === selectedIntent);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const cardId = entry.target.getAttribute('data-card-id');
+            if (cardId) {
+              setFocusedCard(cardId);
+            }
+          }
+        });
+      },
+      {
+        threshold: 0.6,
+        rootMargin: '-20% 0px -20% 0px'
+      }
+    );
+
+    Object.values(cardRefs.current).forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => observer.disconnect();
+  }, [isContentOpen]);
+
+  const setCardRef = (id: string) => (ref: HTMLButtonElement | null) => {
+    cardRefs.current[id] = ref;
+  };
 
   if (!isExpanded && selectedIntent) {
     return (
@@ -135,15 +166,20 @@ export const UserIntentSelector = ({
               {intentOptions.map((option) => {
                 const Icon = option.icon;
                 const isSelected = selectedIntent === option.id;
+                const isFocused = focusedCard === option.id;
                 
                 return (
                   <Button
                     key={option.id}
+                    ref={setCardRef(option.id)}
+                    data-card-id={option.id}
                     variant={isSelected ? "default" : "outline"}
-                    className={`h-auto p-4 justify-start text-left transition-all duration-200 ${
+                    className={`h-auto p-4 justify-start text-left transition-all duration-300 ${
                       isSelected 
                         ? `${option.bg} ${option.border} border-2 shadow-lg`
-                        : "hover:shadow-md border-border/50"
+                        : isFocused 
+                          ? "hover:shadow-md border-border/50 ring-2 ring-primary/30 shadow-lg scale-[1.02] bg-primary/5"
+                          : "hover:shadow-md border-border/50"
                     }`}
                     onClick={() => {
                       onIntentChange(option.id);
