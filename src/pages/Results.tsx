@@ -228,28 +228,30 @@ const Results = () => {
       <nav className="border-b border-border/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
               <Link to="/dashboard">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Dashboard
+                <Button variant="ghost" size="sm" className="flex-shrink-0">
+                  <ArrowLeft className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Dashboard</span>
                 </Button>
               </Link>
-              <div className="hidden sm:flex items-center gap-3">
-                <div className="p-1.5 sm:p-2 rounded-lg bg-gradient-to-r from-primary to-revenue-primary">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-gradient-to-r from-primary to-revenue-primary flex-shrink-0">
                   <Calculator className="h-4 w-4 sm:h-6 sm:w-6 text-primary-foreground" />
                 </div>
-                <span className="text-sm sm:text-xl font-bold leading-tight">Revenue Analysis Results</span>
+                <span className="text-sm sm:text-xl font-bold leading-tight truncate">
+                  Revenue Analysis Results
+                </span>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Export PDF</span>
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              <Button variant="outline" size="sm" className="px-2 sm:px-3">
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline sm:ml-2">Export PDF</span>
               </Button>
-              <Button variant="outline" size="sm">
-                <Share2 className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Share</span>
+              <Button variant="outline" size="sm" className="px-2 sm:px-3">
+                <Share2 className="h-4 w-4" />
+                <span className="hidden sm:inline sm:ml-2">Share</span>
               </Button>
             </div>
           </div>
@@ -263,19 +265,21 @@ const Results = () => {
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4">
-            <h1 className="text-xl sm:text-3xl font-bold mb-2">{submission.company_name}</h1>
-            <div className="flex items-center gap-4 text-muted-foreground">
-              <span>{submission.contact_email}</span>
+            <h1 className="text-xl sm:text-3xl font-bold mb-2 break-words">{submission.company_name}</h1>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-muted-foreground">
+              <span className="break-all text-sm sm:text-base">{submission.contact_email}</span>
               {submission.industry && (
-                <>
-                  <span>•</span>
-                  <Badge variant="outline" className="capitalize">
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline">•</span>
+                  <Badge variant="outline" className="capitalize text-xs sm:text-sm w-fit">
                     {submission.industry}
                   </Badge>
-                </>
+                </div>
               )}
-              <span>•</span>
-              <span>{new Date(submission.created_at!).toLocaleDateString()}</span>
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline">•</span>
+                <span className="text-xs sm:text-base">{new Date(submission.created_at!).toLocaleDateString()}</span>
+              </div>
             </div>
           </div>
         </div>
