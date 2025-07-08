@@ -19,10 +19,10 @@ export const ExecutiveSummary = ({ data, calculations, formatCurrency }: Executi
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold text-destructive">
+          <p className="text-3xl font-bold text-destructive leading-none mb-2">
             {formatCurrency(calculations.totalLeakage)}
           </p>
-          <p className="text-sm text-muted-foreground mt-1">annual loss</p>
+          <p className="text-sm text-muted-foreground">annual loss</p>
         </CardContent>
       </Card>
 
@@ -34,10 +34,10 @@ export const ExecutiveSummary = ({ data, calculations, formatCurrency }: Executi
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold text-revenue-success">
+          <p className="text-3xl font-bold text-revenue-success leading-none mb-2">
             {formatCurrency(calculations.potentialRecovery70)}
           </p>
-          <p className="text-sm text-muted-foreground mt-1">conservative estimate</p>
+          <p className="text-sm text-muted-foreground">conservative estimate</p>
         </CardContent>
       </Card>
 
@@ -49,10 +49,10 @@ export const ExecutiveSummary = ({ data, calculations, formatCurrency }: Executi
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold text-primary">
+          <p className="text-3xl font-bold text-primary leading-none mb-2">
             {formatCurrency(calculations.potentialRecovery85)}
           </p>
-          <p className="text-sm text-muted-foreground mt-1">optimistic estimate</p>
+          <p className="text-sm text-muted-foreground">optimistic estimate</p>
         </CardContent>
       </Card>
 
@@ -64,12 +64,12 @@ export const ExecutiveSummary = ({ data, calculations, formatCurrency }: Executi
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold text-revenue-success">
+          <p className="text-3xl font-bold text-revenue-success leading-none mb-2">
             {data.companyInfo.currentARR > 0 
               ? Math.round((calculations.potentialRecovery70 / data.companyInfo.currentARR) * 100)
               : 0}%
           </p>
-          <p className="text-sm text-muted-foreground mt-1">of current ARR</p>
+          <p className="text-sm text-muted-foreground">of current ARR</p>
         </CardContent>
       </Card>
     </div>
