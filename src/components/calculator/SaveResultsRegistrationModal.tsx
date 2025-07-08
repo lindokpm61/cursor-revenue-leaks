@@ -9,6 +9,7 @@ import { Loader, TrendingUp, Calculator } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useUserPattern } from "@/hooks/useUserPattern";
+import { supabase } from "@/integrations/supabase/client";
 import { submissionService, userProfileService, analyticsService, integrationLogService } from "@/lib/supabase";
 import { CalculatorData, Calculations } from "./useCalculatorData";
 
@@ -203,6 +204,13 @@ export const SaveResultsRegistrationModal = ({
   };
 
   const saveResultsForUser = async () => {
+    // Get current user session
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('No authenticated user found');
+    }
+
     const leadScore = calculateLeadScore(data, calculations);
     
     const submissionData = {
@@ -230,6 +238,7 @@ export const SaveResultsRegistrationModal = ({
         ? Math.round((calculations.totalLeakage / data.companyInfo.currentARR) * 100)
         : 0,
       lead_score: leadScore,
+      user_id: user.id,
     };
 
     const { data: savedSubmission, error } = await submissionService.create(submissionData);
