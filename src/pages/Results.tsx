@@ -312,24 +312,24 @@ const Results = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-8 bg-gradient-to-br from-background via-revenue-warning/5 to-revenue-success/5 rounded-2xl border-2 border-revenue-warning/20 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent"></div>
                 <div className="text-center relative border-l-4 border-revenue-warning/30 pl-4">
-                  <div className={`text-h1 font-bold mb-3 ${getLeakageColor(submission.total_leak || 0)} leading-none`}>
+                  <div className={`text-2xl sm:text-3xl font-bold mb-3 ${getLeakageColor(submission.total_leak || 0)} leading-none`}>
                     {formatCurrency(submission.total_leak || 0)}
                   </div>
-                  <p className="text-small font-medium text-revenue-warning">💰 Opportunity Size</p>
+                  <p className="text-sm font-medium text-revenue-warning">💰 Opportunity Size</p>
                 </div>
                 <div className="text-center relative border-l-4 border-revenue-success/30 pl-4">
-                  <div className="text-h2 font-bold text-revenue-success mb-3 leading-none flex items-center justify-center gap-2">
+                  <div className="text-2xl sm:text-3xl font-bold text-revenue-success mb-3 leading-none flex items-center justify-center gap-2">
                     <ArrowUp className="h-5 w-5" />
                     {formatCurrency(submission.recovery_potential_70 || 0)}
                   </div>
-                  <p className="text-small font-medium text-revenue-success">✅ Recovery Potential (70%)</p>
+                  <p className="text-sm font-medium text-revenue-success">✅ Recovery Potential (70%)</p>
                 </div>
                 <div className="text-center relative border-l-4 border-revenue-primary/30 pl-4">
-                  <div className="text-h2 font-bold text-revenue-primary mb-3 leading-none flex items-center justify-center gap-2">
+                  <div className="text-2xl sm:text-3xl font-bold text-revenue-primary mb-3 leading-none flex items-center justify-center gap-2">
                     <ArrowUp className="h-5 w-5" />
                     {formatCurrency(submission.recovery_potential_85 || 0)}
                   </div>
-                  <p className="text-small font-medium text-revenue-primary">🎯 Max Recovery (85%)</p>
+                  <p className="text-sm font-medium text-revenue-primary">🎯 Max Recovery (85%)</p>
                 </div>
               </div>
             </section>
