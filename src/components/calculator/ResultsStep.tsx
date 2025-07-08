@@ -6,6 +6,7 @@ import { RevenueCharts } from "./results/RevenueCharts";
 import { DetailedBreakdown } from "./results/DetailedBreakdown";
 import { ActionPlan } from "./results/ActionPlan";
 import { useSaveResults } from "./results/useSaveResults";
+import { SaveResultsRegistrationModal } from "./SaveResultsRegistrationModal";
 
 interface ResultsStepProps {
   data: CalculatorData;
@@ -13,7 +14,14 @@ interface ResultsStepProps {
 }
 
 export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
-  const { handleSave, saving } = useSaveResults();
+  const { 
+    handleSave, 
+    saving, 
+    showRegistrationModal, 
+    pendingData, 
+    handleRegistrationSuccess, 
+    handleCloseRegistrationModal 
+  } = useSaveResults();
   
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -59,6 +67,17 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
       </div>
 
       <ActionPlan calculations={calculations} />
+
+      {/* Registration Modal */}
+      {showRegistrationModal && pendingData && (
+        <SaveResultsRegistrationModal
+          isOpen={showRegistrationModal}
+          onClose={handleCloseRegistrationModal}
+          data={pendingData.data}
+          calculations={pendingData.calculations}
+          onSuccess={handleRegistrationSuccess}
+        />
+      )}
     </div>
   );
 };

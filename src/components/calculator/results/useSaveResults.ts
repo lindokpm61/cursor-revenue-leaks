@@ -47,6 +47,8 @@ const calculateLeadScore = (data: CalculatorData, calculations: Calculations): n
 
 export const useSaveResults = () => {
   const [saving, setSaving] = useState(false);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [pendingData, setPendingData] = useState<{ data: CalculatorData; calculations: Calculations } | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -55,12 +57,9 @@ export const useSaveResults = () => {
     console.log('Save button clicked, user:', user);
     
     if (!user) {
-      console.log('No user found, showing auth required toast');
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to save your results",
-        variant: "destructive",
-      });
+      console.log('No user found, showing registration modal');
+      setPendingData({ data, calculations });
+      setShowRegistrationModal(true);
       return;
     }
 
@@ -151,5 +150,29 @@ export const useSaveResults = () => {
     }
   };
 
-  return { handleSave, saving };
+  const handleRegistrationSuccess = (submissionId: string) => {
+    setShowRegistrationModal(false);
+    setPendingData(null);
+    
+    toast({
+      title: "Account Created Successfully",
+      description: "Your revenue analysis has been saved!",
+    });
+    
+    navigate(`/results/${submissionId}`);
+  };
+
+  const handleCloseRegistrationModal = () => {
+    setShowRegistrationModal(false);
+    setPendingData(null);
+  };
+
+  return { 
+    handleSave, 
+    saving, 
+    showRegistrationModal, 
+    pendingData, 
+    handleRegistrationSuccess, 
+    handleCloseRegistrationModal 
+  };
 };
