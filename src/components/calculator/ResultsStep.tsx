@@ -21,6 +21,8 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
+      notation: amount >= 1000000 ? 'compact' : 'standard',
+      compactDisplay: 'short'
     }).format(amount);
   };
 
