@@ -20,6 +20,10 @@ export type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 export type UserProfileInsert = Database['public']['Tables']['user_profiles']['Insert'];
 export type UserProfileUpdate = Database['public']['Tables']['user_profiles']['Update'];
 
+export type UserCompanyRelationship = Database['public']['Tables']['user_company_relationships']['Row'];
+export type UserCompanyRelationshipInsert = Database['public']['Tables']['user_company_relationships']['Insert'];
+export type UserCompanyRelationshipUpdate = Database['public']['Tables']['user_company_relationships']['Update'];
+
 // Submission operations
 export const submissionService = {
   async create(data: SubmissionInsert) {
@@ -388,5 +392,170 @@ export const userProfileService = {
       .single();
     
     return { data, error };
+  }
+};
+
+// User pattern analysis operations
+export const userPatternService = {
+  async analyzeUserPattern(userEmail: string) {
+    const { data, error } = await supabase.rpc('analyze_user_pattern', {
+      user_email: userEmail
+    });
+    
+    return { data: data?.[0] || null, error };
+  },
+
+  async getSubmissionsByEmail(userEmail: string) {
+    const { data, error } = await supabase
+      .from('submissions')
+      .select('*')
+      .eq('contact_email', userEmail)
+      .order('created_at', { ascending: false });
+    
+    return { data, error };
+  },
+
+  async linkSubmissionsToUser(userId: string, userEmail: string) {
+    const { data, error } = await supabase.rpc('link_submissions_to_user', {
+      p_user_id: userId,
+      p_user_email: userEmail
+    });
+    
+    return { data, error };
+  }
+};
+
+// User company relationships operations
+export const userCompanyRelationshipService = {
+  async create(data: UserCompanyRelationshipInsert) {
+    const { data: result, error } = await supabase
+      .from('user_company_relationships')
+      .insert(data)
+      .select()
+      .single();
+    
+    return { data: result, error };
+  },
+
+  async getByUserId(userId: string) {
+    const { data, error } = await supabase
+      .from('user_company_relationships')
+      .select(`
+        *,
+        submissions:submission_id (
+          company_name,
+          industry,
+          current_arr,
+          total_leak,
+          created_at
+        )
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    
+    return { data, error };
+  },
+
+  async getCompanyAnalysisSummary(userId: string) {
+    const { data, error } = await supabase
+      .from('user_company_relationships')
+      .select(`
+        analyzed_company_name,
+        relationship_type,
+        engagement_context,
+        company_arr,
+        analysis_value_score,
+        submission_date,
+        submissions:submission_id (
+          industry,
+          total_leak,
+          recovery_potential_70
+        )
+      `)
+      .eq('user_id', userId)
+      .order('submission_date', { ascending: false });
+    
+    return { data, error };
+  }
+};
+
+// Multi-company user management
+export const multiCompanyUserService = {
+  async createUserWithClassification(userData: {
+    email: string;
+    password: string;
+    actualCompanyName?: string;
+    actualRole?: string;
+    businessModel?: string;
+    userClassification?: string;
+    userTier?: string;
+  }) {
+    try {
+      // First create the auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
+      
+      if (authError) return { success: false, error: authError.message };
+      if (!authData.user) return { success: false, error: 'Failed to create user' };
+
+      // Analyze user pattern based on existing submissions
+      const pattern = await userPatternService.analyzeUserPattern(userData.email);
+      const patternData = pattern.data;
+
+      // Create user profile with classification
+      const profileData: UserProfileInsert = {
+        id: authData.user.id,
+        actual_company_name: userData.actualCompanyName,
+        actual_role: userData.actualRole,
+        business_model: userData.businessModel || patternData?.business_model || 'internal',
+        user_classification: userData.userClassification || patternData?.user_type || 'standard',
+        user_tier: userData.userTier || patternData?.value_tier || 'standard',
+        companies_analyzed: patternData?.total_companies || 0,
+        unique_industries_analyzed: patternData?.unique_industries || 0,
+        total_portfolio_value: patternData?.total_arr || 0,
+        partnership_qualified: (patternData?.user_type === 'consultant' && patternData?.total_companies >= 3),
+        enterprise_qualified: (patternData?.user_type === 'enterprise' || patternData?.total_arr > 10000000),
+        high_value_user: (patternData?.total_arr > 5000000),
+        last_analysis_date: new Date().toISOString()
+      };
+
+      const { error: profileError } = await userProfileService.create(profileData);
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        // Continue anyway, profile can be created later
+      }
+
+      // Link existing submissions to the new user
+      await userPatternService.linkSubmissionsToUser(authData.user.id, userData.email);
+
+      return { success: true, user: authData.user, classification: patternData };
+    } catch (error) {
+      console.error('User creation error:', error);
+      return { success: false, error: 'Account creation failed' };
+    }
+  },
+
+  async getUserClassificationSummary(userId: string) {
+    const { data: profile } = await userProfileService.getByUserId(userId);
+    const { data: relationships } = await userCompanyRelationshipService.getByUserId(userId);
+    
+    return {
+      profile,
+      relationships,
+      summary: {
+        isConsultant: profile?.user_classification === 'consultant',
+        isEnterprise: profile?.user_classification === 'enterprise',
+        isInvestor: profile?.user_classification === 'investor',
+        companiesAnalyzed: profile?.total_companies_analyzed || 0,
+        totalPortfolioValue: profile?.total_portfolio_value || 0,
+        partnershipQualified: profile?.partnership_qualified || false,
+        enterpriseQualified: profile?.enterprise_qualified || false
+      }
+    };
   }
 };

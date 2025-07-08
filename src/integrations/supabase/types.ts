@@ -242,41 +242,130 @@ export type Database = {
         }
         Relationships: []
       }
+      user_company_relationships: {
+        Row: {
+          analysis_value_score: number | null
+          analyzed_company_name: string
+          company_arr: number | null
+          created_at: string | null
+          engagement_context: string | null
+          id: string
+          relationship_type: string | null
+          submission_date: string | null
+          submission_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          analysis_value_score?: number | null
+          analyzed_company_name: string
+          company_arr?: number | null
+          created_at?: string | null
+          engagement_context?: string | null
+          id?: string
+          relationship_type?: string | null
+          submission_date?: string | null
+          submission_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          analysis_value_score?: number | null
+          analyzed_company_name?: string
+          company_arr?: number | null
+          created_at?: string | null
+          engagement_context?: string | null
+          id?: string
+          relationship_type?: string | null
+          submission_date?: string | null
+          submission_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_company_relationships_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_profiles: {
         Row: {
+          actual_company_name: string | null
+          actual_role: string | null
+          business_model: string | null
           companies_analyzed: number | null
           company_name: string | null
           created_at: string | null
           engagement_tier: string | null
+          enterprise_qualified: boolean | null
+          first_submission_date: string | null
+          high_value_user: boolean | null
           id: string
           last_analysis_date: string | null
+          most_recent_submission_date: string | null
+          partnership_qualified: boolean | null
           role: string | null
+          total_companies_analyzed: number | null
           total_opportunity: number | null
+          total_portfolio_value: number | null
+          unique_industries_analyzed: number | null
           updated_at: string | null
+          user_classification: string | null
+          user_tier: string | null
           user_type: string | null
         }
         Insert: {
+          actual_company_name?: string | null
+          actual_role?: string | null
+          business_model?: string | null
           companies_analyzed?: number | null
           company_name?: string | null
           created_at?: string | null
           engagement_tier?: string | null
+          enterprise_qualified?: boolean | null
+          first_submission_date?: string | null
+          high_value_user?: boolean | null
           id: string
           last_analysis_date?: string | null
+          most_recent_submission_date?: string | null
+          partnership_qualified?: boolean | null
           role?: string | null
+          total_companies_analyzed?: number | null
           total_opportunity?: number | null
+          total_portfolio_value?: number | null
+          unique_industries_analyzed?: number | null
           updated_at?: string | null
+          user_classification?: string | null
+          user_tier?: string | null
           user_type?: string | null
         }
         Update: {
+          actual_company_name?: string | null
+          actual_role?: string | null
+          business_model?: string | null
           companies_analyzed?: number | null
           company_name?: string | null
           created_at?: string | null
           engagement_tier?: string | null
+          enterprise_qualified?: boolean | null
+          first_submission_date?: string | null
+          high_value_user?: boolean | null
           id?: string
           last_analysis_date?: string | null
+          most_recent_submission_date?: string | null
+          partnership_qualified?: boolean | null
           role?: string | null
+          total_companies_analyzed?: number | null
           total_opportunity?: number | null
+          total_portfolio_value?: number | null
+          unique_industries_analyzed?: number | null
           updated_at?: string | null
+          user_classification?: string | null
+          user_tier?: string | null
           user_type?: string | null
         }
         Relationships: []
@@ -286,6 +375,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      analyze_user_pattern: {
+        Args: { user_email: string }
+        Returns: {
+          user_type: string
+          business_model: string
+          value_tier: string
+          total_companies: number
+          unique_industries: number
+          total_arr: number
+        }[]
+      }
       get_submissions_with_user_data: {
         Args: { limit_count?: number }
         Returns: {
@@ -344,6 +444,10 @@ export type Database = {
           total_pipeline_value: number
           account_status: string
         }[]
+      }
+      link_submissions_to_user: {
+        Args: { p_user_id: string; p_user_email: string }
+        Returns: number
       }
     }
     Enums: {

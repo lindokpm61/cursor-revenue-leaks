@@ -3,10 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calculator, ArrowLeft } from "lucide-react";
+import { Calculator, ArrowLeft, Loader } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useUserPattern, getUserTypeDisplayName } from "@/hooks/useUserPattern";
+import ConsultantRegistrationForm from "@/components/auth/ConsultantRegistrationForm";
+import EnterpriseRegistrationForm from "@/components/auth/EnterpriseRegistrationForm";
+import StandardRegistrationForm from "@/components/auth/StandardRegistrationForm";
 
 const Register = () => {
   const [email, setEmail] = useState("");
