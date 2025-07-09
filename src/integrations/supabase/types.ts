@@ -51,11 +51,15 @@ export type Database = {
       }
       email_sequence_queue: {
         Row: {
+          clicked_at: string | null
           contact_data: Json | null
           contact_email: string
+          conversion_completed_at: string | null
           created_at: string | null
           id: string
           n8n_execution_id: string | null
+          opened_at: string | null
+          revenue_attributed: number | null
           scheduled_for: string
           sent_at: string | null
           sequence_type: string
@@ -63,11 +67,15 @@ export type Database = {
           temp_id: string | null
         }
         Insert: {
+          clicked_at?: string | null
           contact_data?: Json | null
           contact_email: string
+          conversion_completed_at?: string | null
           created_at?: string | null
           id?: string
           n8n_execution_id?: string | null
+          opened_at?: string | null
+          revenue_attributed?: number | null
           scheduled_for: string
           sent_at?: string | null
           sequence_type: string
@@ -75,11 +83,15 @@ export type Database = {
           temp_id?: string | null
         }
         Update: {
+          clicked_at?: string | null
           contact_data?: Json | null
           contact_email?: string
+          conversion_completed_at?: string | null
           created_at?: string | null
           id?: string
           n8n_execution_id?: string | null
+          opened_at?: string | null
+          revenue_attributed?: number | null
           scheduled_for?: string
           sent_at?: string | null
           sequence_type?: string
@@ -291,10 +303,13 @@ export type Database = {
       }
       temporary_submissions: {
         Row: {
+          archived_at: string | null
+          attribution_data: Json | null
           calculator_data: Json | null
           calculator_interactions: number | null
           company_name: string | null
           completion_percentage: number | null
+          consultant_data: Json | null
           conversion_completed_at: string | null
           converted_to_user_id: string | null
           created_at: string | null
@@ -317,21 +332,26 @@ export type Database = {
           return_visits: number | null
           session_id: string | null
           smartlead_campaign_ids: Json | null
+          special_handling: boolean | null
           steps_completed: number | null
           temp_id: string
           time_spent_seconds: number | null
           total_revenue_leak: number | null
           twenty_crm_contact_id: string | null
           user_agent: string | null
+          user_classification: string | null
           utm_campaign: string | null
           utm_medium: string | null
           utm_source: string | null
         }
         Insert: {
+          archived_at?: string | null
+          attribution_data?: Json | null
           calculator_data?: Json | null
           calculator_interactions?: number | null
           company_name?: string | null
           completion_percentage?: number | null
+          consultant_data?: Json | null
           conversion_completed_at?: string | null
           converted_to_user_id?: string | null
           created_at?: string | null
@@ -354,21 +374,26 @@ export type Database = {
           return_visits?: number | null
           session_id?: string | null
           smartlead_campaign_ids?: Json | null
+          special_handling?: boolean | null
           steps_completed?: number | null
           temp_id: string
           time_spent_seconds?: number | null
           total_revenue_leak?: number | null
           twenty_crm_contact_id?: string | null
           user_agent?: string | null
+          user_classification?: string | null
           utm_campaign?: string | null
           utm_medium?: string | null
           utm_source?: string | null
         }
         Update: {
+          archived_at?: string | null
+          attribution_data?: Json | null
           calculator_data?: Json | null
           calculator_interactions?: number | null
           company_name?: string | null
           completion_percentage?: number | null
+          consultant_data?: Json | null
           conversion_completed_at?: string | null
           converted_to_user_id?: string | null
           created_at?: string | null
@@ -391,12 +416,14 @@ export type Database = {
           return_visits?: number | null
           session_id?: string | null
           smartlead_campaign_ids?: Json | null
+          special_handling?: boolean | null
           steps_completed?: number | null
           temp_id?: string
           time_spent_seconds?: number | null
           total_revenue_leak?: number | null
           twenty_crm_contact_id?: string | null
           user_agent?: string | null
+          user_classification?: string | null
           utm_campaign?: string | null
           utm_medium?: string | null
           utm_source?: string | null
@@ -586,7 +613,34 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      abandonment_analytics: {
+        Row: {
+          abandonment_rate: number | null
+          avg_recovery_potential: number | null
+          conversion_rate: number | null
+          converted_from_step: number | null
+          current_step: number | null
+          high_value_count: number | null
+          progressed_from_step: number | null
+          total_at_step: number | null
+        }
+        Relationships: []
+      }
+      email_sequence_analytics: {
+        Row: {
+          click_rate: number | null
+          conversion_rate: number | null
+          open_rate: number | null
+          sequence_type: string | null
+          total_clicks: number | null
+          total_conversions: number | null
+          total_opens: number | null
+          total_revenue: number | null
+          total_sent: number | null
+          week: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       analyze_user_pattern: {
@@ -670,6 +724,19 @@ export type Database = {
       link_submissions_to_user: {
         Args: { p_user_id: string; p_user_email: string }
         Returns: number
+      }
+      perform_database_cleanup: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      track_email_performance: {
+        Args: {
+          p_sequence_type: string
+          p_contact_email: string
+          p_event_type: string
+          p_revenue_amount?: number
+        }
+        Returns: undefined
       }
       update_engagement_score: {
         Args: { p_user_id: string; p_event_type: string }

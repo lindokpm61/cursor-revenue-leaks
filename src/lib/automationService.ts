@@ -1,6 +1,11 @@
 import { 
   processAutomationTasks 
 } from "./advancedAutomation";
+import { 
+  trackEmailSequencePerformance,
+  analyzeAbandonmentPatterns,
+  performDatabaseMaintenance
+} from "./monitoringAnalytics";
 
 let automationInterval: NodeJS.Timeout | null = null;
 
@@ -13,13 +18,30 @@ export const startAutomationService = () => {
 
   console.log('Starting background automation service...');
   
-  // Run immediately
+  // Run initial tasks immediately
   processAutomationTasks();
+  trackEmailSequencePerformance();
   
-  // Then run every 5 minutes
-  automationInterval = setInterval(() => {
+  // Set up recurring intervals
+  // Abandonment recovery every 15 minutes
+  setInterval(() => {
     processAutomationTasks();
-  }, 5 * 60 * 1000); // 5 minutes
+  }, 15 * 60 * 1000);
+  
+  // Email performance tracking every hour
+  setInterval(() => {
+    trackEmailSequencePerformance();
+  }, 60 * 60 * 1000);
+  
+  // Abandonment analysis every 6 hours
+  setInterval(() => {
+    analyzeAbandonmentPatterns();
+  }, 6 * 60 * 60 * 1000);
+  
+  // Database maintenance daily
+  setInterval(() => {
+    performDatabaseMaintenance();
+  }, 24 * 60 * 60 * 1000);
 };
 
 // Stop the background automation service

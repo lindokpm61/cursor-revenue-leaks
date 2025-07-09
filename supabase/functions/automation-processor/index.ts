@@ -110,7 +110,44 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // 2. Detect consultants from recent submissions
+    // 2. Process email sequence analytics
+    console.log("Processing email sequence analytics...");
+    
+    const { data: emailAnalytics, error: analyticsError } = await supabase
+      .from('email_sequence_analytics')
+      .select('*')
+      .order('week', { ascending: false })
+      .limit(4); // Last 4 weeks
+
+    if (!analyticsError && emailAnalytics && emailAnalytics.length > 0) {
+      // Send to N8N for reporting
+      try {
+        await fetch('https://placeholder-n8n.com/webhook/analytics-reporting', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer placeholder-webhook-key'
+          },
+          body: JSON.stringify({
+            workflow_type: 'analytics-reporting',
+            trigger_data: {
+              report_type: 'email_sequence_performance',
+              data: emailAnalytics,
+              summary: {
+                total_sequences: emailAnalytics.length,
+                avg_open_rate: emailAnalytics.reduce((sum, a) => sum + (a.open_rate || 0), 0) / emailAnalytics.length,
+                avg_click_rate: emailAnalytics.reduce((sum, a) => sum + (a.click_rate || 0), 0) / emailAnalytics.length
+              }
+            }
+          })
+        });
+        console.log("Email analytics sent to N8N");
+      } catch (analyticsN8NError) {
+        console.error("Failed to send analytics to N8N:", analyticsN8NError);
+      }
+    }
+
+    // 3. Detect consultants from recent submissions
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     
     const { data: recentSubmissions, error: recentError } = await supabase
@@ -182,7 +219,62 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // 3. Clean up expired temporary submissions
+    // 4. Generate abandonment analytics
+    console.log("Analyzing abandonment patterns...");
+    
+    const { data: abandonmentData, error: abandonmentError } = await supabase
+      .from('abandonment_analytics')
+      .select('*')
+      .order('current_step');
+
+    if (!abandonmentError && abandonmentData && abandonmentData.length > 0) {
+      // Send abandonment analysis to N8N
+      try {
+        const insights = {
+          step_analysis: abandonmentData,
+          high_abandonment_steps: abandonmentData.filter(s => s.abandonment_rate > 50),
+          recovery_opportunity: abandonmentData.reduce((sum, s) => 
+            sum + (s.avg_recovery_potential * (s.total_at_step - s.converted_from_step)), 0
+          )
+        };
+
+        await fetch('https://placeholder-n8n.com/webhook/analytics-reporting', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer placeholder-webhook-key'
+          },
+          body: JSON.stringify({
+            workflow_type: 'analytics-reporting',
+            trigger_data: {
+              report_type: 'abandonment_analysis',
+              insights: insights
+            }
+          })
+        });
+        console.log("Abandonment analytics sent to N8N");
+      } catch (abandonmentN8NError) {
+        console.error("Failed to send abandonment analytics to N8N:", abandonmentN8NError);
+      }
+    }
+
+    // 5. Perform database cleanup
+    console.log("Performing database maintenance...");
+    
+    try {
+      const { data: cleanupResult, error: cleanupError } = await supabase
+        .rpc('perform_database_cleanup');
+
+      if (cleanupError) {
+        console.error('Database cleanup error:', cleanupError);
+      } else {
+        console.log(`Database cleanup completed. Processed ${cleanupResult} records.`);
+      }
+    } catch (cleanupErr) {
+      console.error('Database cleanup failed:', cleanupErr);
+    }
+
+    // 6. Clean up expired temporary submissions
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     
     const { error: cleanupError } = await supabase
