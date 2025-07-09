@@ -346,16 +346,16 @@ const ActionPlan = () => {
       return (
         <>
           <Card 
-            className="border-2 rounded-xl"
+            className="border-2 rounded-xl h-full flex flex-col"
             style={{
               backgroundColor: 'white',
               borderColor: '#e5e7eb',
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
             }}
           >
-            <CardContent className="p-6 text-center relative">
+            <CardContent className="p-6 text-center relative flex-1 flex flex-col">
               <div 
-                className="absolute top-2 right-2 text-xs px-3 py-1 rounded-full font-bold"
+                className="absolute top-3 right-3 text-xs px-3 py-1 rounded-full font-bold"
                 style={{
                   backgroundColor: '#dcfce7',
                   color: '#059669'
@@ -363,41 +363,45 @@ const ActionPlan = () => {
               >
                 🎯 PRIORITY SUPPORT
               </div>
-              <Phone className="h-8 w-8 mx-auto mb-3 text-emerald-600" />
-              <h3 className="font-bold mb-2 text-lg text-gray-900">Ready to Accelerate Implementation?</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                You've shown strong implementation intent. Let's fast-track your {formatCurrency(recoveryPotential)} recovery.
-              </p>
-              <Button 
-                className="w-full font-bold py-3 text-lg"
-                style={{
-                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(5, 150, 105, 0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(5, 150, 105, 0.25)';
-                }}
-                onClick={() => handleCTAInteraction('consultation', 'Book Priority Strategy Call', 'urgent')}
-              >
-                Book Priority Strategy Call
-              </Button>
-              <p className="text-xs text-emerald-600 mt-2 font-medium">
-                ⏰ Next available: Today or tomorrow
-              </p>
+              <div className="flex-1 flex flex-col justify-center">
+                <Phone className="h-10 w-10 mx-auto mb-4 text-emerald-600" />
+                <h3 className="font-bold mb-3 text-lg text-gray-900 leading-tight">Ready to Accelerate Implementation?</h3>
+                <p className="text-sm text-gray-600 mb-6 flex-grow">
+                  You've shown strong implementation intent. Let's fast-track your {formatCurrency(recoveryPotential)} recovery.
+                </p>
+              </div>
+              <div className="mt-auto">
+                <Button 
+                  className="w-full font-bold py-3 text-base mb-3"
+                  style={{
+                    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(5, 150, 105, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(5, 150, 105, 0.25)';
+                  }}
+                  onClick={() => handleCTAInteraction('consultation', 'Book Priority Strategy Call', 'urgent')}
+                >
+                  Book Priority Strategy Call
+                </Button>
+                <p className="text-xs text-emerald-600 font-medium">
+                  ⏰ Next available: Today or tomorrow
+                </p>
+              </div>
             </CardContent>
           </Card>
           
           <Card 
-            className="rounded-xl"
+            className="rounded-xl h-full flex flex-col"
             style={{
               backgroundColor: 'white',
               border: '2px solid #e5e7eb',
@@ -414,42 +418,46 @@ const ActionPlan = () => {
               e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
-            <CardContent className="p-6 text-center">
-              <BookOpen className="h-8 w-8 mx-auto mb-3 text-gray-600" />
-              <h3 className="font-bold mb-2 text-gray-900">Implementation Guide</h3>
-              <p className="text-sm text-gray-600 mb-4">Download detailed step-by-step guide</p>
-              <Button 
-                className="w-full"
-                style={{
-                  backgroundColor: 'white',
-                  color: '#374151',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  padding: '16px 24px'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#d1d5db';
-                  e.currentTarget.style.backgroundColor = '#f9fafb';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#e5e7eb';
-                  e.currentTarget.style.backgroundColor = 'white';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-                onClick={() => handleCTAInteraction('download', 'Download Guide', 'secondary')}
-              >
-                Download Guide
-              </Button>
+            <CardContent className="p-6 text-center flex-1 flex flex-col">
+              <div className="flex-1 flex flex-col justify-center">
+                <BookOpen className="h-10 w-10 mx-auto mb-4 text-gray-600" />
+                <h3 className="font-bold mb-3 text-lg text-gray-900 leading-tight">Implementation Guide</h3>
+                <p className="text-sm text-gray-600 mb-6 flex-grow">Download detailed step-by-step guide</p>
+              </div>
+              <div className="mt-auto">
+                <Button 
+                  className="w-full"
+                  style={{
+                    backgroundColor: 'white',
+                    color: '#374151',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    padding: '16px 24px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#d1d5db';
+                    e.currentTarget.style.backgroundColor = '#f9fafb';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#e5e7eb';
+                    e.currentTarget.style.backgroundColor = 'white';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                  onClick={() => handleCTAInteraction('download', 'Download Guide', 'secondary')}
+                >
+                  Download Guide
+                </Button>
+              </div>
             </CardContent>
           </Card>
           
           <Card 
-            className="rounded-xl"
+            className="rounded-xl h-full flex flex-col"
             style={{
               backgroundColor: 'white',
               border: '2px solid #e5e7eb',
@@ -466,37 +474,41 @@ const ActionPlan = () => {
               e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
-            <CardContent className="p-6 text-center">
-              <Users className="h-8 w-8 mx-auto mb-3 text-gray-500" />
-              <h3 className="font-bold mb-2 text-gray-900">Progress Updates</h3>
-              <p className="text-sm text-gray-600 mb-4">Get weekly implementation tips</p>
-              <Button 
-                className="w-full"
-                style={{
-                  backgroundColor: 'white',
-                  color: '#374151',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  padding: '16px 24px'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#d1d5db';
-                  e.currentTarget.style.backgroundColor = '#f9fafb';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#e5e7eb';
-                  e.currentTarget.style.backgroundColor = 'white';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-                onClick={() => handleCTAInteraction('subscription', 'Subscribe to Updates', 'tertiary')}
-              >
-                Subscribe to Updates
-              </Button>
+            <CardContent className="p-6 text-center flex-1 flex flex-col">
+              <div className="flex-1 flex flex-col justify-center">
+                <Users className="h-10 w-10 mx-auto mb-4 text-gray-600" />
+                <h3 className="font-bold mb-3 text-lg text-gray-900 leading-tight">Progress Updates</h3>
+                <p className="text-sm text-gray-600 mb-6 flex-grow">Get weekly implementation tips</p>
+              </div>
+              <div className="mt-auto">
+                <Button 
+                  className="w-full"
+                  style={{
+                    backgroundColor: 'white',
+                    color: '#374151',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    padding: '16px 24px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#d1d5db';
+                    e.currentTarget.style.backgroundColor = '#f9fafb';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#e5e7eb';
+                    e.currentTarget.style.backgroundColor = 'white';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                  onClick={() => handleCTAInteraction('subscription', 'Subscribe to Updates', 'tertiary')}
+                >
+                  Subscribe to Updates
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </>
