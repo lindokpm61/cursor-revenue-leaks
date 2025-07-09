@@ -3,6 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LeadGeneration } from "./useCalculatorData";
 import { TrendingUp, DollarSign, Clock } from "lucide-react";
+import { updateCalculatorProgress } from "@/lib/temporarySubmissions";
+import { useEffect } from "react";
 
 interface LeadGenerationStepProps {
   data: LeadGeneration;
@@ -10,6 +12,21 @@ interface LeadGenerationStepProps {
 }
 
 export const LeadGenerationStep = ({ data, onUpdate }: LeadGenerationStepProps) => {
+  // Auto-save data when it changes
+  useEffect(() => {
+    const timeoutId = setTimeout(async () => {
+      if (data.monthlyLeads || data.averageDealValue || data.leadResponseTimeHours) {
+        try {
+          await updateCalculatorProgress(2, data);
+        } catch (error) {
+          console.error('Error saving step 2 data:', error);
+        }
+      }
+    }, 2000);
+
+    return () => clearTimeout(timeoutId);
+  }, [data]);
+
   return (
     <div className="space-y-6">
       <Card className="border-primary/20 bg-primary/5">

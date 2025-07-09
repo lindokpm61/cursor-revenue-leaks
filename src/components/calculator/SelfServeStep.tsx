@@ -3,6 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SelfServeMetrics } from "./useCalculatorData";
 import { Users, Percent, DollarSign } from "lucide-react";
+import { updateCalculatorProgress } from "@/lib/temporarySubmissions";
+import { useEffect } from "react";
 
 interface SelfServeStepProps {
   data: SelfServeMetrics;
@@ -10,6 +12,21 @@ interface SelfServeStepProps {
 }
 
 export const SelfServeStep = ({ data, onUpdate }: SelfServeStepProps) => {
+  // Auto-save data when it changes
+  useEffect(() => {
+    const timeoutId = setTimeout(async () => {
+      if (data.monthlyFreeSignups || data.freeToPaidConversionRate || data.monthlyMRR) {
+        try {
+          await updateCalculatorProgress(3, data);
+        } catch (error) {
+          console.error('Error saving step 3 data:', error);
+        }
+      }
+    }, 2000);
+
+    return () => clearTimeout(timeoutId);
+  }, [data]);
+
   return (
     <div className="space-y-6">
       <Card className="border-primary/20 bg-primary/5">

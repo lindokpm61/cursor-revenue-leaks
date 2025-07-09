@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { submissionService, analyticsService, userProfileService, integrationLogService } from "@/lib/supabase";
 import { CalculatorData, Calculations } from "../useCalculatorData";
+import { convertToUserSubmission, updateCalculatorProgress } from "@/lib/temporarySubmissions";
 
 const calculateLeadScore = (data: CalculatorData, calculations: Calculations): number => {
   let score = 0;
@@ -56,6 +57,13 @@ export const useSaveResults = () => {
   const handleSave = async (data: CalculatorData, calculations: Calculations) => {
     console.log('Save button clicked, user:', user);
     
+    // First, save final step data to temporary submission
+    try {
+      await updateCalculatorProgress(5, {}, calculations);
+    } catch (error) {
+      console.error('Error updating final progress:', error);
+    }
+    
     if (!user) {
       console.log('No user found, showing registration modal');
       setPendingData({ data, calculations });
@@ -97,13 +105,10 @@ export const useSaveResults = () => {
         user_id: user.id,
       };
 
-      console.log('Submitting data:', submissionData);
-      const { data: savedSubmission, error } = await submissionService.create(submissionData);
+      // Use convertToUserSubmission to migrate temporary data
+      const savedSubmission = await convertToUserSubmission(user.id, submissionData);
       
-      if (error) {
-        console.error('Supabase error:', JSON.stringify(error, null, 2));
-        throw error;
-      }
+      console.log('Submission saved:', savedSubmission);
 
       // Track analytics
       await analyticsService.track('submission_saved', savedSubmission?.id);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -9,6 +9,7 @@ import { SelfServeStep } from "./calculator/SelfServeStep";
 import { OperationsStep } from "./calculator/OperationsStep";
 import { ResultsStep } from "./calculator/ResultsStep";
 import { useCalculatorData } from "./calculator/useCalculatorData";
+import { updateCalculatorProgress, trackEngagement, getTemporarySubmission } from "@/lib/temporarySubmissions";
 
 const steps = [
   { id: 1, title: "Company Info", description: "Basic company information" },
@@ -22,8 +23,55 @@ export const RevenueCalculator = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const { data, updateData, calculations } = useCalculatorData();
 
-  const nextStep = () => {
+  // Initialize calculator and load any existing temporary data
+  useEffect(() => {
+    const initializeCalculator = async () => {
+      try {
+        // Track initial page view
+        await trackEngagement('page_view');
+        
+        // Try to load existing temporary submission
+        const existingSubmission = await getTemporarySubmission();
+        if (existingSubmission && existingSubmission.calculator_data) {
+          // Restore data from temporary submission
+          const savedData = existingSubmission.calculator_data as Record<string, any>;
+          if (savedData.step_1) {
+            updateData('companyInfo', savedData.step_1);
+          }
+          if (savedData.step_2) {
+            updateData('leadGeneration', savedData.step_2);
+          }
+          if (savedData.step_3) {
+            updateData('selfServeMetrics', savedData.step_3);
+          }
+          if (savedData.step_4) {
+            updateData('operationsData', savedData.step_4);
+          }
+          
+          // Set current step to where user left off
+          if (existingSubmission.current_step) {
+            setCurrentStep(existingSubmission.current_step);
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing calculator:', error);
+      }
+    };
+
+    initializeCalculator();
+  }, []);
+
+  const nextStep = async () => {
     if (currentStep < steps.length) {
+      // Save current step data before moving to next
+      try {
+        const stepData = getCurrentStepData();
+        await updateCalculatorProgress(currentStep, stepData, currentStep === 4 ? calculations : undefined);
+        await trackEngagement('tab_navigation');
+      } catch (error) {
+        console.error('Error saving step data:', error);
+      }
+      
       setCurrentStep(currentStep + 1);
     }
   };
@@ -31,6 +79,21 @@ export const RevenueCalculator = () => {
   const prevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const getCurrentStepData = () => {
+    switch (currentStep) {
+      case 1:
+        return data.companyInfo;
+      case 2:
+        return data.leadGeneration;
+      case 3:
+        return data.selfServeMetrics;
+      case 4:
+        return data.operationsData;
+      default:
+        return {};
     }
   };
 

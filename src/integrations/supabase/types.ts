@@ -49,6 +49,53 @@ export type Database = {
           },
         ]
       }
+      email_sequence_queue: {
+        Row: {
+          contact_data: Json | null
+          contact_email: string
+          created_at: string | null
+          id: string
+          n8n_execution_id: string | null
+          scheduled_for: string
+          sent_at: string | null
+          sequence_type: string
+          status: string | null
+          temp_id: string | null
+        }
+        Insert: {
+          contact_data?: Json | null
+          contact_email: string
+          created_at?: string | null
+          id?: string
+          n8n_execution_id?: string | null
+          scheduled_for: string
+          sent_at?: string | null
+          sequence_type: string
+          status?: string | null
+          temp_id?: string | null
+        }
+        Update: {
+          contact_data?: Json | null
+          contact_email?: string
+          created_at?: string | null
+          id?: string
+          n8n_execution_id?: string | null
+          scheduled_for?: string
+          sent_at?: string | null
+          sequence_type?: string
+          status?: string | null
+          temp_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_sequence_queue_temp_id_fkey"
+            columns: ["temp_id"]
+            isOneToOne: false
+            referencedRelation: "temporary_submissions"
+            referencedColumns: ["temp_id"]
+          },
+        ]
+      }
       email_sequences: {
         Row: {
           clicked_at: string | null
@@ -239,6 +286,120 @@ export type Database = {
           twenty_contact_id?: string | null
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      temporary_submissions: {
+        Row: {
+          calculator_data: Json | null
+          calculator_interactions: number | null
+          company_name: string | null
+          completion_percentage: number | null
+          conversion_completed_at: string | null
+          converted_to_user_id: string | null
+          created_at: string | null
+          current_step: number | null
+          email: string | null
+          email_engagement_score: number | null
+          email_sequences_triggered: Json | null
+          expires_at: string | null
+          id: string
+          industry: string | null
+          ip_address: string | null
+          last_activity_at: string | null
+          last_email_sent_at: string | null
+          last_updated: string | null
+          lead_score: number | null
+          n8n_workflow_status: Json | null
+          page_views: number | null
+          recovery_potential: number | null
+          referrer_url: string | null
+          return_visits: number | null
+          session_id: string | null
+          smartlead_campaign_ids: Json | null
+          steps_completed: number | null
+          temp_id: string
+          time_spent_seconds: number | null
+          total_revenue_leak: number | null
+          twenty_crm_contact_id: string | null
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          calculator_data?: Json | null
+          calculator_interactions?: number | null
+          company_name?: string | null
+          completion_percentage?: number | null
+          conversion_completed_at?: string | null
+          converted_to_user_id?: string | null
+          created_at?: string | null
+          current_step?: number | null
+          email?: string | null
+          email_engagement_score?: number | null
+          email_sequences_triggered?: Json | null
+          expires_at?: string | null
+          id?: string
+          industry?: string | null
+          ip_address?: string | null
+          last_activity_at?: string | null
+          last_email_sent_at?: string | null
+          last_updated?: string | null
+          lead_score?: number | null
+          n8n_workflow_status?: Json | null
+          page_views?: number | null
+          recovery_potential?: number | null
+          referrer_url?: string | null
+          return_visits?: number | null
+          session_id?: string | null
+          smartlead_campaign_ids?: Json | null
+          steps_completed?: number | null
+          temp_id: string
+          time_spent_seconds?: number | null
+          total_revenue_leak?: number | null
+          twenty_crm_contact_id?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          calculator_data?: Json | null
+          calculator_interactions?: number | null
+          company_name?: string | null
+          completion_percentage?: number | null
+          conversion_completed_at?: string | null
+          converted_to_user_id?: string | null
+          created_at?: string | null
+          current_step?: number | null
+          email?: string | null
+          email_engagement_score?: number | null
+          email_sequences_triggered?: Json | null
+          expires_at?: string | null
+          id?: string
+          industry?: string | null
+          ip_address?: string | null
+          last_activity_at?: string | null
+          last_email_sent_at?: string | null
+          last_updated?: string | null
+          lead_score?: number | null
+          n8n_workflow_status?: Json | null
+          page_views?: number | null
+          recovery_potential?: number | null
+          referrer_url?: string | null
+          return_visits?: number | null
+          session_id?: string | null
+          smartlead_campaign_ids?: Json | null
+          steps_completed?: number | null
+          temp_id?: string
+          time_spent_seconds?: number | null
+          total_revenue_leak?: number | null
+          twenty_crm_contact_id?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: []
       }
@@ -441,6 +602,10 @@ export type Database = {
       }
       calculate_engagement_score: {
         Args: { user_events: Json[] }
+        Returns: number
+      }
+      cleanup_expired_temp_submissions: {
+        Args: Record<PropertyKey, never>
         Returns: number
       }
       get_submissions_with_user_data: {

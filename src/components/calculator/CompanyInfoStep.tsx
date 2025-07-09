@@ -4,6 +4,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CompanyInfo } from "./useCalculatorData";
 import { Building2, Mail, DollarSign } from "lucide-react";
+import { updateCalculatorProgress, trackEngagement } from "@/lib/temporarySubmissions";
+import { useEffect } from "react";
 
 interface CompanyInfoStepProps {
   data: CompanyInfo;
@@ -11,6 +13,31 @@ interface CompanyInfoStepProps {
 }
 
 export const CompanyInfoStep = ({ data, onUpdate }: CompanyInfoStepProps) => {
+  // Track page view when component mounts
+  useEffect(() => {
+    trackEngagement('page_view');
+  }, []);
+
+  // Auto-save data when it changes
+  useEffect(() => {
+    const timeoutId = setTimeout(async () => {
+      if (data.email || data.companyName) {
+        try {
+          await updateCalculatorProgress(1, {
+            email: data.email,
+            companyName: data.companyName,
+            industry: data.industry,
+            currentARR: data.currentARR,
+          });
+        } catch (error) {
+          console.error('Error saving step 1 data:', error);
+        }
+      }
+    }, 2000); // Debounce saves by 2 seconds
+
+    return () => clearTimeout(timeoutId);
+  }, [data]);
+
   return (
     <div className="space-y-6">
       <Card className="border-primary/20 bg-primary/5">
