@@ -51,27 +51,23 @@ const getUrlParameter = (name: string): string | null => {
 // N8N webhook integration for email automation
 export const triggerN8NWorkflow = async (workflowType: string, data: any) => {
   try {
-    // Since we can't use environment variables in frontend, we'll use an edge function
-    const response = await fetch('/api/n8n-trigger', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
+    // Use edge function to trigger N8N workflows with placeholder configuration
+    const response = await supabase.functions.invoke('n8n-trigger', {
+      body: {
         workflow_type: workflowType,
         data: {
           ...data,
           timestamp: new Date().toISOString(),
           source: 'revenue_calculator'
         }
-      })
+      }
     });
     
-    if (!response.ok) {
-      throw new Error(`N8N workflow failed: ${response.statusText}`);
+    if (response.error) {
+      throw new Error(`N8N workflow failed: ${response.error}`);
     }
     
-    const result = await response.json();
+    const result = response.data;
     
     // Track N8N execution for status monitoring
     await updateN8NExecutionStatus(data.temp_id, workflowType, result.execution_id);

@@ -43,23 +43,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { workflow_type, data }: N8NTriggerRequest = await req.json();
     
-    // Get N8N webhook URL from environment
-    const n8nWebhookUrl = Deno.env.get("N8N_WEBHOOK_URL");
-    const n8nApiKey = Deno.env.get("N8N_API_KEY");
+    // Use placeholder N8N configuration
+    const n8nBaseUrl = "https://placeholder-n8n.com";
+    const n8nApiKey = "placeholder-api-key";
+    const n8nWebhookUrl = `${n8nBaseUrl}/webhook/${workflow_type}`;
     
-    if (!n8nWebhookUrl) {
-      console.error("N8N_WEBHOOK_URL not configured");
-      return new Response(
-        JSON.stringify({ 
-          error: "N8N integration not configured",
-          execution_id: null 
-        }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
-    }
+    console.log(`Using placeholder N8N configuration for workflow: ${workflow_type}`);
 
     // Prepare N8N webhook payload
     const webhookPayload = {
@@ -77,10 +66,9 @@ const handler = async (req: Request): Promise<Response> => {
       "Content-Type": "application/json",
     };
 
-    // Add API key if available
-    if (n8nApiKey) {
-      n8nHeaders["Authorization"] = `Bearer ${n8nApiKey}`;
-    }
+    // Add placeholder webhook auth key
+    n8nHeaders["Authorization"] = `Bearer placeholder-webhook-key`;
+    n8nHeaders["X-API-Key"] = n8nApiKey;
 
     console.log(`Triggering N8N workflow: ${workflow_type}`, {
       url: n8nWebhookUrl,
