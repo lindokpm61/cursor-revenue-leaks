@@ -297,6 +297,7 @@ export type Database = {
           actual_company_name: string | null
           actual_role: string | null
           business_model: string | null
+          checked_actions: Json | null
           companies_analyzed: number | null
           company_name: string | null
           created_at: string | null
@@ -322,6 +323,7 @@ export type Database = {
           actual_company_name?: string | null
           actual_role?: string | null
           business_model?: string | null
+          checked_actions?: Json | null
           companies_analyzed?: number | null
           company_name?: string | null
           created_at?: string | null
@@ -347,6 +349,7 @@ export type Database = {
           actual_company_name?: string | null
           actual_role?: string | null
           business_model?: string | null
+          checked_actions?: Json | null
           companies_analyzed?: number | null
           company_name?: string | null
           created_at?: string | null
