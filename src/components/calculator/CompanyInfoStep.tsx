@@ -3,9 +3,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CompanyInfo } from "./useCalculatorData";
-import { Building2, Mail, DollarSign } from "lucide-react";
+import { Building2, Mail, DollarSign, AlertCircle } from "lucide-react";
 import { saveCalculatorProgress } from "@/lib/coreDataCapture";
-import { useEffect } from "react";
+import { isValidEmail } from "@/lib/calculatorHandlers";
+import { useEffect, useState } from "react";
 
 interface CompanyInfoStepProps {
   data: CompanyInfo;
@@ -13,6 +14,20 @@ interface CompanyInfoStepProps {
 }
 
 export const CompanyInfoStep = ({ data, onUpdate }: CompanyInfoStepProps) => {
+  const [emailError, setEmailError] = useState<string>("");
+  
+  // Validate email when it changes
+  useEffect(() => {
+    if (data.email && data.email.trim()) {
+      if (!isValidEmail(data.email)) {
+        setEmailError("Please provide a valid business email address");
+      } else {
+        setEmailError("");
+      }
+    } else {
+      setEmailError("");
+    }
+  }, [data.email]);
   // Auto-save data when it changes
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
@@ -67,8 +82,16 @@ export const CompanyInfoStep = ({ data, onUpdate }: CompanyInfoStepProps) => {
                 value={data.email}
                 onChange={(e) => onUpdate({ email: e.target.value })}
                 placeholder="your.email@company.com"
-                className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
+                className={`pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary ${
+                  emailError ? 'border-destructive' : ''
+                }`}
               />
+              {emailError && (
+                <div className="flex items-center gap-1 mt-1 text-sm text-destructive">
+                  <AlertCircle className="h-3 w-3" />
+                  {emailError}
+                </div>
+              )}
             </div>
           </div>
 

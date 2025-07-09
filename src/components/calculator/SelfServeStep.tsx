@@ -12,12 +12,17 @@ interface SelfServeStepProps {
 }
 
 export const SelfServeStep = ({ data, onUpdate }: SelfServeStepProps) => {
-  // Auto-save data when it changes
+  // Enhanced auto-save data when it changes with validation
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
-      if (data.monthlyFreeSignups || data.freeToPaidConversionRate || data.monthlyMRR) {
+      // Only save if we have meaningful data
+      if (data.monthlyFreeSignups && data.monthlyFreeSignups > 0) {
         try {
-          await saveCalculatorProgress(data, 3);
+          await saveCalculatorProgress({
+            monthlyFreeSignups: data.monthlyFreeSignups,
+            freeToPaidConversionRate: data.freeToPaidConversionRate || 0,
+            monthlyMRR: data.monthlyMRR || 0
+          }, 3);
         } catch (error) {
           console.error('Error saving step 3 data:', error);
         }

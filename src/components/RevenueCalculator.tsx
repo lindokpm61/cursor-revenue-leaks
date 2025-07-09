@@ -10,6 +10,14 @@ import { OperationsStep } from "./calculator/OperationsStep";
 import { ResultsStep } from "./calculator/ResultsStep";
 import { useCalculatorData } from "./calculator/useCalculatorData";
 import { updateCalculatorProgress, trackEngagement, getTemporarySubmission } from "@/lib/temporarySubmissions";
+import { 
+  handleStep1Complete, 
+  handleStep2Complete, 
+  handleStep3Complete, 
+  handleStep4Complete,
+  isValidEmail 
+} from "@/lib/calculatorHandlers";
+import { useToast } from "@/hooks/use-toast";
 
 const steps = [
   { id: 1, title: "Company Info", description: "Basic company information" },
@@ -21,7 +29,9 @@ const steps = [
 
 export const RevenueCalculator = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [calculationResults, setCalculationResults] = useState<any>(null);
   const { data, updateData, calculations } = useCalculatorData();
+  const { toast } = useToast();
 
   // Initialize calculator and load any existing temporary data
   useEffect(() => {
@@ -63,16 +73,77 @@ export const RevenueCalculator = () => {
 
   const nextStep = async () => {
     if (currentStep < steps.length) {
-      // Save current step data before moving to next
       try {
-        const stepData = getCurrentStepData();
-        await updateCalculatorProgress(currentStep, stepData, currentStep === 4 ? calculations : undefined);
+        // Validate and handle step completion based on current step
+        switch (currentStep) {
+          case 1:
+            // Validate step 1 data
+            if (!data.companyInfo.companyName?.trim() || !data.companyInfo.email?.trim()) {
+              toast({
+                title: "Required Fields Missing",
+                description: "Please enter your company name and email address.",
+                variant: "destructive",
+              });
+              return;
+            }
+            
+            if (!isValidEmail(data.companyInfo.email)) {
+              toast({
+                title: "Invalid Email",
+                description: "Please provide a valid business email address.",
+                variant: "destructive",
+              });
+              return;
+            }
+            
+            await handleStep1Complete(data.companyInfo, setCurrentStep);
+            toast({
+              title: "Company Information Saved",
+              description: "Welcome! Let's analyze your lead generation metrics.",
+            });
+            break;
+            
+          case 2:
+            await handleStep2Complete(data.leadGeneration, setCurrentStep);
+            toast({
+              title: "Lead Generation Data Saved",
+              description: "Great! Now let's look at your self-serve metrics.",
+            });
+            break;
+            
+          case 3:
+            await handleStep3Complete(data.selfServeMetrics, setCurrentStep);
+            toast({
+              title: "Self-Serve Metrics Saved",
+              description: "Excellent! Finally, let's capture your operations data.",
+            });
+            break;
+            
+          case 4:
+            await handleStep4Complete(
+              data.operationsData, 
+              setCurrentStep, 
+              (results) => setCalculationResults(results)
+            );
+            toast({
+              title: "Analysis Complete!",
+              description: "Your revenue leak analysis is ready. Check out your results below.",
+            });
+            break;
+            
+          default:
+            setCurrentStep(currentStep + 1);
+        }
+        
         await trackEngagement('tab_navigation');
-      } catch (error) {
-        console.error('Error saving step data:', error);
+      } catch (error: any) {
+        console.error('Error in step completion:', error);
+        toast({
+          title: "Error",
+          description: error.message || "An error occurred while saving your data. Please try again.",
+          variant: "destructive",
+        });
       }
-      
-      setCurrentStep(currentStep + 1);
     }
   };
 
@@ -108,7 +179,9 @@ export const RevenueCalculator = () => {
       case 4:
         return <OperationsStep data={data.operationsData} onUpdate={(updates) => updateData('operationsData', updates)} />;
       case 5:
-        return <ResultsStep data={data} calculations={calculations} />;
+        return calculationResults ? 
+          <ResultsStep data={data} calculations={calculationResults} /> : 
+          <ResultsStep data={data} calculations={calculations} />;
       default:
         return null;
     }
@@ -207,8 +280,9 @@ export const RevenueCalculator = () => {
             <Button
               onClick={nextStep}
               className="flex items-center gap-2 bg-gradient-to-r from-primary to-revenue-primary hover:opacity-90"
+              disabled={currentStep === 1 && (!data.companyInfo.companyName?.trim() || !data.companyInfo.email?.trim())}
             >
-              Next
+              {currentStep === 4 ? 'Calculate Results' : 'Next'}
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

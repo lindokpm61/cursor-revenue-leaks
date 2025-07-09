@@ -12,12 +12,17 @@ interface OperationsStepProps {
 }
 
 export const OperationsStep = ({ data, onUpdate }: OperationsStepProps) => {
-  // Auto-save data when it changes
+  // Enhanced auto-save data when it changes with validation
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
-      if (data.failedPaymentRate || data.manualHoursPerWeek || data.hourlyRate) {
+      // Only save if we have meaningful data
+      if (data.manualHoursPerWeek || data.failedPaymentRate || data.hourlyRate) {
         try {
-          await saveCalculatorProgress(data, 4);
+          await saveCalculatorProgress({
+            manualHoursPerWeek: data.manualHoursPerWeek || 0,
+            hourlyRate: data.hourlyRate || 0,
+            failedPaymentRate: data.failedPaymentRate || 0
+          }, 4);
         } catch (error) {
           console.error('Error saving step 4 data:', error);
         }

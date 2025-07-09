@@ -12,12 +12,17 @@ interface LeadGenerationStepProps {
 }
 
 export const LeadGenerationStep = ({ data, onUpdate }: LeadGenerationStepProps) => {
-  // Auto-save data when it changes
+  // Enhanced auto-save data when it changes with validation
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
-      if (data.monthlyLeads || data.averageDealValue || data.leadResponseTimeHours) {
+      // Only save if we have meaningful data
+      if (data.monthlyLeads && data.monthlyLeads > 0) {
         try {
-          await saveCalculatorProgress(data, 2);
+          await saveCalculatorProgress({
+            monthlyLeads: data.monthlyLeads,
+            averageDealValue: data.averageDealValue || 0,
+            leadResponseTimeHours: data.leadResponseTimeHours || 0
+          }, 2);
         } catch (error) {
           console.error('Error saving step 2 data:', error);
         }

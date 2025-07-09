@@ -348,10 +348,21 @@ const triggerStepBasedEmailSequences = async (stepNumber: number, progressData: 
       utm_source: progressData.utm_source,
       utm_medium: progressData.utm_medium,
       utm_campaign: progressData.utm_campaign,
-      completion_percentage: progressData.completion_percentage
+      completion_percentage: progressData.completion_percentage,
+      recovery_potential: progressData.recovery_potential,
+      lead_score: progressData.lead_score
     };
     
     await triggerEmailSequence(sequenceType, contactData);
+    
+    // For step 4 (results), trigger additional high-value sequences if applicable
+    if (stepNumber === 4 && contactData.recovery_potential > 100000000) {
+      await triggerEmailSequence('high_value_alert', {
+        ...contactData,
+        priority: 'high',
+        reason: 'high_recovery_potential'
+      });
+    }
   } catch (error) {
     console.error('Failed to trigger step-based email sequences:', error);
   }
