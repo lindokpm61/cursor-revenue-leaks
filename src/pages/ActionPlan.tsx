@@ -35,6 +35,7 @@ const ActionPlan = () => {
   const [currentTab, setCurrentTab] = useState("overview");
   const [sessionStartTime] = useState(Date.now());
   const [timeTrackers, setTimeTrackers] = useState<NodeJS.Timeout[]>([]);
+  const [engagementScore, setEngagementScore] = useState(0);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -122,6 +123,9 @@ const ActionPlan = () => {
       
       // Load saved action progress
       await loadActionProgress(data.id);
+      
+      // Load user engagement score
+      await loadEngagementScore();
     } catch (error) {
       console.error('Error loading submission:', error);
       toast({
@@ -132,6 +136,22 @@ const ActionPlan = () => {
       navigate('/dashboard');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadEngagementScore = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('engagement_score')
+        .eq('id', user?.id)
+        .single();
+      
+      if (data?.engagement_score) {
+        setEngagementScore(data.engagement_score);
+      }
+    } catch (error) {
+      console.error('Error loading engagement score:', error);
     }
   };
 
@@ -237,12 +257,22 @@ const ActionPlan = () => {
     });
   };
 
-  const handleCTAInteraction = (ctaType: string, ctaLabel: string) => {
+  const handleCTAInteraction = (ctaType: string, ctaLabel: string, priority: string = 'primary') => {
     trackEngagementEvent('cta_interaction', {
       cta_type: ctaType,
       cta_label: ctaLabel,
-      engagement_level: checkedActions.length > 0 ? 'high' : 'medium'
+      cta_priority: priority,
+      engagement_score: engagementScore,
+      actions_checked: checkedActions.length,
+      recovery_potential: submission?.total_leak,
+      engagement_level: getEngagementLevel()
     });
+  };
+
+  const getEngagementLevel = () => {
+    if (engagementScore >= 70 || checkedActions.length >= 2) return 'high';
+    if (engagementScore >= 40 || checkedActions.length >= 1) return 'medium';
+    return 'low';
   };
 
   const formatCurrency = (amount: number) => {
@@ -254,6 +284,217 @@ const ActionPlan = () => {
       notation: amount >= 1000000 ? 'compact' : 'standard',
       compactDisplay: 'short'
     }).format(amount);
+  };
+
+  const UrgencyBanner = ({ recoveryPotential, engagementLevel }: { recoveryPotential: number, engagementLevel: string }) => {
+    if (recoveryPotential > 50000000) { // $50M+
+      return (
+        <div className="mb-6 p-4 bg-gradient-to-r from-revenue-warning/10 to-revenue-danger/10 border border-revenue-warning/20 rounded-lg">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">⚡</span>
+            <div>
+              <strong className="text-revenue-warning font-bold">High-Impact Opportunity Detected</strong>
+              <p className="text-sm text-muted-foreground mt-1">
+                Every month of delay = {formatCurrency(recoveryPotential/12)} in continued losses
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    if (engagementLevel === 'high') {
+      return (
+        <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-revenue-primary/10 border border-primary/20 rounded-lg">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🎯</span>
+            <div>
+              <strong className="text-primary font-bold">Ready to Take Action?</strong>
+              <p className="text-sm text-muted-foreground mt-1">
+                Your engagement shows you're serious about implementation
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    return null;
+  };
+
+  const renderSmartCTAs = () => {
+    const engagementLevel = getEngagementLevel();
+    const recoveryPotential = submission?.recovery_potential_70 || 0;
+    
+    // High engagement (70+ score or 2+ actions checked)
+    if (engagementLevel === 'high') {
+      return (
+        <>
+          <Card className="bg-gradient-to-br from-revenue-primary/5 to-primary/5 border-primary/20 border-2">
+            <CardContent className="p-6 text-center relative">
+              <div className="absolute top-2 right-2 bg-revenue-warning text-white text-xs px-2 py-1 rounded-full font-bold">
+                🚀 HIGH PRIORITY
+              </div>
+              <Phone className="h-8 w-8 mx-auto mb-3 text-revenue-primary" />
+              <h3 className="font-bold mb-2 text-lg">Ready to Accelerate Implementation?</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                You've shown strong implementation intent. Let's fast-track your {formatCurrency(recoveryPotential)} recovery.
+              </p>
+              <Button 
+                className="w-full bg-revenue-primary text-white font-bold py-3 text-lg"
+                onClick={() => handleCTAInteraction('consultation', 'Book Priority Strategy Call', 'urgent')}
+              >
+                Book Priority Strategy Call
+              </Button>
+              <p className="text-xs text-revenue-primary mt-2 font-medium">
+                ⏰ Next available: Today or tomorrow
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-background text-foreground">
+            <CardContent className="p-6 text-center">
+              <BookOpen className="h-8 w-8 mx-auto mb-3 text-primary" />
+              <h3 className="font-bold mb-2">Implementation Guide</h3>
+              <p className="text-sm text-muted-foreground mb-4">Download detailed step-by-step guide</p>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => handleCTAInteraction('download', 'Download Guide', 'secondary')}
+              >
+                Download Guide
+              </Button>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-background text-foreground">
+            <CardContent className="p-6 text-center">
+              <Users className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+              <h3 className="font-bold mb-2">Progress Updates</h3>
+              <p className="text-sm text-muted-foreground mb-4">Get weekly implementation tips</p>
+              <Button 
+                variant="secondary" 
+                className="w-full"
+                onClick={() => handleCTAInteraction('subscription', 'Subscribe to Updates', 'tertiary')}
+              >
+                Subscribe to Updates
+              </Button>
+            </CardContent>
+          </Card>
+        </>
+      );
+    }
+    
+    // Medium engagement (40-69 score or 1 action checked)
+    if (engagementLevel === 'medium') {
+      return (
+        <>
+          <Card className="bg-background text-foreground relative">
+            <CardContent className="p-6 text-center">
+              <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full font-bold">
+                RECOMMENDED
+              </div>
+              <Phone className="h-8 w-8 mx-auto mb-3 text-revenue-primary" />
+              <h3 className="font-bold mb-2">Strategy Call</h3>
+              <p className="text-sm text-muted-foreground mb-4">Get personalized implementation guidance</p>
+              <Button 
+                className="w-full bg-revenue-primary text-primary-foreground"
+                onClick={() => handleCTAInteraction('consultation', 'Book Free Consultation', 'primary')}
+              >
+                Get Started Today
+              </Button>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-background text-foreground relative">
+            <CardContent className="p-6 text-center">
+              <div className="absolute top-2 right-2 bg-revenue-success text-white text-xs px-2 py-1 rounded-full font-bold">
+                MOST POPULAR
+              </div>
+              <BookOpen className="h-8 w-8 mx-auto mb-3 text-primary" />
+              <h3 className="font-bold mb-2">Implementation Guide</h3>
+              <p className="text-sm text-muted-foreground mb-4">Download detailed step-by-step guide</p>
+              <Button 
+                variant="outline" 
+                className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                onClick={() => handleCTAInteraction('download', 'Download Guide', 'primary')}
+              >
+                Download Guide
+              </Button>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-background text-foreground">
+            <CardContent className="p-6 text-center">
+              <Users className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+              <h3 className="font-bold mb-2">Progress Updates</h3>
+              <p className="text-sm text-muted-foreground mb-4">Get weekly implementation tips</p>
+              <Button 
+                variant="secondary" 
+                className="w-full"
+                onClick={() => handleCTAInteraction('subscription', 'Subscribe to Updates', 'secondary')}
+              >
+                Subscribe to Updates
+              </Button>
+            </CardContent>
+          </Card>
+        </>
+      );
+    }
+    
+    // Low engagement - nurture focus
+    return (
+      <>
+        <Card className="bg-background text-foreground relative">
+          <CardContent className="p-6 text-center">
+            <div className="absolute top-2 right-2 bg-revenue-success text-white text-xs px-2 py-1 rounded-full font-bold">
+              START HERE
+            </div>
+            <BookOpen className="h-8 w-8 mx-auto mb-3 text-primary" />
+            <h3 className="font-bold mb-2">Implementation Guide</h3>
+            <p className="text-sm text-muted-foreground mb-4">Download detailed step-by-step guide</p>
+            <Button 
+              className="w-full bg-primary text-primary-foreground"
+              onClick={() => handleCTAInteraction('download', 'Download Guide', 'primary')}
+            >
+              Get Your Guide
+            </Button>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-background text-foreground">
+          <CardContent className="p-6 text-center">
+            <Phone className="h-8 w-8 mx-auto mb-3 text-revenue-primary" />
+            <h3 className="font-bold mb-2">Strategy Call</h3>
+            <p className="text-sm text-muted-foreground mb-4">Get personalized implementation guidance</p>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => handleCTAInteraction('consultation', 'Book Free Consultation', 'secondary')}
+            >
+              Book Free Consultation
+            </Button>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-background text-foreground relative">
+          <CardContent className="p-6 text-center">
+            <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full font-bold">
+              STAY INFORMED
+            </div>
+            <Users className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+            <h3 className="font-bold mb-2">Progress Updates</h3>
+            <p className="text-sm text-muted-foreground mb-4">Get weekly implementation tips</p>
+            <Button 
+              className="w-full bg-revenue-success text-white"
+              onClick={() => handleCTAInteraction('subscription', 'Subscribe to Updates', 'primary')}
+            >
+              Subscribe to Updates
+            </Button>
+          </CardContent>
+        </Card>
+      </>
+    );
   };
 
   const calculateROI = (submission: Submission) => {
@@ -661,60 +902,20 @@ const ActionPlan = () => {
           </TabsContent>
 
           <TabsContent value="next-steps" className="space-y-8">
-            <div 
-              className="bg-gradient-to-r from-primary to-revenue-primary rounded-xl p-8 text-primary-foreground"
-              onFocus={() => trackEngagementEvent('next_steps_viewed', { time_since_load: Date.now() - sessionStartTime })}
-            >
+            <div className="bg-gradient-to-r from-primary to-revenue-primary rounded-xl p-8 text-primary-foreground">
               <div className="max-w-4xl mx-auto text-center">
                 <h2 className="text-3xl font-bold mb-4">Ready to Implement?</h2>
                 <p className="text-xl mb-8 opacity-90">
                   Get expert guidance to maximize your {formatCurrency(submission.recovery_potential_70 || 0)} recovery potential
                 </p>
                 
+                <UrgencyBanner 
+                  recoveryPotential={submission.total_leak || 0} 
+                  engagementLevel={getEngagementLevel()} 
+                />
+                
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Card className="bg-background text-foreground">
-                    <CardContent className="p-6 text-center">
-                      <Phone className="h-8 w-8 mx-auto mb-3 text-revenue-primary" />
-                      <h3 className="font-bold mb-2">Strategy Call</h3>
-                      <p className="text-sm text-muted-foreground mb-4">Get personalized implementation guidance</p>
-                      <Button 
-                        className="w-full bg-revenue-primary text-primary-foreground"
-                        onClick={() => handleCTAInteraction('consultation', 'Book Free Consultation')}
-                      >
-                        Book Free Consultation
-                      </Button>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-background text-foreground">
-                    <CardContent className="p-6 text-center">
-                      <BookOpen className="h-8 w-8 mx-auto mb-3 text-primary" />
-                      <h3 className="font-bold mb-2">Implementation Guide</h3>
-                      <p className="text-sm text-muted-foreground mb-4">Download detailed step-by-step guide</p>
-                      <Button 
-                        variant="outline" 
-                        className="w-full"
-                        onClick={() => handleCTAInteraction('download', 'Download Guide')}
-                      >
-                        Download Guide
-                      </Button>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-background text-foreground">
-                    <CardContent className="p-6 text-center">
-                      <Users className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
-                      <h3 className="font-bold mb-2">Progress Updates</h3>
-                      <p className="text-sm text-muted-foreground mb-4">Get weekly implementation tips</p>
-                      <Button 
-                        variant="secondary" 
-                        className="w-full"
-                        onClick={() => handleCTAInteraction('subscription', 'Subscribe to Updates')}
-                      >
-                        Subscribe to Updates
-                      </Button>
-                    </CardContent>
-                  </Card>
+                  {renderSmartCTAs()}
                 </div>
               </div>
             </div>
