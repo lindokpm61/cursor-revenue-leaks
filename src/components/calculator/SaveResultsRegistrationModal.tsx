@@ -11,6 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserPattern } from "@/hooks/useUserPattern";
 import { supabase } from "@/integrations/supabase/client";
 import { submissionService, userProfileService, analyticsService, integrationLogService } from "@/lib/supabase";
+import { handleUserRegistration } from "@/lib/advancedAutomation";
+import { getTempId } from "@/lib/coreDataCapture";
 import { CalculatorData, Calculations } from "./useCalculatorData";
 
 interface SaveResultsRegistrationModalProps {
@@ -163,33 +165,32 @@ export const SaveResultsRegistrationModal = ({
     setLoading(true);
 
     try {
-      // Create user account
-      const result = await register(formData.email, formData.password);
+      // Use the advanced registration handler with data migration
+      const tempId = getTempId();
       
-      if (!result.success) {
-        throw new Error(result.error || 'Registration failed');
+      const registrationData = {
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        actualCompany: formData.actualCompany || data.companyInfo.companyName,
+        actualRole: formData.actualRole,
+        businessModel: formData.businessModel || 'internal',
+        role: 'user'
+      };
+
+      const result = await handleUserRegistration(registrationData, tempId);
+      
+      if (result.user && result.submission) {
+        toast({
+          title: "Account Created Successfully!",
+          description: "Your revenue analysis has been saved and email sequences activated.",
+        });
+        
+        onSuccess(result.submission.id);
+      } else {
+        throw new Error('Registration completed but submission failed');
       }
-
-      // Note: After successful registration, the auth state will update
-      // and we need to wait for the user to be available before saving
-      toast({
-        title: "Account Created!",
-        description: "Saving your analysis...",
-      });
-
-      // Small delay to ensure auth state is updated
-      setTimeout(async () => {
-        try {
-          await saveResultsForUser();
-        } catch (error) {
-          console.error('Error saving results after registration:', error);
-          toast({
-            title: "Registration Successful",
-            description: "Account created, but there was an issue saving your results. Please try again.",
-            variant: "destructive",
-          });
-        }
-      }, 1000);
 
     } catch (error) {
       console.error('Registration error:', error);
@@ -203,57 +204,7 @@ export const SaveResultsRegistrationModal = ({
     }
   };
 
-  const saveResultsForUser = async () => {
-    // Get current user session
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      throw new Error('No authenticated user found');
-    }
-
-    const leadScore = calculateLeadScore(data, calculations);
-    
-    const submissionData = {
-      company_name: data.companyInfo.companyName,
-      contact_email: data.companyInfo.email,
-      industry: data.companyInfo.industry,
-      current_arr: data.companyInfo.currentARR,
-      monthly_leads: data.leadGeneration.monthlyLeads,
-      average_deal_value: data.leadGeneration.averageDealValue,
-      lead_response_time: data.leadGeneration.leadResponseTimeHours,
-      monthly_free_signups: data.selfServeMetrics.monthlyFreeSignups,
-      free_to_paid_conversion: data.selfServeMetrics.freeToPaidConversionRate,
-      monthly_mrr: data.selfServeMetrics.monthlyMRR,
-      failed_payment_rate: data.operationsData.failedPaymentRate,
-      manual_hours: data.operationsData.manualHoursPerWeek,
-      hourly_rate: data.operationsData.hourlyRate,
-      lead_response_loss: Math.round(calculations.leadResponseLoss),
-      failed_payment_loss: Math.round(calculations.failedPaymentLoss),
-      selfserve_gap_loss: Math.round(calculations.selfServeGap),
-      process_inefficiency_loss: Math.round(calculations.processLoss),
-      total_leak: Math.round(calculations.totalLeakage),
-      recovery_potential_70: Math.round(calculations.potentialRecovery70),
-      recovery_potential_85: Math.round(calculations.potentialRecovery85),
-      leak_percentage: data.companyInfo.currentARR > 0 
-        ? Math.round((calculations.totalLeakage / data.companyInfo.currentARR) * 100)
-        : 0,
-      lead_score: leadScore,
-      user_id: user.id,
-    };
-
-    const { data: savedSubmission, error } = await submissionService.create(submissionData);
-    
-    if (error) {
-      throw error;
-    }
-
-    // Track analytics
-    await analyticsService.track('submission_saved_after_registration', savedSubmission?.id);
-
-    if (savedSubmission?.id) {
-      onSuccess(savedSubmission.id);
-    }
-  };
+  // Remove the old saveResultsForUser function as it's now handled by advancedAutomation
 
   const config = getFormConfig();
 

@@ -4,6 +4,9 @@ import {
   getTempId, 
   triggerEmailSequence 
 } from "./coreDataCapture";
+import { 
+  detectAndHandleConsultants 
+} from "./advancedAutomation";
 import { getTemporarySubmission } from "./temporarySubmissions";
 
 // Email validation utility
@@ -244,6 +247,9 @@ export const handleStep1Complete = async (companyData: any, setCurrentStep: (ste
     temp_id: getTempId(),
     source: 'revenue_calculator_step_1'
   });
+  
+  // Trigger consultant detection
+  await detectAndHandleConsultants(getTempId());
   
   // Proceed to next step
   setCurrentStep(2);
