@@ -58,3 +58,21 @@ verify_jwt = false
 
 [functions.n8n-status]
 verify_jwt = false
+
+[functions.trigger-n8n-workflow]
+verify_jwt = false
+
+[functions.calculator-events]
+verify_jwt = false
+
+[functions.n8n-status-update]
+verify_jwt = false
+
+[functions.twenty-crm-webhook]
+verify_jwt = false
+
+[functions.smartlead-engagement]
+verify_jwt = false
+
+[functions.integration-health]
+verify_jwt = false

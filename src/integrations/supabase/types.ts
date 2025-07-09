@@ -49,6 +49,75 @@ export type Database = {
           },
         ]
       }
+      automation_logs: {
+        Row: {
+          created_at: string
+          data_sent: Json | null
+          error: string | null
+          id: string
+          n8n_execution_id: string | null
+          results: Json | null
+          status: string
+          updated_at: string
+          workflow_type: string
+        }
+        Insert: {
+          created_at?: string
+          data_sent?: Json | null
+          error?: string | null
+          id?: string
+          n8n_execution_id?: string | null
+          results?: Json | null
+          status?: string
+          updated_at?: string
+          workflow_type: string
+        }
+        Update: {
+          created_at?: string
+          data_sent?: Json | null
+          error?: string | null
+          id?: string
+          n8n_execution_id?: string | null
+          results?: Json | null
+          status?: string
+          updated_at?: string
+          workflow_type?: string
+        }
+        Relationships: []
+      }
+      email_engagement_events: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          email_id: string | null
+          engagement_score_delta: number | null
+          event_type: string
+          id: string
+          temp_id: string | null
+          timestamp: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          email_id?: string | null
+          engagement_score_delta?: number | null
+          event_type: string
+          id?: string
+          temp_id?: string | null
+          timestamp?: string
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
+          email_id?: string | null
+          engagement_score_delta?: number | null
+          event_type?: string
+          id?: string
+          temp_id?: string | null
+          timestamp?: string
+        }
+        Relationships: []
+      }
       email_sequence_queue: {
         Row: {
           clicked_at: string | null
