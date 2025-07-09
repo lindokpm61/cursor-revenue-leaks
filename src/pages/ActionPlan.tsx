@@ -355,7 +355,7 @@ const ActionPlan = () => {
           >
             <CardContent className="p-6 text-center relative flex-1 flex flex-col">
               <div 
-                className="absolute top-3 right-3 text-xs px-3 py-1 rounded-full font-bold"
+                className="absolute top-2 right-2 text-xs px-3 py-1 rounded-full font-bold"
                 style={{
                   backgroundColor: '#dcfce7',
                   color: '#059669'
@@ -363,7 +363,7 @@ const ActionPlan = () => {
               >
                 🎯 PRIORITY SUPPORT
               </div>
-              <div className="flex-1 flex flex-col justify-center">
+              <div className="flex-1 flex flex-col justify-center mt-6">
                 <Phone className="h-10 w-10 mx-auto mb-4 text-emerald-600" />
                 <h3 className="font-bold mb-3 text-lg text-gray-900 leading-tight">Ready to Accelerate Implementation?</h3>
                 <p className="text-sm text-gray-600 mb-6 flex-grow">
