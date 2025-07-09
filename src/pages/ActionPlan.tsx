@@ -89,8 +89,8 @@ const ActionPlan = () => {
         .eq('id', user?.id)
         .single();
       
-      if (data?.checked_actions) {
-        setCheckedActions(data.checked_actions);
+      if (data?.checked_actions && Array.isArray(data.checked_actions)) {
+        setCheckedActions(data.checked_actions as string[]);
       }
     } catch (error) {
       console.error('Error loading action progress:', error);
@@ -256,6 +256,23 @@ const ActionPlan = () => {
   const priorityActions = getPriorityActions(submission);
   const roi = calculateROI(submission);
 
+  // Dynamic progress calculation
+  const calculateImplementationProgress = (checkedActions: string[], totalActions: any[]) => {
+    const baseProgress = 15; // Analysis completion
+    const actionProgress = (checkedActions.length / totalActions.length) * 85;
+    return Math.round(baseProgress + actionProgress);
+  };
+
+  const getProgressMessage = (checkedCount: number, totalCount: number) => {
+    if (checkedCount === 0) return "Analysis Complete • Ready to Implement";
+    if (checkedCount === 1) return "1 action started • Great start!";
+    if (checkedCount < totalCount) return `${checkedCount} actions in progress • Building momentum!`;
+    return "All actions identified • Ready for implementation strategy call";
+  };
+
+  const currentProgress = calculateImplementationProgress(checkedActions, priorityActions);
+  const progressMessage = getProgressMessage(checkedActions.length, priorityActions.length);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -330,10 +347,12 @@ const ActionPlan = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-semibold">Implementation Progress</h4>
-                <span className="text-sm text-muted-foreground">{progress}% Complete</span>
+                <span className="text-sm text-muted-foreground">{currentProgress}% Complete</span>
               </div>
-              <Progress value={progress} className="mb-2" />
-              <p className="text-sm text-muted-foreground">Analysis Complete • Ready to Implement</p>
+              <Progress value={currentProgress} className="mb-2 transition-all duration-500 ease-in-out" />
+              <p className="text-sm text-muted-foreground transition-all duration-300 ease-in-out">
+                {progressMessage}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -525,19 +544,20 @@ const ActionPlan = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold">Implementation Progress</h3>
-                  <span className="text-2xl font-bold text-primary">
+                  <span className="text-2xl font-bold text-primary transition-all duration-300 ease-in-out">
                     {Math.round((checkedActions.length / priorityActions.length) * 100)}%
                   </span>
                 </div>
                 <Progress 
                   value={(checkedActions.length / priorityActions.length) * 100} 
-                  className="mb-3"
+                  className="mb-3 transition-all duration-500 ease-in-out"
                 />
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground transition-all duration-300 ease-in-out">
                   {checkedActions.length} of {priorityActions.length} priority actions completed
+                  {checkedActions.length > 0 && checkedActions.length < priorityActions.length && " • Keep going!"}
                 </p>
                 {checkedActions.length === priorityActions.length && (
-                  <div className="mt-4 p-3 bg-revenue-success/10 border border-revenue-success/20 rounded-lg">
+                  <div className="mt-4 p-3 bg-revenue-success/10 border border-revenue-success/20 rounded-lg animate-fade-in">
                     <p className="text-revenue-success font-medium flex items-center gap-2">
                       <CheckCircle className="h-4 w-4" />
                       Congratulations! You've completed all priority actions.
