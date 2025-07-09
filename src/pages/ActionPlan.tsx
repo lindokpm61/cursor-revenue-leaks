@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Calculator, 
   ArrowLeft, 
@@ -23,12 +24,14 @@ import {
 import { submissionService, type Submission } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const ActionPlan = () => {
   const { id } = useParams<{ id: string }>();
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(15);
+  const [checkedActions, setCheckedActions] = useState<string[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -62,6 +65,9 @@ const ActionPlan = () => {
       }
 
       setSubmission(data);
+      
+      // Load saved action progress
+      await loadActionProgress(data.id);
     } catch (error) {
       console.error('Error loading submission:', error);
       toast({
@@ -72,6 +78,78 @@ const ActionPlan = () => {
       navigate('/dashboard');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadActionProgress = async (submissionId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('checked_actions')
+        .eq('id', user?.id)
+        .single();
+      
+      if (data?.checked_actions) {
+        setCheckedActions(data.checked_actions);
+      }
+    } catch (error) {
+      console.error('Error loading action progress:', error);
+    }
+  };
+
+  const handleActionToggle = async (actionId: string, isChecked: boolean) => {
+    const newCheckedActions = isChecked
+      ? [...checkedActions, actionId]
+      : checkedActions.filter(id => id !== actionId);
+    
+    setCheckedActions(newCheckedActions);
+    
+    // Save to database
+    await saveActionProgress(newCheckedActions);
+    
+    // Track engagement event
+    trackEngagementEvent(actionId, isChecked);
+  };
+
+  const saveActionProgress = async (checkedActionIds: string[]) => {
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert({
+          id: user?.id,
+          checked_actions: checkedActionIds,
+          actions_checked_count: checkedActionIds.length,
+          last_analysis_date: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error saving action progress:', error);
+    }
+  };
+
+  const trackEngagementEvent = async (actionId: string, isChecked: boolean) => {
+    try {
+      const action = priorityActions.find(a => a.id === actionId);
+      
+      await supabase
+        .from('analytics_events')
+        .insert({
+          user_id: user?.id,
+          submission_id: submission?.id,
+          event_type: 'action_interaction',
+          properties: {
+            actionId,
+            isChecked,
+            actionTitle: action?.title,
+            recoveryPotential: action?.impact,
+            difficulty: action?.difficulty,
+            timeframe: action?.timeframe
+          }
+        });
+    } catch (error) {
+      console.error('Error tracking engagement:', error);
     }
   };
 
@@ -381,39 +459,93 @@ const ActionPlan = () => {
 
           <TabsContent value="actions" className="space-y-8">
             <div className="space-y-6">
-              {priorityActions.map((action, index) => (
-                <Card key={action.id} className="overflow-hidden">
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                          <span className="text-xl font-bold text-primary">#{index + 1}</span>
+              {priorityActions.map((action, index) => {
+                const isChecked = checkedActions.includes(action.id);
+                return (
+                  <Card 
+                    key={action.id} 
+                    className={`overflow-hidden transition-all duration-200 ${
+                      isChecked 
+                        ? 'bg-primary/5 border-primary/20 border-l-4 border-l-primary' 
+                        : 'hover:shadow-md'
+                    }`}
+                  >
+                    <CardHeader className="pb-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-4">
+                          <div className="flex items-center gap-3 pt-1">
+                            <Checkbox
+                              id={`action-${action.id}`}
+                              checked={isChecked}
+                              onCheckedChange={(checked) => handleActionToggle(action.id, checked as boolean)}
+                              className="w-5 h-5"
+                            />
+                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                              <span className="text-xl font-bold text-primary">#{index + 1}</span>
+                            </div>
+                          </div>
+                          <label 
+                            htmlFor={`action-${action.id}`} 
+                            className={`cursor-pointer flex-1 ${isChecked ? 'opacity-75' : ''}`}
+                          >
+                            <CardTitle className="text-xl mb-2">{action.title}</CardTitle>
+                            <p className="text-muted-foreground">{action.description}</p>
+                          </label>
                         </div>
-                        <div>
-                          <CardTitle className="text-xl">{action.title}</CardTitle>
-                          <p className="text-muted-foreground">{action.description}</p>
+                        <div className="text-right">
+                          <p className={`text-2xl font-bold ${isChecked ? 'text-primary' : 'text-revenue-success'}`}>
+                            {formatCurrency(action.impact || 0)}
+                          </p>
+                          <p className="text-sm text-muted-foreground">Recovery Potential</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-revenue-success">
-                          {formatCurrency(action.impact || 0)}
-                        </p>
-                        <p className="text-sm text-muted-foreground">Recovery Potential</p>
+                      <div className="flex gap-4 mt-4 ml-20">
+                        <Badge variant="outline" className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {action.timeframe}
+                        </Badge>
+                        <Badge variant="outline">
+                          Difficulty: {action.difficulty}
+                        </Badge>
+                        {isChecked && (
+                          <Badge variant="default" className="flex items-center gap-1">
+                            <CheckCircle className="h-3 w-3" />
+                            Completed
+                          </Badge>
+                        )}
                       </div>
-                    </div>
-                    <div className="flex gap-4 mt-4">
-                      <Badge variant="outline" className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {action.timeframe}
-                      </Badge>
-                      <Badge variant="outline">
-                        Difficulty: {action.difficulty}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                </Card>
-              ))}
+                    </CardHeader>
+                  </Card>
+                );
+              })}
             </div>
+            
+            {/* Progress Summary */}
+            <Card className="bg-gradient-to-r from-primary/5 to-revenue-primary/5 border-primary/20">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Implementation Progress</h3>
+                  <span className="text-2xl font-bold text-primary">
+                    {Math.round((checkedActions.length / priorityActions.length) * 100)}%
+                  </span>
+                </div>
+                <Progress 
+                  value={(checkedActions.length / priorityActions.length) * 100} 
+                  className="mb-3"
+                />
+                <p className="text-sm text-muted-foreground">
+                  {checkedActions.length} of {priorityActions.length} priority actions completed
+                </p>
+                {checkedActions.length === priorityActions.length && (
+                  <div className="mt-4 p-3 bg-revenue-success/10 border border-revenue-success/20 rounded-lg">
+                    <p className="text-revenue-success font-medium flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4" />
+                      Congratulations! You've completed all priority actions.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="next-steps" className="space-y-8">
