@@ -289,15 +289,30 @@ const ActionPlan = () => {
   const UrgencyBanner = ({ recoveryPotential, engagementLevel }: { recoveryPotential: number, engagementLevel: string }) => {
     if (recoveryPotential > 50000000) { // $50M+
       return (
-        <div className="mb-6 p-4 bg-gradient-to-r from-revenue-warning/10 to-revenue-danger/10 border border-revenue-warning/20 rounded-lg">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">⚡</span>
-            <div>
-              <strong className="text-revenue-warning font-bold">High-Impact Opportunity Detected</strong>
-              <p className="text-sm text-muted-foreground mt-1">
-                Every month of delay = {formatCurrency(recoveryPotential/12)} in continued losses
-              </p>
+        <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🎯</span>
+              <div className="flex items-center gap-2">
+                <span 
+                  className="text-xs font-semibold px-3 py-1 rounded-full"
+                  style={{
+                    backgroundColor: '#dcfce7',
+                    color: '#059669'
+                  }}
+                >
+                  HIGH-IMPACT OPPORTUNITY
+                </span>
+              </div>
             </div>
+          </div>
+          <div className="mt-3">
+            <h4 className="text-emerald-700 font-bold text-lg mb-1">
+              Strong Implementation Intent Detected
+            </h4>
+            <p className="text-gray-600 text-sm">
+              You've shown serious commitment • Priority support available
+            </p>
           </div>
         </div>
       );
@@ -305,12 +320,12 @@ const ActionPlan = () => {
     
     if (engagementLevel === 'high') {
       return (
-        <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-revenue-primary/10 border border-primary/20 rounded-lg">
+        <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg">
           <div className="flex items-center gap-3">
             <span className="text-2xl">🎯</span>
             <div>
-              <strong className="text-primary font-bold">Ready to Take Action?</strong>
-              <p className="text-sm text-muted-foreground mt-1">
+              <strong className="text-emerald-700 font-bold">Ready to Take Action?</strong>
+              <p className="text-sm text-gray-600 mt-1">
                 Your engagement shows you're serious about implementation
               </p>
             </div>
@@ -330,36 +345,102 @@ const ActionPlan = () => {
     if (engagementLevel === 'high') {
       return (
         <>
-          <Card className="bg-gradient-to-br from-revenue-primary/5 to-primary/5 border-primary/20 border-2">
+          <Card 
+            className="border-2 rounded-xl"
+            style={{
+              backgroundColor: 'white',
+              borderColor: '#e5e7eb',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+            }}
+          >
             <CardContent className="p-6 text-center relative">
-              <div className="absolute top-2 right-2 bg-revenue-warning text-white text-xs px-2 py-1 rounded-full font-bold">
-                🚀 HIGH PRIORITY
+              <div 
+                className="absolute top-2 right-2 text-xs px-3 py-1 rounded-full font-bold"
+                style={{
+                  backgroundColor: '#dcfce7',
+                  color: '#059669'
+                }}
+              >
+                🎯 PRIORITY SUPPORT
               </div>
-              <Phone className="h-8 w-8 mx-auto mb-3 text-revenue-primary" />
-              <h3 className="font-bold mb-2 text-lg">Ready to Accelerate Implementation?</h3>
-              <p className="text-sm text-muted-foreground mb-4">
+              <Phone className="h-8 w-8 mx-auto mb-3 text-emerald-600" />
+              <h3 className="font-bold mb-2 text-lg text-gray-900">Ready to Accelerate Implementation?</h3>
+              <p className="text-sm text-gray-600 mb-4">
                 You've shown strong implementation intent. Let's fast-track your {formatCurrency(recoveryPotential)} recovery.
               </p>
               <Button 
-                className="w-full bg-revenue-primary text-white font-bold py-3 text-lg"
+                className="w-full font-bold py-3 text-lg"
+                style={{
+                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(5, 150, 105, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(5, 150, 105, 0.25)';
+                }}
                 onClick={() => handleCTAInteraction('consultation', 'Book Priority Strategy Call', 'urgent')}
               >
                 Book Priority Strategy Call
               </Button>
-              <p className="text-xs text-revenue-primary mt-2 font-medium">
+              <p className="text-xs text-emerald-600 mt-2 font-medium">
                 ⏰ Next available: Today or tomorrow
               </p>
             </CardContent>
           </Card>
           
-          <Card className="bg-background text-foreground">
+          <Card 
+            className="rounded-xl"
+            style={{
+              backgroundColor: 'white',
+              border: '2px solid #e5e7eb',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#d1d5db';
+              e.currentTarget.style.backgroundColor = '#f9fafb';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = '#e5e7eb';
+              e.currentTarget.style.backgroundColor = 'white';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
             <CardContent className="p-6 text-center">
-              <BookOpen className="h-8 w-8 mx-auto mb-3 text-primary" />
-              <h3 className="font-bold mb-2">Implementation Guide</h3>
-              <p className="text-sm text-muted-foreground mb-4">Download detailed step-by-step guide</p>
+              <BookOpen className="h-8 w-8 mx-auto mb-3 text-gray-600" />
+              <h3 className="font-bold mb-2 text-gray-900">Implementation Guide</h3>
+              <p className="text-sm text-gray-600 mb-4">Download detailed step-by-step guide</p>
               <Button 
-                variant="outline" 
                 className="w-full"
+                style={{
+                  backgroundColor: 'white',
+                  color: '#374151',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  padding: '16px 24px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#d1d5db';
+                  e.currentTarget.style.backgroundColor = '#f9fafb';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#e5e7eb';
+                  e.currentTarget.style.backgroundColor = 'white';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
                 onClick={() => handleCTAInteraction('download', 'Download Guide', 'secondary')}
               >
                 Download Guide
@@ -367,14 +448,51 @@ const ActionPlan = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-background text-foreground">
+          <Card 
+            className="rounded-xl"
+            style={{
+              backgroundColor: 'white',
+              border: '2px solid #e5e7eb',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#d1d5db';
+              e.currentTarget.style.backgroundColor = '#f9fafb';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = '#e5e7eb';
+              e.currentTarget.style.backgroundColor = 'white';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
             <CardContent className="p-6 text-center">
-              <Users className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
-              <h3 className="font-bold mb-2">Progress Updates</h3>
-              <p className="text-sm text-muted-foreground mb-4">Get weekly implementation tips</p>
+              <Users className="h-8 w-8 mx-auto mb-3 text-gray-500" />
+              <h3 className="font-bold mb-2 text-gray-900">Progress Updates</h3>
+              <p className="text-sm text-gray-600 mb-4">Get weekly implementation tips</p>
               <Button 
-                variant="secondary" 
                 className="w-full"
+                style={{
+                  backgroundColor: 'white',
+                  color: '#374151',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  padding: '16px 24px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#d1d5db';
+                  e.currentTarget.style.backgroundColor = '#f9fafb';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#e5e7eb';
+                  e.currentTarget.style.backgroundColor = 'white';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
                 onClick={() => handleCTAInteraction('subscription', 'Subscribe to Updates', 'tertiary')}
               >
                 Subscribe to Updates
@@ -902,10 +1020,32 @@ const ActionPlan = () => {
           </TabsContent>
 
           <TabsContent value="next-steps" className="space-y-8">
-            <div className="bg-gradient-to-r from-primary to-revenue-primary rounded-xl p-8 text-primary-foreground">
+            <div 
+              className="rounded-xl border"
+              style={{
+                background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%)',
+                padding: '48px 32px',
+                borderColor: '#e2e8f0'
+              }}
+            >
               <div className="max-w-4xl mx-auto text-center">
-                <h2 className="text-3xl font-bold mb-4">Ready to Implement?</h2>
-                <p className="text-xl mb-8 opacity-90">
+                <h2 
+                  className="font-bold mb-2"
+                  style={{
+                    fontSize: '32px',
+                    color: '#111827'
+                  }}
+                >
+                  Ready to Implement?
+                </h2>
+                <p 
+                  className="mb-8"
+                  style={{
+                    fontSize: '18px',
+                    color: '#6b7280',
+                    margin: '0 0 32px 0'
+                  }}
+                >
                   Get expert guidance to maximize your {formatCurrency(submission.recovery_potential_70 || 0)} recovery potential
                 </p>
                 
