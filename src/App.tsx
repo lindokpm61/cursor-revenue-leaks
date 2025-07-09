@@ -16,6 +16,7 @@ import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminIntegrations from "./pages/admin/AdminIntegrations";
 import AdminUsers from "./pages/admin/AdminUsers";
 import Results from "./pages/Results";
+import ActionPlan from "./pages/ActionPlan";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="users" element={<AdminUsers />} />
             </Route>
             <Route path="/results/:id" element={<Results />} />
+            <Route path="/action-plan/:id" element={<ActionPlan />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

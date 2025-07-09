@@ -15,11 +15,13 @@ import {
 } from "lucide-react";
 import { type Submission } from "@/lib/supabase";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 interface ExecutiveSummaryCardProps {
   submission: Submission;
   formatCurrency: (amount: number) => string;
-  onGetActionPlan: () => void;
+  onGetActionPlan?: () => void;
 }
 
 export const ExecutiveSummaryCard = ({ 
@@ -28,6 +30,18 @@ export const ExecutiveSummaryCard = ({
   onGetActionPlan 
 }: ExecutiveSummaryCardProps) => {
   const isMobile = useIsMobile();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleGetActionPlan = () => {
+    if (!user) {
+      // If no user, trigger registration modal (if onGetActionPlan is provided)
+      onGetActionPlan?.();
+    } else {
+      // If user is authenticated, go directly to action plan page
+      navigate(`/action-plan/${submission.id}`);
+    }
+  };
   
   const getUrgencyLevel = (leak: number, arr: number) => {
     if (!arr || arr === 0) return 'low';
@@ -125,13 +139,13 @@ export const ExecutiveSummaryCard = ({
 
           {/* PRIMARY CTA - 56px height minimum */}
           <Button 
-            onClick={onGetActionPlan}
+            onClick={handleGetActionPlan}
             size="lg" 
             variant="gradient"
             className="w-full text-[20px] font-bold px-8 py-4 h-[56px] transition-all duration-300 shadow-lg hover:shadow-xl"
           >
             <Target className="h-6 w-6 mr-3" />
-            Get Action Plan
+            {user ? 'Get Action Plan' : 'Get Action Plan (Register)'}
           </Button>
 
           {/* SECONDARY ACTIONS with generous spacing */}
@@ -186,13 +200,13 @@ export const ExecutiveSummaryCard = ({
       <CardContent className="space-y-8">
         {/* PRIMARY CTA - 56px height minimum, distinctive color */}
         <Button 
-          onClick={onGetActionPlan}
+          onClick={handleGetActionPlan}
           size="lg" 
           variant="gradient"
           className="w-full text-[20px] font-bold px-8 py-4 h-[56px] transition-all duration-300 shadow-lg hover:shadow-xl"
         >
           <Target className="h-6 w-6 mr-3" />
-          Get Action Plan
+          {user ? 'Get Action Plan' : 'Get Action Plan (Register)'}
         </Button>
 
         {/* SECONDARY ACTIONS with reduced visual weight */}
