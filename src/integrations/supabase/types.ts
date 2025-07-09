@@ -292,6 +292,41 @@ export type Database = {
           },
         ]
       }
+      user_engagement_events: {
+        Row: {
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          submission_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          submission_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          submission_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_engagement_events_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_profiles: {
         Row: {
           actual_company_name: string | null
@@ -301,18 +336,23 @@ export type Database = {
           companies_analyzed: number | null
           company_name: string | null
           created_at: string | null
+          engagement_score: number | null
           engagement_tier: string | null
           enterprise_qualified: boolean | null
           first_submission_date: string | null
+          high_intent_lead: boolean | null
           high_value_user: boolean | null
           id: string
+          last_action_plan_visit: string | null
           last_analysis_date: string | null
           most_recent_submission_date: string | null
           partnership_qualified: boolean | null
+          return_visits: number | null
           role: string | null
           total_companies_analyzed: number | null
           total_opportunity: number | null
           total_portfolio_value: number | null
+          total_time_spent: number | null
           unique_industries_analyzed: number | null
           updated_at: string | null
           user_classification: string | null
@@ -327,18 +367,23 @@ export type Database = {
           companies_analyzed?: number | null
           company_name?: string | null
           created_at?: string | null
+          engagement_score?: number | null
           engagement_tier?: string | null
           enterprise_qualified?: boolean | null
           first_submission_date?: string | null
+          high_intent_lead?: boolean | null
           high_value_user?: boolean | null
           id: string
+          last_action_plan_visit?: string | null
           last_analysis_date?: string | null
           most_recent_submission_date?: string | null
           partnership_qualified?: boolean | null
+          return_visits?: number | null
           role?: string | null
           total_companies_analyzed?: number | null
           total_opportunity?: number | null
           total_portfolio_value?: number | null
+          total_time_spent?: number | null
           unique_industries_analyzed?: number | null
           updated_at?: string | null
           user_classification?: string | null
@@ -353,18 +398,23 @@ export type Database = {
           companies_analyzed?: number | null
           company_name?: string | null
           created_at?: string | null
+          engagement_score?: number | null
           engagement_tier?: string | null
           enterprise_qualified?: boolean | null
           first_submission_date?: string | null
+          high_intent_lead?: boolean | null
           high_value_user?: boolean | null
           id?: string
+          last_action_plan_visit?: string | null
           last_analysis_date?: string | null
           most_recent_submission_date?: string | null
           partnership_qualified?: boolean | null
+          return_visits?: number | null
           role?: string | null
           total_companies_analyzed?: number | null
           total_opportunity?: number | null
           total_portfolio_value?: number | null
+          total_time_spent?: number | null
           unique_industries_analyzed?: number | null
           updated_at?: string | null
           user_classification?: string | null
@@ -388,6 +438,10 @@ export type Database = {
           unique_industries: number
           total_arr: number
         }[]
+      }
+      calculate_engagement_score: {
+        Args: { user_events: Json[] }
+        Returns: number
       }
       get_submissions_with_user_data: {
         Args: { limit_count?: number }
@@ -451,6 +505,10 @@ export type Database = {
       link_submissions_to_user: {
         Args: { p_user_id: string; p_user_email: string }
         Returns: number
+      }
+      update_engagement_score: {
+        Args: { p_user_id: string; p_event_type: string }
+        Returns: undefined
       }
     }
     Enums: {

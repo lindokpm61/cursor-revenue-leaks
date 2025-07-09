@@ -32,6 +32,9 @@ const ActionPlan = () => {
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(15);
   const [checkedActions, setCheckedActions] = useState<string[]>([]);
+  const [currentTab, setCurrentTab] = useState("overview");
+  const [sessionStartTime] = useState(Date.now());
+  const [timeTrackers, setTimeTrackers] = useState<NodeJS.Timeout[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -45,7 +48,58 @@ const ActionPlan = () => {
     if (id) {
       loadSubmission(id);
     }
+    
+    // Set up engagement tracking when component mounts
+    setupEngagementTracking();
   }, [id, user]);
+
+  const setupEngagementTracking = () => {
+    if (!user || !submission) return;
+    
+    // Track initial page view
+    trackEngagementEvent('action_plan_viewed', {
+      recovery_potential: submission.total_leak,
+      user_type: user.user_metadata?.role || 'standard'
+    });
+    
+    // Set up time milestone trackers
+    const timeTrackerIds = [
+      setTimeout(() => trackEngagementEvent('time_spent_2min', {}), 120000), // 2 minutes
+      setTimeout(() => trackEngagementEvent('time_spent_5min', {}), 300000)  // 5 minutes
+    ];
+    
+    setTimeTrackers(timeTrackerIds);
+    
+    // Cleanup function for when component unmounts
+    return () => {
+      timeTrackerIds.forEach(clearTimeout);
+      
+      // Track session end with total time spent
+      const totalTime = Date.now() - sessionStartTime;
+      trackEngagementEvent('session_end', { 
+        duration: totalTime,
+        actions_checked: checkedActions.length,
+        tabs_visited: [currentTab]
+      });
+    };
+  };
+
+  // Cleanup timeTrackers on unmount
+  useEffect(() => {
+    return () => {
+      timeTrackers.forEach(clearTimeout);
+      
+      // Track session end
+      if (user && submission) {
+        const totalTime = Date.now() - sessionStartTime;
+        trackEngagementEvent('session_end', { 
+          duration: totalTime,
+          actions_checked: checkedActions.length,
+          final_tab: currentTab
+        });
+      }
+    };
+  }, []);
 
   const loadSubmission = async (submissionId: string) => {
     try {
@@ -107,8 +161,17 @@ const ActionPlan = () => {
     // Save to database
     await saveActionProgress(newCheckedActions);
     
-    // Track engagement event
-    trackEngagementEvent(actionId, isChecked);
+    // Track engagement event with action interaction
+    await trackEngagementEvent('action_interaction', {
+      actionId,
+      isChecked,
+      actionTitle: priorityActions.find(a => a.id === actionId)?.title,
+      recoveryPotential: priorityActions.find(a => a.id === actionId)?.impact,
+      difficulty: priorityActions.find(a => a.id === actionId)?.difficulty,
+      timeframe: priorityActions.find(a => a.id === actionId)?.timeframe,
+      total_checked: newCheckedActions.length,
+      completion_percentage: (newCheckedActions.length / priorityActions.length) * 100
+    });
   };
 
   const saveActionProgress = async (checkedActionIds: string[]) => {
@@ -129,28 +192,57 @@ const ActionPlan = () => {
     }
   };
 
-  const trackEngagementEvent = async (actionId: string, isChecked: boolean) => {
+  const trackEngagementEvent = async (eventType: string, eventData: any = {}) => {
+    if (!user || !submission) return;
+    
     try {
-      const action = priorityActions.find(a => a.id === actionId);
-      
+      // Create engagement event
       await supabase
-        .from('analytics_events')
+        .from('user_engagement_events')
         .insert({
-          user_id: user?.id,
-          submission_id: submission?.id,
-          event_type: 'action_interaction',
-          properties: {
-            actionId,
-            isChecked,
-            actionTitle: action?.title,
-            recoveryPotential: action?.impact,
-            difficulty: action?.difficulty,
-            timeframe: action?.timeframe
+          user_id: user.id,
+          submission_id: submission.id,
+          event_type: eventType,
+          event_data: {
+            ...eventData,
+            timestamp: new Date().toISOString(),
+            page_url: window.location.pathname,
+            user_agent: navigator.userAgent,
+            viewport: {
+              width: window.innerWidth,
+              height: window.innerHeight
+            }
           }
         });
+      
+      // Update engagement score using the database function
+      await supabase.rpc('update_engagement_score', {
+        p_user_id: user.id,
+        p_event_type: eventType
+      });
+      
     } catch (error) {
-      console.error('Error tracking engagement:', error);
+      console.error('Failed to track engagement:', error);
     }
+  };
+
+  const handleTabChange = (tabValue: string) => {
+    setCurrentTab(tabValue);
+    
+    // Track tab navigation
+    trackEngagementEvent('tab_navigation', {
+      from_tab: currentTab,
+      to_tab: tabValue,
+      time_since_load: Date.now() - sessionStartTime
+    });
+  };
+
+  const handleCTAInteraction = (ctaType: string, ctaLabel: string) => {
+    trackEngagementEvent('cta_interaction', {
+      cta_type: ctaType,
+      cta_label: ctaLabel,
+      engagement_level: checkedActions.length > 0 ? 'high' : 'medium'
+    });
   };
 
   const formatCurrency = (amount: number) => {
@@ -358,7 +450,7 @@ const ActionPlan = () => {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="overview" className="space-y-8">
+        <Tabs defaultValue="overview" value={currentTab} onValueChange={handleTabChange} className="space-y-8">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
@@ -569,7 +661,10 @@ const ActionPlan = () => {
           </TabsContent>
 
           <TabsContent value="next-steps" className="space-y-8">
-            <div className="bg-gradient-to-r from-primary to-revenue-primary rounded-xl p-8 text-primary-foreground">
+            <div 
+              className="bg-gradient-to-r from-primary to-revenue-primary rounded-xl p-8 text-primary-foreground"
+              onFocus={() => trackEngagementEvent('next_steps_viewed', { time_since_load: Date.now() - sessionStartTime })}
+            >
               <div className="max-w-4xl mx-auto text-center">
                 <h2 className="text-3xl font-bold mb-4">Ready to Implement?</h2>
                 <p className="text-xl mb-8 opacity-90">
@@ -582,7 +677,10 @@ const ActionPlan = () => {
                       <Phone className="h-8 w-8 mx-auto mb-3 text-revenue-primary" />
                       <h3 className="font-bold mb-2">Strategy Call</h3>
                       <p className="text-sm text-muted-foreground mb-4">Get personalized implementation guidance</p>
-                      <Button className="w-full bg-revenue-primary text-primary-foreground">
+                      <Button 
+                        className="w-full bg-revenue-primary text-primary-foreground"
+                        onClick={() => handleCTAInteraction('consultation', 'Book Free Consultation')}
+                      >
                         Book Free Consultation
                       </Button>
                     </CardContent>
@@ -593,7 +691,11 @@ const ActionPlan = () => {
                       <BookOpen className="h-8 w-8 mx-auto mb-3 text-primary" />
                       <h3 className="font-bold mb-2">Implementation Guide</h3>
                       <p className="text-sm text-muted-foreground mb-4">Download detailed step-by-step guide</p>
-                      <Button variant="outline" className="w-full">
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => handleCTAInteraction('download', 'Download Guide')}
+                      >
                         Download Guide
                       </Button>
                     </CardContent>
@@ -604,7 +706,11 @@ const ActionPlan = () => {
                       <Users className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
                       <h3 className="font-bold mb-2">Progress Updates</h3>
                       <p className="text-sm text-muted-foreground mb-4">Get weekly implementation tips</p>
-                      <Button variant="secondary" className="w-full">
+                      <Button 
+                        variant="secondary" 
+                        className="w-full"
+                        onClick={() => handleCTAInteraction('subscription', 'Subscribe to Updates')}
+                      >
                         Subscribe to Updates
                       </Button>
                     </CardContent>
