@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SelfServeMetrics } from "./useCalculatorData";
 import { Users, Percent, DollarSign } from "lucide-react";
-import { updateCalculatorProgress } from "@/lib/temporarySubmissions";
+import { saveCalculatorProgress } from "@/lib/coreDataCapture";
 import { useEffect } from "react";
 
 interface SelfServeStepProps {
@@ -17,7 +17,7 @@ export const SelfServeStep = ({ data, onUpdate }: SelfServeStepProps) => {
     const timeoutId = setTimeout(async () => {
       if (data.monthlyFreeSignups || data.freeToPaidConversionRate || data.monthlyMRR) {
         try {
-          await updateCalculatorProgress(3, data);
+          await saveCalculatorProgress(data, 3);
         } catch (error) {
           console.error('Error saving step 3 data:', error);
         }

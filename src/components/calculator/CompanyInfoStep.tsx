@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CompanyInfo } from "./useCalculatorData";
 import { Building2, Mail, DollarSign } from "lucide-react";
-import { updateCalculatorProgress, trackEngagement } from "@/lib/temporarySubmissions";
+import { saveCalculatorProgress } from "@/lib/coreDataCapture";
 import { useEffect } from "react";
 
 interface CompanyInfoStepProps {
@@ -13,22 +13,17 @@ interface CompanyInfoStepProps {
 }
 
 export const CompanyInfoStep = ({ data, onUpdate }: CompanyInfoStepProps) => {
-  // Track page view when component mounts
-  useEffect(() => {
-    trackEngagement('page_view');
-  }, []);
-
   // Auto-save data when it changes
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
       if (data.email || data.companyName) {
         try {
-          await updateCalculatorProgress(1, {
+          await saveCalculatorProgress({
             email: data.email,
             companyName: data.companyName,
             industry: data.industry,
             currentARR: data.currentARR,
-          });
+          }, 1);
         } catch (error) {
           console.error('Error saving step 1 data:', error);
         }

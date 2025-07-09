@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { OperationsData } from "./useCalculatorData";
 import { AlertTriangle, Clock, DollarSign } from "lucide-react";
-import { updateCalculatorProgress } from "@/lib/temporarySubmissions";
+import { saveCalculatorProgress } from "@/lib/coreDataCapture";
 import { useEffect } from "react";
 
 interface OperationsStepProps {
@@ -17,7 +17,7 @@ export const OperationsStep = ({ data, onUpdate }: OperationsStepProps) => {
     const timeoutId = setTimeout(async () => {
       if (data.failedPaymentRate || data.manualHoursPerWeek || data.hourlyRate) {
         try {
-          await updateCalculatorProgress(4, data);
+          await saveCalculatorProgress(data, 4);
         } catch (error) {
           console.error('Error saving step 4 data:', error);
         }

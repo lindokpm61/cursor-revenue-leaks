@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LeadGeneration } from "./useCalculatorData";
 import { TrendingUp, DollarSign, Clock } from "lucide-react";
-import { updateCalculatorProgress } from "@/lib/temporarySubmissions";
+import { saveCalculatorProgress } from "@/lib/coreDataCapture";
 import { useEffect } from "react";
 
 interface LeadGenerationStepProps {
@@ -17,7 +17,7 @@ export const LeadGenerationStep = ({ data, onUpdate }: LeadGenerationStepProps) 
     const timeoutId = setTimeout(async () => {
       if (data.monthlyLeads || data.averageDealValue || data.leadResponseTimeHours) {
         try {
-          await updateCalculatorProgress(2, data);
+          await saveCalculatorProgress(data, 2);
         } catch (error) {
           console.error('Error saving step 2 data:', error);
         }
