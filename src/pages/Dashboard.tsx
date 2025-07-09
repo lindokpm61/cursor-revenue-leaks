@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, Plus, BarChart3, TrendingUp, DollarSign, Users, LogOut, User } from "lucide-react";
+import { Calculator, Plus, BarChart3, TrendingUp, DollarSign, Users, LogOut, User, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { submissionService, analyticsService, userProfileService, type Submission, type UserProfile } from "@/lib/supabase";
@@ -103,6 +103,61 @@ const Dashboard = () => {
     if (leakage >= 1000000) return "text-revenue-danger";
     if (leakage >= 500000) return "text-revenue-warning";
     return "text-revenue-success";
+  };
+
+  const handleDeleteSubmission = async (submissionId: string, companyName: string) => {
+    if (!confirm(`Are you sure you want to delete the assessment for ${companyName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await submissionService.delete(submissionId);
+      
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete assessment",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Remove the submission from the local state
+      setSubmissions(prev => prev.filter(s => s.id !== submissionId));
+      
+      // Recalculate stats
+      const newSubmissions = submissions.filter(s => s.id !== submissionId);
+      const total = newSubmissions.length;
+      const totalLeakage = newSubmissions.reduce((sum, s) => sum + (s.total_leak || 0), 0);
+      const avgLeakage = total > 0 ? totalLeakage / total : 0;
+      
+      const industries = newSubmissions.reduce((acc, s) => {
+        if (s.industry) {
+          acc[s.industry] = (acc[s.industry] || 0) + 1;
+        }
+        return acc;
+      }, {} as Record<string, number>);
+      const topIndustry = Object.entries(industries).sort(([,a], [,b]) => b - a)[0]?.[0] || "";
+
+      setStats({
+        totalSubmissions: total,
+        totalLeakage,
+        averageLeakage: avgLeakage,
+        topIndustry
+      });
+
+      toast({
+        title: "Success",
+        description: "Assessment deleted successfully",
+      });
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete assessment",
+        variant: "destructive",
+      });
+    }
   };
 
   if (loading) {
@@ -289,11 +344,21 @@ const Dashboard = () => {
                         }
                       </TableCell>
                       <TableCell>
-                        <Link to={`/results/${submission.id}`}>
-                          <Button variant="outline" size="sm">
-                            View Results
+                        <div className="flex items-center gap-2">
+                          <Link to={`/results/${submission.id}`}>
+                            <Button variant="outline" size="sm">
+                              View Results
+                            </Button>
+                          </Link>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDeleteSubmission(submission.id, submission.company_name)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
-                        </Link>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
