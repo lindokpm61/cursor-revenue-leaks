@@ -51,6 +51,12 @@ const getUrlParameter = (name: string): string | null => {
 // N8N webhook integration for email automation
 export const triggerN8NWorkflow = async (workflowType: string, data: any) => {
   try {
+    // Ensure temp_id is provided and valid
+    if (!data.temp_id) {
+      console.error('triggerN8NWorkflow: temp_id is required');
+      return null;
+    }
+    
     // Use edge function to trigger N8N workflows with placeholder configuration
     const response = await supabase.functions.invoke('n8n-trigger', {
       body: {
@@ -69,8 +75,10 @@ export const triggerN8NWorkflow = async (workflowType: string, data: any) => {
     
     const result = response.data;
     
-    // Track N8N execution for status monitoring
-    await updateN8NExecutionStatus(data.temp_id, workflowType, result.execution_id);
+    // Track N8N execution for status monitoring only if we have a valid execution_id
+    if (result?.execution_id && data.temp_id) {
+      await updateN8NExecutionStatus(data.temp_id, workflowType, result.execution_id);
+    }
     
     return result;
   } catch (error) {
@@ -83,8 +91,16 @@ export const triggerN8NWorkflow = async (workflowType: string, data: any) => {
 // Update N8N execution status in database
 const updateN8NExecutionStatus = async (tempId: string, workflowType: string, executionId: string) => {
   try {
+    if (!tempId) {
+      console.error('updateN8NExecutionStatus: tempId is required');
+      return;
+    }
+    
     const existing = await getTemporarySubmission(tempId);
-    if (!existing) return;
+    if (!existing) {
+      console.error('updateN8NExecutionStatus: No existing submission found for tempId:', tempId);
+      return;
+    }
     
     const updatedStatus = {
       ...(existing.n8n_workflow_status as Record<string, any> || {}),
@@ -368,21 +384,17 @@ const triggerStepBasedEmailSequences = async (stepNumber: number, progressData: 
   }
 };
 
-// Track step completion for analytics
+// Track step completion for analytics - simplified to avoid permission issues
 const trackStepCompletion = async (tempId: string, stepNumber: number) => {
   try {
-    await supabase
-      .from('user_engagement_events')
-      .insert([{
-        user_id: null, // Anonymous user
-        submission_id: null, // Will be linked later
-        event_type: 'calculator_step_completed',
-        event_data: {
-          temp_id: tempId,
-          step_number: stepNumber,
-          timestamp: new Date().toISOString()
-        }
-      }]);
+    // Simply log the completion - avoid database writes that require special permissions
+    console.log(`Step ${stepNumber} completed for temp_id: ${tempId}`);
+    
+    // Update existing temporary submission with step completion instead
+    await saveTemporarySubmission({
+      temp_id: tempId,
+      last_activity_at: new Date().toISOString()
+    });
   } catch (error) {
     console.error('Failed to track step completion:', error);
   }

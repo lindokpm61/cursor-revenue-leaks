@@ -15,6 +15,7 @@ export interface TemporarySubmissionData {
   lead_score?: number;
   email_sequences_triggered?: string[];
   last_email_sent_at?: string;
+  last_activity_at?: string;
   email_engagement_score?: number;
   twenty_crm_contact_id?: string;
   smartlead_campaign_ids?: string[];
@@ -80,17 +81,23 @@ export const getTrackingData = () => {
 
 // Create or update temporary submission
 export const saveTemporarySubmission = async (data: Partial<TemporarySubmissionData>) => {
-  const tempId = getTempId();
+  const tempId = data.temp_id || getTempId();
   const sessionId = getSessionId();
   const trackingData = getTrackingData();
 
   try {
+    // Ensure temp_id is always present
     const submissionData = {
       temp_id: tempId,
       session_id: sessionId,
       ...trackingData,
       ...data,
     };
+
+    // Validate that temp_id is not null or empty
+    if (!submissionData.temp_id) {
+      throw new Error('temp_id is required for temporary submission');
+    }
 
     // Use upsert to handle race conditions gracefully
     const { data: upserted, error } = await supabase
