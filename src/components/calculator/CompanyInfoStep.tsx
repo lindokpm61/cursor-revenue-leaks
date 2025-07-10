@@ -8,6 +8,13 @@ import { saveCalculatorProgress } from "@/lib/coreDataCapture";
 import { isValidEmail } from "@/lib/calculatorHandlers";
 import { useEffect, useState } from "react";
 
+// Helper function to safely convert input values to numbers
+const safeInputNumber = (value: string): number => {
+  if (value === "" || value === null || value === undefined) return 0;
+  const num = Number(value);
+  return isNaN(num) ? 0 : num;
+};
+
 interface CompanyInfoStepProps {
   data: CompanyInfo;
   onUpdate: (updates: Partial<CompanyInfo>) => void;
@@ -122,7 +129,7 @@ export const CompanyInfoStep = ({ data, onUpdate }: CompanyInfoStepProps) => {
                 id="current-arr"
                 type="number"
                 value={data.currentARR ?? ""}
-                onChange={(e) => onUpdate({ currentARR: Number(e.target.value) })}
+                onChange={(e) => onUpdate({ currentARR: safeInputNumber(e.target.value) })}
                 placeholder="1000000"
                 className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
               />

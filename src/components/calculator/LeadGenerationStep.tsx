@@ -6,6 +6,13 @@ import { TrendingUp, DollarSign, Clock } from "lucide-react";
 import { saveCalculatorProgress } from "@/lib/coreDataCapture";
 import { useEffect } from "react";
 
+// Helper function to safely convert input values to numbers
+const safeInputNumber = (value: string): number => {
+  if (value === "" || value === null || value === undefined) return 0;
+  const num = Number(value);
+  return isNaN(num) ? 0 : num;
+};
+
 interface LeadGenerationStepProps {
   data: LeadGeneration;
   onUpdate: (updates: Partial<LeadGeneration>) => void;
@@ -51,7 +58,7 @@ export const LeadGenerationStep = ({ data, onUpdate }: LeadGenerationStepProps) 
               id="monthly-leads"
               type="number"
               value={data.monthlyLeads ?? ""}
-              onChange={(e) => onUpdate({ monthlyLeads: Number(e.target.value) })}
+              onChange={(e) => onUpdate({ monthlyLeads: safeInputNumber(e.target.value) })}
               placeholder="500"
               className="transition-all duration-200 focus:ring-2 focus:ring-primary"
             />
@@ -66,7 +73,7 @@ export const LeadGenerationStep = ({ data, onUpdate }: LeadGenerationStepProps) 
                 id="average-deal-value"
                 type="number"
                 value={data.averageDealValue ?? ""}
-                onChange={(e) => onUpdate({ averageDealValue: Number(e.target.value) })}
+                onChange={(e) => onUpdate({ averageDealValue: safeInputNumber(e.target.value) })}
                 placeholder="5000"
                 className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
               />
@@ -82,7 +89,7 @@ export const LeadGenerationStep = ({ data, onUpdate }: LeadGenerationStepProps) 
                 id="lead-response-time"
                 type="number"
                 value={data.leadResponseTimeHours ?? ""}
-                onChange={(e) => onUpdate({ leadResponseTimeHours: Number(e.target.value) })}
+                onChange={(e) => onUpdate({ leadResponseTimeHours: safeInputNumber(e.target.value) })}
                 placeholder="2"
                 className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
               />

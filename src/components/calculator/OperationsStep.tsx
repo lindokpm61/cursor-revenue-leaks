@@ -6,6 +6,13 @@ import { AlertTriangle, Clock, DollarSign } from "lucide-react";
 import { saveCalculatorProgress } from "@/lib/coreDataCapture";
 import { useEffect } from "react";
 
+// Helper function to safely convert input values to numbers
+const safeInputNumber = (value: string): number => {
+  if (value === "" || value === null || value === undefined) return 0;
+  const num = Number(value);
+  return isNaN(num) ? 0 : num;
+};
+
 interface OperationsStepProps {
   data: OperationsData;
   onUpdate: (updates: Partial<OperationsData>) => void;
@@ -51,7 +58,7 @@ export const OperationsStep = ({ data, onUpdate }: OperationsStepProps) => {
               id="failed-payment-rate"
               type="number"
               value={data.failedPaymentRate ?? ""}
-              onChange={(e) => onUpdate({ failedPaymentRate: Number(e.target.value) })}
+              onChange={(e) => onUpdate({ failedPaymentRate: safeInputNumber(e.target.value) })}
               placeholder="3"
               max="100"
               className="transition-all duration-200 focus:ring-2 focus:ring-primary"
@@ -67,7 +74,7 @@ export const OperationsStep = ({ data, onUpdate }: OperationsStepProps) => {
                 id="manual-hours"
                 type="number"
                 value={data.manualHoursPerWeek ?? ""}
-                onChange={(e) => onUpdate({ manualHoursPerWeek: Number(e.target.value) })}
+                onChange={(e) => onUpdate({ manualHoursPerWeek: safeInputNumber(e.target.value) })}
                 placeholder="20"
                 className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
               />
@@ -83,7 +90,7 @@ export const OperationsStep = ({ data, onUpdate }: OperationsStepProps) => {
                 id="hourly-rate"
                 type="number"
                 value={data.hourlyRate ?? ""}
-                onChange={(e) => onUpdate({ hourlyRate: Number(e.target.value) })}
+                onChange={(e) => onUpdate({ hourlyRate: safeInputNumber(e.target.value) })}
                 placeholder="75"
                 className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
               />

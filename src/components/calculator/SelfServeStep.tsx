@@ -6,6 +6,13 @@ import { Users, Percent, DollarSign } from "lucide-react";
 import { saveCalculatorProgress } from "@/lib/coreDataCapture";
 import { useEffect } from "react";
 
+// Helper function to safely convert input values to numbers
+const safeInputNumber = (value: string): number => {
+  if (value === "" || value === null || value === undefined) return 0;
+  const num = Number(value);
+  return isNaN(num) ? 0 : num;
+};
+
 interface SelfServeStepProps {
   data: SelfServeMetrics;
   onUpdate: (updates: Partial<SelfServeMetrics>) => void;
@@ -53,7 +60,7 @@ export const SelfServeStep = ({ data, onUpdate }: SelfServeStepProps) => {
                 id="monthly-free-signups"
                 type="number"
                 value={data.monthlyFreeSignups ?? ""}
-                onChange={(e) => onUpdate({ monthlyFreeSignups: Number(e.target.value) })}
+                onChange={(e) => onUpdate({ monthlyFreeSignups: safeInputNumber(e.target.value) })}
                 placeholder="1000"
                 className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
               />
@@ -69,7 +76,7 @@ export const SelfServeStep = ({ data, onUpdate }: SelfServeStepProps) => {
                 id="conversion-rate"
                 type="number"
                 value={data.freeToPaidConversionRate ?? ""}
-                onChange={(e) => onUpdate({ freeToPaidConversionRate: Number(e.target.value) })}
+                onChange={(e) => onUpdate({ freeToPaidConversionRate: safeInputNumber(e.target.value) })}
                 placeholder="10"
                 max="100"
                 className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
@@ -86,7 +93,7 @@ export const SelfServeStep = ({ data, onUpdate }: SelfServeStepProps) => {
                 id="monthly-mrr"
                 type="number"
                 value={data.monthlyMRR ?? ""}
-                onChange={(e) => onUpdate({ monthlyMRR: Number(e.target.value) })}
+                onChange={(e) => onUpdate({ monthlyMRR: safeInputNumber(e.target.value) })}
                 placeholder="50000"
                 className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
               />
