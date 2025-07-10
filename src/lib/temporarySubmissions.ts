@@ -168,9 +168,9 @@ export const updateCalculatorProgress = async (
 
     // Add calculated results if provided
     if (calculations) {
-      updateData.total_revenue_leak = calculations.totalLeak;
-      updateData.recovery_potential = calculations.recoveryPotential70;
-      updateData.lead_score = calculations.leadScore;
+      updateData.total_revenue_leak = Math.round(calculations.totalLeak || 0);
+      updateData.recovery_potential = Math.round(calculations.recoveryPotential70 || 0);
+      updateData.lead_score = Math.round(calculations.leadScore || 0);
     }
 
     // Extract email and company info if in step data
@@ -258,15 +258,15 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
         failed_payment_rate: submissionData.failed_payment_rate,
         manual_hours: submissionData.manual_hours,
         hourly_rate: submissionData.hourly_rate,
-        lead_response_loss: submissionData.lead_response_loss,
-        failed_payment_loss: submissionData.failed_payment_loss,
-        selfserve_gap_loss: submissionData.selfserve_gap_loss,
-        process_inefficiency_loss: submissionData.process_inefficiency_loss,
-        total_leak: tempSubmission.total_revenue_leak || submissionData.total_leak,
-        leak_percentage: submissionData.leak_percentage,
-        recovery_potential_70: tempSubmission.recovery_potential || submissionData.recovery_potential_70,
-        recovery_potential_85: submissionData.recovery_potential_85,
-        lead_score: tempSubmission.lead_score || submissionData.lead_score,
+        lead_response_loss: Math.round(submissionData.lead_response_loss || 0),
+        failed_payment_loss: Math.round(submissionData.failed_payment_loss || 0),
+        selfserve_gap_loss: Math.round(submissionData.selfserve_gap_loss || 0),
+        process_inefficiency_loss: Math.round(submissionData.process_inefficiency_loss || 0),
+        total_leak: Math.round(tempSubmission.total_revenue_leak || submissionData.total_leak || 0),
+        leak_percentage: Math.round(submissionData.leak_percentage || 0),
+        recovery_potential_70: Math.round(tempSubmission.recovery_potential || submissionData.recovery_potential_70 || 0),
+        recovery_potential_85: Math.round(submissionData.recovery_potential_85 || 0),
+        lead_score: Math.round(tempSubmission.lead_score || submissionData.lead_score || 0),
         created_at: tempSubmission.created_at, // Preserve original timestamp
       }])
       .select()
