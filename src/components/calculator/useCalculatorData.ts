@@ -92,15 +92,30 @@ export const useCalculatorData = () => {
       return isNaN(num) ? 0 : num;
     };
 
-    const monthlyLeads = safeNumber(leadGeneration.monthlyLeads);
-    const averageDealValue = safeNumber(leadGeneration.averageDealValue);
-    const leadResponseTimeHours = safeNumber(leadGeneration.leadResponseTimeHours);
-    const monthlyFreeSignups = safeNumber(selfServeMetrics.monthlyFreeSignups);
-    const freeToPaidConversionRate = safeNumber(selfServeMetrics.freeToPaidConversionRate);
-    const monthlyMRR = safeNumber(selfServeMetrics.monthlyMRR);
-    const failedPaymentRate = safeNumber(operationsData.failedPaymentRate);
-    const manualHoursPerWeek = safeNumber(operationsData.manualHoursPerWeek);
-    const hourlyRate = safeNumber(operationsData.hourlyRate);
+    // Debug logging
+    console.log('Calculator data:', { leadGeneration, selfServeMetrics, operationsData });
+
+    const monthlyLeads = safeNumber(leadGeneration?.monthlyLeads);
+    const averageDealValue = safeNumber(leadGeneration?.averageDealValue);
+    const leadResponseTimeHours = safeNumber(leadGeneration?.leadResponseTimeHours);
+    const monthlyFreeSignups = safeNumber(selfServeMetrics?.monthlyFreeSignups);
+    const freeToPaidConversionRate = safeNumber(selfServeMetrics?.freeToPaidConversionRate);
+    const monthlyMRR = safeNumber(selfServeMetrics?.monthlyMRR);
+    const failedPaymentRate = safeNumber(operationsData?.failedPaymentRate);
+    const manualHoursPerWeek = safeNumber(operationsData?.manualHoursPerWeek);
+    const hourlyRate = safeNumber(operationsData?.hourlyRate);
+
+    console.log('Safe numbers:', {
+      monthlyLeads,
+      averageDealValue,
+      leadResponseTimeHours,
+      monthlyFreeSignups,
+      freeToPaidConversionRate,
+      monthlyMRR,
+      failedPaymentRate,
+      manualHoursPerWeek,
+      hourlyRate
+    });
 
     // Lead Response Loss = Monthly Leads × Average Deal × 0.48 × 12
     const leadResponseLoss = monthlyLeads * averageDealValue * 0.48 * 12;
