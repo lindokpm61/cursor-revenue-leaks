@@ -1,5 +1,46 @@
 import { supabase } from "@/integrations/supabase/client";
 
+// Calculate lead score based on calculations and company data
+const calculateLeadScore = (calculations: any, currentARR: number, industry: string): number => {
+  let score = 0;
+  
+  // ARR Points
+  const arr = currentARR || 0;
+  if (arr >= 5000000) {
+    score += 50; // $5M+
+  } else if (arr >= 1000000) {
+    score += 40; // $1M-5M
+  } else if (arr >= 500000) {
+    score += 30; // $500K-1M
+  } else {
+    score += 20; // <$500K
+  }
+  
+  // Leak Impact Points
+  const totalLeak = calculations.totalLeakage || 0;
+  if (totalLeak >= 1000000) {
+    score += 40; // $1M+ leak
+  } else if (totalLeak >= 500000) {
+    score += 30; // $500K-1M leak
+  } else if (totalLeak >= 250000) {
+    score += 20; // $250K-500K leak
+  } else {
+    score += 10; // <$250K leak
+  }
+  
+  // Industry Multiplier
+  const ind = industry?.toLowerCase() || '';
+  if (ind.includes('technology') || ind.includes('saas') || ind.includes('software')) {
+    score += 10; // Technology/SaaS
+  } else if (ind.includes('finance') || ind.includes('financial')) {
+    score += 8; // Finance
+  } else {
+    score += 5; // Other
+  }
+  
+  return Math.min(score, 100); // Cap at 100
+};
+
 export interface TemporarySubmissionData {
   temp_id: string;
   session_id?: string;
@@ -168,9 +209,10 @@ export const updateCalculatorProgress = async (
 
     // Add calculated results if provided
     if (calculations) {
-      updateData.total_revenue_leak = Math.round(calculations.totalLeak || 0);
-      updateData.recovery_potential = Math.round(calculations.recoveryPotential70 || 0);
-      updateData.lead_score = Math.round(calculations.leadScore || 0);
+      updateData.total_revenue_leak = Math.round(calculations.totalLeakage || 0);
+      updateData.recovery_potential = Math.round(calculations.potentialRecovery70 || 0);
+      // For now, set a basic lead score - it will be properly calculated in useSaveResults
+      updateData.lead_score = Math.round(50); // Default score, will be overridden later
     }
 
     // Extract email and company info if in step data
