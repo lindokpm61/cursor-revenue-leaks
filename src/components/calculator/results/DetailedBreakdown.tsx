@@ -9,6 +9,29 @@ interface DetailedBreakdownProps {
 }
 
 export const DetailedBreakdown = ({ data, calculations, formatCurrency }: DetailedBreakdownProps) => {
+  // Safe access helper
+  const safeNumber = (value: any): number => {
+    const num = Number(value);
+    return isNaN(num) ? 0 : num;
+  };
+
+  const safeData = {
+    leadGeneration: {
+      monthlyLeads: safeNumber(data.leadGeneration?.monthlyLeads),
+      averageDealValue: safeNumber(data.leadGeneration?.averageDealValue),
+      leadResponseTimeHours: safeNumber(data.leadGeneration?.leadResponseTimeHours),
+    },
+    selfServeMetrics: {
+      monthlyFreeSignups: safeNumber(data.selfServeMetrics?.monthlyFreeSignups),
+      freeToPaidConversionRate: safeNumber(data.selfServeMetrics?.freeToPaidConversionRate),
+      monthlyMRR: safeNumber(data.selfServeMetrics?.monthlyMRR),
+    },
+    operationsData: {
+      failedPaymentRate: safeNumber(data.operationsData?.failedPaymentRate),
+      manualHoursPerWeek: safeNumber(data.operationsData?.manualHoursPerWeek),
+      hourlyRate: safeNumber(data.operationsData?.hourlyRate),
+    }
+  };
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <Card className="bg-gradient-to-br from-white to-orange-50 border-orange-200 shadow-soft">
@@ -26,9 +49,9 @@ export const DetailedBreakdown = ({ data, calculations, formatCurrency }: Detail
             Lost due to slow lead response (48% impact factor)
           </p>
           <div className="space-y-2 text-sm">
-            <p><span className="font-medium">Monthly Leads:</span> {data.leadGeneration.monthlyLeads.toLocaleString()}</p>
-            <p><span className="font-medium">Avg Deal Value:</span> {formatCurrency(data.leadGeneration.averageDealValue)}</p>
-            <p><span className="font-medium">Response Time:</span> {data.leadGeneration.leadResponseTimeHours}h</p>
+            <p><span className="font-medium">Monthly Leads:</span> {safeData.leadGeneration.monthlyLeads.toLocaleString()}</p>
+            <p><span className="font-medium">Avg Deal Value:</span> {formatCurrency(safeData.leadGeneration.averageDealValue)}</p>
+            <p><span className="font-medium">Response Time:</span> {safeData.leadGeneration.leadResponseTimeHours}h</p>
           </div>
         </CardContent>
       </Card>
@@ -48,8 +71,8 @@ export const DetailedBreakdown = ({ data, calculations, formatCurrency }: Detail
             Annual loss from failed payments
           </p>
           <div className="space-y-2 text-sm">
-            <p><span className="font-medium">Monthly MRR:</span> {formatCurrency(data.selfServeMetrics.monthlyMRR)}</p>
-            <p><span className="font-medium">Failed Rate:</span> {data.operationsData.failedPaymentRate}%</p>
+            <p><span className="font-medium">Monthly MRR:</span> {formatCurrency(safeData.selfServeMetrics.monthlyMRR)}</p>
+            <p><span className="font-medium">Failed Rate:</span> {safeData.operationsData.failedPaymentRate}%</p>
           </div>
         </CardContent>
       </Card>
@@ -69,9 +92,9 @@ export const DetailedBreakdown = ({ data, calculations, formatCurrency }: Detail
             Gap between current and 15% benchmark conversion
           </p>
           <div className="space-y-2 text-sm">
-            <p><span className="font-medium">Free Signups:</span> {data.selfServeMetrics.monthlyFreeSignups.toLocaleString()}</p>
-            <p><span className="font-medium">Conversion Rate:</span> {data.selfServeMetrics.freeToPaidConversionRate}%</p>
-            <p><span className="font-medium">Gap to 15%:</span> {Math.max(0, 15 - data.selfServeMetrics.freeToPaidConversionRate)}%</p>
+            <p><span className="font-medium">Free Signups:</span> {safeData.selfServeMetrics.monthlyFreeSignups.toLocaleString()}</p>
+            <p><span className="font-medium">Conversion Rate:</span> {safeData.selfServeMetrics.freeToPaidConversionRate}%</p>
+            <p><span className="font-medium">Gap to 15%:</span> {Math.max(0, 15 - safeData.selfServeMetrics.freeToPaidConversionRate)}%</p>
           </div>
         </CardContent>
       </Card>
@@ -91,8 +114,8 @@ export const DetailedBreakdown = ({ data, calculations, formatCurrency }: Detail
             Annual cost of manual processes (25% efficiency loss)
           </p>
           <div className="space-y-2 text-sm">
-            <p><span className="font-medium">Manual Hours/Week:</span> {data.operationsData.manualHoursPerWeek}</p>
-            <p><span className="font-medium">Hourly Rate:</span> {formatCurrency(data.operationsData.hourlyRate)}</p>
+            <p><span className="font-medium">Manual Hours/Week:</span> {safeData.operationsData.manualHoursPerWeek}</p>
+            <p><span className="font-medium">Hourly Rate:</span> {formatCurrency(safeData.operationsData.hourlyRate)}</p>
           </div>
         </CardContent>
       </Card>

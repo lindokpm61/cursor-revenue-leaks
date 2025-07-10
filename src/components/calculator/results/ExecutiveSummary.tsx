@@ -9,6 +9,14 @@ interface ExecutiveSummaryProps {
 }
 
 export const ExecutiveSummary = ({ data, calculations, formatCurrency }: ExecutiveSummaryProps) => {
+  // Safe access helper
+  const safeNumber = (value: any): number => {
+    const num = Number(value);
+    return isNaN(num) ? 0 : num;
+  };
+
+  const currentARR = safeNumber(data.companyInfo?.currentARR);
+  const potentialRecovery70 = safeNumber(calculations.potentialRecovery70);
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
       <Card className="bg-gradient-to-br from-white to-red-50 border-red-200 shadow-soft">
@@ -65,8 +73,8 @@ export const ExecutiveSummary = ({ data, calculations, formatCurrency }: Executi
         </CardHeader>
         <CardContent>
           <p className="text-3xl font-bold text-revenue-success leading-none mb-2">
-            {data.companyInfo.currentARR > 0 
-              ? Math.round((calculations.potentialRecovery70 / data.companyInfo.currentARR) * 100)
+            {currentARR > 0 
+              ? Math.round((potentialRecovery70 / currentARR) * 100)
               : 0}%
           </p>
           <p className="text-sm text-muted-foreground">of current ARR</p>
