@@ -70,7 +70,9 @@ export const triggerN8NWorkflow = async (workflowType: string, data: any) => {
     });
     
     if (response.error) {
-      throw new Error(`N8N workflow failed: ${response.error}`);
+      console.error(`N8N workflow ${workflowType} failed:`, response.error);
+      // Don't throw error - just log and continue
+      return null;
     }
     
     const result = response.data;

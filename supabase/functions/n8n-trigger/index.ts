@@ -55,13 +55,13 @@ const handler = async (req: Request): Promise<Response> => {
     
     // N8N webhook URLs from environment variables
     const N8N_WEBHOOKS = {
-      'email-automation': Deno.env.get('N8N_EMAIL_AUTOMATION_WEBHOOK'),
-      'crm-integration': Deno.env.get('N8N_CRM_INTEGRATION_WEBHOOK'),
-      'lead-qualification': Deno.env.get('N8N_LEAD_QUALIFICATION_WEBHOOK'),
-      'high-value-alert': Deno.env.get('N8N_HIGH_VALUE_ALERT_WEBHOOK'),
-      'abandonment-recovery': Deno.env.get('N8N_ABANDONMENT_RECOVERY_WEBHOOK'),
-      'analytics-reporting': Deno.env.get('N8N_ANALYTICS_REPORTING_WEBHOOK') || 'https://placeholder-n8n.com/webhook/analytics-reporting',
-      'results-calculated': Deno.env.get('N8N_ANALYTICS_REPORTING_WEBHOOK') || 'https://placeholder-n8n.com/webhook/results-calculated'
+      'email-automation': Deno.env.get('N8N_EMAIL_AUTOMATION_WEBHOOK') || 'https://webhook.site/placeholder-email-automation',
+      'crm-integration': Deno.env.get('N8N_CRM_INTEGRATION_WEBHOOK') || 'https://webhook.site/placeholder-crm-integration',
+      'lead-qualification': Deno.env.get('N8N_LEAD_QUALIFICATION_WEBHOOK') || 'https://webhook.site/placeholder-lead-qualification',
+      'high-value-alert': Deno.env.get('N8N_HIGH_VALUE_ALERT_WEBHOOK') || 'https://webhook.site/placeholder-high-value-alert',
+      'abandonment-recovery': Deno.env.get('N8N_ABANDONMENT_RECOVERY_WEBHOOK') || 'https://webhook.site/placeholder-abandonment-recovery',
+      'analytics-reporting': Deno.env.get('N8N_ANALYTICS_REPORTING_WEBHOOK') || 'https://webhook.site/placeholder-analytics-reporting',
+      'results-calculated': Deno.env.get('N8N_ANALYTICS_REPORTING_WEBHOOK') || 'https://webhook.site/placeholder-results-calculated'
     };
     
     const n8nWebhookUrl = N8N_WEBHOOKS[workflow_type];
