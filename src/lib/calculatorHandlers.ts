@@ -24,6 +24,13 @@ export const isValidEmail = (email: string): boolean => {
 // Calculate preliminary lead score for early qualification
 export const calculatePreliminaryLeadScore = (progressData: any): number => {
   let score = 0;
+  
+  // Handle null progressData gracefully
+  if (!progressData) {
+    console.warn('calculatePreliminaryLeadScore: progressData is null, returning default score');
+    return 0;
+  }
+  
   const calculatorData = progressData.calculator_data || {};
   
   // Company size indicators

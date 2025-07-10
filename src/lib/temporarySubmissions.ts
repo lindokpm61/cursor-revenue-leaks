@@ -85,13 +85,6 @@ export const saveTemporarySubmission = async (data: Partial<TemporarySubmissionD
   const trackingData = getTrackingData();
 
   try {
-    // Check if submission already exists
-    const { data: existing } = await supabase
-      .from('temporary_submissions')
-      .select('*')
-      .eq('temp_id', tempId)
-      .single();
-
     const submissionData = {
       temp_id: tempId,
       session_id: sessionId,
@@ -99,28 +92,18 @@ export const saveTemporarySubmission = async (data: Partial<TemporarySubmissionD
       ...data,
     };
 
-    if (existing) {
-      // Update existing submission
-      const { data: updated, error } = await supabase
-        .from('temporary_submissions')
-        .update(submissionData)
-        .eq('temp_id', tempId)
-        .select()
-        .single();
+    // Use upsert to handle race conditions gracefully
+    const { data: upserted, error } = await supabase
+      .from('temporary_submissions')
+      .upsert([submissionData], { 
+        onConflict: 'temp_id',
+        ignoreDuplicates: false 
+      })
+      .select()
+      .single();
 
-      if (error) throw error;
-      return updated;
-    } else {
-      // Create new submission
-      const { data: created, error } = await supabase
-        .from('temporary_submissions')
-        .insert([submissionData])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return created;
-    }
+    if (error) throw error;
+    return upserted;
   } catch (error) {
     console.error('Error saving temporary submission:', error);
     throw error;
