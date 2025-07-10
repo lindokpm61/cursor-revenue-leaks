@@ -30,8 +30,6 @@ const AdminIntegrations = () => {
 
   const loadIntegrationData = async () => {
     try {
-      console.log('Loading integration data...');
-      
       // Get recent integration logs
       const [twentyLogs, n8nLogs, smartleadLogs] = await Promise.all([
         integrationLogService.getByType('twenty_crm', 50),
@@ -39,22 +37,12 @@ const AdminIntegrations = () => {
         integrationLogService.getByType('smartlead', 50),
       ]);
 
-      console.log('Integration logs results:', {
-        twentyLogs: twentyLogs.data?.length || 0,
-        twentyError: twentyLogs.error,
-        n8nLogs: n8nLogs.data?.length || 0,
-        n8nError: n8nLogs.error,
-        smartleadLogs: smartleadLogs.data?.length || 0,
-        smartleadError: smartleadLogs.error,
-      });
-
       const allLogs = [
         ...(twentyLogs.data || []),
         ...(n8nLogs.data || []),
         ...(smartleadLogs.data || []),
       ].sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime());
 
-      console.log('Total logs found:', allLogs.length);
       setIntegrationLogs(allLogs.slice(0, 20));
 
       // Calculate stats
@@ -64,14 +52,11 @@ const AdminIntegrations = () => {
         lastSync: logs.length > 0 ? logs[0].created_at : null,
       });
 
-      const stats = {
+      setIntegrationStats({
         twentyCRM: calculateStats(twentyLogs.data || []),
         n8n: calculateStats(n8nLogs.data || []),
         smartlead: calculateStats(smartleadLogs.data || []),
-      };
-
-      console.log('Integration stats:', stats);
-      setIntegrationStats(stats);
+      });
 
     } catch (error) {
       console.error('Error loading integration data:', error);
@@ -293,46 +278,60 @@ const AdminIntegrations = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {integrationLogs.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {getIntegrationIcon(log.integration_type)}
-                      <span className="capitalize">{log.integration_type.replace('_', ' ')}</span>
+              {integrationLogs.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    <div className="space-y-2">
+                      <Activity className="h-8 w-8 text-muted-foreground mx-auto" />
+                      <p className="text-muted-foreground">No integration activity yet</p>
+                      <p className="text-sm text-muted-foreground">
+                        Integration logs will appear here once submissions start triggering workflows and integrations.
+                      </p>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(log.status)}
-                      {getStatusBadge(log.status)}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {log.submission_id ? (
-                      <span className="font-mono text-sm">{log.submission_id.slice(0, 8)}...</span>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {log.error_message ? (
-                      <span className="text-sm text-revenue-danger max-w-xs truncate block">
-                        {log.error_message}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <span className={log.retry_count > 0 ? 'text-revenue-warning' : 'text-muted-foreground'}>
-                      {log.retry_count || 0}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {new Date(log.created_at!).toLocaleString()}
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                integrationLogs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {getIntegrationIcon(log.integration_type)}
+                        <span className="capitalize">{log.integration_type.replace('_', ' ')}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(log.status)}
+                        {getStatusBadge(log.status)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {log.submission_id ? (
+                        <span className="font-mono text-sm">{log.submission_id.slice(0, 8)}...</span>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {log.error_message ? (
+                        <span className="text-sm text-revenue-danger max-w-xs truncate block">
+                          {log.error_message}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <span className={log.retry_count > 0 ? 'text-revenue-warning' : 'text-muted-foreground'}>
+                        {log.retry_count || 0}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {new Date(log.created_at!).toLocaleString()}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
