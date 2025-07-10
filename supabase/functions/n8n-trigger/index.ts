@@ -10,6 +10,10 @@ import {
 import type { N8NTriggerRequest } from './types.ts';
 
 const handler = async (req: Request): Promise<Response> => {
+  // Initialize variables for error handling
+  let workflow_type: string = 'unknown';
+  let data: any = {};
+  
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -23,7 +27,9 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const { workflow_type, data }: N8NTriggerRequest = await req.json();
+    const requestData: N8NTriggerRequest = await req.json();
+    workflow_type = requestData.workflow_type;
+    data = requestData.data;
     
     // Initialize Supabase client
     const supabaseClient = createSupabaseClient();
@@ -63,13 +69,42 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     // Trigger N8N webhook
-    const n8nResponse = await fetch(n8nWebhookUrl, {
-      method: "POST",
-      headers: n8nHeaders,
-      body: JSON.stringify(requestBody),
-    });
+    let n8nResponse: Response;
+    let n8nResult: any;
+    
+    try {
+      n8nResponse = await fetch(n8nWebhookUrl, {
+        method: "POST",
+        headers: n8nHeaders,
+        body: JSON.stringify(requestBody),
+      });
 
-    const n8nResult = await parseN8NResponse(n8nResponse);
+      n8nResult = await parseN8NResponse(n8nResponse);
+    } catch (fetchError) {
+      console.error("Failed to fetch N8N webhook:", fetchError);
+      
+      // Log failed trigger in database
+      await logToDatabase(
+        supabaseClient, 
+        workflow_type, 
+        data, 
+        'failed', 
+        `Network error: ${fetchError.message}`
+      );
+      
+      return new Response(
+        JSON.stringify({
+          error: "Network error",
+          message: `Failed to connect to N8N webhook: ${fetchError.message}`,
+          execution_id: null
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+    
     const isPlaceholder = isPlaceholderUrl(n8nWebhookUrl);
     
     if (!n8nResponse.ok && !isPlaceholder) {
@@ -132,6 +167,20 @@ const handler = async (req: Request): Promise<Response> => {
 
   } catch (error: any) {
     console.error("Error in N8N trigger function:", error);
+    
+    // Log the error to database for monitoring
+    try {
+      const supabaseClient = createSupabaseClient();
+      await logToDatabase(
+        supabaseClient, 
+        workflow_type || 'unknown', 
+        data || {}, 
+        'failed', 
+        `Function error: ${error.message}`
+      );
+    } catch (logError) {
+      console.error("Failed to log error to database:", logError);
+    }
     
     return new Response(
       JSON.stringify({
