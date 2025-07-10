@@ -109,13 +109,15 @@ export const CompanyInfoStep = ({ data, onUpdate }: CompanyInfoStepProps) => {
                 <SelectValue placeholder="Select your industry" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="technology">Technology</SelectItem>
+                <SelectItem value="saas-software">SaaS & Software</SelectItem>
+                <SelectItem value="technology-it">Technology & IT</SelectItem>
+                <SelectItem value="marketing-advertising">Marketing & Advertising</SelectItem>
+                <SelectItem value="financial-services">Financial Services</SelectItem>
+                <SelectItem value="consulting-professional">Consulting & Professional Services</SelectItem>
+                <SelectItem value="ecommerce-retail">E-commerce & Retail</SelectItem>
                 <SelectItem value="healthcare">Healthcare</SelectItem>
-                <SelectItem value="finance">Finance</SelectItem>
-                <SelectItem value="education">Education</SelectItem>
-                <SelectItem value="e-commerce">E-commerce</SelectItem>
                 <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                <SelectItem value="services">Professional Services</SelectItem>
+                <SelectItem value="education">Education</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>

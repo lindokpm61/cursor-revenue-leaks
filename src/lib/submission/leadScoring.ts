@@ -30,12 +30,26 @@ export const calculateLeadScore = (calculations: any, currentARR: number, indust
   
   // Industry Multiplier
   const ind = industry?.toLowerCase() || '';
-  if (ind.includes('technology') || ind.includes('saas') || ind.includes('software')) {
-    score += 10; // Technology/SaaS
-  } else if (ind.includes('finance') || ind.includes('financial')) {
-    score += 8; // Finance
+  if (ind.includes('saas-software') || ind.includes('saas') || ind.includes('software')) {
+    score += 12; // SaaS & Software (highest intent)
+  } else if (ind.includes('marketing-advertising') || ind.includes('marketing') || ind.includes('advertising')) {
+    score += 9; // Marketing & Advertising (high intent)
+  } else if (ind.includes('technology-it') || ind.includes('technology') || ind.includes('tech')) {
+    score += 8; // Technology & IT
+  } else if (ind.includes('financial-services') || ind.includes('finance') || ind.includes('financial')) {
+    score += 8; // Financial Services
+  } else if (ind.includes('consulting-professional') || ind.includes('consulting') || ind.includes('professional')) {
+    score += 7; // Consulting & Professional Services
+  } else if (ind.includes('healthcare')) {
+    score += 6; // Healthcare
+  } else if (ind.includes('ecommerce-retail') || ind.includes('ecommerce') || ind.includes('retail')) {
+    score += 6; // E-commerce & Retail
+  } else if (ind.includes('manufacturing')) {
+    score += 5; // Manufacturing
+  } else if (ind.includes('education')) {
+    score += 5; // Education
   } else {
-    score += 5; // Other
+    score += 4; // Other
   }
   
   return Math.min(score, 100); // Cap at 100
