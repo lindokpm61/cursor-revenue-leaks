@@ -50,7 +50,7 @@ export const OperationsStep = ({ data, onUpdate }: OperationsStepProps) => {
             <Input
               id="failed-payment-rate"
               type="number"
-              value={data.failedPaymentRate || ""}
+              value={data.failedPaymentRate ?? ""}
               onChange={(e) => onUpdate({ failedPaymentRate: Number(e.target.value) })}
               placeholder="3"
               max="100"
@@ -66,7 +66,7 @@ export const OperationsStep = ({ data, onUpdate }: OperationsStepProps) => {
               <Input
                 id="manual-hours"
                 type="number"
-                value={data.manualHoursPerWeek || ""}
+                value={data.manualHoursPerWeek ?? ""}
                 onChange={(e) => onUpdate({ manualHoursPerWeek: Number(e.target.value) })}
                 placeholder="20"
                 className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
@@ -82,7 +82,7 @@ export const OperationsStep = ({ data, onUpdate }: OperationsStepProps) => {
               <Input
                 id="hourly-rate"
                 type="number"
-                value={data.hourlyRate || ""}
+                value={data.hourlyRate ?? ""}
                 onChange={(e) => onUpdate({ hourlyRate: Number(e.target.value) })}
                 placeholder="75"
                 className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"

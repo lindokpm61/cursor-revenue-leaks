@@ -52,7 +52,7 @@ export const SelfServeStep = ({ data, onUpdate }: SelfServeStepProps) => {
               <Input
                 id="monthly-free-signups"
                 type="number"
-                value={data.monthlyFreeSignups || ""}
+                value={data.monthlyFreeSignups ?? ""}
                 onChange={(e) => onUpdate({ monthlyFreeSignups: Number(e.target.value) })}
                 placeholder="1000"
                 className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
@@ -68,7 +68,7 @@ export const SelfServeStep = ({ data, onUpdate }: SelfServeStepProps) => {
               <Input
                 id="conversion-rate"
                 type="number"
-                value={data.freeToPaidConversionRate || ""}
+                value={data.freeToPaidConversionRate ?? ""}
                 onChange={(e) => onUpdate({ freeToPaidConversionRate: Number(e.target.value) })}
                 placeholder="10"
                 max="100"
@@ -85,7 +85,7 @@ export const SelfServeStep = ({ data, onUpdate }: SelfServeStepProps) => {
               <Input
                 id="monthly-mrr"
                 type="number"
-                value={data.monthlyMRR || ""}
+                value={data.monthlyMRR ?? ""}
                 onChange={(e) => onUpdate({ monthlyMRR: Number(e.target.value) })}
                 placeholder="50000"
                 className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"

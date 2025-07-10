@@ -121,7 +121,7 @@ export const CompanyInfoStep = ({ data, onUpdate }: CompanyInfoStepProps) => {
               <Input
                 id="current-arr"
                 type="number"
-                value={data.currentARR || ""}
+                value={data.currentARR ?? ""}
                 onChange={(e) => onUpdate({ currentARR: Number(e.target.value) })}
                 placeholder="1000000"
                 className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"

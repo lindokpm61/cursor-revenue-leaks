@@ -50,7 +50,7 @@ export const LeadGenerationStep = ({ data, onUpdate }: LeadGenerationStepProps) 
             <Input
               id="monthly-leads"
               type="number"
-              value={data.monthlyLeads || ""}
+              value={data.monthlyLeads ?? ""}
               onChange={(e) => onUpdate({ monthlyLeads: Number(e.target.value) })}
               placeholder="500"
               className="transition-all duration-200 focus:ring-2 focus:ring-primary"
@@ -65,7 +65,7 @@ export const LeadGenerationStep = ({ data, onUpdate }: LeadGenerationStepProps) 
               <Input
                 id="average-deal-value"
                 type="number"
-                value={data.averageDealValue || ""}
+                value={data.averageDealValue ?? ""}
                 onChange={(e) => onUpdate({ averageDealValue: Number(e.target.value) })}
                 placeholder="5000"
                 className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
@@ -81,7 +81,7 @@ export const LeadGenerationStep = ({ data, onUpdate }: LeadGenerationStepProps) 
               <Input
                 id="lead-response-time"
                 type="number"
-                value={data.leadResponseTimeHours || ""}
+                value={data.leadResponseTimeHours ?? ""}
                 onChange={(e) => onUpdate({ leadResponseTimeHours: Number(e.target.value) })}
                 placeholder="2"
                 className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
