@@ -40,6 +40,10 @@ export interface Calculations {
   totalLeakage: number;
   potentialRecovery70: number;
   potentialRecovery85: number;
+  // Legacy property names for backward compatibility
+  totalLeak: number;
+  recoveryPotential70: number;
+  recoveryPotential85: number;
 }
 
 const initialData: CalculatorData = {
@@ -123,9 +127,14 @@ export const useCalculatorData = () => {
     // Failed Payment Loss = Monthly MRR × (Failed Rate / 100) × 12
     const failedPaymentLoss = monthlyMRR * (failedPaymentRate / 100) * 12;
 
-    // Self-Serve Gap = Free Signups × Deal Value × ((15 - Conversion%) / 100) × 0.4 × 12
-    const selfServeGap = monthlyFreeSignups * averageDealValue * 
-      ((15 - freeToPaidConversionRate) / 100) * 0.4 * 12;
+    // Self-Serve Gap = Free Signups × Monthly MRR per user × Gap percentage × 12
+    // Calculate average revenue per converted user (avoid division by zero)
+    const avgRevenuePerUser = (monthlyFreeSignups > 0 && freeToPaidConversionRate > 0) 
+      ? monthlyMRR / (monthlyFreeSignups * (freeToPaidConversionRate / 100))
+      : averageDealValue || 100; // fallback to average deal value or $100
+
+    const conversionGap = Math.max(0, 15 - freeToPaidConversionRate);
+    const selfServeGap = monthlyFreeSignups * avgRevenuePerUser * (conversionGap / 100) * 12;
 
     // Process Loss = Manual Hours × Hourly Rate × 0.25 × 52
     const processLoss = manualHoursPerWeek * hourlyRate * 0.25 * 52;
@@ -136,14 +145,23 @@ export const useCalculatorData = () => {
     const potentialRecovery70 = totalLeakage * 0.7;
     const potentialRecovery85 = totalLeakage * 0.85;
 
+    // Ensure all values are valid numbers
+    const validatedCalculations = {
+      leadResponseLoss: isFinite(leadResponseLoss) ? leadResponseLoss : 0,
+      failedPaymentLoss: isFinite(failedPaymentLoss) ? failedPaymentLoss : 0,
+      selfServeGap: isFinite(selfServeGap) ? selfServeGap : 0,
+      processLoss: isFinite(processLoss) ? processLoss : 0,
+      totalLeakage: isFinite(totalLeakage) ? totalLeakage : 0,
+      potentialRecovery70: isFinite(potentialRecovery70) ? potentialRecovery70 : 0,
+      potentialRecovery85: isFinite(potentialRecovery85) ? potentialRecovery85 : 0,
+    };
+
     return {
-      leadResponseLoss,
-      failedPaymentLoss,
-      selfServeGap,
-      processLoss,
-      totalLeakage,
-      potentialRecovery70,
-      potentialRecovery85,
+      ...validatedCalculations,
+      // Legacy property names for backward compatibility
+      totalLeak: validatedCalculations.totalLeakage,
+      recoveryPotential70: validatedCalculations.potentialRecovery70,
+      recoveryPotential85: validatedCalculations.potentialRecovery85,
     };
   }, [data]);
 

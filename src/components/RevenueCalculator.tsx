@@ -179,9 +179,8 @@ export const RevenueCalculator = () => {
       case 4:
         return <OperationsStep data={data.operationsData} onUpdate={(updates) => updateData('operationsData', updates)} />;
       case 5:
-        return calculationResults ? 
-          <ResultsStep data={data} calculations={calculationResults} /> : 
-          <ResultsStep data={data} calculations={calculations} />;
+        // Always use the live calculations from useCalculatorData for consistency
+        return <ResultsStep data={data} calculations={calculations} />;
       default:
         return null;
     }

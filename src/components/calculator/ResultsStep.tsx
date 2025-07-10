@@ -24,6 +24,11 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
   } = useSaveResults();
   
   const formatCurrency = (amount: number) => {
+    // Handle invalid numbers
+    if (!isFinite(amount) || isNaN(amount)) {
+      return '$0';
+    }
+    
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
