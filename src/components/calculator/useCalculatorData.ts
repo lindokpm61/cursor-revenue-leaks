@@ -86,18 +86,34 @@ export const useCalculatorData = () => {
   const calculations = useMemo((): Calculations => {
     const { leadGeneration, selfServeMetrics, operationsData } = data;
 
+    // Ensure all values are numbers and not null/undefined
+    const safeNumber = (value: any): number => {
+      const num = Number(value);
+      return isNaN(num) ? 0 : num;
+    };
+
+    const monthlyLeads = safeNumber(leadGeneration.monthlyLeads);
+    const averageDealValue = safeNumber(leadGeneration.averageDealValue);
+    const leadResponseTimeHours = safeNumber(leadGeneration.leadResponseTimeHours);
+    const monthlyFreeSignups = safeNumber(selfServeMetrics.monthlyFreeSignups);
+    const freeToPaidConversionRate = safeNumber(selfServeMetrics.freeToPaidConversionRate);
+    const monthlyMRR = safeNumber(selfServeMetrics.monthlyMRR);
+    const failedPaymentRate = safeNumber(operationsData.failedPaymentRate);
+    const manualHoursPerWeek = safeNumber(operationsData.manualHoursPerWeek);
+    const hourlyRate = safeNumber(operationsData.hourlyRate);
+
     // Lead Response Loss = Monthly Leads × Average Deal × 0.48 × 12
-    const leadResponseLoss = leadGeneration.monthlyLeads * leadGeneration.averageDealValue * 0.48 * 12;
+    const leadResponseLoss = monthlyLeads * averageDealValue * 0.48 * 12;
 
     // Failed Payment Loss = Monthly MRR × (Failed Rate / 100) × 12
-    const failedPaymentLoss = selfServeMetrics.monthlyMRR * (operationsData.failedPaymentRate / 100) * 12;
+    const failedPaymentLoss = monthlyMRR * (failedPaymentRate / 100) * 12;
 
     // Self-Serve Gap = Free Signups × Deal Value × ((15 - Conversion%) / 100) × 0.4 × 12
-    const selfServeGap = selfServeMetrics.monthlyFreeSignups * leadGeneration.averageDealValue * 
-      ((15 - selfServeMetrics.freeToPaidConversionRate) / 100) * 0.4 * 12;
+    const selfServeGap = monthlyFreeSignups * averageDealValue * 
+      ((15 - freeToPaidConversionRate) / 100) * 0.4 * 12;
 
     // Process Loss = Manual Hours × Hourly Rate × 0.25 × 52
-    const processLoss = operationsData.manualHoursPerWeek * operationsData.hourlyRate * 0.25 * 52;
+    const processLoss = manualHoursPerWeek * hourlyRate * 0.25 * 52;
 
     const totalLeakage = leadResponseLoss + failedPaymentLoss + selfServeGap + processLoss;
     
