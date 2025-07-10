@@ -8,6 +8,7 @@ import {
   Zap, Mail, Database, Activity
 } from "lucide-react";
 import { integrationLogService, submissionService } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const AdminIntegrations = () => {
@@ -30,32 +31,78 @@ const AdminIntegrations = () => {
 
   const loadIntegrationData = async () => {
     try {
-      // Get recent integration logs
-      const [twentyLogs, n8nLogs, smartleadLogs] = await Promise.all([
-        integrationLogService.getByType('twenty_crm', 50),
-        integrationLogService.getByType('n8n', 50),
-        integrationLogService.getByType('smartlead', 50),
+      // Get recent integration logs from both integration_logs and automation_logs
+      const [integrationLogs, automationLogs] = await Promise.all([
+        Promise.all([
+          integrationLogService.getByType('twenty_crm', 25),
+          integrationLogService.getByType('n8n', 25),
+          integrationLogService.getByType('smartlead', 25),
+        ]),
+        // Also fetch from automation_logs for comprehensive view
+        supabase
+          .from('automation_logs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(25)
       ]);
 
-      const allLogs = [
+      // Combine integration logs
+      const [twentyLogs, n8nLogs, smartleadLogs] = integrationLogs;
+      const combinedIntegrationLogs = [
         ...(twentyLogs.data || []),
         ...(n8nLogs.data || []),
         ...(smartleadLogs.data || []),
+      ];
+
+      // Convert automation logs to integration log format for display
+      const convertedAutomationLogs = (automationLogs.data || []).map(log => ({
+        id: log.id,
+        integration_type: log.workflow_type,
+        status: log.status,
+        error_message: log.error,
+        response_data: log.results,
+        retry_count: 0,
+        submission_id: null,
+        created_at: log.created_at
+      }));
+
+      const allLogs = [
+        ...combinedIntegrationLogs,
+        ...convertedAutomationLogs,
       ].sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime());
 
       setIntegrationLogs(allLogs.slice(0, 20));
 
-      // Calculate stats
-      const calculateStats = (logs: any[]) => ({
-        success: logs.filter(log => log.status === 'success').length,
-        failed: logs.filter(log => log.status === 'failed').length,
-        lastSync: logs.length > 0 ? logs[0].created_at : null,
-      });
+      // Calculate stats from combined logs
+      const calculateStats = (logs: any[], type: string) => {
+        const filteredLogs = logs.filter(log => {
+          if (type === 'twenty_crm') {
+            return log.integration_type === 'twenty_crm' || log.integration_type === 'crm-integration';
+          } else if (type === 'n8n') {
+            return log.integration_type === 'n8n' || 
+                   log.integration_type === 'lead-qualification' ||
+                   log.integration_type === 'high-value-alert' ||
+                   log.integration_type === 'analytics-reporting' ||
+                   log.integration_type === 'results-calculated';
+          } else if (type === 'smartlead') {
+            return log.integration_type === 'smartlead' || 
+                   log.integration_type === 'email-automation' ||
+                   log.integration_type === 'abandonment-recovery';
+          }
+          return false;
+        });
+
+        return {
+          success: filteredLogs.filter(log => log.status === 'success').length,
+          failed: filteredLogs.filter(log => log.status === 'failed' || log.status === 'error').length,
+          lastSync: filteredLogs.length > 0 ? filteredLogs[0].created_at : null,
+        };
+      };
 
       setIntegrationStats({
-        twentyCRM: calculateStats(twentyLogs.data || []),
-        n8n: calculateStats(n8nLogs.data || []),
-        smartlead: calculateStats(smartleadLogs.data || []),
+        twentyCRM: calculateStats(allLogs, 'twenty_crm'),
+        n8n: calculateStats(allLogs, 'n8n'),
+        smartlead: calculateStats(allLogs, 'smartlead'),
       });
 
     } catch (error) {
@@ -98,15 +145,16 @@ const AdminIntegrations = () => {
   };
 
   const getIntegrationIcon = (type: string) => {
-    switch (type) {
-      case 'twenty_crm':
-        return <Database className="h-5 w-5" />;
-      case 'n8n':
-        return <Zap className="h-5 w-5" />;
-      case 'smartlead':
-        return <Mail className="h-5 w-5" />;
-      default:
-        return <Activity className="h-5 w-5" />;
+    // Map various integration types to their appropriate icons
+    if (type === 'twenty_crm' || type === 'crm-integration') {
+      return <Database className="h-5 w-5" />;
+    } else if (type === 'smartlead' || type === 'email-automation' || type === 'abandonment-recovery') {
+      return <Mail className="h-5 w-5" />;
+    } else if (type === 'n8n' || type === 'lead-qualification' || type === 'high-value-alert' || 
+               type === 'analytics-reporting' || type === 'results-calculated') {
+      return <Zap className="h-5 w-5" />;
+    } else {
+      return <Activity className="h-5 w-5" />;
     }
   };
 
@@ -296,7 +344,7 @@ const AdminIntegrations = () => {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {getIntegrationIcon(log.integration_type)}
-                        <span className="capitalize">{log.integration_type.replace('_', ' ')}</span>
+                        <span className="capitalize">{log.integration_type.replace(/[_-]/g, ' ')}</span>
                       </div>
                     </TableCell>
                     <TableCell>

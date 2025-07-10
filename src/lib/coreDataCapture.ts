@@ -129,7 +129,13 @@ const hasSequenceBeenTriggered = async (tempId: string, sequenceType: string): P
     if (!existing) return false;
     
     const triggeredSequences = existing.email_sequences_triggered as string[] || [];
-    return triggeredSequences.includes(sequenceType);
+    const isAlreadyTriggered = triggeredSequences.includes(sequenceType);
+    
+    if (isAlreadyTriggered) {
+      console.log(`Email sequence ${sequenceType} already triggered for ${tempId}`);
+    }
+    
+    return isAlreadyTriggered;
   } catch (error) {
     console.error('Failed to check triggered sequences:', error);
     return false;
@@ -210,11 +216,16 @@ const scheduleFollowUpSequences = async (initialSequenceType: string, contactDat
 // Enhanced email sequence triggering with N8N integration
 export const triggerEmailSequence = async (sequenceType: string, contactData: any) => {
   try {
+    // Validate required data
+    if (!contactData.temp_id) {
+      console.error('triggerEmailSequence: temp_id is required');
+      return;
+    }
+
     // Check if sequence already triggered to avoid duplicates
     const alreadyTriggered = await hasSequenceBeenTriggered(contactData.temp_id, sequenceType);
     if (alreadyTriggered) {
-      console.log(`Email sequence ${sequenceType} already triggered for ${contactData.temp_id}`);
-      return;
+      return; // Exit silently to avoid spam logs
     }
     
     // Trigger N8N workflow for email automation
