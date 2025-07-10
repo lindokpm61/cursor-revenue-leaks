@@ -60,7 +60,8 @@ const handler = async (req: Request): Promise<Response> => {
       'lead-qualification': Deno.env.get('N8N_LEAD_QUALIFICATION_WEBHOOK'),
       'high-value-alert': Deno.env.get('N8N_HIGH_VALUE_ALERT_WEBHOOK'),
       'abandonment-recovery': Deno.env.get('N8N_ABANDONMENT_RECOVERY_WEBHOOK'),
-      'analytics-reporting': Deno.env.get('N8N_ANALYTICS_REPORTING_WEBHOOK') || 'https://placeholder-n8n.com/webhook/analytics-reporting'
+      'analytics-reporting': Deno.env.get('N8N_ANALYTICS_REPORTING_WEBHOOK') || 'https://placeholder-n8n.com/webhook/analytics-reporting',
+      'results-calculated': Deno.env.get('N8N_ANALYTICS_REPORTING_WEBHOOK') || 'https://placeholder-n8n.com/webhook/results-calculated'
     };
     
     const n8nWebhookUrl = N8N_WEBHOOKS[workflow_type];
