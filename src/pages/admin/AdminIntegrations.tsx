@@ -30,6 +30,8 @@ const AdminIntegrations = () => {
 
   const loadIntegrationData = async () => {
     try {
+      console.log('Loading integration data...');
+      
       // Get recent integration logs
       const [twentyLogs, n8nLogs, smartleadLogs] = await Promise.all([
         integrationLogService.getByType('twenty_crm', 50),
@@ -37,12 +39,22 @@ const AdminIntegrations = () => {
         integrationLogService.getByType('smartlead', 50),
       ]);
 
+      console.log('Integration logs results:', {
+        twentyLogs: twentyLogs.data?.length || 0,
+        twentyError: twentyLogs.error,
+        n8nLogs: n8nLogs.data?.length || 0,
+        n8nError: n8nLogs.error,
+        smartleadLogs: smartleadLogs.data?.length || 0,
+        smartleadError: smartleadLogs.error,
+      });
+
       const allLogs = [
         ...(twentyLogs.data || []),
         ...(n8nLogs.data || []),
         ...(smartleadLogs.data || []),
       ].sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime());
 
+      console.log('Total logs found:', allLogs.length);
       setIntegrationLogs(allLogs.slice(0, 20));
 
       // Calculate stats
@@ -52,13 +64,17 @@ const AdminIntegrations = () => {
         lastSync: logs.length > 0 ? logs[0].created_at : null,
       });
 
-      setIntegrationStats({
+      const stats = {
         twentyCRM: calculateStats(twentyLogs.data || []),
         n8n: calculateStats(n8nLogs.data || []),
         smartlead: calculateStats(smartleadLogs.data || []),
-      });
+      };
+
+      console.log('Integration stats:', stats);
+      setIntegrationStats(stats);
 
     } catch (error) {
+      console.error('Error loading integration data:', error);
       toast({
         title: "Error",
         description: "Failed to load integration data",
