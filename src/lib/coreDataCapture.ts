@@ -4,7 +4,7 @@ import {
   getTemporarySubmission, 
   getTempId as getBaseTempId,
   getTrackingData 
-} from "./temporarySubmissions";
+} from "@/lib/submission";
 
 // Enhanced temporary ID generation with better entropy
 export const generateTempId = (): string => {

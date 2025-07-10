@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { 
   getTemporarySubmission, 
   saveTemporarySubmission 
-} from "./temporarySubmissions";
+} from "@/lib/submission";
 import { 
   triggerEmailSequence, 
   triggerN8NWorkflow 

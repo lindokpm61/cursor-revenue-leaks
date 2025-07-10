@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { submissionService, analyticsService, userProfileService, integrationLogService } from "@/lib/supabase";
 import { CalculatorData, Calculations } from "../useCalculatorData";
-import { convertToUserSubmission, updateCalculatorProgress } from "@/lib/temporarySubmissions";
+import { convertToUserSubmission, updateCalculatorProgress } from "@/lib/submission";
 
 const calculateLeadScore = (data: CalculatorData, calculations: Calculations): number => {
   let score = 0;

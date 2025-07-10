@@ -7,7 +7,7 @@ import {
 import { 
   detectAndHandleConsultants 
 } from "./advancedAutomation";
-import { getTemporarySubmission } from "./temporarySubmissions";
+import { getTemporarySubmission } from "@/lib/submission";
 
 // Email validation utility
 export const isValidEmail = (email: string): boolean => {

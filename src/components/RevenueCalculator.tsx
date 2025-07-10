@@ -9,7 +9,7 @@ import { SelfServeStep } from "./calculator/SelfServeStep";
 import { OperationsStep } from "./calculator/OperationsStep";
 import { ResultsStep } from "./calculator/ResultsStep";
 import { useCalculatorData } from "./calculator/useCalculatorData";
-import { updateCalculatorProgress, trackEngagement, getTemporarySubmission } from "@/lib/temporarySubmissions";
+import { updateCalculatorProgress, trackEngagement, getTemporarySubmission } from "@/lib/submission";
 import { 
   handleStep1Complete, 
   handleStep2Complete, 
