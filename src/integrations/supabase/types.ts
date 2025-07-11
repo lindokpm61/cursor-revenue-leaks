@@ -293,6 +293,7 @@ export type Database = {
           monthly_leads: number | null
           monthly_mrr: number | null
           n8n_triggered: boolean | null
+          phone: string | null
           process_inefficiency_loss: number | null
           recovery_potential_70: number | null
           recovery_potential_85: number | null
@@ -325,6 +326,7 @@ export type Database = {
           monthly_leads?: number | null
           monthly_mrr?: number | null
           n8n_triggered?: boolean | null
+          phone?: string | null
           process_inefficiency_loss?: number | null
           recovery_potential_70?: number | null
           recovery_potential_85?: number | null
@@ -357,6 +359,7 @@ export type Database = {
           monthly_leads?: number | null
           monthly_mrr?: number | null
           n8n_triggered?: boolean | null
+          phone?: string | null
           process_inefficiency_loss?: number | null
           recovery_potential_70?: number | null
           recovery_potential_85?: number | null
@@ -396,6 +399,7 @@ export type Database = {
           lead_score: number | null
           n8n_workflow_status: Json | null
           page_views: number | null
+          phone: string | null
           recovery_potential: number | null
           referrer_url: string | null
           return_visits: number | null
@@ -438,6 +442,7 @@ export type Database = {
           lead_score?: number | null
           n8n_workflow_status?: Json | null
           page_views?: number | null
+          phone?: string | null
           recovery_potential?: number | null
           referrer_url?: string | null
           return_visits?: number | null
@@ -480,6 +485,7 @@ export type Database = {
           lead_score?: number | null
           n8n_workflow_status?: Json | null
           page_views?: number | null
+          phone?: string | null
           recovery_potential?: number | null
           referrer_url?: string | null
           return_visits?: number | null
@@ -604,6 +610,7 @@ export type Database = {
           last_analysis_date: string | null
           most_recent_submission_date: string | null
           partnership_qualified: boolean | null
+          phone: string | null
           return_visits: number | null
           role: string | null
           total_companies_analyzed: number | null
@@ -635,6 +642,7 @@ export type Database = {
           last_analysis_date?: string | null
           most_recent_submission_date?: string | null
           partnership_qualified?: boolean | null
+          phone?: string | null
           return_visits?: number | null
           role?: string | null
           total_companies_analyzed?: number | null
@@ -666,6 +674,7 @@ export type Database = {
           last_analysis_date?: string | null
           most_recent_submission_date?: string | null
           partnership_qualified?: boolean | null
+          phone?: string | null
           return_visits?: number | null
           role?: string | null
           total_companies_analyzed?: number | null

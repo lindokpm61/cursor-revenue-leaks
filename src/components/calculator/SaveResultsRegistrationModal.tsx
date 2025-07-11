@@ -27,6 +27,7 @@ interface FormData {
   email: string;
   firstName: string;
   lastName: string;
+  phone: string;
   actualCompany?: string;
   actualRole?: string;
   businessModel?: string;
@@ -44,6 +45,7 @@ export const SaveResultsRegistrationModal = ({
     email: data.companyInfo.email || '',
     firstName: '',
     lastName: '',
+    phone: data.companyInfo.phone || '',
     password: '',
   });
   const [loading, setLoading] = useState(false);
@@ -187,6 +189,7 @@ export const SaveResultsRegistrationModal = ({
         password: formData.password,
         firstName: formData.firstName,
         lastName: formData.lastName,
+        phone: formData.phone,
         actualCompany: formData.actualCompany || data.companyInfo.companyName,
         actualRole: formData.actualRole,
         businessModel: formData.businessModel || 'internal',
@@ -291,6 +294,18 @@ export const SaveResultsRegistrationModal = ({
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Business Phone Number</Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="+1 (555) 123-4567"
+                value={formData.phone}
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+              />
+              <p className="text-sm text-muted-foreground">For priority consultation and implementation support</p>
             </div>
 
             {(pattern?.user_type === 'consultant' || pattern?.user_type === 'enterprise') && (

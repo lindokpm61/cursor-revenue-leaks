@@ -310,6 +310,15 @@ const getExistingIndustry = async (tempId: string) => {
   }
 };
 
+const getExistingPhone = async (tempId: string) => {
+  try {
+    const existing = await getTemporarySubmission(tempId);
+    return existing?.phone || null;
+  } catch (error) {
+    return null;
+  }
+};
+
 // Increment interaction count for engagement tracking
 const incrementInteractionCount = async (tempId: string): Promise<number> => {
   try {
@@ -451,6 +460,7 @@ export const saveCalculatorProgress = async (stepData: any, stepNumber: number) 
       
       // Extract key fields for easy querying and email personalization
       email: stepData.email || await getExistingEmail(tempId),
+      phone: stepData.phone || await getExistingPhone(tempId),
       company_name: stepData.companyName || await getExistingCompany(tempId),
       industry: stepData.industry || await getExistingIndustry(tempId),
       

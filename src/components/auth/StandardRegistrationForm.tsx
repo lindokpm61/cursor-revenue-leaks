@@ -220,7 +220,7 @@ const StandardRegistrationForm = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number (Optional)</Label>
+                <Label htmlFor="phone">Business Phone Number</Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -228,6 +228,7 @@ const StandardRegistrationForm = ({
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
                 />
+                <p className="text-sm text-muted-foreground">For priority consultation and implementation support</p>
               </div>
             </div>
 

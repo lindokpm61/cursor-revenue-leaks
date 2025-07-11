@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 export interface CompanyInfo {
   companyName: string;
   email: string;
+  phone: string;
   industry: string;
   currentARR: number;
 }
@@ -50,6 +51,7 @@ const initialData: CalculatorData = {
   companyInfo: {
     companyName: "",
     email: "",
+    phone: "",
     industry: "",
     currentARR: 0,
   },

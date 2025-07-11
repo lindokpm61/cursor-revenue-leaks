@@ -229,6 +229,7 @@ const EnterpriseRegistrationForm = ({
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
                 />
+                <p className="text-sm text-muted-foreground">For executive briefings and enterprise implementation planning</p>
               </div>
             </div>
 

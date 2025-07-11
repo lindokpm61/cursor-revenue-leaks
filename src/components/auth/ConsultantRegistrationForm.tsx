@@ -216,7 +216,7 @@ const ConsultantRegistrationForm = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone">Business Phone Number</Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -224,6 +224,7 @@ const ConsultantRegistrationForm = ({
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
                 />
+                <p className="text-sm text-muted-foreground">For partnership opportunities and priority client referrals</p>
               </div>
 
               <div className="space-y-2">
