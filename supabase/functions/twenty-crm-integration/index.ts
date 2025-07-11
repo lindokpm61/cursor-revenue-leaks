@@ -111,35 +111,21 @@ async function createCrmContact(
   try {
     console.log('Creating Twenty CRM contact:', contactData);
     
-    // Twenty CRM uses GraphQL API
-    const query = `
-      mutation CreateContact($data: ContactCreateInput!) {
-        createContact(data: $data) {
-          id
-          email
-          firstName
-          lastName
-          company
-        }
-      }
-    `;
-    
-    const variables = {
-      data: {
-        email: contactData.email,
-        firstName: contactData.firstName,
-        lastName: contactData.lastName,
-        company: contactData.company
-      }
+    // Twenty CRM uses REST API
+    const contactPayload = {
+      email: contactData.email,
+      firstName: contactData.firstName,
+      lastName: contactData.lastName,
+      company: contactData.company
     };
     
-    const response = await fetch(`${crmUrl}/graphql`, {
+    const response = await fetch(`${crmUrl}/api/rest/contacts`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
       },
-      body: JSON.stringify({ query, variables })
+      body: JSON.stringify(contactPayload)
     });
 
     if (!response.ok) {
@@ -148,7 +134,7 @@ async function createCrmContact(
     }
 
     const result = await response.json();
-    const contactId = result.data?.createContact?.id;
+    const contactId = result.data?.id || result.id;
     
     console.log('Twenty CRM contact created:', contactId);
     
@@ -184,35 +170,21 @@ async function createCrmOpportunity(
   try {
     console.log('Creating Twenty CRM opportunity:', opportunityData);
     
-    // Twenty CRM uses GraphQL API
-    const query = `
-      mutation CreateOpportunity($data: OpportunityCreateInput!) {
-        createOpportunity(data: $data) {
-          id
-          name
-          amount
-          stage
-          probability
-        }
-      }
-    `;
-    
-    const variables = {
-      data: {
-        name: opportunityData.name,
-        amount: opportunityData.amount,
-        stage: opportunityData.stage,
-        probability: opportunityData.probability
-      }
+    // Twenty CRM uses REST API
+    const opportunityPayload = {
+      name: opportunityData.name,
+      amount: opportunityData.amount,
+      stage: opportunityData.stage,
+      probability: opportunityData.probability
     };
     
-    const response = await fetch(`${crmUrl}/graphql`, {
+    const response = await fetch(`${crmUrl}/api/rest/opportunities`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
       },
-      body: JSON.stringify({ query, variables })
+      body: JSON.stringify(opportunityPayload)
     });
 
     if (!response.ok) {
@@ -221,7 +193,7 @@ async function createCrmOpportunity(
     }
 
     const result = await response.json();
-    const opportunityId = result.data?.createOpportunity?.id;
+    const opportunityId = result.data?.id || result.id;
     
     console.log('Twenty CRM opportunity created:', opportunityId);
     
