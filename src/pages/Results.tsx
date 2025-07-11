@@ -68,6 +68,11 @@ const Results = () => {
 
   const loadSubmission = async (submissionId: string) => {
     try {
+      // Check if submissionId is valid UUID format
+      if (!submissionId || submissionId === ':id' || submissionId.includes(':')) {
+        throw new Error('Invalid submission ID format');
+      }
+      
       console.log('Loading submission:', submissionId);
       console.log('Current user:', user?.id);
       console.log('User role:', user?.user_metadata?.role);

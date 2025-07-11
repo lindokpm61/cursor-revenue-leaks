@@ -51,9 +51,9 @@ const getUrlParameter = (name: string): string | null => {
 // N8N webhook integration for email automation
 export const triggerN8NWorkflow = async (workflowType: string, data: any) => {
   try {
-    // Ensure temp_id is provided and valid
-    if (!data.temp_id) {
-      console.error('triggerN8NWorkflow: temp_id is required');
+    // Ensure temp_id is provided and valid (allow null for monitoring analytics)
+    if (!data.temp_id && workflowType !== 'analytics-reporting' && workflowType !== 'system-maintenance') {
+      console.error('triggerN8NWorkflow: temp_id is required for workflow type:', workflowType);
       return null;
     }
     

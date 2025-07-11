@@ -85,6 +85,7 @@ export const trackEmailSequencePerformance = async () => {
     
     // Send analytics to N8N for reporting
     await triggerN8NWorkflow('analytics-reporting', {
+      temp_id: null, // Analytics reports don't need temp_id
       report_type: 'email_sequence_performance',
       data: analytics,
       period: 'weekly',
@@ -198,6 +199,7 @@ export const analyzeAbandonmentPatterns = async () => {
     
     // Share insights with team through N8N
     await triggerN8NWorkflow('analytics-reporting', {
+      temp_id: null, // Analytics reports don't need temp_id
       report_type: 'abandonment_analysis',
       insights: insights,
       generated_at: new Date().toISOString()
@@ -356,6 +358,7 @@ export const performDatabaseMaintenance = async () => {
     
     // Send maintenance report to N8N
     await triggerN8NWorkflow('system-maintenance', {
+      temp_id: null, // System maintenance doesn't need temp_id
       task: 'database_cleanup',
       records_processed: data,
       completed_at: new Date().toISOString(),
@@ -368,6 +371,7 @@ export const performDatabaseMaintenance = async () => {
     
     // Send failure notification
     await triggerN8NWorkflow('system-maintenance', {
+      temp_id: null, // System maintenance doesn't need temp_id
       task: 'database_cleanup',
       status: 'failed',
       error: error.message,
