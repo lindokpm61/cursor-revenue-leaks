@@ -111,24 +111,14 @@ async function createCrmContact(
   try {
     console.log('Creating Twenty CRM contact:', contactData);
     
-    // Twenty CRM uses REST API with specific data structure
+    // Twenty CRM GraphQL-style REST API structure
     const contactPayload = {
-      emails: {
-        primaryEmail: contactData.email,
-        additionalEmails: null
-      },
-      name: {
-        firstName: contactData.firstName || contactData.company?.split(' ')[0] || 'Unknown',
-        lastName: contactData.lastName || contactData.company?.split(' ').slice(1).join(' ') || 'Contact'
-      },
-      phones: contactData.phone ? {
-        primaryPhoneNumber: contactData.phone,
-        primaryPhoneCallingCode: "+1",
-        primaryPhoneCountryCode: "US",
-        additionalPhones: []
-      } : undefined,
+      email: contactData.email,
+      firstName: contactData.firstName || contactData.company?.split(' ')[0] || 'Unknown',
+      lastName: contactData.lastName || contactData.company?.split(' ').slice(1).join(' ') || 'Contact',
+      phone: contactData.phone || null,
       jobTitle: "Decision Maker",
-      // Remove any field that might be causing the UUID error
+      companyName: contactData.company || 'Unknown Company'
     };
     
     console.log('Contact payload:', JSON.stringify(contactPayload, null, 2));
