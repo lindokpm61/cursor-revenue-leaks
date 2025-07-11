@@ -134,7 +134,7 @@ async function createCrmContact(
     
     console.log('Contact payload:', JSON.stringify(contactPayload, null, 2));
     
-    const response = await fetch(`${crmUrl}/rest/people`, {
+    const response = await fetch(`${crmUrl}/api/rest/people`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -208,7 +208,7 @@ async function createCrmOpportunity(
       } : undefined
     };
     
-    const response = await fetch(`${crmUrl}/rest/opportunities`, {
+    const response = await fetch(`${crmUrl}/api/rest/opportunities`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
