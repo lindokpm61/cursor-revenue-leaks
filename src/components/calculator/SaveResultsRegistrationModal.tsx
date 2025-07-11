@@ -227,7 +227,7 @@ export const SaveResultsRegistrationModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto">
+      <DialogContent className="max-w-md mx-auto" aria-describedby="registration-dialog-description">
         <DialogHeader className="text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="p-3 rounded-xl bg-gradient-to-r from-primary to-revenue-primary">
@@ -235,7 +235,7 @@ export const SaveResultsRegistrationModal = ({
             </div>
           </div>
           <DialogTitle className="text-xl font-bold">{config.title}</DialogTitle>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p id="registration-dialog-description" className="text-sm text-muted-foreground mt-2">
             {config.subtitle}
           </p>
         </DialogHeader>

@@ -253,6 +253,7 @@ export const createUserAccount = async (registrationData: any) => {
       email: registrationData.email,
       password: registrationData.password,
       options: {
+        emailRedirectTo: `${window.location.origin}/`,
         data: {
           role: registrationData.role || 'user',
           company_name: registrationData.actualCompany,
@@ -262,7 +263,23 @@ export const createUserAccount = async (registrationData: any) => {
       }
     });
 
-    if (error) throw error;
+    if (error) {
+      // Check if user already exists, try to sign them in instead
+      if (error.message?.includes('already registered')) {
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: registrationData.email,
+          password: registrationData.password,
+        });
+        
+        if (signInError) {
+          throw new Error('User already registered with different password');
+        }
+        
+        return signInData.user;
+      }
+      throw error;
+    }
+    
     if (!data.user) throw new Error('User creation failed');
 
     return data.user;

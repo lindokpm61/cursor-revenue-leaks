@@ -49,12 +49,11 @@ class IntegrationService {
         lastName: submission.company_name.split(' ').slice(1).join(' ') || 'Contact',
         company: submission.company_name,
         industry: submission.industry,
-        customFields: {
-          currentArr: submission.current_arr,
-          totalLeakage: submission.calculations.totalLeakage,
-          leadScore: submission.lead_score || 0,
-          calculatorSubmissionId: submission.id
-        }
+        // Note: phone field not available in CalculatorSubmission interface
+        currentArr: submission.current_arr,
+        totalLeakage: submission.calculations.totalLeakage,
+        leadScore: submission.lead_score || 0,
+        calculatorSubmissionId: submission.id
       };
 
       const { data, error } = await supabase.functions.invoke('twenty-crm-integration', {
