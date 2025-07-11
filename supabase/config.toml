@@ -76,3 +76,6 @@ verify_jwt = false
 
 [functions.integration-health]
 verify_jwt = false
+
+[functions.twenty-crm-integration]
+verify_jwt = false

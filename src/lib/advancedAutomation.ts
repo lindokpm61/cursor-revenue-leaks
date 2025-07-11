@@ -7,6 +7,8 @@ import {
   triggerEmailSequence, 
   triggerN8NWorkflow 
 } from "./coreDataCapture";
+import { integrations } from "./integrations";
+import { CalculatorSubmission } from "./database";
 
 // Get scheduled email sequences that are ready to be sent
 export const getScheduledEmailSequences = async () => {
@@ -416,7 +418,48 @@ export const handleUserRegistration = async (registrationData: any, tempId: stri
         user_classification: determineUserClassification(registrationData, tempSubmission)
       });
       
-      // 7. Update CRM with full user data
+      // 7. Trigger Twenty CRM integration
+      try {
+        const crmSubmission: CalculatorSubmission = {
+          id: permanentSubmission.id,
+          email: user.email!,
+          company_name: registrationData.actualCompany || tempSubmission.company_name,
+          industry: tempSubmission.industry || '',
+          current_arr: calculatorData.step_1?.currentARR || 0,
+          monthly_leads: calculatorData.step_2?.monthlyLeads || 0,
+          average_deal_value: calculatorData.step_2?.averageDealValue || 0,
+          lead_response_time_hours: calculatorData.step_2?.leadResponseTimeHours || 0,
+          monthly_free_signups: calculatorData.step_3?.monthlyFreeSignups || 0,
+          free_to_paid_conversion_rate: calculatorData.step_3?.freeToPaidConversionRate || 0,
+          monthly_mrr: calculatorData.step_3?.monthlyMRR || 0,
+          failed_payment_rate: calculatorData.step_4?.failedPaymentRate || 0,
+          manual_hours_per_week: calculatorData.step_4?.manualHoursPerWeek || 0,
+          hourly_rate: calculatorData.step_4?.hourlyRate || 0,
+          lead_score: tempSubmission.lead_score || 0,
+          calculations: {
+            leadResponseLoss: 0,
+            failedPaymentLoss: 0,
+            selfServeGap: 0,
+            processLoss: 0,
+            totalLeakage: tempSubmission.total_revenue_leak || 0,
+            potentialRecovery70: tempSubmission.recovery_potential || 0,
+            potentialRecovery85: Math.round((tempSubmission.recovery_potential || 0) * 1.2)
+          }
+        };
+        
+        console.log('🔗 Triggering CRM integration for user registration...');
+        const crmResult = await integrations.processSubmission(crmSubmission);
+        
+        if (crmResult.success) {
+          console.log('✅ CRM integration successful:', crmResult.results);
+        } else {
+          console.warn('⚠️ CRM integration failed:', crmResult.errors);
+        }
+      } catch (crmError) {
+        console.error('❌ CRM integration error during registration:', crmError);
+      }
+      
+      // 8. Update CRM with full user data via N8N
       await triggerN8NWorkflow('crm-integration', {
         action: 'update_contact_registration',
         user_id: user.id,
@@ -426,7 +469,7 @@ export const handleUserRegistration = async (registrationData: any, tempId: stri
         user_classification: determineUserClassification(registrationData, tempSubmission)
       });
       
-      // 8. Cancel any pending abandonment emails
+      // 9. Cancel any pending abandonment emails
       await cancelPendingAbandonmentEmails(tempId);
       
       return { user, submission: permanentSubmission };

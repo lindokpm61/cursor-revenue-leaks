@@ -20,25 +20,29 @@ class IntegrationService {
   private config: IntegrationConfig;
 
   constructor() {
+    // Note: Environment variables are handled via Supabase secrets in edge functions
+    // Frontend calls edge functions which have access to secrets
     this.config = {
       twentyCrm: {
-        url: process.env.VITE_TWENTY_CRM_URL || 'https://twenty.your-domain.com/rest',
-        apiKey: process.env.VITE_TWENTY_API_KEY || 'demo-key'
+        url: '', // Will be handled by edge function
+        apiKey: '' // Will be handled by edge function
       },
       n8nWebhook: {
-        url: process.env.VITE_N8N_WEBHOOK_URL || 'https://n8n.your-domain.com/webhook/calculator-submission',
-        secret: process.env.VITE_N8N_WEBHOOK_SECRET
+        url: '', // Will be handled by edge function
+        secret: ''
       },
       smartlead: {
-        apiUrl: process.env.VITE_SMARTLEAD_API_URL || 'https://server.smartlead.ai/api/v1',
-        apiKey: process.env.VITE_SMARTLEAD_API_KEY || 'demo-key'
+        apiUrl: '', // Will be handled by edge function
+        apiKey: ''
       }
     };
   }
 
-  // Twenty CRM Integration
+  // Twenty CRM Integration - Now uses Supabase edge function
   async createCrmContact(submission: CalculatorSubmission): Promise<{ success: boolean; contactId?: string; error?: string }> {
     try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      
       const contactData = {
         email: submission.email,
         firstName: submission.company_name.split(' ')[0] || 'Unknown',
@@ -53,21 +57,21 @@ class IntegrationService {
         }
       };
 
-      const response = await fetch(`${this.config.twentyCrm.url}/contacts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.twentyCrm.apiKey}`
-        },
-        body: JSON.stringify(contactData)
+      const { data, error } = await supabase.functions.invoke('twenty-crm-integration', {
+        body: {
+          action: 'create_contact',
+          contactData,
+          submissionId: submission.id
+        }
       });
 
-      if (!response.ok) {
-        throw new Error(`CRM API error: ${response.statusText}`);
+      if (error) throw error;
+      
+      if (data?.success) {
+        return { success: true, contactId: data.contactId };
+      } else {
+        throw new Error(data?.error || 'CRM integration failed');
       }
-
-      const result = await response.json();
-      return { success: true, contactId: result.id };
     } catch (error) {
       console.error('CRM integration error:', error);
       return { 
@@ -79,6 +83,8 @@ class IntegrationService {
 
   async createCrmOpportunity(contactId: string, submission: CalculatorSubmission): Promise<{ success: boolean; opportunityId?: string; error?: string }> {
     try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      
       const opportunityData = {
         name: `Revenue Leak Recovery - ${submission.company_name}`,
         contactId,
@@ -92,21 +98,21 @@ class IntegrationService {
         }
       };
 
-      const response = await fetch(`${this.config.twentyCrm.url}/opportunities`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.twentyCrm.apiKey}`
-        },
-        body: JSON.stringify(opportunityData)
+      const { data, error } = await supabase.functions.invoke('twenty-crm-integration', {
+        body: {
+          action: 'create_opportunity',
+          opportunityData,
+          submissionId: submission.id
+        }
       });
 
-      if (!response.ok) {
-        throw new Error(`CRM API error: ${response.statusText}`);
+      if (error) throw error;
+      
+      if (data?.success) {
+        return { success: true, opportunityId: data.opportunityId };
+      } else {
+        throw new Error(data?.error || 'Opportunity creation failed');
       }
-
-      const result = await response.json();
-      return { success: true, opportunityId: result.id };
     } catch (error) {
       console.error('CRM opportunity creation error:', error);
       return { 
@@ -116,37 +122,29 @@ class IntegrationService {
     }
   }
 
-  // N8N Webhook Integration
+  // N8N Webhook Integration - Now uses existing n8n-trigger edge function
   async triggerN8nWorkflow(submission: CalculatorSubmission): Promise<{ success: boolean; error?: string }> {
     try {
-      const webhookData = {
-        timestamp: new Date().toISOString(),
-        submission,
-        metadata: {
-          source: 'revenue-leak-calculator',
-          version: '1.0'
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { data, error } = await supabase.functions.invoke('n8n-trigger', {
+        body: {
+          submissionData: submission,
+          metadata: {
+            source: 'revenue-leak-calculator',
+            version: '1.0',
+            timestamp: new Date().toISOString()
+          }
         }
-      };
-
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
-
-      if (this.config.n8nWebhook.secret) {
-        headers['X-Webhook-Secret'] = this.config.n8nWebhook.secret;
-      }
-
-      const response = await fetch(this.config.n8nWebhook.url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(webhookData)
       });
 
-      if (!response.ok) {
-        throw new Error(`N8N webhook error: ${response.statusText}`);
+      if (error) throw error;
+      
+      if (data?.success) {
+        return { success: true };
+      } else {
+        throw new Error(data?.error || 'N8N workflow trigger failed');
       }
-
-      return { success: true };
     } catch (error) {
       console.error('N8N webhook error:', error);
       return { 
