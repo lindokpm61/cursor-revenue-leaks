@@ -118,8 +118,8 @@ async function createCrmContact(
         additionalEmails: null
       },
       name: {
-        firstName: contactData.firstName || '',
-        lastName: contactData.lastName || ''
+        firstName: contactData.firstName || contactData.company?.split(' ')[0] || 'Unknown',
+        lastName: contactData.lastName || contactData.company?.split(' ').slice(1).join(' ') || 'Contact'
       },
       phones: contactData.phone ? {
         primaryPhoneNumber: contactData.phone,
@@ -127,9 +127,8 @@ async function createCrmContact(
         primaryPhoneCountryCode: "US",
         additionalPhones: []
       } : undefined,
-      industry: contactData.industry || "SAAS",
-      emailSequenceStatus: "NOT_STARTED",
-      followUpPriority: "PRIORITY_2_HIGH"
+      jobTitle: "Decision Maker",
+      // Remove any field that might be causing the UUID error
     };
     
     console.log('Contact payload:', JSON.stringify(contactPayload, null, 2));
