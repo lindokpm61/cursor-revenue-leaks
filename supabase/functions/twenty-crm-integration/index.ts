@@ -132,6 +132,8 @@ async function createCrmContact(
       followUpPriority: "PRIORITY_2_HIGH"
     };
     
+    console.log('Contact payload:', JSON.stringify(contactPayload, null, 2));
+    
     const response = await fetch(`${crmUrl}/rest/people`, {
       method: 'POST',
       headers: {
