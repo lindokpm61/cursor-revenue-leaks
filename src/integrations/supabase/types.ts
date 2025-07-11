@@ -592,6 +592,7 @@ export type Database = {
       }
       user_profiles: {
         Row: {
+          actions_checked_count: number | null
           actual_company_name: string | null
           actual_role: string | null
           business_model: string | null
@@ -624,6 +625,7 @@ export type Database = {
           user_type: string | null
         }
         Insert: {
+          actions_checked_count?: number | null
           actual_company_name?: string | null
           actual_role?: string | null
           business_model?: string | null
@@ -656,6 +658,7 @@ export type Database = {
           user_type?: string | null
         }
         Update: {
+          actions_checked_count?: number | null
           actual_company_name?: string | null
           actual_role?: string | null
           business_model?: string | null
