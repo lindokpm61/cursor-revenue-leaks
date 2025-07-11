@@ -111,15 +111,28 @@ async function createCrmContact(
   try {
     console.log('Creating Twenty CRM contact:', contactData);
     
-    // Twenty CRM uses REST API
+    // Twenty CRM uses REST API with specific data structure
     const contactPayload = {
-      email: contactData.email,
-      firstName: contactData.firstName,
-      lastName: contactData.lastName,
-      company: contactData.company
+      emails: {
+        primaryEmail: contactData.email,
+        additionalEmails: null
+      },
+      name: {
+        firstName: contactData.firstName || '',
+        lastName: contactData.lastName || ''
+      },
+      phones: contactData.phone ? {
+        primaryPhoneNumber: contactData.phone,
+        primaryPhoneCallingCode: "+1",
+        primaryPhoneCountryCode: "US",
+        additionalPhones: []
+      } : undefined,
+      industry: contactData.industry || "SAAS",
+      emailSequenceStatus: "NOT_STARTED",
+      followUpPriority: "PRIORITY_2_HIGH"
     };
     
-    const response = await fetch(`${crmUrl}/api/rest/contacts`, {
+    const response = await fetch(`${crmUrl}/rest/people`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -170,15 +183,30 @@ async function createCrmOpportunity(
   try {
     console.log('Creating Twenty CRM opportunity:', opportunityData);
     
-    // Twenty CRM uses REST API
+    // Twenty CRM uses REST API with specific data structure
     const opportunityPayload = {
-      name: opportunityData.name,
-      amount: opportunityData.amount,
-      stage: opportunityData.stage,
-      probability: opportunityData.probability
+      name: opportunityData.name || 'Revenue Recovery Opportunity',
+      amount: {
+        amountMicros: Math.round((opportunityData.amount || 0) * 1000000), // Convert to micros
+        currencyCode: "USD"
+      },
+      stage: opportunityData.stage || "NEW_LEAD",
+      leadCategory: opportunityData.leadCategory || "ENTERPRISE",
+      recoveryPotential: opportunityData.recoveryPotential ? {
+        amountMicros: Math.round(opportunityData.recoveryPotential * 1000000),
+        currencyCode: "USD"
+      } : undefined,
+      totalRevenueLeak: opportunityData.totalRevenueLeak ? {
+        amountMicros: Math.round(opportunityData.totalRevenueLeak * 1000000),
+        currencyCode: "USD"
+      } : undefined,
+      annualRecurringRevenue: opportunityData.annualRecurringRevenue ? {
+        amountMicros: Math.round(opportunityData.annualRecurringRevenue * 1000000),
+        currencyCode: "USD"
+      } : undefined
     };
     
-    const response = await fetch(`${crmUrl}/api/rest/opportunities`, {
+    const response = await fetch(`${crmUrl}/rest/opportunities`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
