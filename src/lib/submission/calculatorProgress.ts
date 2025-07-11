@@ -3,6 +3,7 @@
 import { TemporarySubmissionData } from "./types";
 import { getTempId } from "./trackingHelpers";
 import { getTemporarySubmission, saveTemporarySubmission } from "./submissionStorage";
+import { integrationLogger } from "../integrationLogger";
 
 // Update completion progress
 export const updateCalculatorProgress = async (
@@ -47,9 +48,36 @@ export const updateCalculatorProgress = async (
     if (stepData.companyName) updateData.company_name = stepData.companyName;
     if (stepData.industry) updateData.industry = stepData.industry;
 
-    return await saveTemporarySubmission(updateData);
+    const result = await saveTemporarySubmission(updateData);
+    
+    // Log calculator progress
+    try {
+      await integrationLogger.logCalculatorProgress(
+        tempId,
+        currentStep,
+        stepData,
+        calculations
+      );
+    } catch (logError) {
+      console.error('Error logging calculator progress:', logError);
+      // Don't throw - logging failures shouldn't break the main flow
+    }
+    
+    return result;
   } catch (error) {
     console.error('Error updating calculator progress:', error);
+    
+    // Log system error
+    try {
+      await integrationLogger.logSystemError(
+        'calculator_progress_update',
+        error as Error,
+        { currentStep, stepData, calculations }
+      );
+    } catch (logError) {
+      console.error('Error logging system error:', logError);
+    }
+    
     throw error;
   }
 };

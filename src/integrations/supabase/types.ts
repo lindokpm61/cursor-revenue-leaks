@@ -743,6 +743,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_submissions_with_user_data: {
         Args: { limit_count?: number }
         Returns: {
@@ -801,6 +805,10 @@ export type Database = {
           total_pipeline_value: number
           account_status: string
         }[]
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
       link_submissions_to_user: {
         Args: { p_user_id: string; p_user_email: string }

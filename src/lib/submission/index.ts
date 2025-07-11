@@ -26,14 +26,21 @@ export { updateCalculatorProgress } from "./calculatorProgress";
 // Engagement tracking
 export { trackEngagement } from "./engagementTracking";
 
-// Email sequences
-export { scheduleEmailSequence } from "./emailSequences";
+// Email sequences (enhanced)
+export { 
+  scheduleEmailSequenceEnhanced as scheduleEmailSequence,
+  hasSequenceBeenTriggered,
+  cancelPendingSequences 
+} from "../enhancedEmailSequences";
 
 // User conversion
 export { convertToUserSubmission } from "./userConversion";
 
 // Cleanup
 export { cleanupExpiredSubmissions } from "./cleanup";
+
+// Integration logging
+export { integrationLogger } from "../integrationLogger";
 
 // Re-export everything for backward compatibility
 export * from "./types";

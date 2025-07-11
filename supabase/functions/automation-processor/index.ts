@@ -72,22 +72,18 @@ const handler = async (req: Request): Promise<Response> => {
           } else {
             // Trigger N8N workflow for the email
             try {
-              const response = await fetch('https://placeholder-n8n.com/webhook/email-automation', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': 'Bearer placeholder-webhook-key'
-                },
-                body: JSON.stringify({
+              // Use the centralized n8n-trigger function instead of direct calls
+              const n8nResponse = await supabase.functions.invoke('n8n-trigger', {
+                body: {
                   workflow_type: 'email-automation',
-                  trigger_data: {
+                  data: {
                     sequence_type: scheduledEmail.sequence_type,
                     contact_email: scheduledEmail.contact_email,
                     contact_data: scheduledEmail.contact_data,
                     temp_id: scheduledEmail.temp_id,
                     scheduled_email_id: scheduledEmail.id
                   }
-                })
+                }
               });
 
               // Mark as sent
@@ -122,15 +118,10 @@ const handler = async (req: Request): Promise<Response> => {
     if (!analyticsError && emailAnalytics && emailAnalytics.length > 0) {
       // Send to N8N for reporting
       try {
-        await fetch('https://placeholder-n8n.com/webhook/analytics-reporting', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer placeholder-webhook-key'
-          },
-          body: JSON.stringify({
+        await supabase.functions.invoke('n8n-trigger', {
+          body: {
             workflow_type: 'analytics-reporting',
-            trigger_data: {
+            data: {
               report_type: 'email_sequence_performance',
               data: emailAnalytics,
               summary: {
@@ -139,7 +130,7 @@ const handler = async (req: Request): Promise<Response> => {
                 avg_click_rate: emailAnalytics.reduce((sum, a) => sum + (a.click_rate || 0), 0) / emailAnalytics.length
               }
             }
-          })
+          }
         });
         console.log("Email analytics sent to N8N");
       } catch (analyticsN8NError) {
@@ -191,21 +182,17 @@ const handler = async (req: Request): Promise<Response> => {
 
             // Trigger consultant-specific N8N workflow
             try {
-              await fetch('https://placeholder-n8n.com/webhook/consultant-special-handling', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': 'Bearer placeholder-webhook-key'
-                },
-                body: JSON.stringify({
-                  workflow_type: 'consultant-special-handling',
-                  trigger_data: {
+              await supabase.functions.invoke('n8n-trigger', {
+                body: {
+                  workflow_type: 'lead-qualification',
+                  data: {
+                    classification: 'consultant',
                     temp_id: submission.temp_id,
                     email: submission.email,
                     companies_count: domainSubmissions.length,
                     companies: domainSubmissions.map(s => s.company_name).filter(Boolean)
                   }
-                })
+                }
               });
 
               console.log(`Triggered consultant workflow for ${submission.email}`);
@@ -238,19 +225,14 @@ const handler = async (req: Request): Promise<Response> => {
           )
         };
 
-        await fetch('https://placeholder-n8n.com/webhook/analytics-reporting', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer placeholder-webhook-key'
-          },
-          body: JSON.stringify({
+        await supabase.functions.invoke('n8n-trigger', {
+          body: {
             workflow_type: 'analytics-reporting',
-            trigger_data: {
+            data: {
               report_type: 'abandonment_analysis',
               insights: insights
             }
-          })
+          }
         });
         console.log("Abandonment analytics sent to N8N");
       } catch (abandonmentN8NError) {
