@@ -111,11 +111,15 @@ async function createCrmContact(
   try {
     console.log('Creating Twenty CRM contact:', contactData);
     
-    // Twenty CRM GraphQL-style REST API structure
+    // Twenty CRM REST API structure with proper field metadata
     const contactPayload = {
-      email: contactData.email,
-      firstName: contactData.firstName || contactData.company?.split(' ')[0] || 'Unknown',
-      lastName: contactData.lastName || contactData.company?.split(' ').slice(1).join(' ') || 'Contact',
+      email: {
+        primaryEmail: contactData.email
+      },
+      name: {
+        firstName: contactData.firstName || contactData.company?.split(' ')[0] || 'Unknown',
+        lastName: contactData.lastName || contactData.company?.split(' ').slice(1).join(' ') || 'Contact'
+      },
       phone: contactData.phone || null,
       jobTitle: "Decision Maker",
       companyName: contactData.company || 'Unknown Company'
