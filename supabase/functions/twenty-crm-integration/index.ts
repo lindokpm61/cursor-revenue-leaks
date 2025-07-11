@@ -111,13 +111,35 @@ async function createCrmContact(
   try {
     console.log('Creating Twenty CRM contact:', contactData);
     
-    const response = await fetch(`${crmUrl}/rest/contacts`, {
+    // Twenty CRM uses GraphQL API
+    const query = `
+      mutation CreateContact($data: ContactCreateInput!) {
+        createContact(data: $data) {
+          id
+          email
+          firstName
+          lastName
+          company
+        }
+      }
+    `;
+    
+    const variables = {
+      data: {
+        email: contactData.email,
+        firstName: contactData.firstName,
+        lastName: contactData.lastName,
+        company: contactData.company
+      }
+    };
+    
+    const response = await fetch(`${crmUrl}/graphql`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
       },
-      body: JSON.stringify(contactData)
+      body: JSON.stringify({ query, variables })
     });
 
     if (!response.ok) {
@@ -126,7 +148,7 @@ async function createCrmContact(
     }
 
     const result = await response.json();
-    const contactId = result.data?.id || result.id;
+    const contactId = result.data?.createContact?.id;
     
     console.log('Twenty CRM contact created:', contactId);
     
@@ -162,13 +184,35 @@ async function createCrmOpportunity(
   try {
     console.log('Creating Twenty CRM opportunity:', opportunityData);
     
-    const response = await fetch(`${crmUrl}/rest/opportunities`, {
+    // Twenty CRM uses GraphQL API
+    const query = `
+      mutation CreateOpportunity($data: OpportunityCreateInput!) {
+        createOpportunity(data: $data) {
+          id
+          name
+          amount
+          stage
+          probability
+        }
+      }
+    `;
+    
+    const variables = {
+      data: {
+        name: opportunityData.name,
+        amount: opportunityData.amount,
+        stage: opportunityData.stage,
+        probability: opportunityData.probability
+      }
+    };
+    
+    const response = await fetch(`${crmUrl}/graphql`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
       },
-      body: JSON.stringify(opportunityData)
+      body: JSON.stringify({ query, variables })
     });
 
     if (!response.ok) {
@@ -177,7 +221,7 @@ async function createCrmOpportunity(
     }
 
     const result = await response.json();
-    const opportunityId = result.data?.id || result.id;
+    const opportunityId = result.data?.createOpportunity?.id;
     
     console.log('Twenty CRM opportunity created:', opportunityId);
     
