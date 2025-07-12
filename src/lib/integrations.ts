@@ -38,86 +38,121 @@ class IntegrationService {
     };
   }
 
-  // Twenty CRM Integration - Now uses Supabase edge function
-  async createCrmContact(submission: CalculatorSubmission): Promise<{ success: boolean; contactId?: string; error?: string }> {
+  // CRM Integration - Create Company first, then Contact, then Opportunity
+  async createCrmCompany(submission: CalculatorSubmission): Promise<{ success: boolean; companyId?: string; error?: string }> {
     try {
+      console.log('Creating CRM company for submission:', submission.id);
       const { supabase } = await import('@/integrations/supabase/client');
       
-      const contactData = {
-        email: submission.email,
-        firstName: submission.company_name.split(' ')[0] || 'Unknown',
-        lastName: submission.company_name.split(' ').slice(1).join(' ') || 'Contact',
-        company: submission.company_name,
-        industry: submission.industry,
-        // Note: phone field not available in CalculatorSubmission interface
-        currentArr: submission.current_arr,
-        totalLeakage: submission.calculations.totalLeakage,
-        leadScore: submission.lead_score || 0,
-        calculatorSubmissionId: submission.id
-      };
-
       const { data, error } = await supabase.functions.invoke('twenty-crm-integration', {
         body: {
-          action: 'create_contact',
-          contactData,
+          action: 'create_company',
+          companyData: {
+            name: submission.company_name,
+            currentArr: submission.current_arr,
+            monthlyMrr: submission.monthly_mrr,
+            totalLeak: submission.calculations?.totalLeakage || 0,
+            recoveryPotential70: submission.calculations?.potentialRecovery70 || 0,
+            leadScore: submission.lead_score || 0,
+            leadCategory: submission.lead_score > 80 ? "ENTERPRISE" : submission.lead_score > 60 ? "PREMIUM" : "STANDARD",
+            monthlyLeads: submission.monthly_leads,
+            industry: submission.industry
+          },
           submissionId: submission.id
         }
       });
 
-      if (error) throw error;
-      
+      if (error) {
+        console.error('CRM company creation error:', error);
+        return { success: false, error: error.message };
+      }
+
       if (data?.success) {
-        return { success: true, contactId: data.contactId };
+        return { success: true, companyId: data.companyId };
       } else {
-        throw new Error(data?.error || 'CRM integration failed');
+        return { success: false, error: data?.error || 'Unknown CRM company error' };
       }
     } catch (error) {
-      console.error('CRM integration error:', error);
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'CRM integration failed' 
-      };
+      console.error('CRM company creation failed:', error);
+      return { success: false, error: error.message };
     }
   }
 
-  async createCrmOpportunity(contactId: string, submission: CalculatorSubmission): Promise<{ success: boolean; opportunityId?: string; error?: string }> {
+  async createCrmContact(submission: CalculatorSubmission, companyId?: string): Promise<{ success: boolean; contactId?: string; error?: string }> {
     try {
+      console.log('Creating CRM contact for submission:', submission.id, 'with company:', companyId);
       const { supabase } = await import('@/integrations/supabase/client');
       
-      const opportunityData = {
-        name: `Revenue Leak Recovery - ${submission.company_name}`,
-        contactId,
-        amount: submission.calculations.potentialRecovery70,
-        stage: 'prospect',
-        probability: this.getOpportunityProbability(submission.lead_score || 0),
-        customFields: {
-          totalLeakage: submission.calculations.totalLeakage,
-          recoveryPotential: submission.calculations.potentialRecovery85,
-          leadScore: submission.lead_score || 0
-        }
-      };
-
       const { data, error } = await supabase.functions.invoke('twenty-crm-integration', {
         body: {
-          action: 'create_opportunity',
-          opportunityData,
+          action: 'create_contact',
+          contactData: {
+            email: submission.email,
+            firstName: submission.company_name.split(' ')[0],
+            lastName: submission.company_name.split(' ').slice(1).join(' ') || 'Contact',
+            company: submission.company_name,
+            phone: undefined, // Phone not available in CalculatorSubmission interface
+            companyId: companyId, // Link to company
+            industry: submission.industry,
+            leadScore: submission.lead_score || 0
+          },
           submissionId: submission.id
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('CRM contact creation error:', error);
+        return { success: false, error: error.message };
+      }
+
+      if (data?.success) {
+        return { success: true, contactId: data.contactId };
+      } else {
+        return { success: false, error: data?.error || 'Unknown CRM contact error' };
+      }
+    } catch (error) {
+      console.error('CRM contact creation failed:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async createCrmOpportunity(contactId: string, companyId: string, submission: CalculatorSubmission): Promise<{ success: boolean; opportunityId?: string; error?: string }> {
+    try {
+      console.log('Creating CRM opportunity for contact:', contactId, 'and company:', companyId);
+      const { supabase } = await import('@/integrations/supabase/client');
       
+      const { data, error } = await supabase.functions.invoke('twenty-crm-integration', {
+        body: {
+          action: 'create_opportunity',
+          opportunityData: {
+            name: `${submission.company_name} - Revenue Recovery`,
+            contactId: contactId,
+            companyId: companyId, // Required for proper linking
+            companyName: submission.company_name,
+            recoveryPotential: submission.calculations?.potentialRecovery70 || 0,
+            totalRevenueLeak: submission.calculations?.totalLeakage || 0,
+            annualRecurringRevenue: submission.current_arr,
+            leadScore: submission.lead_score || 0,
+            leadCategory: submission.lead_score > 80 ? "ENTERPRISE" : submission.lead_score > 60 ? "PREMIUM" : "STANDARD",
+            leadSource: "CALCULATOR"
+          },
+          submissionId: submission.id
+        }
+      });
+
+      if (error) {
+        console.error('CRM opportunity creation error:', error);
+        return { success: false, error: error.message };
+      }
+
       if (data?.success) {
         return { success: true, opportunityId: data.opportunityId };
       } else {
-        throw new Error(data?.error || 'Opportunity creation failed');
+        return { success: false, error: data?.error || 'Unknown opportunity error' };
       }
     } catch (error) {
-      console.error('CRM opportunity creation error:', error);
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Opportunity creation failed' 
-      };
+      console.error('CRM opportunity creation failed:', error);
+      return { success: false, error: error.message };
     }
   }
 
@@ -211,33 +246,44 @@ class IntegrationService {
     return 'nurture-campaign-id';
   }
 
-  // Process complete submission workflow
+  // Process complete submission workflow - Proper Company → Contact → Opportunity workflow
   async processSubmission(submission: CalculatorSubmission): Promise<{
     success: boolean;
     results: {
-      crm?: { contactId?: string; opportunityId?: string };
+      crm?: { companyId?: string; contactId?: string; opportunityId?: string; };
       webhook?: boolean;
-      email?: { campaignId?: string };
+      email?: { campaignId?: string; };
     };
     errors: string[];
   }> {
+    console.log('Processing submission integrations for:', submission.id);
+    
     const results: any = {};
     const errors: string[] = [];
 
-    // 1. Create or find CRM contact
-    const crmResult = await this.createCrmContact(submission);
-    if (crmResult.success && crmResult.contactId) {
-      results.crm = { contactId: crmResult.contactId };
+    // Step 1: Create or find CRM company
+    const companyResult = await this.createCrmCompany(submission);
+    if (companyResult.success && companyResult.companyId) {
+      results.crm = { companyId: companyResult.companyId };
       
-      // Always create opportunity (whether contact was found or created)
-      const oppResult = await this.createCrmOpportunity(crmResult.contactId, submission);
-      if (oppResult.success) {
-        results.crm.opportunityId = oppResult.opportunityId;
+      // Step 2: Create or find CRM contact linked to company
+      const contactResult = await this.createCrmContact(submission, companyResult.companyId);
+      if (contactResult.success && contactResult.contactId) {
+        results.crm.contactId = contactResult.contactId;
+        
+        // Step 3: Create opportunity linked to both company and contact
+        const oppResult = await this.createCrmOpportunity(contactResult.contactId, companyResult.companyId, submission);
+        if (oppResult.success) {
+          results.crm.opportunityId = oppResult.opportunityId;
+          console.log('Full CRM integration completed successfully:', results.crm);
+        } else {
+          errors.push(`Opportunity creation failed: ${oppResult.error}`);
+        }
       } else {
-        errors.push(`Opportunity creation failed: ${oppResult.error}`);
+        errors.push(`CRM contact creation failed: ${contactResult.error}`);
       }
     } else {
-      errors.push(`CRM contact lookup/creation failed: ${crmResult.error}`);
+      errors.push(`CRM company creation failed: ${companyResult.error}`);
     }
 
     // 2. Trigger N8N workflow

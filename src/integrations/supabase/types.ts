@@ -301,6 +301,7 @@ export type Database = {
           smartlead_campaign_id: string | null
           synced_to_self_hosted: boolean | null
           total_leak: number | null
+          twenty_company_id: string | null
           twenty_contact_id: string | null
           updated_at: string | null
           user_id: string | null
@@ -334,6 +335,7 @@ export type Database = {
           smartlead_campaign_id?: string | null
           synced_to_self_hosted?: boolean | null
           total_leak?: number | null
+          twenty_company_id?: string | null
           twenty_contact_id?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -367,6 +369,7 @@ export type Database = {
           smartlead_campaign_id?: string | null
           synced_to_self_hosted?: boolean | null
           total_leak?: number | null
+          twenty_company_id?: string | null
           twenty_contact_id?: string | null
           updated_at?: string | null
           user_id?: string | null
