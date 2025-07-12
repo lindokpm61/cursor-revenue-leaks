@@ -120,12 +120,23 @@ async function handleNewUserScenario(
     const { data: userData, error: userError } = await supabaseClient.auth.admin.getUserById(userId);
     if (userError) throw new Error(`Failed to get user data: ${userError.message}`);
     
+    // Try to get profile data, but don't fail if it doesn't exist (new user)
     const { data: profileData, error: profileError } = await supabaseClient
       .from('user_profiles')
       .select('*')
       .eq('id', userId)
       .single();
-    if (profileError) throw new Error(`Failed to get profile data: ${profileError.message}`);
+    
+    // Use fallback values if profile doesn't exist yet
+    const profile = profileData || {
+      actual_company_name: null,
+      business_model: null,
+      actual_role: null,
+      phone: null,
+      user_type: null
+    };
+    
+    console.log('Profile data exists:', !!profileData, 'Profile error:', profileError?.message);
     
     // Get submission data
     const { data: submissionData, error: submissionError } = await supabaseClient
@@ -136,13 +147,13 @@ async function handleNewUserScenario(
     if (submissionError) throw new Error(`Failed to get submission data: ${submissionError.message}`);
     
     // Step 1: Create CRM Company using user profile data
-    const companyResult = await createCrmCompanyFromProfile(profileData, submissionData, crmUrl, apiKey, supabaseClient, submissionId);
+    const companyResult = await createCrmCompanyFromProfile(profile, submissionData, crmUrl, apiKey, supabaseClient, submissionId);
     if (!companyResult.success) {
       return companyResult;
     }
     
     // Step 2: Create CRM Contact using user auth + profile data
-    const contactResult = await createCrmContactFromUser(userData.user, profileData, companyResult.companyId, crmUrl, apiKey, supabaseClient, submissionId);
+    const contactResult = await createCrmContactFromUser(userData.user, profile, companyResult.companyId, crmUrl, apiKey, supabaseClient, submissionId);
     if (!contactResult.success) {
       return contactResult;
     }
