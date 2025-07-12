@@ -360,7 +360,7 @@ async function createCrmCompanyFromProfile(
 
     const result = await response.json();
     console.log('Company creation response:', result);
-    const companyId = result.data?.companies?.[0]?.id || result.data?.id || result.id;
+    const companyId = result.data?.createCompany?.id;
     
     if (!companyId) {
       console.error('No company ID in response:', result);
