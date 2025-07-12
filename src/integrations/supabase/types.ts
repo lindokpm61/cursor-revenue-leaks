@@ -305,6 +305,9 @@ export type Database = {
           twenty_contact_id: string | null
           updated_at: string | null
           user_id: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
         }
         Insert: {
           average_deal_value?: number | null
@@ -339,6 +342,9 @@ export type Database = {
           twenty_contact_id?: string | null
           updated_at?: string | null
           user_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Update: {
           average_deal_value?: number | null
@@ -373,6 +379,9 @@ export type Database = {
           twenty_contact_id?: string | null
           updated_at?: string | null
           user_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: []
       }
