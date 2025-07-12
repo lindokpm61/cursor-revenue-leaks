@@ -85,7 +85,26 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
         created_at: submission.created_at,
       };
       
-      await integrations.createCrmContact(crmSubmission);
+      const integrationResult = await integrations.processSubmission(crmSubmission);
+      console.log('CRM integration completed:', integrationResult);
+      
+      // Update submission with CRM IDs if successful
+      if (integrationResult.success && integrationResult.results.crm) {
+        const updates: any = {};
+        if (integrationResult.results.crm.companyId) {
+          updates.twenty_company_id = integrationResult.results.crm.companyId;
+        }
+        if (integrationResult.results.crm.contactId) {
+          updates.twenty_contact_id = integrationResult.results.crm.contactId;
+        }
+        
+        if (Object.keys(updates).length > 0) {
+          await supabase
+            .from('submissions')
+            .update(updates)
+            .eq('id', submission.id);
+        }
+      }
     } catch (error) {
       console.error('CRM integration failed:', error);
       // Don't fail the entire conversion if CRM integration fails
