@@ -116,9 +116,21 @@ async function handleNewUserScenario(
   try {
     console.log('Handling new user scenario for user:', userId);
     
-    // Get user data from auth.users and user_profiles
-    const { data: userData, error: userError } = await supabaseClient.auth.admin.getUserById(userId);
-    if (userError) throw new Error(`Failed to get user data: ${userError.message}`);
+    // Get user data from submission (which has email) since we can't access auth.users directly
+    const { data: submissionData, error: submissionError } = await supabaseClient
+      .from('submissions')
+      .select('*')
+      .eq('id', submissionId)
+      .single();
+    if (submissionError) throw new Error(`Failed to get submission data: ${submissionError.message}`);
+    
+    // Create user data object from submission
+    const userData = { 
+      user: { 
+        email: submissionData.contact_email,
+        user_metadata: {}
+      }
+    };
     
     // Try to get profile data, but don't fail if it doesn't exist (new user)
     const { data: profileData, error: profileError } = await supabaseClient
@@ -137,14 +149,6 @@ async function handleNewUserScenario(
     };
     
     console.log('Profile data exists:', !!profileData, 'Profile error:', profileError?.message);
-    
-    // Get submission data
-    const { data: submissionData, error: submissionError } = await supabaseClient
-      .from('submissions')
-      .select('*')
-      .eq('id', submissionId)
-      .single();
-    if (submissionError) throw new Error(`Failed to get submission data: ${submissionError.message}`);
     
     // Step 1: Create CRM Company using user profile data
     const companyResult = await createCrmCompanyFromProfile(profile, submissionData, crmUrl, apiKey, supabaseClient, submissionId);
