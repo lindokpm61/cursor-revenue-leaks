@@ -20,7 +20,7 @@ export const useAuthProvider = () => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -34,13 +34,13 @@ export const useAuthProvider = () => {
           setIsAdmin(false);
         }
 
-        // Ensure user profile exists when user signs in
+        // Ensure user profile exists when user signs in - use setTimeout to avoid deadlock
         if (event === 'SIGNED_IN' && session?.user) {
-          try {
-            await ensureUserProfile(session.user);
-          } catch (error) {
-            console.error('Failed to ensure user profile:', error);
-          }
+          setTimeout(() => {
+            ensureUserProfile(session.user).catch(error => {
+              console.error('Failed to ensure user profile:', error);
+            });
+          }, 0);
         }
       }
     );
