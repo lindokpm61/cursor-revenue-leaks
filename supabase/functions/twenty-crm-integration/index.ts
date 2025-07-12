@@ -111,7 +111,37 @@ async function createCrmContact(
   try {
     console.log('Creating Twenty CRM contact:', contactData);
     
-    // Twenty CRM REST API structure matching the correct schema
+    // First, check if contact already exists by email
+    const existingContactResponse = await fetch(`${crmUrl}/rest/people?filter[emails][primaryEmail][eq]=${encodeURIComponent(contactData.email)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      }
+    });
+
+    if (existingContactResponse.ok) {
+      const existingResult = await existingContactResponse.json();
+      if (existingResult.data && existingResult.data.length > 0) {
+        const existingContactId = existingResult.data[0].id;
+        console.log('Existing Twenty CRM contact found:', existingContactId);
+        
+        // Update submission with existing CRM contact ID
+        if (submissionId && existingContactId) {
+          await supabaseClient
+            .from('submissions')
+            .update({
+              twenty_contact_id: existingContactId,
+              synced_to_self_hosted: true
+            })
+            .eq('id', submissionId);
+        }
+        
+        return { success: true, contactId: existingContactId, existing: true };
+      }
+    }
+    
+    // If no existing contact found, create new one
     const contactPayload = {
       emails: {
         primaryEmail: contactData.email
@@ -191,6 +221,7 @@ async function createCrmOpportunity(
       },
       stage: opportunityData.stage || "NEW_LEAD",
       leadCategory: opportunityData.leadCategory || "ENTERPRISE",
+      pointOfContactId: opportunityData.contactId, // Link to the contact
       recoveryPotential: opportunityData.recoveryPotential ? {
         amountMicros: Math.round(opportunityData.recoveryPotential * 1000000),
         currencyCode: "USD"
@@ -202,7 +233,9 @@ async function createCrmOpportunity(
       annualRecurringRevenue: opportunityData.annualRecurringRevenue ? {
         amountMicros: Math.round(opportunityData.annualRecurringRevenue * 1000000),
         currencyCode: "USD"
-      } : undefined
+      } : undefined,
+      leadScore: opportunityData.leadScore || 0,
+      calculatorCompletionDate: new Date().toISOString().split('T')[0] // Today's date in YYYY-MM-DD format
     };
     
     const response = await fetch(`${crmUrl}/rest/opportunities`, {
