@@ -121,8 +121,10 @@ export const useSaveResults = () => {
 
       // Use convertToUserSubmission to migrate temporary data
       console.log('About to call convertToUserSubmission with submissionData:', submissionData);
+      console.log('Calling convertToUserSubmission with user ID:', user.id);
       const savedSubmission = await convertToUserSubmission(user.id, submissionData);
       console.log('convertToUserSubmission completed, saved submission:', savedSubmission);
+      console.log('CRM integration should have been triggered for submission:', savedSubmission?.id);
       
       console.log('Submission saved:', savedSubmission);
 
