@@ -111,18 +111,22 @@ async function createCrmContact(
   try {
     console.log('Creating Twenty CRM contact:', contactData);
     
-    // Twenty CRM REST API structure with proper field metadata
+    // Twenty CRM REST API structure matching the correct schema
     const contactPayload = {
-      email: {
+      emails: {
         primaryEmail: contactData.email
       },
       name: {
         firstName: contactData.firstName || contactData.company?.split(' ')[0] || 'Unknown',
         lastName: contactData.lastName || contactData.company?.split(' ').slice(1).join(' ') || 'Contact'
       },
-      phone: contactData.phone || null,
+      phones: contactData.phone ? {
+        primaryPhoneNumber: contactData.phone
+      } : undefined,
       jobTitle: "Decision Maker",
-      companyName: contactData.company || 'Unknown Company'
+      industry: "SAAS",
+      emailSequenceStatus: "NOT_STARTED",
+      followUpPriority: "PRIORITY_1_URGENT"
     };
     
     console.log('Contact payload:', JSON.stringify(contactPayload, null, 2));
