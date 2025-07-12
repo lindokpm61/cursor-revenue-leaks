@@ -27,10 +27,20 @@ export const createWebhookPayload = (workflow_type: string, data: any): WebhookP
       company_name: data.company_name,
       email: data.email || data.contact_email,
       industry: data.industry,
-      lead_score: data.lead_score || 0,
-      total_leak: data.calculations?.totalLeakage || data.total_leak || 0,
-      recovery_potential: data.calculations?.potentialRecovery70 || data.recovery_potential_70 || 0,
-      trigger_data: data
+      lead_score: Number(data.lead_score) || 0,
+      total_leak: Number(data.calculations?.totalLeakage || data.total_leak) || 0,
+      recovery_potential: Number(data.calculations?.potentialRecovery70 || data.recovery_potential_70) || 0,
+      current_arr: Number(data.current_arr) || 0,
+      monthly_leads: Number(data.monthly_leads) || 0,
+      trigger_data: {
+        ...data,
+        // Ensure all numeric fields are properly typed
+        lead_score: Number(data.lead_score) || 0,
+        total_leak: Number(data.calculations?.totalLeakage || data.total_leak) || 0,
+        recovery_potential_70: Number(data.calculations?.potentialRecovery70 || data.recovery_potential_70) || 0,
+        current_arr: Number(data.current_arr) || 0,
+        monthly_leads: Number(data.monthly_leads) || 0
+      }
     };
   }
 

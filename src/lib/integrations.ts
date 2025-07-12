@@ -80,12 +80,8 @@ class IntegrationService {
       
       const { data, error } = await supabase.functions.invoke('n8n-trigger', {
         body: {
-          submissionData: submission,
-          metadata: {
-            source: 'revenue-leak-calculator',
-            version: '1.0',
-            timestamp: new Date().toISOString()
-          }
+          workflow_type: 'submission-completed',
+          data: submission
         }
       });
 
@@ -116,10 +112,10 @@ class IntegrationService {
         last_name: submission.company_name.split(' ').slice(1).join(' ') || 'Contact',
         company_name: submission.company_name,
         custom_variables: {
-          industry: submission.industry,
-          current_arr: submission.current_arr.toLocaleString(),
-          total_leakage: submission.calculations.totalLeakage.toLocaleString(),
-          recovery_potential: submission.calculations.potentialRecovery70.toLocaleString(),
+          industry: submission.industry || 'Unknown',
+          current_arr: (submission.current_arr || 0).toLocaleString(),
+          total_leakage: (submission.calculations?.totalLeakage || 0).toLocaleString(),
+          recovery_potential: (submission.calculations?.potentialRecovery70 || 0).toLocaleString(),
           lead_score: submission.lead_score || 0
         }
       };
@@ -181,44 +177,70 @@ class IntegrationService {
     
     const results: any = {};
     const errors: string[] = [];
+    
+    // Use Promise.allSettled to run integrations in parallel and don't fail if one fails
+    const integrationPromises = [];
 
-    // Only integrate with CRM for registered users
+    // CRM Integration (only if user is authenticated)
     if (scenario !== 'anonymous' && userId) {
-      const crmResult = await this.integrateToCrm(userId, submission.id, scenario);
-      if (crmResult.success) {
-        results.crm = {
-          companyId: crmResult.companyId,
-          contactId: crmResult.contactId,
-          opportunityId: crmResult.opportunityId
-        };
-        console.log('CRM integration completed successfully:', results.crm);
-      } else {
-        errors.push(`CRM integration failed: ${crmResult.error}`);
-      }
-    } else {
-      console.log('Skipping CRM integration for anonymous scenario');
+      integrationPromises.push(
+        this.integrateToCrm(userId, submission.id, scenario)
+          .then(result => ({ type: 'crm', result }))
+          .catch(error => ({ type: 'crm', error: error.message }))
+      );
     }
 
-    // 2. Trigger N8N workflow
-    const n8nResult = await this.triggerN8nWorkflow(submission);
-    if (n8nResult.success) {
-      results.webhook = true;
-    } else {
-      errors.push(`N8N workflow failed: ${n8nResult.error}`);
-    }
+    // N8N Webhook Integration
+    integrationPromises.push(
+      this.triggerN8nWorkflow(submission)
+        .then(result => ({ type: 'webhook', result }))
+        .catch(error => ({ type: 'webhook', error: error.message }))
+    );
 
-    // 3. Assign to email campaign (only for registered users)
+    // Email Campaign Assignment (only for registered users)
     if (scenario !== 'anonymous') {
-      const emailResult = await this.assignToEmailCampaign(submission);
-      if (emailResult.success) {
-        results.email = { campaignId: emailResult.campaignId };
+      integrationPromises.push(
+        this.assignToEmailCampaign(submission)
+          .then(result => ({ type: 'email', result }))
+          .catch(error => ({ type: 'email', error: error.message }))
+      );
+    }
+
+    // Wait for all integrations to complete (or fail)
+    const integrationResults = await Promise.allSettled(integrationPromises);
+
+    // Process results
+    for (const promiseResult of integrationResults) {
+      if (promiseResult.status === 'fulfilled') {
+        const { type, result, error } = promiseResult.value;
+        
+        if (error) {
+          errors.push(`${type.toUpperCase()} integration failed: ${error}`);
+        } else if (result) {
+          if (type === 'crm' && result.success) {
+            results.crm = {
+              companyId: result.companyId,
+              contactId: result.contactId,
+              opportunityId: result.opportunityId
+            };
+            console.log('CRM integration completed successfully:', results.crm);
+          } else if (type === 'webhook' && result.success) {
+            results.webhook = true;
+          } else if (type === 'email' && result.success) {
+            results.email = { campaignId: result.campaignId };
+          } else {
+            errors.push(`${type.toUpperCase()} integration failed: ${result.error || 'Unknown error'}`);
+          }
+        }
       } else {
-        errors.push(`Email campaign assignment failed: ${emailResult.error}`);
+        errors.push(`Integration promise rejected: ${promiseResult.reason}`);
       }
     }
 
+    // Return success=true even if some integrations failed (non-blocking)
+    // This ensures submission saving isn't blocked by integration failures
     return {
-      success: errors.length === 0,
+      success: true,
       results,
       errors
     };

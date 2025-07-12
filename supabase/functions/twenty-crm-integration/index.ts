@@ -151,7 +151,7 @@ async function handleNewUserScenario(
       .from('user_profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
     
     // Use fallback values if profile doesn't exist yet
     const profile = profileData || {
@@ -337,7 +337,8 @@ async function createCrmCompanyFromProfile(
       monthlyLeads: submissionData.monthly_leads || 0,
       employees: 10, // Default value
       idealCustomerProfile: submissionData.lead_score > 70,
-      businessModel: profileData.business_model || userMetadata?.business_model || 'internal'
+      // Remove businessModel field as it's causing API errors
+      // businessModel: profileData.business_model || userMetadata?.business_model || 'internal'
     };
     
     console.log('Company payload:', JSON.stringify(companyPayload, null, 2));
