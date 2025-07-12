@@ -15,6 +15,7 @@ export const useAuthProvider = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     // Set up auth state listener
@@ -23,6 +24,15 @@ export const useAuthProvider = () => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Check admin status when user signs in
+        if (session?.user) {
+          setTimeout(() => {
+            checkAdminStatus(session.user);
+          }, 0);
+        } else {
+          setIsAdmin(false);
+        }
 
         // Ensure user profile exists when user signs in
         if (event === 'SIGNED_IN' && session?.user) {
@@ -40,10 +50,29 @@ export const useAuthProvider = () => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      if (session?.user) {
+        checkAdminStatus(session.user);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const checkAdminStatus = async (user: User) => {
+    try {
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      
+      setIsAdmin(profile?.role === 'admin');
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      setIsAdmin(false);
+    }
+  };
 
   const ensureUserProfile = async (user: User) => {
     // Check if profile exists
@@ -130,8 +159,6 @@ export const useAuthProvider = () => {
   const logout = async () => {
     await supabase.auth.signOut();
   };
-
-  const isAdmin = user?.user_metadata?.role === 'admin';
 
   return {
     user,
