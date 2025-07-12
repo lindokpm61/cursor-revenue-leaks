@@ -55,13 +55,18 @@ export const useSaveResults = () => {
       try {
         await userProfileService.incrementAnalysis(user.id, calculations.totalLeakage);
       } catch (profileError) {
+        console.warn('User profile error (non-blocking):', profileError);
         // If profile doesn't exist, create it
-        await userProfileService.create({
-          id: user.id,
-          companies_analyzed: 1,
-          total_opportunity: calculations.totalLeakage,
-          last_analysis_date: new Date().toISOString()
-        });
+        try {
+          await userProfileService.create({
+            id: user.id,
+            companies_analyzed: 1,
+            total_opportunity: calculations.totalLeakage,
+            last_analysis_date: new Date().toISOString()
+          });
+        } catch (createError) {
+          console.warn('Failed to create user profile (non-blocking):', createError);
+        }
       }
 
       // Log integration activity
