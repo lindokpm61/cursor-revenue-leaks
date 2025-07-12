@@ -224,12 +224,12 @@ class IntegrationService {
     const results: any = {};
     const errors: string[] = [];
 
-    // 1. Create CRM contact
+    // 1. Create or find CRM contact
     const crmResult = await this.createCrmContact(submission);
     if (crmResult.success && crmResult.contactId) {
       results.crm = { contactId: crmResult.contactId };
       
-      // Create opportunity
+      // Always create opportunity (whether contact was found or created)
       const oppResult = await this.createCrmOpportunity(crmResult.contactId, submission);
       if (oppResult.success) {
         results.crm.opportunityId = oppResult.opportunityId;
@@ -237,7 +237,7 @@ class IntegrationService {
         errors.push(`Opportunity creation failed: ${oppResult.error}`);
       }
     } else {
-      errors.push(`CRM contact creation failed: ${crmResult.error}`);
+      errors.push(`CRM contact lookup/creation failed: ${crmResult.error}`);
     }
 
     // 2. Trigger N8N workflow
