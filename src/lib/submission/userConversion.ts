@@ -92,7 +92,7 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
       };
       
       console.log('About to call CRM integration with submission:', crmSubmission);
-      const integrationResult = await integrations.processSubmission(crmSubmission);
+      const integrationResult = await integrations.processSubmission(crmSubmission, userId, 'existing_user');
       console.log('CRM integration completed:', integrationResult);
       
       // Update submission with CRM IDs if successful
@@ -212,7 +212,7 @@ const createDirectSubmission = async (userId: string, submissionData: any) => {
     };
     
     console.log('About to call CRM integration with direct submission:', crmSubmission);
-    const integrationResult = await integrations.processSubmission(crmSubmission);
+    const integrationResult = await integrations.processSubmission(crmSubmission, userId, 'existing_user');
     console.log('CRM integration completed for direct submission:', integrationResult);
     
     // Update submission with CRM IDs if successful

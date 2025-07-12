@@ -197,7 +197,9 @@ async function handleExistingUserScenario(
       .single();
     
     if (error || !existingSubmission) {
-      throw new Error('No existing CRM records found for this user');
+      console.log('No existing CRM records found, creating new records for existing user');
+      // Fallback to creating new records like new user scenario
+      return await handleNewUserScenario(userId, submissionId, crmUrl, apiKey, supabaseClient);
     }
     
     // Get current submission data
