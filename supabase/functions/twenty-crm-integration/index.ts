@@ -135,13 +135,16 @@ async function handleNewUserScenario(
     } catch (authError) {
       console.log('Could not fetch auth user metadata, using fallback:', authError.message);
     }
-    
+
+    // Store userMetadata for later use in company creation
     const userData = { 
       user: { 
         email: submissionData.contact_email,
         user_metadata: userMetadata
-      }
+      },
+      userMetadata // Store for use in createCrmCompanyFromProfile
     };
+    
     
     // Try to get profile data, but don't fail if it doesn't exist (new user)
     const { data: profileData, error: profileError } = await supabaseClient
@@ -162,7 +165,7 @@ async function handleNewUserScenario(
     console.log('Profile data exists:', !!profileData, 'Profile error:', profileError?.message);
     
     // Step 1: Create CRM Company using user profile data
-    const companyResult = await createCrmCompanyFromProfile(profile, submissionData, crmUrl, apiKey, supabaseClient, submissionId);
+    const companyResult = await createCrmCompanyFromProfile(profile, submissionData, crmUrl, apiKey, supabaseClient, submissionId, userData.userMetadata);
     if (!companyResult.success) {
       return companyResult;
     }
@@ -264,7 +267,8 @@ async function createCrmCompanyFromProfile(
   crmUrl: string, 
   apiKey: string, 
   supabaseClient: any,
-  submissionId: string
+  submissionId: string,
+  userMetadata: any = {}
 ) {
   try {
     const companyName = profileData.actual_company_name || submissionData.company_name;
@@ -333,7 +337,7 @@ async function createCrmCompanyFromProfile(
       monthlyLeads: submissionData.monthly_leads || 0,
       employees: 10, // Default value
       idealCustomerProfile: submissionData.lead_score > 70,
-      businessModel: profileData.business_model
+      businessModel: profileData.business_model || userMetadata?.business_model || 'internal'
     };
     
     console.log('Company payload:', JSON.stringify(companyPayload, null, 2));

@@ -19,10 +19,19 @@ export const useAuthProvider = () => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Ensure user profile exists when user signs in
+        if (event === 'SIGNED_IN' && session?.user) {
+          try {
+            await ensureUserProfile(session.user);
+          } catch (error) {
+            console.error('Failed to ensure user profile:', error);
+          }
+        }
       }
     );
 
@@ -35,6 +44,20 @@ export const useAuthProvider = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const ensureUserProfile = async (user: User) => {
+    // Check if profile exists
+    const { data: existingProfile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('id', user.id)
+      .single();
+
+    // Create profile if it doesn't exist
+    if (!existingProfile) {
+      await createUserProfile(user);
+    }
+  };
 
   const login = async (email: string, password: string) => {
     try {
@@ -67,9 +90,40 @@ export const useAuthProvider = () => {
         return { success: false, error: error.message };
       }
 
+      // Create user profile immediately after successful registration
+      if (data.user) {
+        try {
+          await createUserProfile(data.user);
+        } catch (profileError) {
+          console.error('Failed to create user profile:', profileError);
+          // Don't fail the registration if profile creation fails
+        }
+      }
+
       return { success: true };
     } catch (error) {
       return { success: false, error: 'Network error' };
+    }
+  };
+
+  const createUserProfile = async (user: User) => {
+    const { error } = await supabase
+      .from('user_profiles')
+      .insert({
+        id: user.id,
+        company_name: user.user_metadata?.company_name || null,
+        business_model: user.user_metadata?.business_model || 'internal',
+        role: user.user_metadata?.role || 'user',
+        actual_company_name: user.user_metadata?.company_name || null,
+        actual_role: user.user_metadata?.role || null,
+        user_type: 'standard',
+        engagement_tier: 'standard',
+        user_tier: 'standard'
+      });
+    
+    if (error) {
+      console.error('Error creating user profile:', error);
+      throw error;
     }
   };
 

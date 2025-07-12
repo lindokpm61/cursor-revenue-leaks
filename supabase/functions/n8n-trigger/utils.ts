@@ -8,15 +8,37 @@ export const createSupabaseClient = () => {
   );
 };
 
-export const createWebhookPayload = (workflow_type: string, data: any): WebhookPayload => ({
-  workflow_type,
-  trigger_data: data,
-  metadata: {
-    triggered_from: "supabase_edge_function",
+export const createWebhookPayload = (workflow_type: string, data: any): WebhookPayload => {
+  // Ensure required fields are present for different workflow types
+  const basePayload = {
+    workflow_type,
     timestamp: new Date().toISOString(),
+    environment: Deno.env.get('ENVIRONMENT') || 'production',
+    triggered_from: "supabase_edge_function",
     request_id: crypto.randomUUID()
+  };
+
+  // Add data validation for specific workflow types
+  if (workflow_type === 'submission-completed' && data) {
+    return {
+      ...basePayload,
+      submission_id: data.id || data.submission_id,
+      user_id: data.user_id,
+      company_name: data.company_name,
+      email: data.email || data.contact_email,
+      industry: data.industry,
+      lead_score: data.lead_score || 0,
+      total_leak: data.calculations?.totalLeakage || data.total_leak || 0,
+      recovery_potential: data.calculations?.potentialRecovery70 || data.recovery_potential_70 || 0,
+      trigger_data: data
+    };
   }
-});
+
+  return {
+    ...basePayload,
+    trigger_data: data
+  };
+};
 
 export const parseN8NResponse = async (response: Response): Promise<N8NWebhookResult> => {
   try {

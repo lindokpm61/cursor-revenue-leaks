@@ -56,12 +56,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Prepare N8N request
     const n8nHeaders = createN8NHeaders();
-    const requestBody = {
-      ...data,
-      workflow_type,
-      timestamp: new Date().toISOString(),
-      environment: Deno.env.get('ENVIRONMENT') || 'production'
-    };
+    const requestBody = createWebhookPayload(workflow_type, data);
 
     console.log(`Triggering N8N workflow: ${workflow_type}`, {
       url: n8nWebhookUrl,
