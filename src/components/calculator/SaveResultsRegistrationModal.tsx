@@ -198,15 +198,80 @@ export const SaveResultsRegistrationModal = ({
 
       const result = await handleUserRegistration(registrationData, tempId);
       
-      if (result.user && result.submission) {
-        toast({
-          title: "Account Created Successfully!",
-          description: "Your revenue analysis has been saved and email sequences activated.",
-        });
-        
-        onSuccess(result.submission.id);
+      if (result.user) {
+        if (result.submission) {
+          // Full success - both user and submission created
+          toast({
+            title: "Account Created Successfully!",
+            description: "Your revenue analysis has been saved and email sequences activated.",
+          });
+          
+          onSuccess(result.submission.id);
+        } else {
+          // User created but submission failed - still success, but save the calculator data manually
+          toast({
+            title: "Account Created Successfully!",
+            description: "Now saving your calculator results...",
+          });
+          
+          // Close the modal and let the parent handle saving the data
+          onClose();
+          
+          // Manually save the results using the new user account
+          setTimeout(async () => {
+            try {
+              // Use the useSaveResults handleSave logic
+              const leadScore = calculateLeadScore(data, calculations);
+              
+              const submissionData = {
+                company_name: data.companyInfo.companyName,
+                contact_email: data.companyInfo.email,
+                industry: data.companyInfo.industry,
+                current_arr: data.companyInfo.currentARR,
+                monthly_leads: data.leadGeneration.monthlyLeads,
+                average_deal_value: data.leadGeneration.averageDealValue,
+                lead_response_time: data.leadGeneration.leadResponseTimeHours,
+                monthly_free_signups: data.selfServeMetrics.monthlyFreeSignups,
+                free_to_paid_conversion: data.selfServeMetrics.freeToPaidConversionRate,
+                monthly_mrr: data.selfServeMetrics.monthlyMRR,
+                failed_payment_rate: data.operationsData.failedPaymentRate,
+                manual_hours: data.operationsData.manualHoursPerWeek,
+                hourly_rate: data.operationsData.hourlyRate,
+                lead_response_loss: Math.round(calculations.leadResponseLoss),
+                failed_payment_loss: Math.round(calculations.failedPaymentLoss),
+                selfserve_gap_loss: Math.round(calculations.selfServeGap),
+                process_inefficiency_loss: Math.round(calculations.processLoss),
+                total_leak: Math.round(calculations.totalLeakage),
+                recovery_potential_70: Math.round(calculations.potentialRecovery70),
+                recovery_potential_85: Math.round(calculations.potentialRecovery85),
+                leak_percentage: data.companyInfo.currentARR > 0 
+                  ? Math.round((calculations.totalLeakage / data.companyInfo.currentARR) * 100)
+                  : 0,
+                lead_score: leadScore,
+                user_id: result.user.id,
+              };
+
+              const { data: savedSubmission, error } = await supabase
+                .from('submissions')
+                .insert([submissionData])
+                .select()
+                .single();
+
+              if (error) throw error;
+
+              onSuccess(savedSubmission.id);
+            } catch (saveError) {
+              console.error('Error saving calculator data after registration:', saveError);
+              toast({
+                title: "Results Save Failed",
+                description: "Your account was created, but we couldn't save your calculator results. Please try the calculator again.",
+                variant: "destructive",
+              });
+            }
+          }, 1000);
+        }
       } else {
-        throw new Error('Registration completed but submission failed');
+        throw new Error('Failed to create user account');
       }
 
     } catch (error) {
