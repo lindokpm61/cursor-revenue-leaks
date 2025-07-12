@@ -125,10 +125,21 @@ async function handleNewUserScenario(
     if (submissionError) throw new Error(`Failed to get submission data: ${submissionError.message}`);
     
     // Create user data object from submission
+    // Get user metadata from auth user if available
+    let userMetadata = {};
+    try {
+      const { data: authUser } = await supabaseClient.auth.admin.getUserById(userId);
+      if (authUser?.user?.user_metadata) {
+        userMetadata = authUser.user.user_metadata;
+      }
+    } catch (authError) {
+      console.log('Could not fetch auth user metadata, using fallback:', authError.message);
+    }
+    
     const userData = { 
       user: { 
         email: submissionData.contact_email,
-        user_metadata: {}
+        user_metadata: userMetadata
       }
     };
     
@@ -260,30 +271,41 @@ async function createCrmCompanyFromProfile(
     console.log('Creating Twenty CRM company from profile:', companyName);
     
     // Check if company already exists by name
-    const existingCompanyResponse = await fetch(`${crmUrl}/rest/companies?filter[name][eq]=${encodeURIComponent(companyName)}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      }
-    });
+    try {
+      const existingCompanyResponse = await fetch(`${crmUrl}/rest/companies?filter[name][eq]=${encodeURIComponent(companyName)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        }
+      });
 
-    if (existingCompanyResponse.ok) {
-      const existingResult = await existingCompanyResponse.json();
-      if (existingResult.data?.companies && existingResult.data.companies.length > 0) {
-        const existingCompanyId = existingResult.data.companies[0].id;
-        console.log('Existing Twenty CRM company found:', existingCompanyId);
+      if (existingCompanyResponse.ok) {
+        const existingResult = await existingCompanyResponse.json();
+        console.log('Existing company search result:', existingResult);
         
-        // Update submission with existing company ID
-        await supabaseClient
-          .from('submissions')
-          .update({
-            twenty_company_id: existingCompanyId
-          })
-          .eq('id', submissionId);
-        
-        return { success: true, companyId: existingCompanyId, existing: true };
+        if (existingResult.data?.companies && existingResult.data.companies.length > 0) {
+          const existingCompanyId = existingResult.data.companies[0].id;
+          console.log('Existing Twenty CRM company found:', existingCompanyId);
+          
+          // Update submission with existing company ID
+          await supabaseClient
+            .from('submissions')
+            .update({
+              twenty_company_id: existingCompanyId
+            })
+            .eq('id', submissionId);
+          
+          return { success: true, companyId: existingCompanyId, existing: true };
+        }
+      } else {
+        console.log('Company search failed with status:', existingCompanyResponse.status);
+        const errorText = await existingCompanyResponse.text();
+        console.log('Company search error:', errorText);
       }
+    } catch (searchError) {
+      console.error('Error searching for existing company:', searchError);
+      // Continue to create new company if search fails
     }
     
     // Create new company using user profile + submission data
@@ -327,11 +349,12 @@ async function createCrmCompanyFromProfile(
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Company creation API error:', errorText);
+      console.error('Company creation API error:', response.status, errorText);
       throw new Error(`CRM API error (${response.status}): ${errorText}`);
     }
 
     const result = await response.json();
+    console.log('Company creation response:', result);
     const companyId = result.data?.companies?.[0]?.id || result.data?.id || result.id;
     
     if (!companyId) {
@@ -377,43 +400,58 @@ async function createCrmContactFromUser(
     console.log('Creating Twenty CRM contact for user:', userEmail);
     
     // First, check if contact already exists by email
-    const existingContactResponse = await fetch(`${crmUrl}/rest/people?filter[emails][primaryEmail][eq]=${encodeURIComponent(userEmail)}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      }
-    });
+    try {
+      const existingContactResponse = await fetch(`${crmUrl}/rest/people?filter[emails][primaryEmail][eq]=${encodeURIComponent(userEmail)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        }
+      });
 
-    if (existingContactResponse.ok) {
-      const existingResult = await existingContactResponse.json();
-      if (existingResult.data?.people && existingResult.data.people.length > 0) {
-        const existingContactId = existingResult.data.people[0].id;
-        console.log('Existing Twenty CRM contact found:', existingContactId);
+      if (existingContactResponse.ok) {
+        const existingResult = await existingContactResponse.json();
+        console.log('Existing contact search result:', existingResult);
         
-        // Update existing contact with company ID
-        await fetch(`${crmUrl}/rest/people/${existingContactId}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            companyId: companyId
-          })
-        });
-        
-        // Update submission with existing CRM contact ID
-        await supabaseClient
-          .from('submissions')
-          .update({
-            twenty_contact_id: existingContactId,
-            synced_to_self_hosted: true
-          })
-          .eq('id', submissionId);
-        
-        return { success: true, contactId: existingContactId, existing: true };
+        if (existingResult.data?.people && existingResult.data.people.length > 0) {
+          const existingContactId = existingResult.data.people[0].id;
+          console.log('Existing Twenty CRM contact found:', existingContactId);
+          
+          // Update existing contact with company ID
+          try {
+            await fetch(`${crmUrl}/rest/people/${existingContactId}`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+              },
+              body: JSON.stringify({
+                companyId: companyId
+              })
+            });
+          } catch (updateError) {
+            console.error('Failed to update contact with company ID:', updateError);
+          }
+          
+          // Update submission with existing CRM contact ID
+          await supabaseClient
+            .from('submissions')
+            .update({
+              twenty_contact_id: existingContactId,
+              synced_to_self_hosted: true
+            })
+            .eq('id', submissionId);
+          
+          return { success: true, contactId: existingContactId, existing: true };
+        }
+      } else {
+        console.log('Contact search failed with status:', existingContactResponse.status);
+        const errorText = await existingContactResponse.text();
+        console.log('Contact search error:', errorText);
       }
+    } catch (searchError) {
+      console.error('Error searching for existing contact:', searchError);
+      // Continue to create new contact if search fails
     }
     
     // Map industry values to Twenty CRM enum values
@@ -470,10 +508,12 @@ async function createCrmContactFromUser(
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('Contact creation API error:', response.status, errorText);
       throw new Error(`CRM API error (${response.status}): ${errorText}`);
     }
 
     const result = await response.json();
+    console.log('Contact creation response:', result);
     const contactId = result.data?.people?.[0]?.id || result.data?.id || result.id;
     
     if (!contactId) {
@@ -565,10 +605,12 @@ async function createCrmOpportunityFromSubmission(
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('Opportunity creation API error:', response.status, errorText);
       throw new Error(`CRM API error (${response.status}): ${errorText}`);
     }
 
     const result = await response.json();
+    console.log('Opportunity creation response:', result);
     const opportunityId = result.data?.opportunities?.[0]?.id || result.data?.id || result.id;
     
     if (!opportunityId) {
