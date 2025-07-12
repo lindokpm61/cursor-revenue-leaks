@@ -274,6 +274,27 @@ async function createCrmContact(
       }
     }
     
+    // Map industry values to Twenty CRM enum values
+    const mapIndustryToTwentyCRM = (industry: string): string => {
+      const industryMap: Record<string, string> = {
+        'saas': 'SAAS',
+        'technology': 'TECHNOLOGY',
+        'financial-services': 'FINTECH',
+        'healthcare': 'HEALTHCARE',
+        'education': 'EDUCATION',
+        'retail-ecommerce': 'RETAIL',
+        'manufacturing': 'MANUFACTURING',
+        'consulting-professional': 'CONSULTING',
+        'real-estate': 'REAL_ESTATE',
+        'media-marketing': 'MARKETING',
+        'hospitality-travel': 'HOSPITALITY',
+        'nonprofit': 'NONPROFIT',
+        'government': 'GOVERNMENT',
+        'other': 'OTHER'
+      };
+      return industryMap[industry] || 'OTHER';
+    };
+
     // If no existing contact found, create new one
     const contactPayload = {
       emails: {
@@ -287,7 +308,7 @@ async function createCrmContact(
         primaryPhoneNumber: contactData.phone
       } : undefined,
       jobTitle: "Decision Maker",
-      industry: contactData.industry || "SAAS",
+      industry: mapIndustryToTwentyCRM(contactData.industry || 'other'),
       emailSequenceStatus: "NOT_STARTED",
       followUpPriority: "PRIORITY_1_URGENT",
       companyId: contactData.companyId, // Link to company
