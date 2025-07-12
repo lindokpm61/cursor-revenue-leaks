@@ -42,10 +42,12 @@ const AdminDashboard = () => {
 
   const loadDashboardData = async () => {
     try {
+      console.log('Loading dashboard data...');
       const [submissionsResponse] = await Promise.all([
         submissionService.getAll(20),
       ]);
 
+      console.log('Submissions response:', submissionsResponse);
       if (submissionsResponse.data) {
         const submissions = submissionsResponse.data;
         setRecentSubmissions(submissions.slice(0, 5));
