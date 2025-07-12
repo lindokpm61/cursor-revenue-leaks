@@ -1,20 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
   Shield, BarChart3, Users, Settings, Monitor, 
-  UserCog, ArrowLeft, Menu, X
+  UserCog, ArrowLeft, Menu, X, Loader2
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // Only check admin status after auth has finished loading
+    if (!loading && (!user || !isAdmin)) {
+      navigate("/dashboard");
+    }
+  }, [user, isAdmin, loading, navigate]);
+
+  // Show loading state while auth is loading
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render anything if not admin (will redirect via useEffect)
   if (!user || !isAdmin) {
-    navigate("/dashboard");
     return null;
   }
 
