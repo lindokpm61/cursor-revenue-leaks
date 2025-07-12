@@ -120,7 +120,9 @@ export const useSaveResults = () => {
       };
 
       // Use convertToUserSubmission to migrate temporary data
+      console.log('About to call convertToUserSubmission with submissionData:', submissionData);
       const savedSubmission = await convertToUserSubmission(user.id, submissionData);
+      console.log('convertToUserSubmission completed, saved submission:', savedSubmission);
       
       console.log('Submission saved:', savedSubmission);
 
