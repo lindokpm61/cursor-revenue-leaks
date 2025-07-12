@@ -312,44 +312,78 @@ async function createCrmCompanyFromProfile(
       // Continue to create new company if search fails
     }
     
-    // Create new company using user profile + submission data
-    const companyPayload = {
-      name: companyName,
-      annualRecurringRevenue: submissionData.current_arr ? {
-        amountMicros: Math.round(submissionData.current_arr * 1000000),
-        currencyCode: "USD"
-      } : undefined,
-      monthlyMrr: submissionData.monthly_mrr ? {
-        amountMicros: Math.round(submissionData.monthly_mrr * 1000000),
-        currencyCode: "USD"
-      } : undefined,
-      totalRevenueLeak: submissionData.total_leak ? {
-        amountMicros: Math.round(submissionData.total_leak * 1000000),
-        currencyCode: "USD"
-      } : undefined,
-      recoveryPotential: submissionData.recovery_potential_70 ? {
-        amountMicros: Math.round(submissionData.recovery_potential_70 * 1000000),
-        currencyCode: "USD"
-      } : undefined,
-      leadScore: submissionData.lead_score || 0,
-      leadCategory: submissionData.lead_score > 80 ? "ENTERPRISE" : submissionData.lead_score > 60 ? "PREMIUM" : "STANDARD",
-      calculatorCompletionDate: new Date().toISOString().split('T')[0],
-      monthlyLeads: submissionData.monthly_leads || 0,
-      employees: 10, // Default value
-      idealCustomerProfile: submissionData.lead_score > 70,
-      // Remove businessModel field as it's causing API errors
-      // businessModel: profileData.business_model || userMetadata?.business_model || 'internal'
+    // Create new company using GraphQL mutation
+    const createCompanyMutation = `
+      mutation CreateCompany($data: CompanyCreateInput!) {
+        createCompany(data: $data) {
+          id
+          name
+          leadScore
+          leadCategory
+          annualRecurringRevenue {
+            amountMicros
+            currencyCode
+          }
+          totalRevenueLeak {
+            amountMicros
+            currencyCode
+          }
+          recoveryPotential {
+            amountMicros
+            currencyCode
+          }
+          monthlyMrr {
+            amountMicros
+            currencyCode
+          }
+          createdAt
+        }
+      }
+    `;
+
+    const variables = {
+      data: {
+        name: companyName,
+        annualRecurringRevenue: submissionData.current_arr ? {
+          amountMicros: Math.round(submissionData.current_arr * 1000000).toString(),
+          currencyCode: "USD"
+        } : undefined,
+        monthlyMrr: submissionData.monthly_mrr ? {
+          amountMicros: Math.round(submissionData.monthly_mrr * 1000000).toString(),
+          currencyCode: "USD"
+        } : undefined,
+        totalRevenueLeak: submissionData.total_leak ? {
+          amountMicros: Math.round(submissionData.total_leak * 1000000).toString(),
+          currencyCode: "USD"
+        } : undefined,
+        recoveryPotential: submissionData.recovery_potential_70 ? {
+          amountMicros: Math.round(submissionData.recovery_potential_70 * 1000000).toString(),
+          currencyCode: "USD"
+        } : undefined,
+        leadScore: submissionData.lead_score || null,
+        leadCategory: submissionData.lead_score > 80 ? "ENTERPRISE" : submissionData.lead_score > 60 ? "PREMIUM" : "STANDARD",
+        calculatorCompletionDate: new Date().toISOString().split('T')[0],
+        monthlyLeads: submissionData.monthly_leads || null,
+        employees: 10,
+        idealCustomerProfile: submissionData.lead_score > 70,
+        domainName: {
+          primaryLinkUrl: `https://${companyName.toLowerCase().replace(/\s+/g, '-')}.com`
+        }
+      }
     };
     
-    console.log('Company payload:', JSON.stringify(companyPayload, null, 2));
+    console.log('Company GraphQL variables:', JSON.stringify(variables, null, 2));
     
-    const response = await fetch(`${crmUrl}/rest/companies`, {
+    const response = await fetch(`${crmUrl}/graphql`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
       },
-      body: JSON.stringify(companyPayload)
+      body: JSON.stringify({
+        query: createCompanyMutation,
+        variables: variables
+      })
     });
 
     if (!response.ok) {
@@ -480,35 +514,65 @@ async function createCrmContactFromUser(
       return industryMap[industry] || 'OTHER';
     };
 
-    // If no existing contact found, create new one using user data
-    const contactPayload = {
-      emails: {
-        primaryEmail: userEmail
-      },
-      name: {
-        firstName: firstName,
-        lastName: lastName
-      },
-      phones: profileData.phone ? {
-        primaryPhoneNumber: profileData.phone
-      } : undefined,
-      jobTitle: profileData.actual_role || "Decision Maker",
-      industry: mapIndustryToTwentyCRM(profileData.user_type || 'other'),
-      emailSequenceStatus: "NOT_STARTED",
-      followUpPriority: "PRIORITY_1_URGENT",
-      companyId: companyId, // Link to company
-      leadScore: 0 // Initial score for new contact
+    // Create new contact using GraphQL mutation
+    const createPersonMutation = `
+      mutation CreatePerson($data: PersonCreateInput!) {
+        createPerson(data: $data) {
+          id
+          emails {
+            primaryEmail
+          }
+          name {
+            firstName
+            lastName
+          }
+          jobTitle
+          industry
+          companyId
+          leadScore
+          createdAt
+        }
+      }
+    `;
+
+    const variables = {
+      data: {
+        emails: {
+          primaryEmail: userEmail
+        },
+        name: {
+          firstName: firstName,
+          lastName: lastName
+        },
+        phones: profileData.phone ? {
+          primaryPhoneNumber: profileData.phone,
+          primaryPhoneCountryCode: "US",
+          primaryPhoneCallingCode: "+1"
+        } : undefined,
+        jobTitle: profileData.actual_role || "Decision Maker",
+        industry: mapIndustryToTwentyCRM(profileData.user_type || 'other'),
+        emailSequenceStatus: "NOT_STARTED",
+        followUpPriority: "PRIORITY_1_URGENT",
+        companyId: companyId,
+        leadScore: null,
+        calculatorResultsUrl: {
+          primaryLinkUrl: `https://app.com/results/${submissionId}`
+        }
+      }
     };
     
-    console.log('Contact payload:', JSON.stringify(contactPayload, null, 2));
+    console.log('Contact GraphQL variables:', JSON.stringify(variables, null, 2));
     
-    const response = await fetch(`${crmUrl}/rest/people`, {
+    const response = await fetch(`${crmUrl}/graphql`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
       },
-      body: JSON.stringify(contactPayload)
+      body: JSON.stringify({
+        query: createPersonMutation,
+        variables: variables
+      })
     });
 
     if (!response.ok) {
