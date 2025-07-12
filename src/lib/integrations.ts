@@ -262,7 +262,10 @@ class IntegrationService {
     const errors: string[] = [];
 
     // Step 1: Create or find CRM company
+    console.log('Step 1: Creating CRM company...');
     const companyResult = await this.createCrmCompany(submission);
+    console.log('Company creation result:', companyResult);
+    
     if (companyResult.success && companyResult.companyId) {
       results.crm = { companyId: companyResult.companyId };
       
