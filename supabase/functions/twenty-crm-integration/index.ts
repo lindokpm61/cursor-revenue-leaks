@@ -6,11 +6,10 @@ const corsHeaders = {
 }
 
 interface CRMIntegrationRequest {
-  action: 'create_company' | 'create_contact' | 'create_opportunity';
-  companyData?: any;
-  contactData?: any;
-  opportunityData?: any;
+  scenario: 'new_user' | 'existing_user' | 'anonymous';
+  userId?: string;
   submissionId?: string;
+  tempId?: string;
 }
 
 Deno.serve(async (req) => {
@@ -27,9 +26,9 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { action, companyData, contactData, opportunityData, submissionId }: CRMIntegrationRequest = await req.json();
+    const { scenario, userId, submissionId, tempId }: CRMIntegrationRequest = await req.json();
     
-    console.log(`Twenty CRM integration: ${action} for submission ${submissionId}`);
+    console.log(`Twenty CRM integration: ${scenario} scenario for user ${userId}, submission ${submissionId}`);
     
     // Initialize Supabase client
     const supabaseClient = createClient(
@@ -57,21 +56,21 @@ Deno.serve(async (req) => {
     
     let result;
     
-    switch (action) {
-      case 'create_company':
-        result = await createCrmCompany(companyData, twentyCrmUrl, twentyCrmApiKey, supabaseClient, submissionId);
+    switch (scenario) {
+      case 'new_user':
+        result = await handleNewUserScenario(userId!, submissionId!, twentyCrmUrl, twentyCrmApiKey, supabaseClient);
         break;
         
-      case 'create_contact':
-        result = await createCrmContact(contactData, twentyCrmUrl, twentyCrmApiKey, supabaseClient, submissionId);
+      case 'existing_user':
+        result = await handleExistingUserScenario(userId!, submissionId!, twentyCrmUrl, twentyCrmApiKey, supabaseClient);
         break;
         
-      case 'create_opportunity':
-        result = await createCrmOpportunity(opportunityData, twentyCrmUrl, twentyCrmApiKey, supabaseClient, submissionId);
+      case 'anonymous':
+        result = { success: true, message: 'Anonymous calculator - no CRM integration needed' };
         break;
         
       default:
-        throw new Error(`Unknown action: ${action}`);
+        throw new Error(`Unknown scenario: ${scenario}`);
     }
     
     // Log the integration attempt
@@ -106,18 +105,145 @@ Deno.serve(async (req) => {
   }
 });
 
-async function createCrmCompany(
-  companyData: any, 
+// New User Scenario: Create Company → Contact → Opportunity using user profile + submission data
+async function handleNewUserScenario(
+  userId: string,
+  submissionId: string,
+  crmUrl: string,
+  apiKey: string,
+  supabaseClient: any
+) {
+  try {
+    console.log('Handling new user scenario for user:', userId);
+    
+    // Get user data from auth.users and user_profiles
+    const { data: userData, error: userError } = await supabaseClient.auth.admin.getUserById(userId);
+    if (userError) throw new Error(`Failed to get user data: ${userError.message}`);
+    
+    const { data: profileData, error: profileError } = await supabaseClient
+      .from('user_profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    if (profileError) throw new Error(`Failed to get profile data: ${profileError.message}`);
+    
+    // Get submission data
+    const { data: submissionData, error: submissionError } = await supabaseClient
+      .from('submissions')
+      .select('*')
+      .eq('id', submissionId)
+      .single();
+    if (submissionError) throw new Error(`Failed to get submission data: ${submissionError.message}`);
+    
+    // Step 1: Create CRM Company using user profile data
+    const companyResult = await createCrmCompanyFromProfile(profileData, submissionData, crmUrl, apiKey, supabaseClient, submissionId);
+    if (!companyResult.success) {
+      return companyResult;
+    }
+    
+    // Step 2: Create CRM Contact using user auth + profile data
+    const contactResult = await createCrmContactFromUser(userData.user, profileData, companyResult.companyId, crmUrl, apiKey, supabaseClient, submissionId);
+    if (!contactResult.success) {
+      return contactResult;
+    }
+    
+    // Step 3: Create CRM Opportunity using submission data
+    const opportunityResult = await createCrmOpportunityFromSubmission(submissionData, contactResult.contactId, companyResult.companyId, crmUrl, apiKey, supabaseClient);
+    
+    return {
+      success: true,
+      companyId: companyResult.companyId,
+      contactId: contactResult.contactId,
+      opportunityId: opportunityResult.success ? opportunityResult.opportunityId : null,
+      errors: opportunityResult.success ? [] : [opportunityResult.error]
+    };
+    
+  } catch (error) {
+    console.error('New user scenario failed:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Existing User Scenario: Skip Company/Contact, Create new Opportunity only
+async function handleExistingUserScenario(
+  userId: string,
+  submissionId: string,
+  crmUrl: string,
+  apiKey: string,
+  supabaseClient: any
+) {
+  try {
+    console.log('Handling existing user scenario for user:', userId);
+    
+    // Get existing CRM IDs from previous submissions
+    const { data: existingSubmission, error } = await supabaseClient
+      .from('submissions')
+      .select('twenty_company_id, twenty_contact_id')
+      .eq('user_id', userId)
+      .not('twenty_company_id', 'is', null)
+      .not('twenty_contact_id', 'is', null)
+      .limit(1)
+      .single();
+    
+    if (error || !existingSubmission) {
+      throw new Error('No existing CRM records found for this user');
+    }
+    
+    // Get current submission data
+    const { data: submissionData, error: submissionError } = await supabaseClient
+      .from('submissions')
+      .select('*')
+      .eq('id', submissionId)
+      .single();
+    if (submissionError) throw new Error(`Failed to get submission data: ${submissionError.message}`);
+    
+    // Create new opportunity for existing user
+    const opportunityResult = await createCrmOpportunityFromSubmission(
+      submissionData, 
+      existingSubmission.twenty_contact_id, 
+      existingSubmission.twenty_company_id, 
+      crmUrl, 
+      apiKey, 
+      supabaseClient
+    );
+    
+    // Update current submission with existing CRM IDs
+    await supabaseClient
+      .from('submissions')
+      .update({
+        twenty_company_id: existingSubmission.twenty_company_id,
+        twenty_contact_id: existingSubmission.twenty_contact_id
+      })
+      .eq('id', submissionId);
+    
+    return {
+      success: true,
+      companyId: existingSubmission.twenty_company_id,
+      contactId: existingSubmission.twenty_contact_id,
+      opportunityId: opportunityResult.success ? opportunityResult.opportunityId : null,
+      errors: opportunityResult.success ? [] : [opportunityResult.error]
+    };
+    
+  } catch (error) {
+    console.error('Existing user scenario failed:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function createCrmCompanyFromProfile(
+  profileData: any,
+  submissionData: any,
   crmUrl: string, 
   apiKey: string, 
   supabaseClient: any,
-  submissionId?: string
+  submissionId: string
 ) {
   try {
-    console.log('Creating Twenty CRM company:', companyData);
+    const companyName = profileData.actual_company_name || submissionData.company_name;
+    console.log('Creating Twenty CRM company from profile:', companyName);
     
     // Check if company already exists by name
-    const existingCompanyResponse = await fetch(`${crmUrl}/rest/companies?filter[name][eq]=${encodeURIComponent(companyData.name)}`, {
+    const existingCompanyResponse = await fetch(`${crmUrl}/rest/companies?filter[name][eq]=${encodeURIComponent(companyName)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -132,44 +258,43 @@ async function createCrmCompany(
         console.log('Existing Twenty CRM company found:', existingCompanyId);
         
         // Update submission with existing company ID
-        if (submissionId && existingCompanyId) {
-          await supabaseClient
-            .from('submissions')
-            .update({
-              twenty_company_id: existingCompanyId
-            })
-            .eq('id', submissionId);
-        }
+        await supabaseClient
+          .from('submissions')
+          .update({
+            twenty_company_id: existingCompanyId
+          })
+          .eq('id', submissionId);
         
         return { success: true, companyId: existingCompanyId, existing: true };
       }
     }
     
-    // Create new company
+    // Create new company using user profile + submission data
     const companyPayload = {
-      name: companyData.name,
-      annualRecurringRevenue: companyData.currentArr ? {
-        amountMicros: Math.round(companyData.currentArr * 1000000),
+      name: companyName,
+      annualRecurringRevenue: submissionData.current_arr ? {
+        amountMicros: Math.round(submissionData.current_arr * 1000000),
         currencyCode: "USD"
       } : undefined,
-      monthlyMrr: companyData.monthlyMrr ? {
-        amountMicros: Math.round(companyData.monthlyMrr * 1000000),
+      monthlyMrr: submissionData.monthly_mrr ? {
+        amountMicros: Math.round(submissionData.monthly_mrr * 1000000),
         currencyCode: "USD"
       } : undefined,
-      totalRevenueLeak: companyData.totalLeak ? {
-        amountMicros: Math.round(companyData.totalLeak * 1000000),
+      totalRevenueLeak: submissionData.total_leak ? {
+        amountMicros: Math.round(submissionData.total_leak * 1000000),
         currencyCode: "USD"
       } : undefined,
-      recoveryPotential: companyData.recoveryPotential70 ? {
-        amountMicros: Math.round(companyData.recoveryPotential70 * 1000000),
+      recoveryPotential: submissionData.recovery_potential_70 ? {
+        amountMicros: Math.round(submissionData.recovery_potential_70 * 1000000),
         currencyCode: "USD"
       } : undefined,
-      leadScore: companyData.leadScore || 0,
-      leadCategory: companyData.leadCategory || "ENTERPRISE",
+      leadScore: submissionData.lead_score || 0,
+      leadCategory: submissionData.lead_score > 80 ? "ENTERPRISE" : submissionData.lead_score > 60 ? "PREMIUM" : "STANDARD",
       calculatorCompletionDate: new Date().toISOString().split('T')[0],
-      monthlyLeads: companyData.monthlyLeads || 0,
-      employees: companyData.employees || 10,
-      idealCustomerProfile: companyData.leadScore > 70
+      monthlyLeads: submissionData.monthly_leads || 0,
+      employees: 10, // Default value
+      idealCustomerProfile: submissionData.lead_score > 70,
+      businessModel: profileData.business_model
     };
     
     console.log('Company payload:', JSON.stringify(companyPayload, null, 2));
@@ -200,14 +325,12 @@ async function createCrmCompany(
     console.log('Twenty CRM company created:', companyId);
     
     // Update submission with company ID
-    if (submissionId) {
-      await supabaseClient
-        .from('submissions')
-        .update({
-          twenty_company_id: companyId
-        })
-        .eq('id', submissionId);
-    }
+    await supabaseClient
+      .from('submissions')
+      .update({
+        twenty_company_id: companyId
+      })
+      .eq('id', submissionId);
     
     return { success: true, companyId };
     
@@ -220,18 +343,24 @@ async function createCrmCompany(
   }
 }
 
-async function createCrmContact(
-  contactData: any, 
+async function createCrmContactFromUser(
+  userData: any,
+  profileData: any,
+  companyId: string,
   crmUrl: string, 
   apiKey: string, 
   supabaseClient: any,
-  submissionId?: string
+  submissionId: string
 ) {
   try {
-    console.log('Creating Twenty CRM contact:', contactData);
+    const userEmail = userData.email;
+    const firstName = userData.user_metadata?.first_name || profileData.actual_company_name?.split(' ')[0] || 'Unknown';
+    const lastName = userData.user_metadata?.last_name || 'Contact';
+    
+    console.log('Creating Twenty CRM contact for user:', userEmail);
     
     // First, check if contact already exists by email
-    const existingContactResponse = await fetch(`${crmUrl}/rest/people?filter[emails][primaryEmail][eq]=${encodeURIComponent(contactData.email)}`, {
+    const existingContactResponse = await fetch(`${crmUrl}/rest/people?filter[emails][primaryEmail][eq]=${encodeURIComponent(userEmail)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -245,30 +374,26 @@ async function createCrmContact(
         const existingContactId = existingResult.data.people[0].id;
         console.log('Existing Twenty CRM contact found:', existingContactId);
         
-        // Update existing contact with company ID if provided
-        if (contactData.companyId && existingContactId) {
-          await fetch(`${crmUrl}/rest/people/${existingContactId}`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-              companyId: contactData.companyId
-            })
-          });
-        }
+        // Update existing contact with company ID
+        await fetch(`${crmUrl}/rest/people/${existingContactId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            companyId: companyId
+          })
+        });
         
         // Update submission with existing CRM contact ID
-        if (submissionId && existingContactId) {
-          await supabaseClient
-            .from('submissions')
-            .update({
-              twenty_contact_id: existingContactId,
-              synced_to_self_hosted: true
-            })
-            .eq('id', submissionId);
-        }
+        await supabaseClient
+          .from('submissions')
+          .update({
+            twenty_contact_id: existingContactId,
+            synced_to_self_hosted: true
+          })
+          .eq('id', submissionId);
         
         return { success: true, contactId: existingContactId, existing: true };
       }
@@ -295,24 +420,24 @@ async function createCrmContact(
       return industryMap[industry] || 'OTHER';
     };
 
-    // If no existing contact found, create new one
+    // If no existing contact found, create new one using user data
     const contactPayload = {
       emails: {
-        primaryEmail: contactData.email
+        primaryEmail: userEmail
       },
       name: {
-        firstName: contactData.firstName || contactData.company?.split(' ')[0] || 'Unknown',
-        lastName: contactData.lastName || contactData.company?.split(' ').slice(1).join(' ') || 'Contact'
+        firstName: firstName,
+        lastName: lastName
       },
-      phones: contactData.phone ? {
-        primaryPhoneNumber: contactData.phone
+      phones: profileData.phone ? {
+        primaryPhoneNumber: profileData.phone
       } : undefined,
-      jobTitle: "Decision Maker",
-      industry: mapIndustryToTwentyCRM(contactData.industry || 'other'),
+      jobTitle: profileData.actual_role || "Decision Maker",
+      industry: mapIndustryToTwentyCRM(profileData.user_type || 'other'),
       emailSequenceStatus: "NOT_STARTED",
       followUpPriority: "PRIORITY_1_URGENT",
-      companyId: contactData.companyId, // Link to company
-      leadScore: contactData.leadScore || 0
+      companyId: companyId, // Link to company
+      leadScore: 0 // Initial score for new contact
     };
     
     console.log('Contact payload:', JSON.stringify(contactPayload, null, 2));
@@ -342,15 +467,13 @@ async function createCrmContact(
     console.log('Twenty CRM contact created:', contactId);
     
     // Update submission with CRM contact ID
-    if (submissionId && contactId) {
-      await supabaseClient
-        .from('submissions')
-        .update({
-          twenty_contact_id: contactId,
-          synced_to_self_hosted: true
-        })
-        .eq('id', submissionId);
-    }
+    await supabaseClient
+      .from('submissions')
+      .update({
+        twenty_contact_id: contactId,
+        synced_to_self_hosted: true
+      })
+      .eq('id', submissionId);
     
     return { success: true, contactId };
     
@@ -363,60 +486,53 @@ async function createCrmContact(
   }
 }
 
-async function createCrmOpportunity(
-  opportunityData: any, 
+async function createCrmOpportunityFromSubmission(
+  submissionData: any,
+  contactId: string,
+  companyId: string,
   crmUrl: string, 
   apiKey: string, 
-  supabaseClient: any,
-  submissionId?: string
+  supabaseClient: any
 ) {
   try {
-    console.log('Creating Twenty CRM opportunity:', opportunityData);
-    
-    // Validate required IDs
-    if (!opportunityData.contactId) {
-      throw new Error('Contact ID is required for opportunity creation');
-    }
-    
-    if (!opportunityData.companyId) {
-      throw new Error('Company ID is required for opportunity creation');
-    }
+    console.log('Creating Twenty CRM opportunity for submission:', submissionData.id);
     
     // Validate that IDs are proper UUIDs
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(opportunityData.contactId)) {
-      throw new Error(`Invalid contact ID format: ${opportunityData.contactId}`);
+    if (!uuidRegex.test(contactId)) {
+      throw new Error(`Invalid contact ID format: ${contactId}`);
     }
-    if (!uuidRegex.test(opportunityData.companyId)) {
-      throw new Error(`Invalid company ID format: ${opportunityData.companyId}`);
+    if (!uuidRegex.test(companyId)) {
+      throw new Error(`Invalid company ID format: ${companyId}`);
     }
     
-    // Twenty CRM uses REST API with specific data structure
+    // Create opportunity using submission data
     const opportunityPayload = {
-      name: opportunityData.name || `${opportunityData.companyName} - Revenue Recovery Opportunity`,
+      name: `${submissionData.company_name} - Revenue Recovery Opportunity`,
       amount: {
-        amountMicros: Math.round((opportunityData.recoveryPotential || 0) * 1000000), // Use recovery potential as amount
+        amountMicros: Math.round((submissionData.recovery_potential_70 || 0) * 1000000),
         currencyCode: "USD"
       },
-      stage: "NEW_LEAD", // Use correct stage value
-      leadCategory: opportunityData.leadCategory || "ENTERPRISE",
-      pointOfContactId: opportunityData.contactId, // Link to the contact
-      companyId: opportunityData.companyId, // Link to the company
-      recoveryPotential: opportunityData.recoveryPotential ? {
-        amountMicros: Math.round(opportunityData.recoveryPotential * 1000000),
+      stage: "NEW_LEAD",
+      leadCategory: submissionData.lead_score > 80 ? "ENTERPRISE" : submissionData.lead_score > 60 ? "PREMIUM" : "STANDARD",
+      pointOfContactId: contactId,
+      companyId: companyId,
+      recoveryPotential: submissionData.recovery_potential_70 ? {
+        amountMicros: Math.round(submissionData.recovery_potential_70 * 1000000),
         currencyCode: "USD"
       } : undefined,
-      totalRevenueLeak: opportunityData.totalRevenueLeak ? {
-        amountMicros: Math.round(opportunityData.totalRevenueLeak * 1000000),
+      totalRevenueLeak: submissionData.total_leak ? {
+        amountMicros: Math.round(submissionData.total_leak * 1000000),
         currencyCode: "USD"
       } : undefined,
-      annualRecurringRevenue: opportunityData.annualRecurringRevenue ? {
-        amountMicros: Math.round(opportunityData.annualRecurringRevenue * 1000000),
+      annualRecurringRevenue: submissionData.current_arr ? {
+        amountMicros: Math.round(submissionData.current_arr * 1000000),
         currencyCode: "USD"
       } : undefined,
-      leadScore: opportunityData.leadScore || 0,
-      calculatorCompletionDate: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
-      leadSource: opportunityData.leadSource || "CALCULATOR"
+      leadScore: submissionData.lead_score || 0,
+      calculatorCompletionDate: new Date().toISOString().split('T')[0],
+      leadSource: "CALCULATOR",
+      industry: submissionData.industry
     };
     
     console.log('Opportunity payload:', JSON.stringify(opportunityPayload, null, 2));
