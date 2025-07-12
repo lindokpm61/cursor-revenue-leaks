@@ -85,21 +85,19 @@ class IntegrationService {
         }
       });
 
-      // Handle placeholder webhooks gracefully - don't fail the entire integration
-      if (error) {
-        console.warn('N8N webhook failed (likely placeholder):', error);
-        return { success: true }; // Don't block the process for placeholder webhooks
-      }
+      if (error) throw error;
       
       if (data?.success) {
         return { success: true };
       } else {
-        console.warn('N8N workflow trigger returned non-success:', data?.error);
-        return { success: true }; // Don't block the process for placeholder webhooks
+        throw new Error(data?.error || 'N8N workflow trigger failed');
       }
     } catch (error) {
-      console.warn('N8N webhook error (likely placeholder):', error);
-      return { success: true }; // Don't block the process for placeholder webhooks
+      console.error('N8N webhook error:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Webhook trigger failed' 
+      };
     }
   }
 
