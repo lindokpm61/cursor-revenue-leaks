@@ -2,63 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { submissionService, analyticsService, userProfileService, integrationLogService } from "@/lib/supabase";
+import { analyticsService, userProfileService, integrationLogService } from "@/lib/supabase";
 import { CalculatorData, Calculations } from "../useCalculatorData";
 import { convertToUserSubmission, updateCalculatorProgress } from "@/lib/submission";
-
-const calculateLeadScore = (data: CalculatorData, calculations: Calculations): number => {
-  let score = 0;
-  
-  // ARR Points
-  const arr = data.companyInfo.currentARR || 0;
-  if (arr >= 5000000) {
-    score += 50; // $5M+
-  } else if (arr >= 1000000) {
-    score += 40; // $1M-5M
-  } else if (arr >= 500000) {
-    score += 30; // $500K-1M
-  } else {
-    score += 20; // <$500K
-  }
-  
-  // Leak Impact Points
-  const totalLeak = calculations.totalLeakage || 0;
-  if (totalLeak >= 1000000) {
-    score += 40; // $1M+ leak
-  } else if (totalLeak >= 500000) {
-    score += 30; // $500K-1M leak
-  } else if (totalLeak >= 250000) {
-    score += 20; // $250K-500K leak
-  } else {
-    score += 10; // <$250K leak
-  }
-  
-  // Industry Multiplier
-  const industry = data.companyInfo.industry?.toLowerCase() || '';
-  if (industry.includes('saas-software') || industry.includes('saas') || industry.includes('software')) {
-    score += 12; // SaaS & Software (highest intent)
-  } else if (industry.includes('marketing-advertising') || industry.includes('marketing') || industry.includes('advertising')) {
-    score += 9; // Marketing & Advertising (high intent)
-  } else if (industry.includes('technology-it') || industry.includes('technology') || industry.includes('tech')) {
-    score += 8; // Technology & IT
-  } else if (industry.includes('financial-services') || industry.includes('finance') || industry.includes('financial')) {
-    score += 8; // Financial Services
-  } else if (industry.includes('consulting-professional') || industry.includes('consulting') || industry.includes('professional')) {
-    score += 7; // Consulting & Professional Services
-  } else if (industry.includes('healthcare')) {
-    score += 6; // Healthcare
-  } else if (industry.includes('ecommerce-retail') || industry.includes('ecommerce') || industry.includes('retail')) {
-    score += 6; // E-commerce & Retail
-  } else if (industry.includes('manufacturing')) {
-    score += 5; // Manufacturing
-  } else if (industry.includes('education')) {
-    score += 5; // Education
-  } else {
-    score += 4; // Other
-  }
-  
-  return Math.min(score, 100); // Cap at 100
-};
+import { calculateLeadScore } from "@/lib/calculator/leadScoring";
+import { mapToSubmissionData } from "@/lib/calculator/submissionDataMapper";
 
 export const useSaveResults = () => {
   const [saving, setSaving] = useState(false);
@@ -88,36 +36,10 @@ export const useSaveResults = () => {
     console.log('Starting save with user:', user.id);
     console.log('User auth data:', { id: user.id, email: user.email });
     setSaving(true);
+    
     try {
       const leadScore = calculateLeadScore(data, calculations);
-      
-      const submissionData = {
-        company_name: data.companyInfo.companyName,
-        contact_email: data.companyInfo.email,
-        industry: data.companyInfo.industry,
-        current_arr: data.companyInfo.currentARR,
-        monthly_leads: data.leadGeneration.monthlyLeads,
-        average_deal_value: data.leadGeneration.averageDealValue,
-        lead_response_time: data.leadGeneration.leadResponseTimeHours,
-        monthly_free_signups: data.selfServeMetrics.monthlyFreeSignups,
-        free_to_paid_conversion: data.selfServeMetrics.freeToPaidConversionRate,
-        monthly_mrr: data.selfServeMetrics.monthlyMRR,
-        failed_payment_rate: data.operationsData.failedPaymentRate,
-        manual_hours: data.operationsData.manualHoursPerWeek,
-        hourly_rate: data.operationsData.hourlyRate,
-        lead_response_loss: Math.round(calculations.leadResponseLoss),
-        failed_payment_loss: Math.round(calculations.failedPaymentLoss),
-        selfserve_gap_loss: Math.round(calculations.selfServeGap),
-        process_inefficiency_loss: Math.round(calculations.processLoss),
-        total_leak: Math.round(calculations.totalLeakage),
-        recovery_potential_70: Math.round(calculations.potentialRecovery70),
-        recovery_potential_85: Math.round(calculations.potentialRecovery85),
-        leak_percentage: data.companyInfo.currentARR > 0 
-          ? Math.round((calculations.totalLeakage / data.companyInfo.currentARR) * 100)
-          : 0,
-        lead_score: leadScore,
-        user_id: user.id,
-      };
+      const submissionData = mapToSubmissionData(data, calculations, leadScore, user.id);
 
       // Use convertToUserSubmission to trigger CRM integration
       console.log('About to call convertToUserSubmission with submissionData:', submissionData);
