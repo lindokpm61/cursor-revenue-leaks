@@ -85,6 +85,7 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
         created_at: submission.created_at,
       };
       
+      console.log('About to call CRM integration with submission:', crmSubmission);
       const integrationResult = await integrations.processSubmission(crmSubmission);
       console.log('CRM integration completed:', integrationResult);
       
