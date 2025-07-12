@@ -519,7 +519,7 @@ async function createCrmContactFromUser(
 
     const result = await response.json();
     console.log('Contact creation response:', result);
-    const contactId = result.data?.people?.[0]?.id || result.data?.id || result.id;
+    const contactId = result.data?.createPerson?.id;
     
     if (!contactId) {
       console.error('No contact ID in response:', result);
