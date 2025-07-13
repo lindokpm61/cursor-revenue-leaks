@@ -87,11 +87,12 @@ Deno.serve(async (req) => {
 
     if (existingPersonResponse.ok) {
       const existingResult = await existingPersonResponse.json();
-      console.log('Existing person search result:', existingResult);
+      console.log('Existing person search result:', JSON.stringify(existingResult, null, 2));
       
       if (existingResult.data?.people && existingResult.data.people.length > 0) {
         personId = existingResult.data.people[0].id;
         console.log('Found existing Twenty CRM person:', personId);
+        console.log('Person details:', JSON.stringify(existingResult.data.people[0], null, 2));
       } else {
         // Create new person in Twenty CRM
         const createPersonMutation = `
