@@ -69,6 +69,8 @@ const EnterpriseRegistrationForm = ({
       const result = await multiCompanyUserService.createUserWithClassification({
         email: formData.email,
         password: formData.password,
+        firstName: formData.firstName,
+        phone: formData.phone,
         actualCompanyName: formData.actualCompanyName,
         actualRole: formData.actualRole,
         businessModel: 'internal',

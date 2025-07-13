@@ -484,6 +484,8 @@ export const multiCompanyUserService = {
   async createUserWithClassification(userData: {
     email: string;
     password: string;
+    firstName?: string;
+    phone?: string;
     actualCompanyName?: string;
     actualRole?: string;
     businessModel?: string;
@@ -491,12 +493,18 @@ export const multiCompanyUserService = {
     userTier?: string;
   }) {
     try {
-      // First create the auth user
+      // First create the auth user with metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            first_name: userData.firstName,
+            phone: userData.phone,
+            company_name: userData.actualCompanyName,
+            role: userData.actualRole
+          }
         }
       });
       
@@ -510,6 +518,7 @@ export const multiCompanyUserService = {
       // Create user profile with classification
       const profileData: UserProfileInsert = {
         id: authData.user.id,
+        phone: userData.phone,
         actual_company_name: userData.actualCompanyName,
         actual_role: userData.actualRole,
         business_model: userData.businessModel || patternData?.business_model || 'internal',

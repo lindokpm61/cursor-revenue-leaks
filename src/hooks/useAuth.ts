@@ -171,7 +171,7 @@ export const useAuthProvider = () => {
           userId: user.id,
           email: email,
           firstName: user.user_metadata?.first_name || email.split('@')[0] || 'Unknown',
-          lastName: user.user_metadata?.last_name || 'User',
+          lastName: user.user_metadata?.last_name || '', 
           phone: user.user_metadata?.phone || null
         }
       });
