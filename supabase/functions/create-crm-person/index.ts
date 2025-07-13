@@ -174,7 +174,21 @@ Deno.serve(async (req) => {
 
     if (insertError) {
       console.error('Failed to store person mapping:', insertError);
-      // Don't fail the entire operation if we can't store the mapping
+      
+      // If it's a duplicate key error, that's okay - the person already exists
+      if (insertError.code === '23505') {
+        console.log('Person mapping already exists, that is fine');
+      } else {
+        // For other errors, we should still log but not fail
+        await supabaseClient
+          .from('integration_logs')
+          .insert({
+            integration_type: 'twenty_crm_person',
+            status: 'partial_success',
+            response_data: { personId, error: insertError.message },
+            error_message: `Database mapping failed: ${insertError.message}`
+          });
+      }
     }
 
     // Log the integration attempt
