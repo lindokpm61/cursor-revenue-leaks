@@ -146,13 +146,46 @@ Deno.serve(async (req) => {
         }
 
         const result = await createResponse.json();
-        console.log('Person creation response:', result);
+        console.log('Person creation response:', JSON.stringify(result, null, 2));
+        
+        // Check for GraphQL errors first
+        if (result.errors && result.errors.length > 0) {
+          console.error('GraphQL errors:', result.errors);
+          throw new Error(`GraphQL error: ${result.errors[0].message}`);
+        }
         
         personId = result.data?.createPerson?.id;
         
         if (!personId) {
-          console.error('No person ID in response:', result);
-          throw new Error('No person ID returned from CRM');
+          console.error('No person ID in response. Full response:', JSON.stringify(result, null, 2));
+          console.error('Expected path: result.data.createPerson.id');
+          console.error('Actual data structure:', result.data);
+          
+          // Try alternative response structures
+          if (result.data?.person?.id) {
+            personId = result.data.person.id;
+            console.log('Found person ID in alternative structure:', personId);
+          } else if (result.id) {
+            personId = result.id;
+            console.log('Found person ID in root:', personId);
+          } else {
+            // Log detailed error for debugging
+            await supabaseClient
+              .from('integration_logs')
+              .insert({
+                integration_type: 'twenty_crm_person',
+                status: 'error',
+                response_data: { 
+                  fullResponse: result,
+                  expectedPath: 'result.data.createPerson.id',
+                  actualData: result.data,
+                  error: 'No person ID found in any expected location'
+                },
+                error_message: 'Twenty CRM API returned unexpected response structure'
+              });
+            
+            throw new Error('No person ID returned from CRM - check integration logs for details');
+          }
         }
         
         console.log('Twenty CRM person created:', personId);
