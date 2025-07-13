@@ -25,6 +25,7 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
       user_id: userId,
       company_name: tempSubmission.company_name || submissionData.company_name,
       contact_email: tempSubmission.email || submissionData.contact_email,
+      phone: tempSubmission.phone || submissionData.phone,
       industry: tempSubmission.industry || submissionData.industry,
       // Convert all numeric values to integers for bigint columns
       current_arr: Math.round(Number(submissionData.current_arr) || 0),
@@ -101,6 +102,7 @@ const createDirectSubmission = async (userId: string, submissionData: any) => {
     user_id: userId,
     company_name: submissionData.company_name,
     contact_email: submissionData.contact_email,
+    phone: submissionData.phone,
     industry: submissionData.industry,
     // Convert all numeric values to integers for bigint columns
     current_arr: Math.round(Number(submissionData.current_arr) || 0),

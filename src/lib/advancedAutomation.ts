@@ -258,7 +258,10 @@ export const createUserAccount = async (registrationData: any) => {
           role: registrationData.role || 'user',
           company_name: registrationData.actualCompany,
           actual_role: registrationData.actualRole,
-          business_model: registrationData.businessModel
+          business_model: registrationData.businessModel,
+          first_name: registrationData.firstName,
+          last_name: registrationData.lastName,
+          phone: registrationData.phone
         }
       }
     });
@@ -309,21 +312,24 @@ export const createSubmission = async (submissionData: any) => {
 // Create enhanced user profile
 export const createUserProfile = async (profileData: any) => {
   try {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .insert([{
-        id: profileData.user_id,
-        company_name: profileData.actual_company_name,
-        role: profileData.actual_role,
-        user_classification: profileData.user_classification,
-        business_model: profileData.business_model,
-        first_submission_date: profileData.first_submission_date,
-        total_companies_analyzed: profileData.total_companies_analyzed,
-        engagement_score: profileData.engagement_score,
-        utm_source: profileData.attribution_data?.utm_source,
-        utm_medium: profileData.attribution_data?.utm_medium,
-        utm_campaign: profileData.attribution_data?.utm_campaign
-      }])
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .insert([{
+          id: profileData.user_id,
+          company_name: profileData.actual_company_name,
+          actual_company_name: profileData.actual_company_name,
+          role: profileData.actual_role,
+          actual_role: profileData.actual_role,
+          phone: profileData.phone,
+          user_classification: profileData.user_classification,
+          business_model: profileData.business_model,
+          first_submission_date: profileData.first_submission_date,
+          total_companies_analyzed: profileData.total_companies_analyzed,
+          engagement_score: profileData.engagement_score,
+          utm_source: profileData.attribution_data?.utm_source,
+          utm_medium: profileData.attribution_data?.utm_medium,
+          utm_campaign: profileData.attribution_data?.utm_campaign
+        }])
       .select()
       .single();
 
@@ -373,6 +379,7 @@ export const handleUserRegistration = async (registrationData: any, tempId: stri
         // Migrate all calculator data
         company_name: tempSubmission.company_name,
         contact_email: tempSubmission.email,
+        phone: registrationData.phone || tempSubmission.phone,
         industry: tempSubmission.industry,
         current_arr: calculatorData.step_1?.currentARR || 0,
         monthly_leads: calculatorData.step_2?.monthlyLeads || 0,
@@ -401,6 +408,7 @@ export const handleUserRegistration = async (registrationData: any, tempId: stri
         user_id: user.id,
         actual_company_name: registrationData.actualCompany || tempSubmission.company_name,
         actual_role: registrationData.actualRole,
+        phone: registrationData.phone,
         user_classification: determineUserClassification(registrationData, tempSubmission),
         business_model: registrationData.businessModel || 'internal',
         

@@ -151,7 +151,8 @@ export const useAuthProvider = () => {
         business_model: user.user_metadata?.business_model || 'internal',
         role: user.user_metadata?.role || 'user',
         actual_company_name: user.user_metadata?.company_name || null,
-        actual_role: user.user_metadata?.role || null,
+        actual_role: user.user_metadata?.actual_role || null,
+        phone: user.user_metadata?.phone || null,
         user_type: 'standard',
         engagement_tier: 'standard',
         user_tier: 'standard'
@@ -171,7 +172,7 @@ export const useAuthProvider = () => {
           userId: user.id,
           email: email,
           firstName: user.user_metadata?.first_name || email.split('@')[0] || 'Unknown',
-          lastName: user.user_metadata?.last_name || '',
+          lastName: user.user_metadata?.last_name || 'User',
           phone: user.user_metadata?.phone || null
         }
       });
