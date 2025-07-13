@@ -28,6 +28,7 @@ const EnterpriseRegistrationForm = ({
     password: "",
     confirmPassword: "",
     firstName: "",
+    lastName: "",
     actualCompanyName: extractCompanyFromDomain(email),
     actualRole: "",
     phone: ""
@@ -70,6 +71,7 @@ const EnterpriseRegistrationForm = ({
         email: formData.email,
         password: formData.password,
         firstName: formData.firstName,
+        lastName: formData.lastName,
         phone: formData.phone,
         actualCompanyName: formData.actualCompanyName,
         actualRole: formData.actualRole,
@@ -180,11 +182,11 @@ const EnterpriseRegistrationForm = ({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">Your Name</Label>
+                  <Label htmlFor="firstName">First Name</Label>
                   <Input
                     id="firstName"
                     type="text"
-                    placeholder="Jane Smith"
+                    placeholder="Jane"
                     value={formData.firstName}
                     onChange={(e) => setFormData({...formData, firstName: e.target.value})}
                     required
@@ -193,6 +195,17 @@ const EnterpriseRegistrationForm = ({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    placeholder="Smith"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                    required
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="actualCompanyName">Parent Company</Label>
                   <Input

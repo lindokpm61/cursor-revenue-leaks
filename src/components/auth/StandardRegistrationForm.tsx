@@ -29,6 +29,7 @@ const StandardRegistrationForm = ({
     password: "",
     confirmPassword: "",
     firstName: "",
+    lastName: "",
     actualCompanyName: primarySubmission?.company_name || "",
     actualRole: "",
     phone: ""
@@ -65,6 +66,7 @@ const StandardRegistrationForm = ({
         email: formData.email,
         password: formData.password,
         firstName: formData.firstName,
+        lastName: formData.lastName,
         phone: formData.phone,
         actualCompanyName: formData.actualCompanyName,
         actualRole: formData.actualRole,
@@ -190,6 +192,17 @@ const StandardRegistrationForm = ({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    placeholder="Smith"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                    required
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="actualCompanyName">Company Name</Label>
                   <Input

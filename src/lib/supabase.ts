@@ -485,6 +485,7 @@ export const multiCompanyUserService = {
     email: string;
     password: string;
     firstName?: string;
+    lastName?: string;
     phone?: string;
     actualCompanyName?: string;
     actualRole?: string;
@@ -501,6 +502,7 @@ export const multiCompanyUserService = {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             first_name: userData.firstName,
+            last_name: userData.lastName,
             phone: userData.phone,
             company_name: userData.actualCompanyName,
             role: userData.actualRole
