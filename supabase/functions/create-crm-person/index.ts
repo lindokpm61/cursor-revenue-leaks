@@ -75,129 +75,108 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check if person exists in Twenty CRM by email
-    const existingPersonResponse = await fetch(`${twentyCrmUrl}/rest/people?filter[emails][primaryEmail][eq]=${encodeURIComponent(email)}`, {
-      method: 'GET',
+    // Always create new person in Twenty CRM for each user
+    let personId: string;
+
+    // Create new person in Twenty CRM
+    const createPersonMutation = `
+      mutation CreatePerson($data: PersonCreateInput!) {
+        createPerson(data: $data) {
+          id
+          name {
+            firstName
+            lastName
+          }
+          emails {
+            primaryEmail
+          }
+          phones {
+            primaryPhoneNumber
+          }
+          createdAt
+        }
+      }
+    `;
+
+    const variables = {
+      data: {
+        name: {
+          firstName: firstName || 'Unknown',
+          lastName: lastName || 'User'
+        },
+        emails: {
+          primaryEmail: email
+        },
+        phones: phone ? {
+          primaryPhoneNumber: phone
+        } : undefined
+      }
+    };
+    
+    console.log('Creating person with variables:', JSON.stringify(variables, null, 2));
+    
+    const createResponse = await fetch(`${twentyCrmUrl}/graphql`, {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${twentyCrmApiKey}`
-      }
+      },
+      body: JSON.stringify({
+        query: createPersonMutation,
+        variables: variables
+      })
     });
 
-    let personId: string;
-
-    if (existingPersonResponse.ok) {
-      const existingResult = await existingPersonResponse.json();
-      console.log('Existing person search result:', JSON.stringify(existingResult, null, 2));
-      
-      if (existingResult.data?.people && existingResult.data.people.length > 0) {
-        personId = existingResult.data.people[0].id;
-        console.log('Found existing Twenty CRM person:', personId);
-        console.log('Person details:', JSON.stringify(existingResult.data.people[0], null, 2));
-      } else {
-        // Create new person in Twenty CRM
-        const createPersonMutation = `
-          mutation CreatePerson($data: PersonCreateInput!) {
-            createPerson(data: $data) {
-              id
-              name {
-                firstName
-                lastName
-              }
-              emails {
-                primaryEmail
-              }
-              phones {
-                primaryPhoneNumber
-              }
-              createdAt
-            }
-          }
-        `;
-
-        const variables = {
-          data: {
-            name: {
-              firstName: firstName || 'Unknown',
-              lastName: lastName || 'User'
-            },
-            emails: {
-              primaryEmail: email
-            },
-            phones: phone ? {
-              primaryPhoneNumber: phone
-            } : undefined
-          }
-        };
-        
-        console.log('Creating person with variables:', JSON.stringify(variables, null, 2));
-        
-        const createResponse = await fetch(`${twentyCrmUrl}/graphql`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${twentyCrmApiKey}`
-          },
-          body: JSON.stringify({
-            query: createPersonMutation,
-            variables: variables
-          })
-        });
-
-        if (!createResponse.ok) {
-          const errorText = await createResponse.text();
-          console.error('Person creation API error:', createResponse.status, errorText);
-          throw new Error(`CRM API error (${createResponse.status}): ${errorText}`);
-        }
-
-        const result = await createResponse.json();
-        console.log('Person creation response:', JSON.stringify(result, null, 2));
-        
-        // Check for GraphQL errors first
-        if (result.errors && result.errors.length > 0) {
-          console.error('GraphQL errors:', result.errors);
-          throw new Error(`GraphQL error: ${result.errors[0].message}`);
-        }
-        
-        personId = result.data?.createPerson?.id;
-        
-        if (!personId) {
-          console.error('No person ID in response. Full response:', JSON.stringify(result, null, 2));
-          console.error('Expected path: result.data.createPerson.id');
-          console.error('Actual data structure:', result.data);
-          
-          // Try alternative response structures
-          if (result.data?.person?.id) {
-            personId = result.data.person.id;
-            console.log('Found person ID in alternative structure:', personId);
-          } else if (result.id) {
-            personId = result.id;
-            console.log('Found person ID in root:', personId);
-          } else {
-            // Log detailed error for debugging
-            await supabaseClient
-              .from('integration_logs')
-              .insert({
-                integration_type: 'twenty_crm_person',
-                status: 'error',
-                response_data: { 
-                  fullResponse: result,
-                  expectedPath: 'result.data.createPerson.id',
-                  actualData: result.data,
-                  error: 'No person ID found in any expected location'
-                },
-                error_message: 'Twenty CRM API returned unexpected response structure'
-              });
-            
-            throw new Error('No person ID returned from CRM - check integration logs for details');
-          }
-        }
-        
-        console.log('Twenty CRM person created:', personId);
-      }
-    } else {
-      throw new Error(`Failed to search for existing person: ${existingPersonResponse.statusText}`);
+    if (!createResponse.ok) {
+      const errorText = await createResponse.text();
+      console.error('Person creation API error:', createResponse.status, errorText);
+      throw new Error(`CRM API error (${createResponse.status}): ${errorText}`);
     }
+
+    const result = await createResponse.json();
+    console.log('Person creation response:', JSON.stringify(result, null, 2));
+    
+    // Check for GraphQL errors first
+    if (result.errors && result.errors.length > 0) {
+      console.error('GraphQL errors:', result.errors);
+      throw new Error(`GraphQL error: ${result.errors[0].message}`);
+    }
+    
+    personId = result.data?.createPerson?.id;
+    
+    if (!personId) {
+      console.error('No person ID in response. Full response:', JSON.stringify(result, null, 2));
+      console.error('Expected path: result.data.createPerson.id');
+      console.error('Actual data structure:', result.data);
+      
+      // Try alternative response structures
+      if (result.data?.person?.id) {
+        personId = result.data.person.id;
+        console.log('Found person ID in alternative structure:', personId);
+      } else if (result.id) {
+        personId = result.id;
+        console.log('Found person ID in root:', personId);
+      } else {
+        // Log detailed error for debugging
+        await supabaseClient
+          .from('integration_logs')
+          .insert({
+            integration_type: 'twenty_crm_person',
+            status: 'error',
+            response_data: { 
+              fullResponse: result,
+              expectedPath: 'result.data.createPerson.id',
+              actualData: result.data,
+              error: 'No person ID found in any expected location'
+            },
+            error_message: 'Twenty CRM API returned unexpected response structure'
+          });
+        
+        throw new Error('No person ID returned from CRM - check integration logs for details');
+      }
+    }
+    
+    console.log('Twenty CRM person created:', personId);
 
     // Store person mapping in our database
     const { error: insertError } = await supabaseClient
@@ -233,33 +212,17 @@ Deno.serve(async (req) => {
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
-        } else if (insertError.message.includes('crm_persons_crm_person_id_key')) {
-          // This CRM person ID is already mapped to another user
-          console.log('CRM person ID already mapped to different user, updating mapping');
-          
-          // Update the existing mapping to use the new user
-          const { error: updateError } = await supabaseClient
-            .from('crm_persons')
-            .update({
-              user_id: userId,
-              email: email,
-              first_name: firstName,
-              last_name: lastName,
-              phone: phone
-            })
-            .eq('crm_person_id', personId);
-          
-          if (updateError) {
-            console.error('Failed to update person mapping:', updateError);
-            await supabaseClient
-              .from('integration_logs')
-              .insert({
-                integration_type: 'twenty_crm_person',
-                status: 'partial_success',
-                response_data: { personId, error: updateError.message },
-                error_message: `Database mapping update failed: ${updateError.message}`
-              });
-          }
+        } else {
+          // Log the error but don't fail - CRM person was created successfully
+          console.error('Database mapping failed but CRM person exists:', insertError);
+          await supabaseClient
+            .from('integration_logs')
+            .insert({
+              integration_type: 'twenty_crm_person',
+              status: 'partial_success',
+              response_data: { personId, error: insertError.message },
+              error_message: `Database mapping failed: ${insertError.message}`
+            });
         }
       } else {
         // For other errors, we should still log but not fail
