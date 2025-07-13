@@ -538,6 +538,24 @@ export const multiCompanyUserService = {
       const { error: profileError } = await userProfileService.create(profileData);
       if (profileError) {
         console.error('Profile creation error:', profileError);
+        
+        // If it's a duplicate key error, try to update instead
+        if (profileError.code === '23505' && profileError.message.includes('user_profiles_pkey')) {
+          console.log('Profile already exists, updating instead...');
+          const { error: updateError } = await userProfileService.update(authData.user.id, {
+            phone: userData.phone,
+            actual_company_name: userData.actualCompanyName,
+            actual_role: userData.actualRole,
+            business_model: userData.businessModel || patternData?.business_model || 'internal',
+            user_classification: userData.userClassification || patternData?.user_type || 'standard',
+            user_tier: userData.userTier || patternData?.value_tier || 'standard',
+            updated_at: new Date().toISOString()
+          });
+          
+          if (updateError) {
+            console.error('Profile update error:', updateError);
+          }
+        }
         // Continue anyway, profile can be created later
       }
 

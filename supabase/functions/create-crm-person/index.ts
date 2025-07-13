@@ -106,7 +106,9 @@ Deno.serve(async (req) => {
               emails {
                 primaryEmail
               }
-              phone
+              phones {
+                primaryPhoneNumber
+              }
               createdAt
             }
           }
@@ -121,7 +123,9 @@ Deno.serve(async (req) => {
             emails: {
               primaryEmail: email
             },
-            phone: phone || null
+            phones: phone ? {
+              primaryPhoneNumber: phone
+            } : undefined
           }
         };
         
