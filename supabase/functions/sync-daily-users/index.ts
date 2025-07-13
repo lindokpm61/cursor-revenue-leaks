@@ -19,7 +19,9 @@ Deno.serve(async (req) => {
   }
 
   try {
-    console.log('Starting daily user sync to CRM...');
+    const { syncAll } = await req.json().catch(() => ({ syncAll: false }));
+    
+    console.log(`Starting ${syncAll ? 'full' : 'daily'} user sync to CRM...`);
     
     // Initialize Supabase client with service role
     const supabaseClient = createClient(
@@ -27,37 +29,55 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
     
-    // Get today's date range
-    const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+    let usersToFetch;
     
-    console.log(`Checking for users created between ${startOfDay.toISOString()} and ${endOfDay.toISOString()}`);
-    
-    // Query users created today from auth.users
-    const { data: newUsers, error: usersError } = await supabaseClient.auth.admin.listUsers({
-      page: 1,
-      perPage: 1000 // Adjust if you expect more than 1000 users per day
-    });
-    
-    if (usersError) {
-      throw new Error(`Failed to fetch users: ${usersError.message}`);
+    if (syncAll) {
+      // Get all users
+      console.log('Fetching all users from database...');
+      const { data: allUsers, error: usersError } = await supabaseClient.auth.admin.listUsers({
+        page: 1,
+        perPage: 10000 // Increase limit for full sync
+      });
+      
+      if (usersError) {
+        throw new Error(`Failed to fetch users: ${usersError.message}`);
+      }
+      
+      usersToFetch = allUsers.users;
+    } else {
+      // Get today's date range
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+      
+      console.log(`Checking for users created between ${startOfDay.toISOString()} and ${endOfDay.toISOString()}`);
+      
+      // Query users created today from auth.users
+      const { data: newUsers, error: usersError } = await supabaseClient.auth.admin.listUsers({
+        page: 1,
+        perPage: 1000 // Adjust if you expect more than 1000 users per day
+      });
+      
+      if (usersError) {
+        throw new Error(`Failed to fetch users: ${usersError.message}`);
+      }
+      
+      // Filter users created today
+      usersToFetch = newUsers.users.filter(user => {
+        const createdAt = new Date(user.created_at);
+        return createdAt >= startOfDay && createdAt < endOfDay;
+      });
     }
     
-    // Filter users created today
-    const todaysUsers = newUsers.users.filter(user => {
-      const createdAt = new Date(user.created_at);
-      return createdAt >= startOfDay && createdAt < endOfDay;
-    });
+    console.log(`Found ${usersToFetch.length} users to process`);
     
-    console.log(`Found ${todaysUsers.length} users created today`);
-    
-    if (todaysUsers.length === 0) {
+    if (usersToFetch.length === 0) {
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'No new users found for today',
-          processedCount: 0
+          message: syncAll ? 'No users found' : 'No new users found for today',
+          successCount: 0,
+          errorCount: 0
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -67,14 +87,16 @@ Deno.serve(async (req) => {
     const { data: existingCrmUsers, error: crmError } = await supabaseClient
       .from('crm_persons')
       .select('user_id')
-      .in('user_id', todaysUsers.map(u => u.id));
+      .in('user_id', usersToFetch.map(u => u.id));
     
     if (crmError) {
       console.error('Error checking existing CRM records:', crmError);
     }
     
     const existingUserIds = new Set(existingCrmUsers?.map(record => record.user_id) || []);
-    const usersToProcess = todaysUsers.filter(user => !existingUserIds.has(user.id));
+    const usersToProcess = syncAll ? 
+      usersToFetch.filter(user => !existingUserIds.has(user.id)) : 
+      usersToFetch.filter(user => !existingUserIds.has(user.id));
     
     console.log(`${usersToProcess.length} users need CRM records created`);
     
@@ -143,11 +165,12 @@ Deno.serve(async (req) => {
         integration_type: 'daily_user_sync',
         status: errorCount === 0 ? 'success' : 'partial_success',
         response_data: {
-          totalFound: todaysUsers.length,
+          totalFound: usersToFetch.length,
           alreadyInCrm: existingUserIds.size,
           processed: usersToProcess.length,
           successful: successCount,
           errors: errorCount,
+          syncType: syncAll ? 'full' : 'daily',
           results: results
         },
         error_message: errorCount > 0 ? `${errorCount} users failed to sync` : null
@@ -159,12 +182,15 @@ Deno.serve(async (req) => {
       JSON.stringify({ 
         success: true,
         message: `Processed ${usersToProcess.length} users`,
+        successCount,
+        errorCount,
         stats: {
-          totalUsersToday: todaysUsers.length,
+          totalUsers: usersToFetch.length,
           alreadyInCrm: existingUserIds.size,
           processed: usersToProcess.length,
           successful: successCount,
-          errors: errorCount
+          errors: errorCount,
+          syncType: syncAll ? 'full' : 'daily'
         },
         results: results
       }),

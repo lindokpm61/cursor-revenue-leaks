@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   CheckCircle, XCircle, AlertCircle, RefreshCw, 
-  Zap, Mail, Database, Activity
+  Zap, Mail, Database, Activity, Users
 } from "lucide-react";
 import { integrationLogService, submissionService } from "@/lib/supabase";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const AdminIntegrations = () => {
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [integrationLogs, setIntegrationLogs] = useState<any[]>([]);
   const [integrationStats, setIntegrationStats] = useState({
     twentyCRM: { success: 0, failed: 0, lastSync: null },
@@ -117,6 +118,34 @@ const AdminIntegrations = () => {
     }
   };
 
+  const handleFullCrmSync = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-daily-users', {
+        body: { syncAll: true }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "CRM Sync Completed",
+        description: `Successfully synced ${data.successCount} users to CRM. ${data.errorCount} errors occurred.`,
+      });
+      
+      // Refresh integration data after sync
+      await loadIntegrationData();
+    } catch (error: any) {
+      console.error('Error syncing to CRM:', error);
+      toast({
+        title: "Sync Failed",
+        description: error.message || "Failed to sync users to CRM",
+        variant: "destructive",
+      });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'success':
@@ -194,10 +223,16 @@ const AdminIntegrations = () => {
             Monitor sync status and health of external service integrations
           </p>
         </div>
-        <Button onClick={loadIntegrationData} variant="outline">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleFullCrmSync} disabled={syncing} variant="default">
+            <Users className="h-4 w-4 mr-2" />
+            {syncing ? "Syncing..." : "Sync All Users to CRM"}
+          </Button>
+          <Button onClick={loadIntegrationData} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Integration Health Cards */}
