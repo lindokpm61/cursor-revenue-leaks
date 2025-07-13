@@ -56,6 +56,7 @@ Deno.serve(async (req) => {
     }
 
     // Check if person already exists in our database
+    // Use service role client for system operations
     const { data: existingPerson } = await supabaseClient
       .from('crm_persons')
       .select('*')
