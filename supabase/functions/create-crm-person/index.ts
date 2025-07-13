@@ -176,9 +176,53 @@ Deno.serve(async (req) => {
     if (insertError) {
       console.error('Failed to store person mapping:', insertError);
       
-      // If it's a duplicate key error, that's okay - the person already exists
+      // If it's a duplicate key error, check which constraint was violated
       if (insertError.code === '23505') {
-        console.log('Person mapping already exists, that is fine');
+        if (insertError.message.includes('crm_persons_user_id_key')) {
+          // User already has a CRM person - this is fine, return existing
+          console.log('User already has CRM person mapping');
+          const { data: existingMapping } = await supabaseClient
+            .from('crm_persons')
+            .select('crm_person_id')
+            .eq('user_id', userId)
+            .single();
+          
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              personId: existingMapping?.crm_person_id || personId,
+              existing: true 
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } else if (insertError.message.includes('crm_persons_crm_person_id_key')) {
+          // This CRM person ID is already mapped to another user
+          console.log('CRM person ID already mapped to different user, updating mapping');
+          
+          // Update the existing mapping to use the new user
+          const { error: updateError } = await supabaseClient
+            .from('crm_persons')
+            .update({
+              user_id: userId,
+              email: email,
+              first_name: firstName,
+              last_name: lastName,
+              phone: phone
+            })
+            .eq('crm_person_id', personId);
+          
+          if (updateError) {
+            console.error('Failed to update person mapping:', updateError);
+            await supabaseClient
+              .from('integration_logs')
+              .insert({
+                integration_type: 'twenty_crm_person',
+                status: 'partial_success',
+                response_data: { personId, error: updateError.message },
+                error_message: `Database mapping update failed: ${updateError.message}`
+              });
+          }
+        }
       } else {
         // For other errors, we should still log but not fail
         await supabaseClient
