@@ -18,6 +18,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import Results from "./pages/Results";
 import ActionPlan from "./pages/ActionPlan";
 import NotFound from "./pages/NotFound";
+import TestSync from "./pages/TestSync";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
             </Route>
             <Route path="/results/:id" element={<Results />} />
             <Route path="/action-plan/:id" element={<ActionPlan />} />
+            <Route path="/test-sync" element={<TestSync />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
