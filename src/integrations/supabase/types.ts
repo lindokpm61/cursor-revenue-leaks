@@ -85,6 +85,42 @@ export type Database = {
         }
         Relationships: []
       }
+      crm_persons: {
+        Row: {
+          created_at: string
+          crm_person_id: string
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          crm_person_id: string
+          email: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          crm_person_id?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_engagement_events: {
         Row: {
           campaign_id: string | null
@@ -277,6 +313,8 @@ export type Database = {
           company_name: string
           contact_email: string
           created_at: string | null
+          crm_opportunity_id: string | null
+          crm_person_id: string | null
           current_arr: number | null
           failed_payment_loss: number | null
           failed_payment_rate: number | null
@@ -314,6 +352,8 @@ export type Database = {
           company_name: string
           contact_email: string
           created_at?: string | null
+          crm_opportunity_id?: string | null
+          crm_person_id?: string | null
           current_arr?: number | null
           failed_payment_loss?: number | null
           failed_payment_rate?: number | null
@@ -351,6 +391,8 @@ export type Database = {
           company_name?: string
           contact_email?: string
           created_at?: string | null
+          crm_opportunity_id?: string | null
+          crm_person_id?: string | null
           current_arr?: number | null
           failed_payment_loss?: number | null
           failed_payment_rate?: number | null

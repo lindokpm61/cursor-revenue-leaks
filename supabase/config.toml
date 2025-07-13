@@ -79,3 +79,12 @@ verify_jwt = false
 
 [functions.twenty-crm-integration]
 verify_jwt = false
+
+[functions.create-crm-person]
+verify_jwt = false
+
+[functions.create-crm-company]
+verify_jwt = false
+
+[functions.create-crm-opportunity]
+verify_jwt = false

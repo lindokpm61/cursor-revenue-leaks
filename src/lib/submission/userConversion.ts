@@ -3,7 +3,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getTempId } from "./trackingHelpers";
 import { getTemporarySubmission } from "./submissionStorage";
-import { integrations } from "@/lib/integrations";
+import { crmIntegration } from "@/lib/crmIntegration";
 
 // Convert temporary submission to user submission
 export const convertToUserSubmission = async (userId: string, submissionData: any) => {
@@ -60,60 +60,15 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
 
     if (submissionError) throw submissionError;
 
-    // Trigger Twenty CRM integration
+    // Trigger separated CRM integration using new service
     try {
-      // Map submission to CalculatorSubmission format
-      const crmSubmission = {
-        id: submission.id,
-        company_name: submission.company_name,
-        email: submission.contact_email,
-        industry: submission.industry || 'Technology',
-        current_arr: submission.current_arr || 0,
-        monthly_leads: submission.monthly_leads || 0,
-        average_deal_value: submission.average_deal_value || 0,
-        lead_response_time_hours: submission.lead_response_time || 0,
-        monthly_free_signups: submission.monthly_free_signups || 0,
-        free_to_paid_conversion_rate: submission.free_to_paid_conversion || 0,
-        monthly_mrr: submission.monthly_mrr || 0,
-        failed_payment_rate: submission.failed_payment_rate || 0,
-        manual_hours_per_week: submission.manual_hours || 0,
-        hourly_rate: submission.hourly_rate || 0,
-        calculations: {
-          leadResponseLoss: submission.lead_response_loss || 0,
-          failedPaymentLoss: submission.failed_payment_loss || 0,
-          selfServeGap: submission.selfserve_gap_loss || 0,
-          processLoss: submission.process_inefficiency_loss || 0,
-          totalLeakage: submission.total_leak || 0,
-          potentialRecovery70: submission.recovery_potential_70 || 0,
-          potentialRecovery85: submission.recovery_potential_85 || 0,
-        },
-        lead_score: submission.lead_score || 0,
-        created_at: submission.created_at,
-      };
+      console.log('Starting separated CRM integration for user:', userId);
       
-      console.log('About to call CRM integration with submission:', crmSubmission);
-      const integrationResult = await integrations.processSubmission(crmSubmission, userId, 'existing_user');
+      const integrationResult = await crmIntegration.completeSubmissionIntegration(userId, submission.id);
       console.log('CRM integration completed:', integrationResult);
-      
-      // Update submission with CRM IDs if successful
-      if (integrationResult.success && integrationResult.results.crm) {
-        const updates: any = {};
-        if (integrationResult.results.crm.companyId) {
-          updates.twenty_company_id = integrationResult.results.crm.companyId;
-        }
-        if (integrationResult.results.crm.contactId) {
-          updates.twenty_contact_id = integrationResult.results.crm.contactId;
-        }
-        
-        if (Object.keys(updates).length > 0) {
-          await supabase
-            .from('submissions')
-            .update(updates)
-            .eq('id', submission.id);
-        }
-      }
+
     } catch (error) {
-      console.error('CRM integration failed:', error);
+      console.error('Separated CRM integration failed:', error);
       // Don't fail the entire conversion if CRM integration fails
     }
 
@@ -180,60 +135,15 @@ const createDirectSubmission = async (userId: string, submissionData: any) => {
 
   if (submissionError) throw submissionError;
 
-  // Trigger Twenty CRM integration
+  // Trigger separated CRM integration for direct submission using new service
   try {
-    // Map submission to CalculatorSubmission format
-    const crmSubmission = {
-      id: submission.id,
-      company_name: submission.company_name,
-      email: submission.contact_email,
-      industry: submission.industry || 'Technology',
-      current_arr: submission.current_arr || 0,
-      monthly_leads: submission.monthly_leads || 0,
-      average_deal_value: submission.average_deal_value || 0,
-      lead_response_time_hours: submission.lead_response_time || 0,
-      monthly_free_signups: submission.monthly_free_signups || 0,
-      free_to_paid_conversion_rate: submission.free_to_paid_conversion || 0,
-      monthly_mrr: submission.monthly_mrr || 0,
-      failed_payment_rate: submission.failed_payment_rate || 0,
-      manual_hours_per_week: submission.manual_hours || 0,
-      hourly_rate: submission.hourly_rate || 0,
-      calculations: {
-        leadResponseLoss: submission.lead_response_loss || 0,
-        failedPaymentLoss: submission.failed_payment_loss || 0,
-        selfServeGap: submission.selfserve_gap_loss || 0,
-        processLoss: submission.process_inefficiency_loss || 0,
-        totalLeakage: submission.total_leak || 0,
-        potentialRecovery70: submission.recovery_potential_70 || 0,
-        potentialRecovery85: submission.recovery_potential_85 || 0,
-      },
-      lead_score: submission.lead_score || 0,
-      created_at: submission.created_at,
-    };
+    console.log('Starting separated CRM integration for direct submission, user:', userId);
     
-    console.log('About to call CRM integration with direct submission:', crmSubmission);
-    const integrationResult = await integrations.processSubmission(crmSubmission, userId, 'existing_user');
+    const integrationResult = await crmIntegration.completeSubmissionIntegration(userId, submission.id);
     console.log('CRM integration completed for direct submission:', integrationResult);
-    
-    // Update submission with CRM IDs if successful
-    if (integrationResult.success && integrationResult.results.crm) {
-      const updates: any = {};
-      if (integrationResult.results.crm.companyId) {
-        updates.twenty_company_id = integrationResult.results.crm.companyId;
-      }
-      if (integrationResult.results.crm.contactId) {
-        updates.twenty_contact_id = integrationResult.results.crm.contactId;
-      }
-      
-      if (Object.keys(updates).length > 0) {
-        await supabase
-          .from('submissions')
-          .update(updates)
-          .eq('id', submission.id);
-      }
-    }
+
   } catch (error) {
-    console.error('CRM integration failed for direct submission:', error);
+    console.error('Separated CRM integration failed for direct submission:', error);
     // Don't fail the entire conversion if CRM integration fails
   }
 

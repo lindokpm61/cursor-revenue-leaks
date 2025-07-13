@@ -40,6 +40,10 @@ export const useAuthProvider = () => {
             ensureUserProfile(session.user).catch(error => {
               console.error('Failed to ensure user profile:', error);
             });
+            // Also ensure CRM person exists for existing users
+            ensureCrmPerson(session.user).catch(error => {
+              console.error('Failed to ensure CRM person:', error);
+            });
           }, 0);
         }
       }
@@ -123,8 +127,11 @@ export const useAuthProvider = () => {
       if (data.user) {
         try {
           await createUserProfile(data.user);
+          
+          // Create CRM person for new user
+          await createCrmPerson(data.user, email);
         } catch (profileError) {
-          console.error('Failed to create user profile:', profileError);
+          console.error('Failed to create user profile or CRM person:', profileError);
           // Don't fail the registration if profile creation fails
         }
       }
@@ -153,6 +160,48 @@ export const useAuthProvider = () => {
     if (error) {
       console.error('Error creating user profile:', error);
       throw error;
+    }
+  };
+
+  const createCrmPerson = async (user: User, email: string) => {
+    try {
+      console.log('Creating CRM person for new user:', user.id);
+      const { data, error } = await supabase.functions.invoke('create-crm-person', {
+        body: {
+          userId: user.id,
+          email: email,
+          firstName: user.user_metadata?.first_name || email.split('@')[0] || 'Unknown',
+          lastName: user.user_metadata?.last_name || 'User',
+          phone: user.user_metadata?.phone || null
+        }
+      });
+
+      if (error) {
+        console.error('Failed to create CRM person:', error);
+      } else {
+        console.log('CRM person created successfully:', data);
+      }
+    } catch (error) {
+      console.error('Error in CRM person creation:', error);
+      // Don't fail registration if CRM person creation fails
+    }
+  };
+
+  const ensureCrmPerson = async (user: User) => {
+    try {
+      // Check if CRM person already exists
+      const { data: existingPerson } = await supabase
+        .from('crm_persons')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      // Create CRM person if it doesn't exist
+      if (!existingPerson) {
+        await createCrmPerson(user, user.email!);
+      }
+    } catch (error) {
+      console.error('Error ensuring CRM person:', error);
     }
   };
 
