@@ -257,6 +257,25 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Create CRM person failed:', error);
     
+    // Log the error to integration logs for debugging
+    try {
+      const supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+      
+      await supabaseClient
+        .from('integration_logs')
+        .insert({
+          integration_type: 'twenty_crm_person',
+          status: 'error',
+          response_data: { error: error.message, stack: error.stack },
+          error_message: `Edge function error: ${error.message}`
+        });
+    } catch (logError) {
+      console.error('Failed to log error:', logError);
+    }
+    
     return new Response(
       JSON.stringify({ 
         success: false, 
