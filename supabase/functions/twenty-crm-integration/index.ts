@@ -640,25 +640,8 @@ async function createCrmOpportunityFromSubmission(
         currencyCode: "USD"
       },
       stage: "NEW_LEAD",
-      leadCategory: submissionData.lead_score > 80 ? "ENTERPRISE" : submissionData.lead_score > 60 ? "PREMIUM" : "STANDARD",
       pointOfContactId: contactId,
-      companyId: companyId,
-      recoveryPotential: submissionData.recovery_potential_70 ? {
-        amountMicros: Math.round(submissionData.recovery_potential_70 * 1000000),
-        currencyCode: "USD"
-      } : undefined,
-      totalRevenueLeak: submissionData.total_leak ? {
-        amountMicros: Math.round(submissionData.total_leak * 1000000),
-        currencyCode: "USD"
-      } : undefined,
-      annualRecurringRevenue: submissionData.current_arr ? {
-        amountMicros: Math.round(submissionData.current_arr * 1000000),
-        currencyCode: "USD"
-      } : undefined,
-      leadScore: submissionData.lead_score || 0,
-      calculatorCompletionDate: new Date().toISOString().split('T')[0],
-      leadSource: "CALCULATOR",
-      industry: submissionData.industry
+      companyId: companyId
     };
     
     console.log('Opportunity payload:', JSON.stringify(opportunityPayload, null, 2));
