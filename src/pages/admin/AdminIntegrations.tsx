@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 const AdminIntegrations = () => {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [syncResults, setSyncResults] = useState<any>(null);
   const [integrationLogs, setIntegrationLogs] = useState<any[]>([]);
   const [integrationStats, setIntegrationStats] = useState({
     twentyCRM: { success: 0, failed: 0, lastSync: null },
@@ -120,6 +121,8 @@ const AdminIntegrations = () => {
 
   const handleFullCrmSync = async () => {
     setSyncing(true);
+    setSyncResults(null);
+    
     try {
       const { data, error } = await supabase.functions.invoke('sync-daily-users', {
         body: { syncAll: true }
@@ -127,6 +130,7 @@ const AdminIntegrations = () => {
 
       if (error) throw error;
 
+      setSyncResults(data);
       toast({
         title: "CRM Sync Completed",
         description: `Successfully synced ${data.successCount} users to CRM. ${data.errorCount} errors occurred.`,
@@ -136,6 +140,12 @@ const AdminIntegrations = () => {
       await loadIntegrationData();
     } catch (error: any) {
       console.error('Error syncing to CRM:', error);
+      setSyncResults({
+        success: false,
+        error: error.message,
+        errorCount: 1,
+        successCount: 0
+      });
       toast({
         title: "Sync Failed",
         description: error.message || "Failed to sync users to CRM",
@@ -224,16 +234,69 @@ const AdminIntegrations = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={handleFullCrmSync} disabled={syncing} variant="default">
-            <Users className="h-4 w-4 mr-2" />
-            {syncing ? "Syncing..." : "Sync All Users to CRM"}
-          </Button>
           <Button onClick={loadIntegrationData} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
         </div>
       </div>
+
+      {/* CRM Sync Card */}
+      <Card className="border-border/50 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" />
+            CRM User Sync
+          </CardTitle>
+          <CardDescription>
+            Sync all users from the database to the CRM system
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button 
+            onClick={handleFullCrmSync} 
+            disabled={syncing} 
+            variant="default"
+            className="w-full"
+          >
+            <Users className="h-4 w-4 mr-2" />
+            {syncing ? "Syncing All Users..." : "Sync All Users to CRM"}
+          </Button>
+          
+          {syncResults && (
+            <div className="mt-4 p-4 rounded-lg border bg-muted/50">
+              <h4 className="font-medium mb-2">Last Sync Results</h4>
+              {syncResults.success ? (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Total Users:</span>
+                    <span className="font-medium">{syncResults.stats?.totalUsers || 0}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Already in CRM:</span>
+                    <span className="font-medium">{syncResults.stats?.alreadyInCrm || 0}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Successfully Synced:</span>
+                    <span className="text-revenue-success font-medium">{syncResults.successCount}</span>
+                  </div>
+                  {syncResults.errorCount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Errors:</span>
+                      <span className="text-revenue-danger font-medium">{syncResults.errorCount}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-revenue-danger text-sm">
+                  <p className="font-medium">Sync Failed</p>
+                  <p className="text-muted-foreground">{syncResults.error}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Integration Health Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
