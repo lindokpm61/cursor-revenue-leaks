@@ -235,7 +235,7 @@ const Results = () => {
   const leakageBreakdown = [
     {
       title: "Lead Response Loss",
-      amount: submission.lead_response_loss || 0,
+      amount: validatedLeadLoss,
       icon: Users,
       description: "Lost revenue from slow lead response times"
     },
@@ -247,7 +247,7 @@ const Results = () => {
     },
     {
       title: "Self-Serve Gap",
-      amount: submission.selfserve_gap_loss || 0,
+      amount: validatedSelfServeLoss,
       icon: Target,
       description: "Missed opportunities in self-service conversion"
     },
