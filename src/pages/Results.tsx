@@ -42,6 +42,7 @@ import { ImplementationTimeline } from "@/components/calculator/results/Implemen
 import { IndustryBenchmarking } from "@/components/calculator/results/IndustryBenchmarking";
 import { EnhancedInsights } from "@/components/calculator/results/EnhancedInsights";
 import { validateRecoveryAssumptions, INDUSTRY_BENCHMARKS } from "@/lib/calculator/enhancedCalculations";
+import { validateCalculationResults } from "@/lib/calculator/validationHelpers";
 import { ExecutiveSummaryCard } from "@/components/results/ExecutiveSummaryCard";
 import { SectionNavigation } from "@/components/results/SectionNavigation";
 import { UserIntentSelector, type UserIntent } from "@/components/results/UserIntentSelector";
@@ -229,33 +230,49 @@ const Results = () => {
     }
   ];
 
+  // Validate calculations and apply realistic bounds
+  const validation = validateCalculationResults({
+    leadResponseLoss: submission.lead_response_loss || 0,
+    failedPaymentLoss: submission.failed_payment_loss || 0,
+    selfServeGap: submission.selfserve_gap_loss || 0,
+    processLoss: submission.process_inefficiency_loss || 0,
+    currentARR: submission.current_arr || 0,
+    recoveryPotential70: submission.recovery_potential_70 || 0,
+    recoveryPotential85: submission.recovery_potential_85 || 0
+  });
+
+  // Use validated values
+  const validatedLeadLoss = validation.leadResponse.adjustedValue || submission.lead_response_loss || 0;
+  const validatedSelfServeLoss = validation.selfServe.adjustedValue || submission.selfserve_gap_loss || 0;
+  const validatedTotalLeak = validatedLeadLoss + (submission.failed_payment_loss || 0) + validatedSelfServeLoss + (submission.process_inefficiency_loss || 0);
+  
+  // Realistic recovery potential
+  const realisticRecovery70 = Math.min(
+    submission.recovery_potential_70 || 0,
+    validatedTotalLeak * 0.7,
+    (submission.current_arr || 0) * 1.5 // Never more than 1.5x ARR for 70% recovery
+  );
+
+  const realisticRecovery85 = Math.min(
+    submission.recovery_potential_85 || 0,
+    validatedTotalLeak * 0.85,
+    (submission.current_arr || 0) * 2 // Never more than 2x ARR for 85% recovery
+  );
+
   // Validation and sanity checks
   const calculationValidation = (() => {
-    const leadResponseLoss = submission.lead_response_loss || 0;
-    const selfServeGap = submission.selfserve_gap_loss || 0;
-    const currentARR = submission.current_arr || 0;
-    const totalLeak = submission.total_leak || 0;
-    
     const warnings: string[] = [];
     let confidenceLevel: 'high' | 'medium' | 'low' = 'medium';
     
-    // Check for unrealistic values
-    if (leadResponseLoss > currentARR * 3) {
-      warnings.push('Lead response loss calculation may be overestimated for your company size');
+    // Add validation warnings
+    if (!validation.overall.isValid) {
+      warnings.push(...validation.overall.warnings);
     }
     
-    if (selfServeGap > currentARR * 5) {
-      warnings.push('Self-serve opportunity calculation assumes aggressive growth targets');
-    }
-    
-    if ((submission.recovery_potential_85 || 0) > currentARR * 15) {
-      warnings.push('Recovery projections assume best-in-class execution across all areas');
-    }
-    
-    // Determine confidence level
-    if (currentARR > 1000000 && (submission.monthly_leads || 0) > 200) {
+    // Determine confidence level based on data quality
+    if ((submission.current_arr || 0) > 1000000 && (submission.monthly_leads || 0) > 200) {
       confidenceLevel = 'high';
-    } else if (currentARR < 100000 || totalLeak > currentARR * 10) {
+    } else if ((submission.current_arr || 0) < 100000 || validatedTotalLeak > (submission.current_arr || 0) * 10) {
       confidenceLevel = 'low';
     }
     
@@ -401,22 +418,22 @@ const Results = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-8 bg-gradient-to-br from-background via-revenue-warning/5 to-revenue-success/5 rounded-2xl border-2 border-revenue-warning/20 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent"></div>
                 <div className="text-center relative border-l-4 border-revenue-warning/30 pl-4">
-                  <div className={`text-2xl sm:text-3xl font-bold mb-3 ${getLeakageColor(submission.total_leak || 0)} leading-none`}>
-                    {formatCurrency(submission.total_leak || 0)}
+                  <div className={`text-2xl sm:text-3xl font-bold mb-3 ${getLeakageColor(validatedTotalLeak)} leading-none`}>
+                    {formatCurrency(validatedTotalLeak)}
                   </div>
                   <p className="text-sm font-medium text-revenue-warning">💰 Opportunity Size</p>
                 </div>
                 <div className="text-center relative border-l-4 border-revenue-success/30 pl-4">
                   <div className="text-2xl sm:text-3xl font-bold text-revenue-success mb-3 leading-none flex items-center justify-center gap-2">
                     <ArrowUp className="h-5 w-5" />
-                    {formatCurrency(submission.recovery_potential_70 || 0)}
+                    {formatCurrency(realisticRecovery70)}
                   </div>
                   <p className="text-sm font-medium text-revenue-success">✅ Recovery Potential (70%)</p>
                 </div>
                 <div className="text-center relative border-l-4 border-revenue-primary/30 pl-4">
                   <div className="text-2xl sm:text-3xl font-bold text-revenue-primary mb-3 leading-none flex items-center justify-center gap-2">
                     <ArrowUp className="h-5 w-5" />
-                    {formatCurrency(submission.recovery_potential_85 || 0)}
+                    {formatCurrency(realisticRecovery85)}
                   </div>
                   <p className="text-sm font-medium text-revenue-primary">🎯 Max Recovery (85%)</p>
                 </div>
