@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   AlertTriangle, 
   TrendingUp, 
@@ -14,9 +15,20 @@ import {
   Users,
   Zap,
   ChevronRight,
-  ChevronDown
+  ChevronDown,
+  Info
 } from "lucide-react";
 import { type Submission } from "@/lib/supabase";
+import { 
+  calculateLeadResponseImpact,
+  calculateSelfServeGap,
+  calculateProcessInefficiency,
+  calculateFailedPaymentLoss
+} from "@/lib/calculator/enhancedCalculations";
+import { 
+  validateCalculationResults,
+  getCalculationConfidenceLevel
+} from "@/lib/calculator/validationHelpers";
 
 interface PriorityActionsProps {
   submission: Submission;
@@ -36,6 +48,8 @@ interface ActionItem {
   priority: 'urgent' | 'medium';
   currentProgress: number;
   targetProgress: number;
+  confidence: 'high' | 'medium' | 'low';
+  explanation: string;
 }
 
 export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsProps) => {
@@ -43,55 +57,107 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
 
   const getActionItems = (): ActionItem[] => {
     const actions: ActionItem[] = [];
+    
+    // Get calculation confidence
+    const confidence = getCalculationConfidenceLevel({
+      currentARR: submission.current_arr || 0,
+      monthlyLeads: submission.monthly_leads || 0,
+      monthlyFreeSignups: submission.monthly_free_signups || 0,
+      totalLeak: submission.total_leak || 0
+    });
+
+    // Validate calculations
+    const validation = validateCalculationResults({
+      leadResponseLoss: submission.lead_response_loss || 0,
+      failedPaymentLoss: submission.failed_payment_loss || 0,
+      selfServeGap: submission.selfserve_gap_loss || 0,
+      processLoss: submission.process_inefficiency_loss || 0,
+      currentARR: submission.current_arr || 0,
+      recoveryPotential70: submission.recovery_potential_70 || 0,
+      recoveryPotential85: submission.recovery_potential_85 || 0
+    });
 
     // Lead Response Time Action
-    if (submission.lead_response_time && submission.lead_response_time > 2) {
-      const targetResponseTime = 1;
-      const currentProgress = Math.max(0, 100 - (submission.lead_response_time * 10));
+    if (submission.lead_response_time && submission.lead_response_time > 2 && submission.average_deal_value) {
+      const currentImpact = calculateLeadResponseImpact(submission.lead_response_time, submission.average_deal_value);
+      const targetImpact = calculateLeadResponseImpact(1, submission.average_deal_value);
+      const improvementPotential = Math.max(0, currentImpact - targetImpact);
+      
+      // Cap recovery at reasonable percentage of ARR
+      const cappedRecovery = Math.min(improvementPotential, (submission.current_arr || 0) * 0.15);
+      
+      const currentProgress = Math.max(0, Math.min(100, 100 - ((submission.lead_response_time - 1) * 15)));
       const targetProgress = 90;
       
       actions.push({
         id: 'lead-response',
-        title: 'Fix Lead Response Time',
+        title: 'Optimize Lead Response Time',
         description: 'Reduce response time to under 1 hour for maximum conversion',
         currentMetric: `${submission.lead_response_time}h response time`,
-        targetMetric: `${targetResponseTime}h response time`,
-        potentialRecovery: submission.lead_response_loss || 0,
+        targetMetric: '1h response time',
+        potentialRecovery: cappedRecovery,
         difficulty: 'Easy',
         timeframe: '2-4 weeks',
         icon: Clock,
-        priority: 'urgent',
+        priority: cappedRecovery > (submission.current_arr || 0) * 0.05 ? 'urgent' : 'medium',
         currentProgress,
-        targetProgress
+        targetProgress,
+        confidence,
+        explanation: 'Fast response times dramatically improve lead conversion rates. Each hour of delay reduces conversion probability exponentially.'
       });
     }
 
     // Self-Serve Conversion Optimization
-    if (submission.free_to_paid_conversion && submission.free_to_paid_conversion < 15) {
-      const industryBenchmark = 15;
-      const currentProgress = (submission.free_to_paid_conversion / industryBenchmark) * 100;
-      const targetProgress = 100;
+    if (submission.free_to_paid_conversion && submission.monthly_free_signups && submission.monthly_mrr) {
+      const currentConversion = submission.free_to_paid_conversion;
+      const industryBenchmark = 4.2; // More realistic benchmark
       
-      actions.push({
-        id: 'conversion-optimization',
-        title: 'Self-Serve Conversion Optimization',
-        description: 'Improve free-to-paid conversion rate to industry benchmark',
-        currentMetric: `${submission.free_to_paid_conversion}% conversion rate`,
-        targetMetric: `${industryBenchmark}% conversion rate`,
-        potentialRecovery: submission.selfserve_gap_loss || 0,
-        difficulty: 'Medium',
-        timeframe: '4-8 weeks',
-        icon: Target,
-        priority: 'urgent',
-        currentProgress,
-        targetProgress
-      });
+      if (currentConversion < industryBenchmark) {
+        const gapRecovery = calculateSelfServeGap(
+          submission.monthly_free_signups,
+          currentConversion,
+          submission.monthly_mrr,
+          submission.industry || 'other'
+        );
+        
+        // Cap at reasonable percentage of ARR
+        const cappedRecovery = Math.min(gapRecovery, (submission.current_arr || 0) * 0.25);
+        
+        const currentProgress = (currentConversion / industryBenchmark) * 100;
+        const targetProgress = 100;
+        
+        actions.push({
+          id: 'conversion-optimization',
+          title: 'Self-Serve Conversion Optimization',
+          description: 'Improve free-to-paid conversion through better onboarding and product experience',
+          currentMetric: `${currentConversion}% conversion rate`,
+          targetMetric: `${industryBenchmark}% conversion rate`,
+          potentialRecovery: cappedRecovery,
+          difficulty: 'Medium',
+          timeframe: '6-12 weeks',
+          icon: Target,
+          priority: cappedRecovery > (submission.current_arr || 0) * 0.05 ? 'urgent' : 'medium',
+          currentProgress,
+          targetProgress,
+          confidence,
+          explanation: 'Better onboarding, feature discovery, and value demonstration can significantly improve conversion rates from free to paid plans.'
+        });
+      }
     }
 
     // Process Automation
-    if (submission.manual_hours && submission.manual_hours > 10) {
+    if (submission.manual_hours && submission.manual_hours > 10 && submission.hourly_rate) {
+      const automationSavings = calculateProcessInefficiency(
+        submission.manual_hours,
+        submission.hourly_rate,
+        0.7 // 70% automation potential
+      );
+      
+      // Cap at reasonable amount
+      const cappedSavings = Math.min(automationSavings, (submission.current_arr || 0) * 0.1);
+      
       const automationPotential = Math.min(submission.manual_hours * 0.7, submission.manual_hours - 5);
-      const currentProgress = 100 - ((submission.manual_hours / 40) * 100);
+      const currentProgress = Math.max(0, 100 - ((submission.manual_hours / 40) * 100));
       const targetProgress = 85;
       
       actions.push({
@@ -100,20 +166,31 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
         description: 'Automate repetitive manual tasks to save time and reduce errors',
         currentMetric: `${submission.manual_hours}h/week manual work`,
         targetMetric: `${Math.round(submission.manual_hours - automationPotential)}h/week manual work`,
-        potentialRecovery: submission.process_inefficiency_loss || 0,
+        potentialRecovery: cappedSavings,
         difficulty: 'Easy',
         timeframe: '3-6 weeks',
         icon: Zap,
-        priority: 'urgent',
+        priority: cappedSavings > (submission.current_arr || 0) * 0.02 ? 'urgent' : 'medium',
         currentProgress,
-        targetProgress
+        targetProgress,
+        confidence,
+        explanation: 'Automating manual processes frees up valuable time for strategic activities and reduces operational costs.'
       });
     }
 
     // Payment Failure Reduction
-    if (submission.failed_payment_rate && submission.failed_payment_rate > 2) {
+    if (submission.failed_payment_rate && submission.failed_payment_rate > 2 && submission.monthly_mrr) {
+      const paymentLoss = calculateFailedPaymentLoss(
+        submission.monthly_mrr,
+        submission.failed_payment_rate / 100,
+        'basic'
+      );
+      
+      // Cap at reasonable percentage
+      const cappedLoss = Math.min(paymentLoss, (submission.current_arr || 0) * 0.08);
+      
       const targetFailureRate = 1.5;
-      const currentProgress = 100 - (submission.failed_payment_rate * 10);
+      const currentProgress = Math.max(0, 100 - (submission.failed_payment_rate * 5));
       const targetProgress = 85;
       
       actions.push({
@@ -122,35 +199,24 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
         description: 'Implement better payment retry logic and multiple payment methods',
         currentMetric: `${submission.failed_payment_rate}% failure rate`,
         targetMetric: `${targetFailureRate}% failure rate`,
-        potentialRecovery: submission.failed_payment_loss || 0,
+        potentialRecovery: cappedLoss,
         difficulty: 'Medium',
         timeframe: '6-10 weeks',
         icon: CreditCard,
-        priority: 'medium',
+        priority: cappedLoss > (submission.current_arr || 0) * 0.02 ? 'urgent' : 'medium',
         currentProgress,
-        targetProgress
+        targetProgress,
+        confidence,
+        explanation: 'Reducing payment failures through better retry logic and payment methods directly impacts recurring revenue.'
       });
     }
 
-    // Additional Process Improvements
-    if (submission.manual_hours && submission.manual_hours > 5) {
-      actions.push({
-        id: 'process-efficiency',
-        title: 'Process Efficiency Improvements',
-        description: 'Streamline workflows and eliminate bottlenecks in your operations',
-        currentMetric: 'Manual workflow dependencies',
-        targetMetric: 'Automated workflow orchestration',
-        potentialRecovery: (submission.process_inefficiency_loss || 0) * 0.3,
-        difficulty: 'Hard',
-        timeframe: '8-12 weeks',
-        icon: Settings,
-        priority: 'medium',
-        currentProgress: 40,
-        targetProgress: 90
-      });
-    }
+    // Filter out actions with very low recovery potential
+    const filteredActions = actions.filter(action => 
+      action.potentialRecovery > (submission.current_arr || 0) * 0.01 // At least 1% of ARR
+    );
 
-    return actions.sort((a, b) => {
+    return filteredActions.sort((a, b) => {
       if (a.priority !== b.priority) {
         return a.priority === 'urgent' ? -1 : 1;
       }
@@ -180,8 +246,32 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
   const urgentActions = actions.filter(action => action.priority === 'urgent');
   const mediumActions = actions.filter(action => action.priority === 'medium');
 
+  // Get overall confidence level
+  const overallConfidence = getCalculationConfidenceLevel({
+    currentARR: submission.current_arr || 0,
+    monthlyLeads: submission.monthly_leads || 0,
+    monthlyFreeSignups: submission.monthly_free_signups || 0,
+    totalLeak: submission.total_leak || 0
+  });
+
   if (actions.length === 0) {
-    return null;
+    return (
+      <Card className="border-border/50 shadow-lg">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-revenue-primary">
+              <TrendingUp className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl">Priority Actions</CardTitle>
+              <p className="text-muted-foreground mt-1">
+                Your operations appear to be well-optimized. Continue monitoring key metrics.
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+    );
   }
 
   return (
@@ -209,6 +299,14 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
 
           <CollapsibleContent>
             <CardContent className="space-y-6 pt-6">
+              {overallConfidence === 'low' && (
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    Some calculations may have lower confidence due to limited data. Consider these recommendations as directional guidance and validate with your specific business context.
+                  </AlertDescription>
+                </Alert>
+              )}
               {urgentActions.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-4">
@@ -249,7 +347,12 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
                               </div>
                               <div>
                                 <div className="text-sm text-muted-foreground">Recovery Potential</div>
-                                <div className="font-bold text-revenue-primary">{formatCurrency(action.potentialRecovery)}</div>
+                                <div className="font-bold text-revenue-primary">
+                                  {formatCurrency(action.potentialRecovery)}
+                                  {action.confidence === 'low' && (
+                                    <span className="text-xs text-muted-foreground ml-1">(estimate)</span>
+                                  )}
+                                </div>
                               </div>
                               <div>
                                 <div className="text-sm text-muted-foreground">Timeline</div>
@@ -270,6 +373,9 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
                               <Progress value={action.currentProgress} className="h-2" />
                               <div className="flex justify-between text-sm text-muted-foreground">
                                 <span>Target: {Math.round(action.targetProgress)}%</span>
+                              </div>
+                              <div className="mt-3 p-3 bg-muted/50 rounded-lg">
+                                <p className="text-xs text-muted-foreground">{action.explanation}</p>
                               </div>
                             </div>
                           </CardContent>
@@ -320,7 +426,12 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
                               </div>
                               <div>
                                 <div className="text-sm text-muted-foreground">Recovery Potential</div>
-                                <div className="font-bold text-revenue-primary">{formatCurrency(action.potentialRecovery)}</div>
+                                <div className="font-bold text-revenue-primary">
+                                  {formatCurrency(action.potentialRecovery)}
+                                  {action.confidence === 'low' && (
+                                    <span className="text-xs text-muted-foreground ml-1">(estimate)</span>
+                                  )}
+                                </div>
                               </div>
                               <div>
                                 <div className="text-sm text-muted-foreground">Timeline</div>
@@ -341,6 +452,9 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
                               <Progress value={action.currentProgress} className="h-2" />
                               <div className="flex justify-between text-sm text-muted-foreground">
                                 <span>Target: {Math.round(action.targetProgress)}%</span>
+                              </div>
+                              <div className="mt-3 p-3 bg-muted/50 rounded-lg">
+                                <p className="text-xs text-muted-foreground">{action.explanation}</p>
                               </div>
                             </div>
                           </CardContent>
