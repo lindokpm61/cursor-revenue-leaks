@@ -134,120 +134,81 @@ const Dashboard = () => {
     const isHighValue = (latestAnalysis.recovery_potential_70 || 0) > 100000000;
     
     return (
-      <div 
-        className="rounded-2xl p-12 mb-8 text-center"
-        style={{
-          background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-        }}
-      >
-        <h1 className="text-4xl font-bold text-foreground mb-2">
-          Your Revenue Recovery Opportunity
-        </h1>
-        
-        <p className="text-lg text-muted-foreground mb-8">
-          Analysis for {latestAnalysis.company_name} • Generated {formatDate(latestAnalysis.created_at || '')}
-        </p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-4xl mx-auto">
-          <div 
-            className="p-6 rounded-xl border"
-            style={{
-              background: '#fef2f2',
-              borderColor: '#fecaca'
-            }}
-          >
-            <div className="text-sm font-semibold mb-2" style={{ color: '#991b1b' }}>
-              Annual Revenue Leak
-            </div>
-            <div className="text-4xl font-bold" style={{ color: '#dc2626' }}>
-              {formatCurrency(latestAnalysis.total_leak || 0)}
-            </div>
-          </div>
+        <div className="rounded-2xl p-12 mb-8 text-center bg-gradient-primary">
+          <h1 className="text-4xl font-bold text-foreground mb-2">
+            Your Revenue Recovery Opportunity
+          </h1>
           
-          <div 
-            className="p-6 rounded-xl border"
-            style={{
-              background: '#f0fdf4',
-              borderColor: '#bbf7d0'
-            }}
-          >
-            <div className="text-sm font-semibold mb-2" style={{ color: '#166534' }}>
-              Recovery Potential
-            </div>
-            <div className="text-4xl font-bold" style={{ color: '#059669' }}>
-              {formatCurrency(latestAnalysis.recovery_potential_70 || 0)}
-            </div>
-          </div>
+          <p className="text-lg text-muted-foreground mb-8">
+            Analysis for {latestAnalysis.company_name} • Generated {formatDate(latestAnalysis.created_at || '')}
+          </p>
           
-          <div 
-            className="p-6 rounded-xl border"
-            style={{
-              background: '#eff6ff',
-              borderColor: '#bfdbfe'
-            }}
-          >
-            <div className="text-sm font-semibold mb-2" style={{ color: '#1e40af' }}>
-              ROI Potential
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-4xl mx-auto">
+            <div className="p-6 rounded-xl border bg-destructive/5 border-destructive/20">
+              <div className="text-sm font-semibold mb-2 text-destructive">
+                Annual Revenue Leak
+              </div>
+              <div className="text-4xl font-bold text-destructive">
+                {formatCurrency(latestAnalysis.total_leak || 0)}
+              </div>
             </div>
-            <div className="text-4xl font-bold" style={{ color: '#2563eb' }}>
-              {calculateROI(latestAnalysis)}%
+            
+            <div className="p-6 rounded-xl border bg-success/5 border-success/20">
+              <div className="text-sm font-semibold mb-2 text-success">
+                Recovery Potential
+              </div>
+              <div className="text-4xl font-bold text-success">
+                {formatCurrency(latestAnalysis.recovery_potential_70 || 0)}
+              </div>
+            </div>
+            
+            <div className="p-6 rounded-xl border bg-primary/5 border-primary/20">
+              <div className="text-sm font-semibold mb-2 text-primary">
+                ROI Potential
+              </div>
+              <div className="text-4xl font-bold text-primary">
+                {calculateROI(latestAnalysis)}%
+              </div>
             </div>
           </div>
-        </div>
         
-        <div className="flex gap-4 justify-center flex-wrap">
-          {isHighValue ? (
-            <Button 
-              size="lg"
-              className="text-lg px-8 py-4"
-              style={{
-                background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
-                color: 'white',
-                boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)',
-              }}
-              onClick={() => window.open('mailto:support@company.com?subject=Priority Strategy Call Request', '_self')}
-            >
-              🚀 Book Priority Strategy Call
-            </Button>
-          ) : (
-            <Button 
-              size="lg"
-              className="text-lg px-8 py-4"
-              style={{
-                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                color: 'white',
-                boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
-              }}
-              onClick={() => window.open('mailto:support@company.com?subject=Strategy Consultation Request', '_self')}
-            >
-              📞 Book Strategy Consultation
-            </Button>
+          <div className="flex gap-4 justify-center flex-wrap">
+            {isHighValue ? (
+              <Button 
+                size="lg"
+                className="text-lg px-8 py-4 bg-gradient-urgent text-white shadow-urgent"
+                onClick={() => window.open('mailto:support@company.com?subject=Priority Strategy Call Request', '_self')}
+              >
+                🚀 Book Priority Strategy Call
+              </Button>
+            ) : (
+              <Button 
+                size="lg"
+                className="text-lg px-8 py-4 bg-gradient-success text-white shadow-success"
+                onClick={() => window.open('mailto:support@company.com?subject=Strategy Consultation Request', '_self')}
+              >
+                📞 Book Strategy Consultation
+              </Button>
+            )}
+            
+            <Link to={`/action-plan/${latestAnalysis.id}`}>
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="text-lg px-8 py-4 border-2"
+              >
+                📋 View Detailed Action Plan
+              </Button>
+            </Link>
+          </div>
+        
+          {isHighValue && (
+            <div className="mt-6 p-4 rounded-lg border bg-destructive/5 border-destructive/20">
+              <p className="text-sm text-destructive">
+                ⚡ High-impact opportunity: Every month of delay = {formatCurrency((latestAnalysis.total_leak || 0)/12)} in continued losses
+              </p>
+            </div>
           )}
-          
-          <Link to={`/action-plan/${latestAnalysis.id}`}>
-            <Button 
-              variant="outline" 
-              size="lg"
-              className="text-lg px-8 py-4 border-2"
-            >
-              📋 View Detailed Action Plan
-            </Button>
-          </Link>
-        </div>
-        
-        {isHighValue && (
-          <div 
-            className="mt-6 p-4 rounded-lg border"
-            style={{
-              background: '#fef2f2',
-              borderColor: '#fecaca'
-            }}
-          >
-            <p className="text-sm" style={{ color: '#991b1b' }}>
-              ⚡ High-impact opportunity: Every month of delay = {formatCurrency((latestAnalysis.total_leak || 0)/12)} in continued losses
-            </p>
-          </div>
-        )}
       </div>
     );
   };
@@ -278,9 +239,9 @@ const Dashboard = () => {
             <div className="text-sm text-muted-foreground mb-2">
               Total Recovery Potential
             </div>
-            <div className="text-3xl font-bold" style={{ color: '#059669' }}>
-              {formatCurrency(totalRecoveryPotential)}
-            </div>
+                  <div className="text-3xl font-bold text-success">
+                    {formatCurrency(totalRecoveryPotential)}
+                  </div>
           </CardContent>
         </Card>
         
@@ -347,9 +308,9 @@ const Dashboard = () => {
                 </div>
                 
                 <div className="mb-4">
-                  <div className="text-2xl font-bold mb-1" style={{ color: '#059669' }}>
-                    {formatCurrency(analysis.recovery_potential_70 || 0)}
-                  </div>
+                    <div className="text-2xl font-bold mb-1 text-success">
+                      {formatCurrency(analysis.recovery_potential_70 || 0)}
+                    </div>
                   <div className="text-sm text-muted-foreground">
                     Recovery Potential
                   </div>
@@ -361,15 +322,15 @@ const Dashboard = () => {
                       View Results
                     </Button>
                   </Link>
-                  {(analysis.recovery_potential_70 || 0) > 50000000 && (
-                    <Button 
-                      size="sm"
-                      style={{ background: '#059669', color: 'white' }}
-                      onClick={() => window.open('mailto:support@company.com?subject=Consultation Request', '_self')}
-                    >
-                      Book Call
-                    </Button>
-                  )}
+                    {(analysis.recovery_potential_70 || 0) > 50000000 && (
+                      <Button 
+                        size="sm"
+                        className="bg-success text-white hover:bg-success/90"
+                        onClick={() => window.open('mailto:support@company.com?subject=Consultation Request', '_self')}
+                      >
+                        Book Call
+                      </Button>
+                    )}
                   <Button 
                     variant="outline" 
                     size="sm"
@@ -389,12 +350,7 @@ const Dashboard = () => {
 
   // Next Steps Section
   const NextStepsSection = ({ highestValueAnalysis }: { highestValueAnalysis: Submission }) => (
-    <div 
-      className="rounded-2xl p-12 text-center"
-      style={{
-        background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
-      }}
-    >
+    <div className="rounded-2xl p-12 text-center bg-gradient-subtle">
       <h2 className="text-3xl font-bold text-foreground mb-4">
         Ready to Recover Your Revenue?
       </h2>
@@ -406,15 +362,9 @@ const Dashboard = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
         <Card className="border-2 border-primary relative">
-          <div 
-            className="absolute -top-2 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold"
-            style={{
-              background: '#3b82f6',
-              color: 'white'
-            }}
-          >
-            RECOMMENDED
-          </div>
+            <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold bg-primary text-primary-foreground">
+              RECOMMENDED
+            </div>
           
           <CardContent className="p-8">
             <h3 className="text-xl font-semibold text-foreground mb-3">
@@ -426,13 +376,12 @@ const Dashboard = () => {
               recovery opportunity with a personalized strategy session.
             </p>
             
-            <Button 
-              className="w-full mb-3"
-              style={{ background: '#3b82f6', color: 'white' }}
-              onClick={() => window.open('mailto:support@company.com?subject=Free Consultation Request', '_self')}
-            >
-              Book Free Consultation
-            </Button>
+              <Button 
+                className="w-full mb-3 bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={() => window.open('mailto:support@company.com?subject=Free Consultation Request', '_self')}
+              >
+                Book Free Consultation
+              </Button>
             
             <div className="text-xs text-muted-foreground">
               Next available: Today or tomorrow
