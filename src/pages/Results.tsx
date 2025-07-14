@@ -203,33 +203,6 @@ const Results = () => {
     );
   }
 
-  const leakageBreakdown = [
-    {
-      title: "Lead Response Loss",
-      amount: submission.lead_response_loss || 0,
-      icon: Users,
-      description: "Lost revenue from slow lead response times"
-    },
-    {
-      title: "Failed Payment Loss", 
-      amount: submission.failed_payment_loss || 0,
-      icon: CreditCard,
-      description: "Revenue lost due to payment failures"
-    },
-    {
-      title: "Self-Serve Gap",
-      amount: submission.selfserve_gap_loss || 0,
-      icon: Target,
-      description: "Missed opportunities in self-service conversion"
-    },
-    {
-      title: "Process Inefficiency",
-      amount: submission.process_inefficiency_loss || 0,
-      icon: Settings,
-      description: "Losses from manual processes and inefficiencies"
-    }
-  ];
-
   // Validate calculations and apply realistic bounds
   const validation = validateCalculationResults({
     leadResponseLoss: submission.lead_response_loss || 0,
@@ -258,6 +231,33 @@ const Results = () => {
     validatedTotalLeak * 0.85,
     (submission.current_arr || 0) * 2 // Never more than 2x ARR for 85% recovery
   );
+
+  const leakageBreakdown = [
+    {
+      title: "Lead Response Loss",
+      amount: submission.lead_response_loss || 0,
+      icon: Users,
+      description: "Lost revenue from slow lead response times"
+    },
+    {
+      title: "Failed Payment Loss", 
+      amount: submission.failed_payment_loss || 0,
+      icon: CreditCard,
+      description: "Revenue lost due to payment failures"
+    },
+    {
+      title: "Self-Serve Gap",
+      amount: submission.selfserve_gap_loss || 0,
+      icon: Target,
+      description: "Missed opportunities in self-service conversion"
+    },
+    {
+      title: "Process Inefficiency",
+      amount: submission.process_inefficiency_loss || 0,
+      icon: Settings,
+      description: "Losses from manual processes and inefficiencies"
+    }
+  ];
 
   // Validation and sanity checks
   const calculationValidation = (() => {
