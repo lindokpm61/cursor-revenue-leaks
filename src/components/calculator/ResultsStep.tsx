@@ -5,8 +5,10 @@ import { ExecutiveSummary } from "./results/ExecutiveSummary";
 import { RevenueCharts } from "./results/RevenueCharts";
 import { DetailedBreakdown } from "./results/DetailedBreakdown";
 import { ActionPlan } from "./results/ActionPlan";
+import { EnhancedInsights } from "./results/EnhancedInsights";
 import { useSaveResults } from "./results/useSaveResults";
 import { SaveResultsRegistrationModal } from "./SaveResultsRegistrationModal";
+import { validateRecoveryAssumptions } from '@/lib/calculator/enhancedCalculations';
 
 interface ResultsStepProps {
   data: CalculatorData;
@@ -22,6 +24,45 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
     handleRegistrationSuccess, 
     handleCloseRegistrationModal 
   } = useSaveResults();
+
+  // Create enhanced insights breakdown
+  const enhancedBreakdown = {
+    leadResponse: {
+      dealSizeTier: (data.leadGeneration?.averageDealValue || 0) > 100000 ? 'Enterprise' : 
+                   (data.leadGeneration?.averageDealValue || 0) > 25000 ? 'Mid-Market' : 'SMB',
+      conversionImpact: calculations.leadResponseLoss,
+      responseTimeHours: data.leadGeneration?.leadResponseTimeHours || 0
+    },
+    failedPayments: {
+      recoverySystem: 'Basic System',
+      recoveryRate: 0.35,
+      actualLossAfterRecovery: calculations.failedPaymentLoss * 0.65 // 65% actual loss after 35% recovery
+    },
+    selfServeGap: {
+      industryBenchmark: 15, // default benchmark
+      industryName: data.companyInfo?.industry || 'Other',
+      gapPercentage: Math.max(0, 15 - (data.selfServeMetrics?.freeToPaidConversionRate || 0)),
+      currentConversion: data.selfServeMetrics?.freeToPaidConversionRate || 0
+    },
+    processInefficiency: {
+      revenueGeneratingPotential: calculations.processLoss * 0.3, // 30% could be revenue-generating time
+      automationPotential: 0.7
+    },
+    recoveryValidation: (() => {
+      const validation = validateRecoveryAssumptions({
+        currentARR: data.companyInfo?.currentARR || 0,
+        grossRetention: 85, // default gross retention
+        netRetention: 100, // default net retention
+        customerSatisfaction: 8, // default satisfaction (out of 10)
+        hasRevOps: true // assume basic process exists
+      });
+      return {
+        canAchieve70: validation.canAchieve70,
+        canAchieve85: validation.canAchieve85,
+        limitations: validation.reasons // map reasons to limitations
+      };
+    })()
+  };
   
   const formatCurrency = (amount: number) => {
     // Handle invalid numbers
@@ -57,6 +98,10 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
         data={data} 
         calculations={calculations} 
         formatCurrency={formatCurrency} 
+      />
+
+      <EnhancedInsights 
+        breakdown={enhancedBreakdown}
       />
 
       {/* Save Actions */}

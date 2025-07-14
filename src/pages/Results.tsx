@@ -40,6 +40,8 @@ import { useToast } from "@/hooks/use-toast";
 import { PriorityActions } from "@/components/calculator/results/PriorityActions";
 import { ImplementationTimeline } from "@/components/calculator/results/ImplementationTimeline";
 import { IndustryBenchmarking } from "@/components/calculator/results/IndustryBenchmarking";
+import { EnhancedInsights } from "@/components/calculator/results/EnhancedInsights";
+import { validateRecoveryAssumptions } from "@/lib/calculator/enhancedCalculations";
 import { ExecutiveSummaryCard } from "@/components/results/ExecutiveSummaryCard";
 import { SectionNavigation } from "@/components/results/SectionNavigation";
 import { UserIntentSelector, type UserIntent } from "@/components/results/UserIntentSelector";
@@ -226,6 +228,45 @@ const Results = () => {
       description: "Losses from manual processes and inefficiencies"
     }
   ];
+
+  // Create enhanced insights breakdown for the results page
+  const enhancedBreakdown = {
+    leadResponse: {
+      dealSizeTier: (submission.average_deal_value || 0) > 100000 ? 'Enterprise' : 
+                   (submission.average_deal_value || 0) > 25000 ? 'Mid-Market' : 'SMB',
+      conversionImpact: submission.lead_response_loss || 0,
+      responseTimeHours: submission.lead_response_time || 0
+    },
+    failedPayments: {
+      recoverySystem: 'Basic System',
+      recoveryRate: 0.35,
+      actualLossAfterRecovery: (submission.failed_payment_loss || 0) * 0.65
+    },
+    selfServeGap: {
+      industryBenchmark: 15,
+      industryName: submission.industry || 'Other',
+      gapPercentage: Math.max(0, 15 - (submission.free_to_paid_conversion || 0)),
+      currentConversion: submission.free_to_paid_conversion || 0
+    },
+    processInefficiency: {
+      revenueGeneratingPotential: (submission.process_inefficiency_loss || 0) * 0.3,
+      automationPotential: 0.7
+    },
+    recoveryValidation: (() => {
+      const validation = validateRecoveryAssumptions({
+        currentARR: submission.current_arr || 0,
+        grossRetention: 85,
+        netRetention: 100,
+        customerSatisfaction: 8,
+        hasRevOps: true
+      });
+      return {
+        canAchieve70: validation.canAchieve70,
+        canAchieve85: validation.canAchieve85,
+        limitations: validation.reasons
+      };
+    })()
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -498,6 +539,25 @@ const Results = () => {
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
+
+            {/* Enhanced Insights Section */}
+            <section className="mb-12">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 rounded-2xl bg-primary/10 border-2 border-primary/20">
+                  <Zap className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-h1 font-bold mb-2">Enhanced Analytics & Insights</h2>
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline" className="text-xs font-bold px-3 py-1 bg-primary/10 border-primary/30 text-primary">
+                      🔬 Advanced Analysis
+                    </Badge>
+                    <span className="text-small text-muted-foreground">4 min read</span>
+                  </div>
+                </div>
+              </div>
+              <EnhancedInsights breakdown={enhancedBreakdown} />
+            </section>
 
             <ProgressIndicator sections={sections} />
 

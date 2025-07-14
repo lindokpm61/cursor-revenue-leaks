@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingDown, Target, Zap, BarChart3 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { TrendingDown, Target, Zap, BarChart3, AlertTriangle } from "lucide-react";
 import { CalculatorData, Calculations } from "../useCalculatorData";
 
 interface ExecutiveSummaryProps {
@@ -17,8 +18,46 @@ export const ExecutiveSummary = ({ data, calculations, formatCurrency }: Executi
 
   const currentARR = safeNumber(data.companyInfo?.currentARR);
   const potentialRecovery70 = safeNumber(calculations.potentialRecovery70);
+  const totalLeakage = safeNumber(calculations.totalLeakage);
+  const leakagePercentage = currentARR > 0 ? (totalLeakage / currentARR) * 100 : 0;
+  
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div className="space-y-6">
+      {/* Enhanced Context Banner */}
+      <div className="bg-gradient-to-r from-primary/10 to-revenue-primary/10 border border-primary/20 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <div className="p-2 rounded-lg bg-primary/20">
+            <BarChart3 className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-lg mb-2">Enhanced Revenue Analysis</h3>
+            <p className="text-sm text-muted-foreground mb-3">
+              This analysis uses 2025 validation benchmarks with exponential decay modeling for lead response, 
+              industry-specific conversion rates, and advanced recovery system consideration.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline" className="text-xs">
+                Exponential Decay Model
+              </Badge>
+              <Badge variant="outline" className="text-xs">
+                Industry Benchmarks
+              </Badge>
+              <Badge variant="outline" className="text-xs">
+                Recovery System Analysis
+              </Badge>
+              {leakagePercentage > 15 && (
+                <Badge variant="destructive" className="text-xs">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  High Risk: {leakagePercentage.toFixed(1)}% of ARR
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Executive Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
       <Card className="bg-gradient-to-br from-white to-red-50 border-red-200 shadow-soft">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
@@ -80,6 +119,7 @@ export const ExecutiveSummary = ({ data, calculations, formatCurrency }: Executi
           <p className="text-sm text-muted-foreground">of current ARR</p>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 };
