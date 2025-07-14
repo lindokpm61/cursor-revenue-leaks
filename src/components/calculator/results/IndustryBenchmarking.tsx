@@ -46,9 +46,9 @@ export const IndustryBenchmarking = ({ submission, formatCurrency }: IndustryBen
   const [isContentOpen, setIsContentOpen] = useState(false);
 
   const calculateBenchmarks = (): BenchmarkMetric[] => {
-    // Get industry-specific benchmarks with fallback to general SaaS
-    const industryKey = submission.industry as keyof typeof INDUSTRY_BENCHMARKS;
-    const industryData = INDUSTRY_BENCHMARKS[industryKey] || INDUSTRY_BENCHMARKS.SaaS;
+    // Map submission industry to benchmark keys with fallback
+    const industryKey = submission.industry?.toLowerCase().replace(/[^a-z0-9]/g, '-') as keyof typeof INDUSTRY_BENCHMARKS;
+    const industryData = INDUSTRY_BENCHMARKS[industryKey] || INDUSTRY_BENCHMARKS['saas-software'] || INDUSTRY_BENCHMARKS.other;
     
     // Calculate confidence level for validation warnings
     const confidenceLevel = getCalculationConfidenceLevel({
