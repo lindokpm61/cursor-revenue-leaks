@@ -28,11 +28,11 @@ export const validateCalculationResults = (data: {
     warnings: []
   };
   
-  // Check if lead response loss exceeds reasonable bounds (max 2x ARR)
-  if (data.leadResponseLoss > data.currentARR * 2) {
+  // Check if lead response loss exceeds reasonable bounds (max 50% ARR)
+  if (data.leadResponseLoss > data.currentARR * 0.5) {
     leadResponseValidation.isValid = false;
-    leadResponseValidation.warnings.push('Lead response loss appears unrealistically high');
-    leadResponseValidation.adjustedValue = data.currentARR * 2;
+    leadResponseValidation.warnings.push('Lead response loss calculation appears unrealistic - capped at 50% of ARR');
+    leadResponseValidation.adjustedValue = Math.min(data.leadResponseLoss, data.currentARR * 0.5);
   }
   
   // Self-Serve Gap Validation
@@ -41,11 +41,11 @@ export const validateCalculationResults = (data: {
     warnings: []
   };
   
-  // Check if self-serve gap exceeds reasonable bounds (max 5x ARR)
-  if (data.selfServeGap > data.currentARR * 5) {
+  // Check if self-serve gap exceeds reasonable bounds (max 100% ARR)
+  if (data.selfServeGap > data.currentARR) {
     selfServeValidation.isValid = false;
-    selfServeValidation.warnings.push('Self-serve gap calculation may be overestimated');
-    selfServeValidation.adjustedValue = data.currentARR * 5;
+    selfServeValidation.warnings.push('Self-serve gap calculation appears overestimated - capped at 100% of ARR');
+    selfServeValidation.adjustedValue = Math.min(data.selfServeGap, data.currentARR);
   }
   
   // Recovery Potential Validation
@@ -57,9 +57,9 @@ export const validateCalculationResults = (data: {
   const totalLeak = data.leadResponseLoss + data.failedPaymentLoss + data.selfServeGap + data.processLoss;
   
   // Check if recovery potential is realistic
-  if (data.recoveryPotential70 > data.currentARR * 10) {
+  if (data.recoveryPotential70 > data.currentARR * 2) {
     recoveryValidation.isValid = false;
-    recoveryValidation.warnings.push('Recovery potential exceeds 10x current ARR - may indicate calculation issues');
+    recoveryValidation.warnings.push('Recovery potential exceeds 2x current ARR - calculation adjusted for realism');
   }
   
   if (data.recoveryPotential85 > totalLeak * 0.85) {
