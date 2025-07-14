@@ -153,12 +153,15 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
     totalLeak: submission.total_leak || 0
   });
 
-  // Chart data for cumulative recovery
+  // Chart data for cumulative recovery - monthly intervals for 6 months
   const chartData = [
     { month: 'Current', recovery: 0, cumulative: 0 },
-    { month: 'Month 2', recovery: phases[0]?.recovery || 0, cumulative: phases[0]?.cumulativeRecovery || 0 },
-    { month: 'Month 4', recovery: phases[1]?.recovery || 0, cumulative: phases[1]?.cumulativeRecovery || 0 },
-    { month: 'Month 6', recovery: phases[2]?.recovery || 0, cumulative: phases[2]?.cumulativeRecovery || 0 }
+    { month: 'Month 1', recovery: phases[0]?.recovery * 0.5 || 0, cumulative: phases[0]?.recovery * 0.5 || 0 },
+    { month: 'Month 2', recovery: phases[0]?.recovery * 0.5 || 0, cumulative: phases[0]?.cumulativeRecovery || 0 },
+    { month: 'Month 3', recovery: phases[1]?.recovery * 0.5 || 0, cumulative: (phases[0]?.cumulativeRecovery || 0) + (phases[1]?.recovery * 0.5 || 0) },
+    { month: 'Month 4', recovery: phases[1]?.recovery * 0.5 || 0, cumulative: phases[1]?.cumulativeRecovery || 0 },
+    { month: 'Month 5', recovery: phases[2]?.recovery * 0.5 || 0, cumulative: (phases[1]?.cumulativeRecovery || 0) + (phases[2]?.recovery * 0.5 || 0) },
+    { month: 'Month 6', recovery: phases[2]?.recovery * 0.5 || 0, cumulative: phases[2]?.cumulativeRecovery || 0 }
   ];
 
   const milestones = [
