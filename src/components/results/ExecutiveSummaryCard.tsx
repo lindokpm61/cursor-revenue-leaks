@@ -11,12 +11,14 @@ import {
   ArrowUp,
   CheckCircle,
   BarChart3,
-  Mail
+  Mail,
+  AlertCircle
 } from "lucide-react";
 import { type Submission } from "@/lib/supabase";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { validateCalculationResults, getCalculationConfidenceLevel } from "@/lib/calculator/validationHelpers";
 
 interface ExecutiveSummaryCardProps {
   submission: Submission;
@@ -32,6 +34,36 @@ export const ExecutiveSummaryCard = ({
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Validate calculations and apply realistic bounds
+  const validation = validateCalculationResults({
+    leadResponseLoss: submission.lead_response_loss || 0,
+    failedPaymentLoss: submission.failed_payment_loss || 0,
+    selfServeGap: submission.selfserve_gap_loss || 0,
+    processLoss: submission.process_inefficiency_loss || 0,
+    currentARR: submission.current_arr || 0,
+    recoveryPotential70: submission.recovery_potential_70 || 0,
+    recoveryPotential85: submission.recovery_potential_85 || 0
+  });
+
+  const confidenceLevel = getCalculationConfidenceLevel({
+    currentARR: submission.current_arr || 0,
+    monthlyLeads: submission.monthly_leads || 0,
+    monthlyFreeSignups: submission.monthly_free_signups || 0,
+    totalLeak: submission.total_leak || 0
+  });
+
+  // Use validated values
+  const validatedLeadLoss = validation.leadResponse.adjustedValue || submission.lead_response_loss || 0;
+  const validatedSelfServeLoss = validation.selfServe.adjustedValue || submission.selfserve_gap_loss || 0;
+  const validatedTotalLeak = validatedLeadLoss + (submission.failed_payment_loss || 0) + validatedSelfServeLoss + (submission.process_inefficiency_loss || 0);
+  
+  // Realistic recovery potential
+  const realisticRecovery = Math.min(
+    submission.recovery_potential_70 || 0,
+    validatedTotalLeak * 0.7,
+    (submission.current_arr || 0) * 2 // Never more than 2x ARR
+  );
 
   const handleGetActionPlan = () => {
     if (!user) {
@@ -51,7 +83,8 @@ export const ExecutiveSummaryCard = ({
     return 'medium';
   };
 
-  const urgencyLevel = getUrgencyLevel(submission.total_leak || 0, submission.current_arr || 0);
+  const urgencyLevel = getUrgencyLevel(validatedTotalLeak, submission.current_arr || 0);
+  const hasValidationWarnings = !validation.overall.isValid;
   
   const urgencyConfig = {
     critical: { icon: TrendingUp, color: 'text-revenue-warning', bg: 'bg-revenue-warning/10', border: 'border-revenue-warning/20' },
@@ -64,9 +97,9 @@ export const ExecutiveSummaryCard = ({
   const UrgencyIcon = config.icon;
 
   // Single key metric focus
-  const totalLeak = submission.total_leak || 0;
+  const totalLeak = validatedTotalLeak;
   const quickWinValue = Math.min(
-    submission.lead_response_loss || 0,
+    validatedLeadLoss || 0,
     submission.failed_payment_loss || 0
   );
 
@@ -74,14 +107,14 @@ export const ExecutiveSummaryCard = ({
   const leadScore = submission.lead_score || 0;
   const showSimplified = isMobile || leadScore < 70;
 
-  // Calculate required values
+  // Calculate required values using validated data
   const roiPotential = submission.current_arr && submission.current_arr > 0 
-    ? Math.round(((submission.recovery_potential_70 || 0) / submission.current_arr) * 100)
+    ? Math.round((realisticRecovery / submission.current_arr) * 100)
     : 0;
 
   const opportunities = [
-    { name: 'Lead Response', value: submission.lead_response_loss || 0 },
-    { name: 'Self-Serve Gap', value: submission.selfserve_gap_loss || 0 },
+    { name: 'Lead Response', value: validatedLeadLoss },
+    { name: 'Self-Serve Gap', value: validatedSelfServeLoss },
     { name: 'Failed Payments', value: submission.failed_payment_loss || 0 },
     { name: 'Process Inefficiency', value: submission.process_inefficiency_loss || 0 }
   ];
@@ -111,12 +144,23 @@ export const ExecutiveSummaryCard = ({
               <CardTitle className="text-[48px] leading-tight font-black mb-4 text-foreground">
                 {getSimplifiedMessage()}
               </CardTitle>
-              <Badge 
-                variant={urgencyLevel === 'critical' ? 'default' : 'outline'} 
-                className={`uppercase text-sm font-bold px-4 py-2 ${urgencyLevel === 'critical' ? 'bg-revenue-warning text-white' : ''}`}
-              >
-                {urgencyLevel === 'critical' ? '💡' : urgencyLevel === 'high' ? '⚡' : '🎯'} {urgencyLevel} Opportunity
-              </Badge>
+              <div className="flex flex-wrap gap-2 justify-center">
+                <Badge 
+                  variant={urgencyLevel === 'critical' ? 'default' : 'outline'} 
+                  className={`uppercase text-sm font-bold px-4 py-2 ${urgencyLevel === 'critical' ? 'bg-revenue-warning text-white' : ''}`}
+                >
+                  {urgencyLevel === 'critical' ? '💡' : urgencyLevel === 'high' ? '⚡' : '🎯'} {urgencyLevel} Opportunity
+                </Badge>
+                <Badge variant="secondary" className="text-sm px-3 py-1">
+                  {confidenceLevel} confidence
+                </Badge>
+                {hasValidationWarnings && (
+                  <Badge variant="outline" className="text-sm px-3 py-1 text-revenue-warning border-revenue-warning/50">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    adjusted estimate
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -187,12 +231,23 @@ export const ExecutiveSummaryCard = ({
             <ArrowUp className="h-6 w-6" />
             {formatCurrency(totalLeak)} Recovery Opportunity
           </div>
-          <Badge 
-            variant={urgencyLevel === 'critical' ? 'default' : 'outline'} 
-            className={`uppercase text-sm font-bold px-4 py-2 ${urgencyLevel === 'critical' ? 'bg-revenue-warning text-white' : ''}`}
-          >
-            {urgencyLevel === 'critical' ? '💡' : urgencyLevel === 'high' ? '⚡' : '🎯'} {urgencyLevel} Opportunity
-          </Badge>
+          <div className="flex flex-wrap gap-2 justify-center">
+            <Badge 
+              variant={urgencyLevel === 'critical' ? 'default' : 'outline'} 
+              className={`uppercase text-sm font-bold px-4 py-2 ${urgencyLevel === 'critical' ? 'bg-revenue-warning text-white' : ''}`}
+            >
+              {urgencyLevel === 'critical' ? '💡' : urgencyLevel === 'high' ? '⚡' : '🎯'} {urgencyLevel} Opportunity
+            </Badge>
+            <Badge variant="secondary" className="text-sm px-3 py-1">
+              {confidenceLevel} confidence
+            </Badge>
+            {hasValidationWarnings && (
+              <Badge variant="outline" className="text-sm px-3 py-1 text-revenue-warning border-revenue-warning/50">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                adjusted estimate
+              </Badge>
+            )}
+          </div>
         </div>
 
       </CardHeader>

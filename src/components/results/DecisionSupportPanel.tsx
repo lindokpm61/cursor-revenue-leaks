@@ -12,10 +12,12 @@ import {
   TrendingUp,
   Lightbulb,
   Shield,
-  Zap
+  Zap,
+  AlertCircle
 } from "lucide-react";
 import { type Submission } from "@/lib/supabase";
 import { type UserIntent } from "./UserIntentSelector";
+import { validateCalculationResults, getCalculationConfidenceLevel } from "@/lib/calculator/validationHelpers";
 
 interface DecisionSupportPanelProps {
   submission: Submission;
@@ -35,52 +37,81 @@ interface ActionItem {
   category: "lead-response" | "payments" | "self-serve" | "operations";
 }
 
-const getActionItems = (submission: Submission): ActionItem[] => [
-  {
-    title: "Implement Lead Response Automation",
-    description: "Set up automated email sequences for immediate lead acknowledgment",
-    difficulty: 2,
-    timeToImplement: "2-4 weeks",
-    resourceRequirement: "Low",
-    riskLevel: "Low", 
-    successProbability: 85,
-    potentialValue: (submission.lead_response_loss || 0) * 0.6,
-    category: "lead-response"
-  },
-  {
-    title: "Fix Payment Recovery System",
-    description: "Implement dunning management and payment retry logic",
-    difficulty: 3,
-    timeToImplement: "4-6 weeks", 
-    resourceRequirement: "Medium",
-    riskLevel: "Low",
-    successProbability: 90,
-    potentialValue: (submission.failed_payment_loss || 0) * 0.8,
-    category: "payments"
-  },
-  {
-    title: "Optimize Self-Serve Onboarding",
-    description: "Streamline signup flow and reduce friction points",
-    difficulty: 4,
-    timeToImplement: "6-8 weeks",
-    resourceRequirement: "High", 
-    riskLevel: "Medium",
-    successProbability: 70,
-    potentialValue: (submission.selfserve_gap_loss || 0) * 0.5,
-    category: "self-serve"
-  },
-  {
-    title: "Automate Manual Processes",
-    description: "Replace manual workflows with automated solutions",
-    difficulty: 5,
-    timeToImplement: "8-12 weeks",
-    resourceRequirement: "High",
-    riskLevel: "Medium", 
-    successProbability: 75,
-    potentialValue: (submission.process_inefficiency_loss || 0) * 0.7,
-    category: "operations"
-  }
-];
+const getActionItems = (submission: Submission): ActionItem[] => {
+  // Validate and cap values first
+  const validation = validateCalculationResults({
+    leadResponseLoss: submission.lead_response_loss || 0,
+    failedPaymentLoss: submission.failed_payment_loss || 0,
+    selfServeGap: submission.selfserve_gap_loss || 0,
+    processLoss: submission.process_inefficiency_loss || 0,
+    currentARR: submission.current_arr || 0,
+    recoveryPotential70: submission.recovery_potential_70 || 0,
+    recoveryPotential85: submission.recovery_potential_85 || 0
+  });
+
+  const confidenceLevel = getCalculationConfidenceLevel({
+    currentARR: submission.current_arr || 0,
+    monthlyLeads: submission.monthly_leads || 0,
+    monthlyFreeSignups: submission.monthly_free_signups || 0,
+    totalLeak: submission.total_leak || 0
+  });
+
+  // Use validated values with realistic caps
+  const validatedLeadLoss = validation.leadResponse.adjustedValue || submission.lead_response_loss || 0;
+  const validatedSelfServeLoss = validation.selfServe.adjustedValue || submission.selfserve_gap_loss || 0;
+  const validatedFailedPaymentLoss = submission.failed_payment_loss || 0;
+  const validatedProcessLoss = submission.process_inefficiency_loss || 0;
+
+  // Adjust success probabilities based on confidence level
+  const confidenceMultiplier = confidenceLevel === 'high' ? 1.0 : confidenceLevel === 'medium' ? 0.9 : 0.8;
+
+  return [
+    {
+      title: "Implement Lead Response Automation",
+      description: "Set up automated email sequences for immediate lead acknowledgment",
+      difficulty: 2,
+      timeToImplement: "2-4 weeks",
+      resourceRequirement: "Low",
+      riskLevel: "Low", 
+      successProbability: Math.round(85 * confidenceMultiplier),
+      potentialValue: validatedLeadLoss * 0.6,
+      category: "lead-response"
+    },
+    {
+      title: "Fix Payment Recovery System",
+      description: "Implement dunning management and payment retry logic",
+      difficulty: 3,
+      timeToImplement: "4-6 weeks", 
+      resourceRequirement: "Medium",
+      riskLevel: "Low",
+      successProbability: Math.round(90 * confidenceMultiplier),
+      potentialValue: validatedFailedPaymentLoss * 0.8,
+      category: "payments"
+    },
+    {
+      title: "Optimize Self-Serve Onboarding",
+      description: "Streamline signup flow and reduce friction points",
+      difficulty: 4,
+      timeToImplement: "6-8 weeks",
+      resourceRequirement: "High", 
+      riskLevel: "Medium",
+      successProbability: Math.round(70 * confidenceMultiplier),
+      potentialValue: validatedSelfServeLoss * 0.5,
+      category: "self-serve"
+    },
+    {
+      title: "Automate Manual Processes",
+      description: "Replace manual workflows with automated solutions",
+      difficulty: 5,
+      timeToImplement: "8-12 weeks",
+      resourceRequirement: "High",
+      riskLevel: "Medium", 
+      successProbability: Math.round(75 * confidenceMultiplier),
+      potentialValue: validatedProcessLoss * 0.7,
+      category: "operations"
+    }
+  ];
+};
 
 const getRiskColor = (level: string) => {
   switch (level) {
@@ -101,6 +132,24 @@ export const DecisionSupportPanel = ({
   formatCurrency 
 }: DecisionSupportPanelProps) => {
   const actionItems = getActionItems(submission);
+  
+  // Get validation info for warnings
+  const validation = validateCalculationResults({
+    leadResponseLoss: submission.lead_response_loss || 0,
+    failedPaymentLoss: submission.failed_payment_loss || 0,
+    selfServeGap: submission.selfserve_gap_loss || 0,
+    processLoss: submission.process_inefficiency_loss || 0,
+    currentARR: submission.current_arr || 0,
+    recoveryPotential70: submission.recovery_potential_70 || 0,
+    recoveryPotential85: submission.recovery_potential_85 || 0
+  });
+
+  const confidenceLevel = getCalculationConfidenceLevel({
+    currentARR: submission.current_arr || 0,
+    monthlyLeads: submission.monthly_leads || 0,
+    monthlyFreeSignups: submission.monthly_free_signups || 0,
+    totalLeak: submission.total_leak || 0
+  });
   
   // Sort actions based on user intent
   const sortedActions = [...actionItems].sort((a, b) => {
@@ -228,11 +277,12 @@ export const DecisionSupportPanel = ({
               <div className="p-4 rounded-lg bg-gradient-to-r from-revenue-success/5 to-revenue-primary/5 border border-revenue-success/20">
                 <div className="flex items-center gap-3 mb-2">
                   <CheckCircle className="h-4 w-4 text-revenue-success" />
-                  <span className="font-medium text-small">Why this works</span>
+                  <span className="font-medium text-small">Why this works ({confidenceLevel} confidence)</span>
                 </div>
                 <div className="text-xs text-muted-foreground">
                   Similar companies achieved average {action.successProbability}% success rate. 
-                  Low implementation risk with proven ROI patterns.
+                  {confidenceLevel === 'high' ? 'High confidence' : confidenceLevel === 'medium' ? 'Moderate confidence' : 'Conservative estimate'} based on your data quality.
+                  {!validation.overall.isValid && ' Values adjusted for realism.'}
                 </div>
               </div>
 
