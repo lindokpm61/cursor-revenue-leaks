@@ -25,6 +25,7 @@ import {
   calculateProcessInefficiency,
   calculateFailedPaymentLoss
 } from "@/lib/calculator/enhancedCalculations";
+import { calculateUnifiedResults, UnifiedCalculationInputs } from "@/lib/calculator/unifiedCalculations";
 import { 
   validateCalculationResults,
   getCalculationConfidenceLevel
@@ -33,6 +34,7 @@ import {
 interface PriorityActionsProps {
   submission: Submission;
   formatCurrency: (amount: number) => string;
+  calculatorData?: any; // Add calculator data for unified calculations
 }
 
 interface ActionItem {
@@ -52,8 +54,31 @@ interface ActionItem {
   explanation: string;
 }
 
-export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsProps) => {
+export const PriorityActions = ({ submission, formatCurrency, calculatorData }: PriorityActionsProps) => {
   const [isContentOpen, setIsContentOpen] = useState(false);
+
+  // Use unified calculations if calculator data is available
+  const getUnifiedCalculations = () => {
+    if (!calculatorData) return null;
+    
+    const inputs: UnifiedCalculationInputs = {
+      currentARR: calculatorData.companyInfo?.currentARR || submission.current_arr || 0,
+      monthlyMRR: calculatorData.selfServe?.monthlyMRR || submission.monthly_mrr || 0,
+      monthlyLeads: calculatorData.leadGeneration?.monthlyLeads || submission.monthly_leads || 0,
+      averageDealValue: calculatorData.leadGeneration?.averageDealValue || submission.average_deal_value || 0,
+      leadResponseTime: calculatorData.leadGeneration?.leadResponseTime || submission.lead_response_time || 0,
+      monthlyFreeSignups: calculatorData.selfServe?.monthlyFreeSignups || submission.monthly_free_signups || 0,
+      freeToLaidConversion: calculatorData.selfServe?.freeToLaidConversion || submission.free_to_paid_conversion || 0,
+      failedPaymentRate: calculatorData.selfServe?.failedPaymentRate || submission.failed_payment_rate || 0,
+      manualHours: calculatorData.operations?.manualHours || submission.manual_hours || 0,
+      hourlyRate: calculatorData.operations?.hourlyRate || submission.hourly_rate || 0,
+      industry: calculatorData.companyInfo?.industry || submission.industry
+    };
+    
+    return calculateUnifiedResults(inputs);
+  };
+
+  const unifiedCalcs = getUnifiedCalculations();
 
   const getActionItems = (): ActionItem[] => {
     const actions: ActionItem[] = [];
@@ -79,23 +104,25 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
 
     // Lead Response Time Action
     if (submission.lead_response_time && submission.lead_response_time > 2 && submission.average_deal_value) {
-      // Get effectiveness percentages
-      const currentEffectiveness = calculateLeadResponseImpact(submission.lead_response_time, submission.average_deal_value);
-      const targetEffectiveness = calculateLeadResponseImpact(1, submission.average_deal_value);
+      // Use unified calculations if available, otherwise fallback to legacy
+      let cappedRecovery: number;
       
-      // Calculate annual lead value (assume 3% conversion rate if not provided)
-      const conversionRate = submission.free_to_paid_conversion ? submission.free_to_paid_conversion / 100 : 0.03;
-      const annualLeadValue = (submission.monthly_leads || 0) * submission.average_deal_value * conversionRate * 12;
-      
-      // Calculate current and target annual losses
-      const currentLoss = annualLeadValue * (1 - currentEffectiveness);
-      const targetLoss = annualLeadValue * (1 - targetEffectiveness);
-      
-      // Recovery potential is the difference between current and target losses
-      const recoveryPotential = Math.max(0, currentLoss - targetLoss);
-      
-      // Cap recovery at reasonable percentage of ARR
-      const cappedRecovery = Math.min(recoveryPotential, (submission.current_arr || 0) * 0.15);
+      if (unifiedCalcs) {
+        cappedRecovery = unifiedCalcs.actionRecoveryPotential.leadResponse;
+      } else {
+        // Legacy calculation as fallback
+        const currentEffectiveness = calculateLeadResponseImpact(submission.lead_response_time, submission.average_deal_value);
+        const targetEffectiveness = calculateLeadResponseImpact(1, submission.average_deal_value);
+        
+        const conversionRate = submission.free_to_paid_conversion ? submission.free_to_paid_conversion / 100 : 0.03;
+        const annualLeadValue = (submission.monthly_leads || 0) * submission.average_deal_value * conversionRate * 12;
+        
+        const currentLoss = annualLeadValue * (1 - currentEffectiveness);
+        const targetLoss = annualLeadValue * (1 - targetEffectiveness);
+        
+        const recoveryPotential = Math.max(0, currentLoss - targetLoss);
+        cappedRecovery = Math.min(recoveryPotential, (submission.current_arr || 0) * 0.15);
+      }
       
       const currentProgress = Math.max(0, Math.min(100, 100 - ((submission.lead_response_time - 1) * 15)));
       const targetProgress = 90;
@@ -113,7 +140,7 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
         priority: cappedRecovery > (submission.current_arr || 0) * 0.05 ? 'urgent' : 'medium',
         currentProgress,
         targetProgress,
-        confidence: confidence.level,
+        confidence: unifiedCalcs?.confidence || confidence.level,
         explanation: 'Fast response times dramatically improve lead conversion rates. Each hour of delay reduces conversion probability exponentially.'
       });
     }
@@ -124,15 +151,21 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
       const industryBenchmark = 4.2; // More realistic benchmark
       
       if (currentConversion < industryBenchmark) {
-        const gapRecovery = calculateSelfServeGap(
-          submission.monthly_free_signups,
-          currentConversion,
-          submission.monthly_mrr,
-          submission.industry || 'other'
-        );
+        // Use unified calculations if available
+        let cappedRecovery: number;
         
-        // Cap at reasonable percentage of ARR
-        const cappedRecovery = Math.min(gapRecovery, (submission.current_arr || 0) * 0.25);
+        if (unifiedCalcs) {
+          cappedRecovery = unifiedCalcs.actionRecoveryPotential.selfServeOptimization;
+        } else {
+          // Legacy calculation
+          const gapRecovery = calculateSelfServeGap(
+            submission.monthly_free_signups,
+            currentConversion,
+            submission.monthly_mrr,
+            submission.industry || 'other'
+          );
+          cappedRecovery = Math.min(gapRecovery, (submission.current_arr || 0) * 0.25);
+        }
         
         const currentProgress = (currentConversion / industryBenchmark) * 100;
         const targetProgress = 100;

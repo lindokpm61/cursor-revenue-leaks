@@ -116,7 +116,7 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
         </Button>
       </div>
 
-      <ActionPlan calculations={calculations} />
+      <ActionPlan calculations={calculations} data={data} />
 
       {/* Registration Modal */}
       {showRegistrationModal && pendingData && (
