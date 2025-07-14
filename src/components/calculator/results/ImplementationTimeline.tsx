@@ -48,74 +48,128 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
 
   const calculateTimelinePhases = (): TimelinePhase[] => {
     const currentARR = submission.current_arr || 0;
+    const threshold = currentARR * 0.01; // 1% ARR threshold
 
-    // Use validated values if provided, otherwise fallback to original logic
-    const leadResponseRecovery = validatedValues 
-      ? validatedValues.leadResponseLoss 
-      : Math.min(submission.lead_response_loss || 0, currentARR * 0.15);
-      
-    const conversionRecovery = validatedValues 
-      ? validatedValues.selfServeLoss 
-      : Math.min(submission.selfserve_gap_loss || 0, currentARR * 0.20);
-      
-    const processRecovery = Math.min(
-      submission.process_inefficiency_loss || 0, 
-      currentARR * 0.10
-    );
-    
-    // Scale investment based on company size
-    const totalInvestment = Math.min(50000 + (currentARR * 0.02), 200000);
+    // Calculate actual losses for each category
+    const leadResponseLoss = submission.lead_response_loss || 0;
+    const selfServeLoss = submission.selfserve_gap_loss || 0;
+    const processLoss = submission.process_inefficiency_loss || 0;
+    const paymentLoss = submission.failed_payment_loss || 0;
 
-    const phases: TimelinePhase[] = [
-      {
-        phase: "1",
+    // Create potential phases based on significant losses
+    const potentialPhases = [];
+
+    // Lead Response Phase (Phase 1 - Quick Wins)
+    if (leadResponseLoss > threshold) {
+      potentialPhases.push({
+        type: 'lead_response',
+        title: "Lead Response Optimization",
+        description: "Immediate response time improvements and lead capture optimization",
+        recovery: Math.min(leadResponseLoss * 0.7, currentARR * 0.15),
+        difficulty: "Easy" as const,
         months: "Month 1-2",
-        title: "Quick Wins Implementation",
-        description: "Immediate response time optimization and basic process improvements",
-        recovery: leadResponseRecovery * 0.5, // 50% of validated lead response losses
-        difficulty: "Easy",
         actions: [
           "Implement lead response automation",
-          "Set up notification systems",
-          "Train response team",
-          "Deploy lead scoring system"
-        ],
-        cumulativeRecovery: 0,
-        roiPercentage: 0
-      },
-      {
-        phase: "2", 
+          "Set up notification systems", 
+          "Deploy lead scoring system",
+          "Train response team"
+        ]
+      });
+    }
+
+    // Self-Serve Phase (Phase 2)
+    if (selfServeLoss > threshold) {
+      potentialPhases.push({
+        type: 'self_serve',
+        title: "Self-Serve Optimization",
+        description: "Conversion rate improvements and onboarding optimization",
+        recovery: Math.min(selfServeLoss * 0.6, currentARR * 0.20),
+        difficulty: "Medium" as const,
         months: "Month 3-4",
-        title: "Conversion Improvements",
-        description: "Self-serve optimization and conversion rate improvements",
-        recovery: conversionRecovery * 0.4, // 40% of validated conversion losses
-        difficulty: "Medium",
         actions: [
           "Optimize onboarding flow",
           "Implement conversion tracking",
           "A/B test pricing pages",
           "Deploy in-app guidance"
-        ],
-        cumulativeRecovery: 0,
-        roiPercentage: 0
-      },
-      {
-        phase: "3",
-        months: "Month 5-6", 
+        ]
+      });
+    }
+
+    // Process Automation Phase (Phase 3)
+    if (processLoss > threshold) {
+      potentialPhases.push({
+        type: 'process_automation',
         title: "Process Automation",
         description: "Advanced automation and manual process elimination",
-        recovery: processRecovery * 0.6, // 60% of validated process losses
-        difficulty: "Medium-Hard",
+        recovery: Math.min(processLoss * 0.7, currentARR * 0.25),
+        difficulty: "Medium-Hard" as const,
+        months: "Month 5-6",
         actions: [
           "Deploy workflow automation",
-          "Integrate payment systems",
           "Eliminate manual processes",
-          "Implement advanced analytics"
+          "Implement advanced analytics",
+          "Optimize resource allocation"
+        ]
+      });
+    }
+
+    // Payment Recovery Phase (if significant)
+    if (paymentLoss > threshold) {
+      potentialPhases.push({
+        type: 'payment_recovery',
+        title: "Payment Recovery System", 
+        description: "Payment failure reduction and retry logic optimization",
+        recovery: Math.min(paymentLoss * 0.5, currentARR * 0.08),
+        difficulty: "Medium" as const,
+        months: "Month 4-5",
+        actions: [
+          "Implement payment retry logic",
+          "Add multiple payment methods",
+          "Deploy dunning management",
+          "Optimize payment flows"
+        ]
+      });
+    }
+
+    // Sort by recovery potential and take top 3
+    potentialPhases.sort((a, b) => b.recovery - a.recovery);
+    const selectedPhases = potentialPhases.slice(0, 3);
+
+    // Convert to timeline phases with proper numbering
+    const phases: TimelinePhase[] = selectedPhases.map((phase, index) => ({
+      phase: (index + 1).toString(),
+      months: index === 0 ? "Month 1-2" : index === 1 ? "Month 3-4" : "Month 5-6",
+      title: phase.title,
+      description: phase.description,
+      recovery: phase.recovery,
+      difficulty: phase.difficulty,
+      actions: phase.actions,
+      cumulativeRecovery: 0,
+      roiPercentage: 0
+    }));
+
+    // If no significant phases found, provide default timeline
+    if (phases.length === 0) {
+      phases.push({
+        phase: "1",
+        months: "Month 1-6",
+        title: "General Optimization",
+        description: "Incremental improvements across all business areas",
+        recovery: Math.max(leadResponseLoss, selfServeLoss, processLoss) * 0.3,
+        difficulty: "Easy",
+        actions: [
+          "Audit current processes",
+          "Identify quick wins",
+          "Implement basic improvements",
+          "Monitor and optimize"
         ],
         cumulativeRecovery: 0,
         roiPercentage: 0
-      }
-    ];
+      });
+    }
+
+    // Scale investment based on company size
+    const totalInvestment = Math.min(50000 + (currentARR * 0.02), 200000);
 
     // Calculate cumulative recovery and ROI
     let cumulative = 0;
