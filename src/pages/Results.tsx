@@ -670,7 +670,17 @@ const Results = () => {
 
             {/* Implementation Timeline & ROI */}
             <section id="timeline" className="mb-12">
-              <ImplementationTimeline submission={submission} formatCurrency={formatCurrency} />
+              <ImplementationTimeline 
+                submission={submission} 
+                formatCurrency={formatCurrency}
+                validatedValues={{
+                  totalLeak: validatedTotalLeak,
+                  leadResponseLoss: validatedLeadLoss,
+                  selfServeLoss: validatedSelfServeLoss,
+                  recoveryPotential70: realisticRecovery70,
+                  recoveryPotential85: realisticRecovery85
+                }}
+              />
             </section>
 
             {/* Priority Actions */}

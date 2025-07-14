@@ -22,6 +22,13 @@ import { validateCalculationResults, getCalculationConfidenceLevel } from '@/lib
 interface ImplementationTimelineProps {
   submission: Submission;
   formatCurrency: (amount: number) => string;
+  validatedValues?: {
+    totalLeak: number;
+    leadResponseLoss: number;
+    selfServeLoss: number;
+    recoveryPotential70: number;
+    recoveryPotential85: number;
+  };
 }
 
 interface TimelinePhase {
@@ -36,28 +43,24 @@ interface TimelinePhase {
   roiPercentage: number;
 }
 
-export const ImplementationTimeline = ({ submission, formatCurrency }: ImplementationTimelineProps) => {
+export const ImplementationTimeline = ({ submission, formatCurrency, validatedValues }: ImplementationTimelineProps) => {
   const [isContentOpen, setIsContentOpen] = useState(false);
 
   const calculateTimelinePhases = (): TimelinePhase[] => {
-    // Apply validation caps to recovery values
-    // Calculate realistic recovery caps
     const currentARR = submission.current_arr || 0;
 
-    // Use realistic recovery values based on company size
-    const maxRecoveryRate = currentARR < 1000000 ? 0.15 : currentARR < 10000000 ? 0.25 : 0.35;
-    
-    const leadResponseRecovery = Math.min(
-      submission.lead_response_loss || 0, 
-      currentARR * maxRecoveryRate * 0.4
-    );
-    const conversionRecovery = Math.min(
-      submission.selfserve_gap_loss || 0, 
-      currentARR * maxRecoveryRate * 0.5
-    );
+    // Use validated values if provided, otherwise fallback to original logic
+    const leadResponseRecovery = validatedValues 
+      ? validatedValues.leadResponseLoss 
+      : Math.min(submission.lead_response_loss || 0, currentARR * 0.15);
+      
+    const conversionRecovery = validatedValues 
+      ? validatedValues.selfServeLoss 
+      : Math.min(submission.selfserve_gap_loss || 0, currentARR * 0.20);
+      
     const processRecovery = Math.min(
       submission.process_inefficiency_loss || 0, 
-      currentARR * maxRecoveryRate * 0.3
+      currentARR * 0.10
     );
     
     // Scale investment based on company size
@@ -136,7 +139,7 @@ export const ImplementationTimeline = ({ submission, formatCurrency }: Implement
 
   const phases = calculateTimelinePhases();
   const totalRecovery = phases[phases.length - 1]?.cumulativeRecovery || 0;
-  const totalLeak = submission.total_leak || 1;
+  const totalLeak = validatedValues ? validatedValues.totalLeak : (submission.total_leak || 1);
   const currentARR = submission.current_arr || 0;
   
   // Cap recovery percentage based on realistic expectations
