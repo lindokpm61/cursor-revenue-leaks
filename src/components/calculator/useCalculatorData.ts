@@ -1,4 +1,12 @@
 import { useState, useMemo } from "react";
+import {
+  calculateLeadResponseImpact,
+  calculateFailedPaymentLoss,
+  calculateSelfServeGap,
+  calculateProcessInefficiency,
+  INDUSTRY_BENCHMARKS,
+  RECOVERY_SYSTEMS
+} from '@/lib/calculator/enhancedCalculations';
 
 export interface CompanyInfo {
   companyName: string;
@@ -92,15 +100,6 @@ export const useCalculatorData = () => {
   const calculations = useMemo((): Calculations => {
     const { companyInfo, leadGeneration, selfServeMetrics, operationsData } = data;
 
-    // Import enhanced calculation functions
-    const {
-      calculateLeadResponseImpact,
-      calculateFailedPaymentLoss,
-      calculateSelfServeGap,
-      calculateProcessInefficiency,
-      INDUSTRY_BENCHMARKS,
-      RECOVERY_SYSTEMS
-    } = require('@/lib/calculator/enhancedCalculations');
 
     // Ensure all values are numbers and not null/undefined
     const safeNumber = (value: any): number => {
