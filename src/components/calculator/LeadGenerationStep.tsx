@@ -101,20 +101,33 @@ export const LeadGenerationStep = ({ data, onUpdate }: LeadGenerationStepProps) 
 
       <Card className="border-revenue-warning/20 bg-revenue-warning/5">
         <CardContent className="pt-6">
-          <h3 className="font-semibold text-foreground mb-4">💡 Lead Response Impact</h3>
-          <p className="text-sm text-muted-foreground mb-2">
-            Studies show that responding within 1 hour increases conversion rates by 7x compared to waiting 2+ hours.
+          <h3 className="font-semibold text-foreground mb-4">⚡ 2025 Response Time Framework</h3>
+          <p className="text-sm text-muted-foreground mb-3">
+            New research shows exponential decay: 100x higher contact probability within 5 minutes vs 30 minutes.
           </p>
-          <div className="grid grid-cols-2 gap-4 text-center">
+          <div className="grid grid-cols-2 gap-3 text-center mb-3">
             <div>
-              <div className="text-lg font-bold text-revenue-success">&lt;1 Hour</div>
-              <p className="text-xs text-muted-foreground">Optimal Response Time</p>
+              <div className="text-lg font-bold text-revenue-success">0-5 min</div>
+              <p className="text-xs text-muted-foreground">100% Effectiveness</p>
             </div>
             <div>
-              <div className="text-lg font-bold text-revenue-danger">2+ Hours</div>
-              <p className="text-xs text-muted-foreground">Significant Revenue Loss</p>
+              <div className="text-lg font-bold text-revenue-warning">5-30 min</div>
+              <p className="text-xs text-muted-foreground">60-85% Effectiveness</p>
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-3 text-center">
+            <div>
+              <div className="text-lg font-bold text-revenue-danger">1-4 hours</div>
+              <p className="text-xs text-muted-foreground">15-35% Effectiveness</p>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-revenue-danger">4+ hours</div>
+              <p className="text-xs text-muted-foreground">5-15% Effectiveness</p>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            <strong>Deal Size Targets:</strong> SMB (&lt;$25K): &lt;5min | Mid-Market ($25-100K): &lt;15min | Enterprise ($100K+): &lt;60min
+          </p>
         </CardContent>
       </Card>
     </div>

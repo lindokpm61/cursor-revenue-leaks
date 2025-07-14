@@ -90,7 +90,17 @@ export const useCalculatorData = () => {
   };
 
   const calculations = useMemo((): Calculations => {
-    const { leadGeneration, selfServeMetrics, operationsData } = data;
+    const { companyInfo, leadGeneration, selfServeMetrics, operationsData } = data;
+
+    // Import enhanced calculation functions
+    const {
+      calculateLeadResponseImpact,
+      calculateFailedPaymentLoss,
+      calculateSelfServeGap,
+      calculateProcessInefficiency,
+      INDUSTRY_BENCHMARKS,
+      RECOVERY_SYSTEMS
+    } = require('@/lib/calculator/enhancedCalculations');
 
     // Ensure all values are numbers and not null/undefined
     const safeNumber = (value: any): number => {
@@ -98,9 +108,7 @@ export const useCalculatorData = () => {
       return isNaN(num) ? 0 : num;
     };
 
-    // Debug logging
-    console.log('Calculator data:', { leadGeneration, selfServeMetrics, operationsData });
-
+    // Extract and validate data
     const monthlyLeads = safeNumber(leadGeneration?.monthlyLeads);
     const averageDealValue = safeNumber(leadGeneration?.averageDealValue);
     const leadResponseTimeHours = safeNumber(leadGeneration?.leadResponseTimeHours);
@@ -110,40 +118,39 @@ export const useCalculatorData = () => {
     const failedPaymentRate = safeNumber(operationsData?.failedPaymentRate);
     const manualHoursPerWeek = safeNumber(operationsData?.manualHoursPerWeek);
     const hourlyRate = safeNumber(operationsData?.hourlyRate);
+    const currentARR = safeNumber(companyInfo?.currentARR);
+    const industry = companyInfo?.industry || 'other';
 
-    console.log('Safe numbers:', {
-      monthlyLeads,
-      averageDealValue,
-      leadResponseTimeHours,
+    // Helper function to determine recovery system type
+    const determineRecoverySystemType = (arr: number, mrr: number): keyof typeof RECOVERY_SYSTEMS => {
+      if (arr > 10000000 || mrr > 500000) return 'best-in-class';
+      if (arr > 1000000 || mrr > 50000) return 'advanced';
+      return 'basic';
+    };
+
+    // Enhanced lead response loss calculation (exponential decay)
+    const responseImpact = calculateLeadResponseImpact(leadResponseTimeHours, averageDealValue);
+    const leadResponseLoss = monthlyLeads * averageDealValue * (1 - responseImpact) * 12;
+
+    // Enhanced failed payment loss calculation (with recovery rates)
+    const recoverySystemType = determineRecoverySystemType(currentARR, monthlyMRR);
+    const failedPaymentLoss = calculateFailedPaymentLoss(monthlyMRR, failedPaymentRate, recoverySystemType);
+
+    // Enhanced self-serve gap calculation (industry-specific benchmarks)
+    const selfServeGap = calculateSelfServeGap(
       monthlyFreeSignups,
       freeToPaidConversionRate,
       monthlyMRR,
-      failedPaymentRate,
-      manualHoursPerWeek,
-      hourlyRate
-    });
+      industry
+    );
 
-    // Lead Response Loss = Monthly Leads × Average Deal × 0.48 × 12
-    const leadResponseLoss = monthlyLeads * averageDealValue * 0.48 * 12;
+    // Enhanced process inefficiency calculation (updated multipliers)
+    const processLoss = calculateProcessInefficiency(manualHoursPerWeek, hourlyRate);
 
-    // Failed Payment Loss = Monthly MRR × (Failed Rate / 100) × 12
-    const failedPaymentLoss = monthlyMRR * (failedPaymentRate / 100) * 12;
-
-    // Self-Serve Gap = Free Signups × Monthly MRR per user × Gap percentage × 12
-    // Calculate average revenue per converted user (avoid division by zero)
-    const avgRevenuePerUser = (monthlyFreeSignups > 0 && freeToPaidConversionRate > 0) 
-      ? monthlyMRR / (monthlyFreeSignups * (freeToPaidConversionRate / 100))
-      : averageDealValue || 100; // fallback to average deal value or $100
-
-    const conversionGap = Math.max(0, 15 - freeToPaidConversionRate);
-    const selfServeGap = monthlyFreeSignups * avgRevenuePerUser * (conversionGap / 100) * 12;
-
-    // Process Loss = Manual Hours × Hourly Rate × 0.25 × 52
-    const processLoss = manualHoursPerWeek * hourlyRate * 0.25 * 52;
-
+    // Total calculations
     const totalLeakage = leadResponseLoss + failedPaymentLoss + selfServeGap + processLoss;
     
-    // Recovery potential at 70% and 85%
+    // Recovery potential at 70% and 85% (simplified for real-time calculations)
     const potentialRecovery70 = totalLeakage * 0.7;
     const potentialRecovery85 = totalLeakage * 0.85;
 

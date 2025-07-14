@@ -71,64 +71,88 @@ export const getCompleteCalculatorData = async (tempId: string) => {
   }
 };
 
-// Calculate comprehensive revenue leak results
+// Import enhanced calculation functions
+import {
+  calculateLeadResponseImpact,
+  calculateFailedPaymentLoss,
+  calculateSelfServeGap,
+  calculateProcessInefficiency,
+  calculateEnhancedLeadScore,
+  validateRecoveryAssumptions,
+  INDUSTRY_BENCHMARKS,
+  RECOVERY_SYSTEMS
+} from "./calculator/enhancedCalculations";
+
+// Calculate comprehensive revenue leak results with enhanced formulas
 export const calculateRevenueLeaks = (allData: Record<string, any>) => {
   const step1 = allData.step_1 || {};
   const step2 = allData.step_2 || {};
   const step3 = allData.step_3 || {};
   const step4 = allData.step_4 || {};
 
-  // Lead response loss calculation
+  // Extract data with defaults
   const monthlyLeads = step2.monthlyLeads || 0;
   const averageDealValue = step2.averageDealValue || 0;
   const leadResponseTime = step2.leadResponseTimeHours || 0;
-  
-  // Response time impact: 1 hour = 100% conversion, 2 hours = 50%, 4+ hours = 25%
-  let responseTimeMultiplier = 1.0;
-  if (leadResponseTime > 4) responseTimeMultiplier = 0.25;
-  else if (leadResponseTime > 2) responseTimeMultiplier = 0.5;
-  else if (leadResponseTime > 1) responseTimeMultiplier = 0.75;
-  
-  const leadResponseLoss = (monthlyLeads * averageDealValue * (1 - responseTimeMultiplier)) * 12;
-
-  // Failed payment loss calculation
   const monthlyMRR = step3.monthlyMRR || 0;
-  const failedPaymentRate = (step4.failedPaymentRate || 0) / 100;
-  const failedPaymentLoss = (monthlyMRR * failedPaymentRate * 12);
-
-  // Self-serve gap loss calculation
+  const failedPaymentRate = step4.failedPaymentRate || 0;
   const monthlyFreeSignups = step3.monthlyFreeSignups || 0;
-  const currentConversionRate = (step3.freeToPaidConversionRate || 0) / 100;
-  const averagePrice = monthlyMRR / (monthlyFreeSignups * currentConversionRate || 1);
-  
-  // Industry benchmark conversion rates
-  const benchmarkConversionRate = 0.15; // 15% benchmark
-  const conversionGap = Math.max(0, benchmarkConversionRate - currentConversionRate);
-  const selfServeGapLoss = (monthlyFreeSignups * conversionGap * averagePrice * 12);
-
-  // Process inefficiency loss calculation
-  const manualHours = (step4.manualHoursPerWeek || 0) * 52; // Annual hours
+  const currentConversionRate = step3.freeToPaidConversionRate || 0;
+  const manualHours = step4.manualHoursPerWeek || 0;
   const hourlyRate = step4.hourlyRate || 0;
-  const automationSavings = 0.7; // 70% automation potential
-  const processInefficiencyLoss = (manualHours * hourlyRate * automationSavings);
+  const currentARR = step1.currentARR || 0;
+  const industry = step1.industry || 'other';
+
+  // Enhanced lead response loss calculation (exponential decay)
+  const responseImpact = calculateLeadResponseImpact(leadResponseTime, averageDealValue);
+  const leadResponseLoss = monthlyLeads * averageDealValue * (1 - responseImpact) * 12;
+
+  // Enhanced failed payment loss calculation (with recovery rates)
+  const recoverySystemType = determineRecoverySystemType(currentARR, monthlyMRR);
+  const failedPaymentLoss = calculateFailedPaymentLoss(monthlyMRR, failedPaymentRate, recoverySystemType);
+
+  // Enhanced self-serve gap calculation (industry-specific benchmarks)
+  const selfServeGapLoss = calculateSelfServeGap(
+    monthlyFreeSignups,
+    currentConversionRate,
+    monthlyMRR,
+    industry
+  );
+
+  // Enhanced process inefficiency calculation (updated multipliers)
+  const processInefficiencyLoss = calculateProcessInefficiency(manualHours, hourlyRate);
 
   // Total calculations
   const totalLeak = leadResponseLoss + failedPaymentLoss + selfServeGapLoss + processInefficiencyLoss;
-  const currentARR = step1.currentARR || 0;
   const leakPercentage = currentARR > 0 ? (totalLeak / currentARR) * 100 : 0;
 
-  // Recovery potential scenarios
-  const recoveryPotential70 = totalLeak * 0.7;
-  const recoveryPotential85 = totalLeak * 0.85;
+  // Validate recovery potential assumptions
+  const recoveryValidation = validateRecoveryAssumptions({
+    currentARR,
+    grossRetention: 85, // Default assumption - could be made dynamic
+    netRetention: 105, // Default assumption - could be made dynamic
+    customerSatisfaction: 7.5, // Default assumption - could be made dynamic
+    hasRevOps: currentARR > 1000000 // Assume RevOps for companies >$1M ARR
+  });
 
-  // Calculate lead score based on final data
-  const leadScore = calculateFinalLeadScore({
+  // Recovery potential scenarios (with validation)
+  const recoveryPotential70 = recoveryValidation.canAchieve70 ? totalLeak * 0.7 : totalLeak * 0.5;
+  const recoveryPotential85 = recoveryValidation.canAchieve85 ? totalLeak * 0.85 : totalLeak * 0.7;
+
+  // Enhanced lead score calculation
+  const leadScore = calculateEnhancedLeadScore({
     currentARR,
     totalLeak,
     monthlyLeads,
     averageDealValue,
-    industry: step1.industry
+    industry,
+    hasProductUsage: false, // Could be enhanced with actual product usage data
+    engagementScore: 50 // Default - could be enhanced with actual engagement tracking
   });
+
+  // Get industry benchmark for reference
+  const industryBenchmark = INDUSTRY_BENCHMARKS[industry] || INDUSTRY_BENCHMARKS['other'];
+  const recoverySystem = RECOVERY_SYSTEMS[recoverySystemType];
 
   return {
     leadResponseLoss,
@@ -140,36 +164,60 @@ export const calculateRevenueLeaks = (allData: Record<string, any>) => {
     recoveryPotential70,
     recoveryPotential85,
     leadScore,
+    // Enhanced breakdown with new insights
     breakdown: {
       leadResponse: {
         monthlyLeads,
         averageDealValue,
         responseTimeHours: leadResponseTime,
-        conversionImpact: responseTimeMultiplier,
-        annualLoss: leadResponseLoss
+        conversionImpact: responseImpact,
+        annualLoss: leadResponseLoss,
+        dealSizeTier: averageDealValue > 100000 ? 'Enterprise' : averageDealValue > 25000 ? 'Mid-Market' : 'SMB'
       },
       failedPayments: {
         monthlyMRR,
-        failureRate: failedPaymentRate * 100,
-        annualLoss: failedPaymentLoss
+        failureRate: failedPaymentRate,
+        annualLoss: failedPaymentLoss,
+        recoverySystem: recoverySystem.name,
+        recoveryRate: recoverySystem.recoveryRate * 100,
+        actualLossAfterRecovery: failedPaymentLoss
       },
       selfServeGap: {
         monthlySignups: monthlyFreeSignups,
-        currentConversion: currentConversionRate * 100,
-        benchmarkConversion: benchmarkConversionRate * 100,
-        annualLoss: selfServeGapLoss
+        currentConversion: currentConversionRate,
+        industryBenchmark: industryBenchmark.conversionRate,
+        industryName: industryBenchmark.name,
+        annualLoss: selfServeGapLoss,
+        gapPercentage: Math.max(0, industryBenchmark.conversionRate - currentConversionRate)
       },
       processInefficiency: {
-        weeklyHours: step4.manualHoursPerWeek || 0,
+        weeklyHours: manualHours,
         hourlyRate,
-        automationPotential: automationSavings * 100,
-        annualLoss: processInefficiencyLoss
+        automationPotential: 70,
+        annualLoss: processInefficiencyLoss,
+        revenueGeneratingPotential: 32
+      },
+      recoveryValidation: {
+        canAchieve70: recoveryValidation.canAchieve70,
+        canAchieve85: recoveryValidation.canAchieve85,
+        limitations: recoveryValidation.reasons
       }
     }
   };
 };
 
-// Calculate final lead score with comprehensive data
+// Helper function to determine recovery system type based on company profile
+const determineRecoverySystemType = (currentARR: number, monthlyMRR: number): keyof typeof RECOVERY_SYSTEMS => {
+  if (currentARR > 10000000 || monthlyMRR > 500000) {
+    return 'best-in-class';
+  } else if (currentARR > 1000000 || monthlyMRR > 50000) {
+    return 'advanced';
+  } else {
+    return 'basic';
+  }
+};
+
+// Enhanced final lead score calculation using new framework
 const calculateFinalLeadScore = (data: {
   currentARR: number;
   totalLeak: number;
@@ -177,36 +225,15 @@ const calculateFinalLeadScore = (data: {
   averageDealValue: number;
   industry?: string;
 }): number => {
-  let score = 0;
-
-  // Revenue size scoring (40 points max)
-  if (data.currentARR > 50000000) score += 40;
-  else if (data.currentARR > 10000000) score += 35;
-  else if (data.currentARR > 5000000) score += 30;
-  else if (data.currentARR > 1000000) score += 25;
-  else if (data.currentARR > 500000) score += 20;
-  else if (data.currentARR > 100000) score += 15;
-
-  // Recovery potential scoring (30 points max)
-  if (data.totalLeak > 5000000) score += 30;
-  else if (data.totalLeak > 1000000) score += 25;
-  else if (data.totalLeak > 500000) score += 20;
-  else if (data.totalLeak > 100000) score += 15;
-  else if (data.totalLeak > 50000) score += 10;
-
-  // Lead volume scoring (20 points max)
-  if (data.monthlyLeads > 1000) score += 20;
-  else if (data.monthlyLeads > 500) score += 15;
-  else if (data.monthlyLeads > 100) score += 10;
-  else if (data.monthlyLeads > 50) score += 5;
-
-  // Deal value scoring (10 points max)
-  if (data.averageDealValue > 100000) score += 10;
-  else if (data.averageDealValue > 50000) score += 8;
-  else if (data.averageDealValue > 10000) score += 5;
-  else if (data.averageDealValue > 1000) score += 3;
-
-  return Math.min(score, 100);
+  return calculateEnhancedLeadScore({
+    currentARR: data.currentARR,
+    totalLeak: data.totalLeak,
+    monthlyLeads: data.monthlyLeads,
+    averageDealValue: data.averageDealValue,
+    industry: data.industry,
+    hasProductUsage: false, // Could be enhanced with actual product usage data
+    engagementScore: 50 // Default - could be enhanced with actual engagement tracking
+  });
 };
 
 // Save calculated results to database

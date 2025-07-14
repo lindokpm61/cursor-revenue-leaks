@@ -105,20 +105,22 @@ export const SelfServeStep = ({ data, onUpdate }: SelfServeStepProps) => {
 
       <Card className="border-revenue-success/20 bg-revenue-success/5">
         <CardContent className="pt-6">
-          <h3 className="font-semibold text-foreground mb-4">🎯 Conversion Benchmarks</h3>
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <h3 className="font-semibold text-foreground mb-4">🎯 2025 Industry Benchmarks</h3>
+          <div className="grid grid-cols-2 gap-4 text-center mb-3">
             <div>
-              <div className="text-lg font-bold text-revenue-success">15%+</div>
-              <p className="text-xs text-muted-foreground">Excellent Conversion</p>
+              <div className="text-lg font-bold text-revenue-success">2.6-5.8%</div>
+              <p className="text-xs text-muted-foreground">Freemium Models</p>
             </div>
             <div>
-              <div className="text-lg font-bold text-revenue-warning">5-15%</div>
-              <p className="text-xs text-muted-foreground">Industry Average</p>
+              <div className="text-lg font-bold text-revenue-warning">17.8%</div>
+              <p className="text-xs text-muted-foreground">Free Trials (Opt-in)</p>
             </div>
-            <div>
-              <div className="text-lg font-bold text-revenue-danger">&lt;5%</div>
-              <p className="text-xs text-muted-foreground">Needs Improvement</p>
-            </div>
+          </div>
+          <div className="text-xs text-muted-foreground space-y-1">
+            <p><strong>Technology/SaaS:</strong> 4.2% (1.5x value multiplier)</p>
+            <p><strong>Financial Services:</strong> 3.8% (1.3x multiplier)</p>
+            <p><strong>Healthcare:</strong> 3.2% (1.2x multiplier)</p>
+            <p><strong>Education:</strong> 2.6% (lowest benchmark)</p>
           </div>
         </CardContent>
       </Card>

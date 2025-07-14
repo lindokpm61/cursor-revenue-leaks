@@ -102,20 +102,27 @@ export const OperationsStep = ({ data, onUpdate }: OperationsStepProps) => {
 
       <Card className="border-revenue-warning/20 bg-revenue-warning/5">
         <CardContent className="pt-6">
-          <h3 className="font-semibold text-foreground mb-4">⚡ Automation Opportunities</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <h3 className="font-semibold text-foreground mb-4">🚀 2025 Recovery & Automation Framework</h3>
+          <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <p className="text-sm font-medium text-foreground mb-2">Failed Payments</p>
-              <p className="text-xs text-muted-foreground">
-                Automated dunning management can recover 20-40% of failed payments
-              </p>
+              <p className="text-sm font-medium text-foreground mb-2">Payment Recovery Systems</p>
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p><strong>Basic:</strong> 30-40% recovery rate</p>
+                <p><strong>Advanced:</strong> 60-80% recovery rate</p>
+                <p><strong>Best-in-Class:</strong> 80-90% recovery rate</p>
+              </div>
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground mb-2">Manual Processes</p>
-              <p className="text-xs text-muted-foreground">
-                Automation can typically reduce manual work by 60-80%
-              </p>
+              <p className="text-sm font-medium text-foreground mb-2">Process Automation ROI</p>
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p><strong>Productivity:</strong> +32% revenue generation</p>
+                <p><strong>Sales Efficiency:</strong> +14.5% productivity</p>
+                <p><strong>Marketing:</strong> +40% efficiency gains</p>
+              </div>
             </div>
+          </div>
+          <div className="text-xs text-muted-foreground border-t pt-3">
+            <p><strong>McKinsey 2024:</strong> Up to 70% of work activities could be automated with 76% of companies seeing positive ROI within first year.</p>
           </div>
         </CardContent>
       </Card>
