@@ -90,14 +90,21 @@ const Dashboard = () => {
   };
 
   const handleDeleteSubmission = async (submissionId: string, companyName: string) => {
+    console.log('Delete button clicked for:', submissionId, companyName);
+    
     if (!confirm(`Are you sure you want to delete the assessment for ${companyName}? This action cannot be undone.`)) {
+      console.log('Delete cancelled by user');
       return;
     }
 
+    console.log('Starting delete process for submission:', submissionId);
+    
     try {
       const { error } = await submissionService.delete(submissionId);
+      console.log('Delete response:', { error });
       
       if (error) {
+        console.error('Delete failed with error:', error);
         toast({
           title: "Error",
           description: "Failed to delete assessment",
@@ -111,6 +118,7 @@ const Dashboard = () => {
         title: "Success",
         description: "Assessment deleted successfully",
       });
+      console.log('Delete successful, UI updated');
     } catch (error) {
       console.error('Delete error:', error);
       toast({
