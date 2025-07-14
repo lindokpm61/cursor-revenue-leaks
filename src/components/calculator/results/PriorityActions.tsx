@@ -79,12 +79,23 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
 
     // Lead Response Time Action
     if (submission.lead_response_time && submission.lead_response_time > 2 && submission.average_deal_value) {
-      const currentImpact = calculateLeadResponseImpact(submission.lead_response_time, submission.average_deal_value);
-      const targetImpact = calculateLeadResponseImpact(1, submission.average_deal_value);
-      const improvementPotential = Math.max(0, currentImpact - targetImpact);
+      // Get effectiveness percentages
+      const currentEffectiveness = calculateLeadResponseImpact(submission.lead_response_time, submission.average_deal_value);
+      const targetEffectiveness = calculateLeadResponseImpact(1, submission.average_deal_value);
+      
+      // Calculate annual lead value (assume 3% conversion rate if not provided)
+      const conversionRate = submission.free_to_paid_conversion ? submission.free_to_paid_conversion / 100 : 0.03;
+      const annualLeadValue = (submission.monthly_leads || 0) * submission.average_deal_value * conversionRate * 12;
+      
+      // Calculate current and target annual losses
+      const currentLoss = annualLeadValue * (1 - currentEffectiveness);
+      const targetLoss = annualLeadValue * (1 - targetEffectiveness);
+      
+      // Recovery potential is the difference between current and target losses
+      const recoveryPotential = Math.max(0, currentLoss - targetLoss);
       
       // Cap recovery at reasonable percentage of ARR
-      const cappedRecovery = Math.min(improvementPotential, (submission.current_arr || 0) * 0.15);
+      const cappedRecovery = Math.min(recoveryPotential, (submission.current_arr || 0) * 0.15);
       
       const currentProgress = Math.max(0, Math.min(100, 100 - ((submission.lead_response_time - 1) * 15)));
       const targetProgress = 90;
