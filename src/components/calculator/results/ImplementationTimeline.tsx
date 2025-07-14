@@ -255,8 +255,8 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
                 <CardTitle className="text-2xl">Implementation Timeline & ROI</CardTitle>
                 <p className="text-muted-foreground mt-1">
                   Month-by-month revenue recovery plan with {Math.round(recoveryPercentage)}% leak recovery potential
-                  {confidenceLevel !== 'high' && (
-                    <span className="text-revenue-warning"> • {confidenceLevel} confidence estimates</span>
+                  {confidenceLevel.level !== 'high' && (
+                    <span className="text-revenue-warning"> • {confidenceLevel.level} confidence estimates</span>
                   )}
                 </p>
               </div>
@@ -271,7 +271,7 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
           <CollapsibleContent>
             <CardContent className="space-y-8 pt-6">
               {/* Recovery Summary */}
-              {confidenceLevel === 'low' && (
+              {confidenceLevel.level === 'low' && (
                 <div className="flex items-center gap-2 p-3 bg-revenue-warning/10 border border-revenue-warning/20 rounded-lg mb-4">
                   <AlertTriangle className="h-4 w-4 text-revenue-warning" />
                   <p className="text-sm text-muted-foreground">

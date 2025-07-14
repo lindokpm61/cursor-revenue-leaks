@@ -113,7 +113,7 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
         priority: cappedRecovery > (submission.current_arr || 0) * 0.05 ? 'urgent' : 'medium',
         currentProgress,
         targetProgress,
-        confidence,
+        confidence: confidence.level,
         explanation: 'Fast response times dramatically improve lead conversion rates. Each hour of delay reduces conversion probability exponentially.'
       });
     }
@@ -150,7 +150,7 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
           priority: cappedRecovery > (submission.current_arr || 0) * 0.05 ? 'urgent' : 'medium',
           currentProgress,
           targetProgress,
-          confidence,
+        confidence: confidence.level,
           explanation: 'Better onboarding, feature discovery, and value demonstration can significantly improve conversion rates from free to paid plans.'
         });
       }
@@ -184,7 +184,7 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
         priority: cappedSavings > (submission.current_arr || 0) * 0.02 ? 'urgent' : 'medium',
         currentProgress,
         targetProgress,
-        confidence,
+        confidence: confidence.level,
         explanation: 'Automating manual processes frees up valuable time for strategic activities and reduces operational costs.'
       });
     }
@@ -228,7 +228,7 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
         priority: cappedRecovery > (submission.current_arr || 0) * 0.02 ? 'urgent' : 'medium',
         currentProgress,
         targetProgress,
-        confidence,
+        confidence: confidence.level,
         explanation: 'Reducing payment failures through better retry logic and payment methods directly impacts recurring revenue.'
       });
     }
@@ -321,7 +321,7 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
 
           <CollapsibleContent>
             <CardContent className="space-y-6 pt-6">
-              {overallConfidence === 'low' && (
+              {overallConfidence.level === 'low' && (
                 <Alert>
                   <Info className="h-4 w-4" />
                   <AlertDescription>

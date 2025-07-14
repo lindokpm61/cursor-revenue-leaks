@@ -23,15 +23,15 @@ export const mapToSubmissionData = (
     failed_payment_rate: data.operationsData.failedPaymentRate,
     manual_hours: data.operationsData.manualHoursPerWeek,
     hourly_rate: data.operationsData.hourlyRate,
-    lead_response_loss: Math.round(calculations.leadResponseLoss),
-    failed_payment_loss: Math.round(calculations.failedPaymentLoss),
-    selfserve_gap_loss: Math.round(calculations.selfServeGap),
-    process_inefficiency_loss: Math.round(calculations.processLoss),
-    total_leak: Math.round(calculations.totalLeakage),
-    recovery_potential_70: Math.round(calculations.potentialRecovery70),
-    recovery_potential_85: Math.round(calculations.potentialRecovery85),
+    lead_response_loss: Number(calculations.leadResponseLoss.toFixed(2)),
+    failed_payment_loss: Number(calculations.failedPaymentLoss.toFixed(2)),
+    selfserve_gap_loss: Number(calculations.selfServeGap.toFixed(2)),
+    process_inefficiency_loss: Number(calculations.processLoss.toFixed(2)),
+    total_leak: Number(calculations.totalLeakage.toFixed(2)),
+    recovery_potential_70: Number(calculations.potentialRecovery70.toFixed(2)),
+    recovery_potential_85: Number(calculations.potentialRecovery85.toFixed(2)),
     leak_percentage: data.companyInfo.currentARR > 0 
-      ? Math.round((calculations.totalLeakage / data.companyInfo.currentARR) * 100)
+      ? Number(((calculations.totalLeakage / data.companyInfo.currentARR) * 100).toFixed(2))
       : 0,
     lead_score: leadScore,
     user_id: userId,

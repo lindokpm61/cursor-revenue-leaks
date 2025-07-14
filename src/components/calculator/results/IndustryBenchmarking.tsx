@@ -250,8 +250,8 @@ export const IndustryBenchmarking = ({ submission, formatCurrency }: IndustryBen
                 <CardTitle className="text-2xl">Industry Benchmarking</CardTitle>
                 <p className="text-muted-foreground mt-1">
                   See how your performance compares to {submission.industry || 'SaaS'} industry standards 
-                  {confidenceLevel !== 'high' && (
-                    <span className="text-revenue-warning"> • {confidenceLevel} confidence</span>
+                  {confidenceLevel.level !== 'high' && (
+                    <span className="text-revenue-warning"> • {confidenceLevel.level} confidence</span>
                   )}
                 </p>
               </div>

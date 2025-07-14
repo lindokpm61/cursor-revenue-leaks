@@ -152,7 +152,7 @@ export const ExecutiveSummaryCard = ({
                   {urgencyLevel === 'critical' ? '💡' : urgencyLevel === 'high' ? '⚡' : '🎯'} {urgencyLevel} Opportunity
                 </Badge>
                 <Badge variant="secondary" className="text-sm px-3 py-1">
-                  {confidenceLevel} confidence
+                  {confidenceLevel.level} confidence
                 </Badge>
                 {hasValidationWarnings && (
                   <Badge variant="outline" className="text-sm px-3 py-1 text-revenue-warning border-revenue-warning/50">
@@ -239,7 +239,7 @@ export const ExecutiveSummaryCard = ({
               {urgencyLevel === 'critical' ? '💡' : urgencyLevel === 'high' ? '⚡' : '🎯'} {urgencyLevel} Opportunity
             </Badge>
             <Badge variant="secondary" className="text-sm px-3 py-1">
-              {confidenceLevel} confidence
+              {confidenceLevel.level} confidence
             </Badge>
             {hasValidationWarnings && (
               <Badge variant="outline" className="text-sm px-3 py-1 text-revenue-warning border-revenue-warning/50">

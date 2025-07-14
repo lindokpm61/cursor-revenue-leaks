@@ -47,35 +47,39 @@ export const RECOVERY_SYSTEMS: Record<string, RecoverySystemType> = {
   'best-in-class': { name: 'Best-in-Class System', recoveryRate: 0.85, retrySuccessRate: 0.50 }
 };
 
-// Enhanced lead response time impact calculation (realistic decay model)
+// Enhanced lead response time impact calculation (realistic decay model with bounds)
 export const calculateLeadResponseImpact = (responseTimeHours: number, dealValue: number): number => {
   const responseTimeMinutes = responseTimeHours * 60;
+  
+  // Input validation and bounds
+  if (responseTimeHours <= 0) return 1.0; // Perfect response
+  if (responseTimeHours > 168) return 0.4; // Cap at 1 week max penalty
   
   // Determine optimal response time based on deal size
   const dealTier = DEAL_SIZE_TIERS.find(tier => dealValue >= tier.min && dealValue <= tier.max) || DEAL_SIZE_TIERS[0];
   
-  // More realistic effectiveness decay - less aggressive than original
+  // Much more conservative effectiveness decay
   let effectiveness: number;
   
   if (responseTimeMinutes <= 5) {
     effectiveness = 1.0; // 100% baseline
   } else if (responseTimeMinutes <= 30) {
-    effectiveness = 0.95 - ((responseTimeMinutes - 5) / 25) * 0.15; // 95% to 80%
+    effectiveness = 0.98 - ((responseTimeMinutes - 5) / 25) * 0.08; // 98% to 90%
   } else if (responseTimeMinutes <= 60) {
-    effectiveness = 0.80 - ((responseTimeMinutes - 30) / 30) * 0.15; // 80% to 65%
+    effectiveness = 0.90 - ((responseTimeMinutes - 30) / 30) * 0.10; // 90% to 80%
   } else if (responseTimeMinutes <= 240) { // 4 hours
-    effectiveness = 0.65 - ((responseTimeMinutes - 60) / 180) * 0.25; // 65% to 40%
+    effectiveness = 0.80 - ((responseTimeMinutes - 60) / 180) * 0.20; // 80% to 60%
   } else {
-    effectiveness = Math.max(0.25, 0.40 - ((responseTimeMinutes - 240) / 480) * 0.15); // 40% to 25%
+    effectiveness = Math.max(0.40, 0.60 - ((responseTimeMinutes - 240) / 960) * 0.20); // 60% to 40%
   }
   
-  // Apply smaller penalty for deal size mismatch
+  // Apply much smaller penalty for deal size mismatch
   if (responseTimeMinutes > dealTier.optimalResponseMinutes) {
-    const penaltyMultiplier = Math.max(0.8, 1 - ((responseTimeMinutes - dealTier.optimalResponseMinutes) / dealTier.optimalResponseMinutes) * 0.15);
+    const penaltyMultiplier = Math.max(0.95, 1 - ((responseTimeMinutes - dealTier.optimalResponseMinutes) / dealTier.optimalResponseMinutes) * 0.05);
     effectiveness *= penaltyMultiplier;
   }
   
-  return Math.max(0.25, effectiveness); // Minimum 25% effectiveness (more realistic)
+  return Math.max(0.40, effectiveness); // Minimum 40% effectiveness (more realistic)
 };
 
 // Enhanced failed payment loss calculation with recovery rates
@@ -100,26 +104,31 @@ export const calculateSelfServeGap = (
   monthlyMRR: number,
   industry: string = 'other'
 ): number => {
-  const benchmark = INDUSTRY_BENCHMARKS[industry] || INDUSTRY_BENCHMARKS['other'];
-  const benchmarkRate = benchmark.conversionRate;
+  // Input validation
+  if (monthlyFreeSignups <= 0 || monthlyMRR <= 0) return 0;
+  if (currentConversionRate >= 15) return 0; // Already at very high conversion
   
-  // Calculate average revenue per converted user with bounds checking
+  const benchmark = INDUSTRY_BENCHMARKS[industry] || INDUSTRY_BENCHMARKS['other'];
+  const benchmarkRate = Math.min(benchmark.conversionRate, 8.0); // Cap benchmark at 8%
+  
+  // Calculate average revenue per converted user with strict bounds
   let avgRevenuePerUser: number;
-  if (monthlyFreeSignups > 0 && currentConversionRate > 0) {
+  if (currentConversionRate > 0) {
     const currentConversions = monthlyFreeSignups * (currentConversionRate / 100);
     avgRevenuePerUser = currentConversions > 0 ? monthlyMRR / currentConversions : 100;
-    // Cap at reasonable ARPU levels ($50-$500/month)
-    avgRevenuePerUser = Math.min(Math.max(avgRevenuePerUser, 50), 500);
+    // Stricter ARPU bounds ($20-$200/month for freemium)
+    avgRevenuePerUser = Math.min(Math.max(avgRevenuePerUser, 20), 200);
   } else {
-    avgRevenuePerUser = 100; // Fallback to $100/month
+    avgRevenuePerUser = 50; // Conservative fallback
   }
   
-  const conversionGap = Math.max(0, benchmarkRate - currentConversionRate);
-  const gapLoss = monthlyFreeSignups * (conversionGap / 100) * avgRevenuePerUser;
+  // Conservative conversion gap - only count realistic improvements
+  const conversionGap = Math.max(0, Math.min(benchmarkRate - currentConversionRate, 5)); // Max 5% improvement
+  const monthlyGapLoss = monthlyFreeSignups * (conversionGap / 100) * avgRevenuePerUser;
   
-  // Cap the annual loss at reasonable levels (max 50x monthly MRR)
-  const maxReasonableLoss = monthlyMRR * 50;
-  return Math.min(gapLoss * 12, maxReasonableLoss);
+  // Cap the annual loss at very conservative levels (max 12x monthly MRR)
+  const maxReasonableLoss = monthlyMRR * 12;
+  return Math.min(monthlyGapLoss * 12, maxReasonableLoss);
 };
 
 // Enhanced process inefficiency calculation with updated multipliers

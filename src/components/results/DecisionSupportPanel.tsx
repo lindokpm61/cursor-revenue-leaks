@@ -63,7 +63,7 @@ const getActionItems = (submission: Submission): ActionItem[] => {
   const validatedProcessLoss = submission.process_inefficiency_loss || 0;
 
   // Adjust success probabilities based on confidence level
-  const confidenceMultiplier = confidenceLevel === 'high' ? 1.0 : confidenceLevel === 'medium' ? 0.9 : 0.8;
+  const confidenceMultiplier = confidenceLevel.level === 'high' ? 1.0 : confidenceLevel.level === 'medium' ? 0.9 : 0.8;
 
   return [
     {
@@ -277,11 +277,11 @@ export const DecisionSupportPanel = ({
               <div className="p-4 rounded-lg bg-gradient-to-r from-revenue-success/5 to-revenue-primary/5 border border-revenue-success/20">
                 <div className="flex items-center gap-3 mb-2">
                   <CheckCircle className="h-4 w-4 text-revenue-success" />
-                  <span className="font-medium text-small">Why this works ({confidenceLevel} confidence)</span>
+                  <span className="font-medium text-small">Why this works ({confidenceLevel.level} confidence)</span>
                 </div>
                 <div className="text-xs text-muted-foreground">
                   Similar companies achieved average {action.successProbability}% success rate. 
-                  {confidenceLevel === 'high' ? 'High confidence' : confidenceLevel === 'medium' ? 'Moderate confidence' : 'Conservative estimate'} based on your data quality.
+                  {confidenceLevel.level === 'high' ? 'High confidence' : confidenceLevel.level === 'medium' ? 'Moderate confidence' : 'Conservative estimate'} based on your data quality.
                   {!validation.overall.isValid && ' Values adjusted for realism.'}
                 </div>
               </div>

@@ -127,31 +127,39 @@ export const useCalculatorData = () => {
       return 'basic';
     };
 
-    // Enhanced lead response loss calculation (exponential decay)
+    // Enhanced lead response loss calculation with bounds
     const responseImpact = calculateLeadResponseImpact(leadResponseTimeHours, averageDealValue);
-    const leadResponseLoss = monthlyLeads * averageDealValue * (1 - responseImpact) * 12;
+    const rawLeadResponseLoss = monthlyLeads * averageDealValue * (1 - responseImpact) * 12;
+    // Apply strict bounds: max 30% of ARR for lead response loss
+    const leadResponseLoss = Math.min(rawLeadResponseLoss, currentARR * 0.3);
 
     // Enhanced failed payment loss calculation (with recovery rates)
     const recoverySystemType = determineRecoverySystemType(currentARR, monthlyMRR);
     const failedPaymentLoss = calculateFailedPaymentLoss(monthlyMRR, failedPaymentRate, recoverySystemType);
 
-    // Enhanced self-serve gap calculation (industry-specific benchmarks)
-    const selfServeGap = calculateSelfServeGap(
+    // Enhanced self-serve gap calculation with bounds
+    const rawSelfServeGap = calculateSelfServeGap(
       monthlyFreeSignups,
       freeToPaidConversionRate,
       monthlyMRR,
       industry
     );
+    // Apply strict bounds: max 50% of ARR for self-serve gap
+    const selfServeGap = Math.min(rawSelfServeGap, currentARR * 0.5);
 
-    // Enhanced process inefficiency calculation (updated multipliers)
-    const processLoss = calculateProcessInefficiency(manualHoursPerWeek, hourlyRate);
+    // Enhanced process inefficiency calculation with bounds
+    const rawProcessLoss = calculateProcessInefficiency(manualHoursPerWeek, hourlyRate);
+    // Apply bounds: max 20% of ARR for process inefficiency
+    const processLoss = Math.min(rawProcessLoss, currentARR * 0.2);
 
-    // Total calculations
-    const totalLeakage = leadResponseLoss + failedPaymentLoss + selfServeGap + processLoss;
+    // Total calculations with final bounds check
+    const rawTotalLeakage = leadResponseLoss + failedPaymentLoss + selfServeGap + processLoss;
+    // Cap total leakage at 150% of ARR (very conservative)
+    const totalLeakage = Math.min(rawTotalLeakage, currentARR * 1.5);
     
-    // Recovery potential at 70% and 85% (simplified for real-time calculations)
-    const potentialRecovery70 = totalLeakage * 0.7;
-    const potentialRecovery85 = totalLeakage * 0.85;
+    // Recovery potential with realistic bounds
+    const potentialRecovery70 = Math.min(totalLeakage * 0.7, currentARR * 1.0);
+    const potentialRecovery85 = Math.min(totalLeakage * 0.85, currentARR * 1.2);
 
     // Ensure all values are valid numbers
     const validatedCalculations = {

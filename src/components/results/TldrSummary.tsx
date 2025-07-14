@@ -115,7 +115,7 @@ export const TldrSummary = ({
           title: "Your Implementation Strategy",
           summary: `Follow a ${phases} approach: Fix payments (60 days), improve lead response (90 days), then optimize conversion (120 days). Realistic recovery: ${formatCurrency(realisticRecovery70)} with ${confidenceLevel} confidence.`,
           actionText: "Follow the proven sequence",
-          urgency: confidenceLevel === 'low' ? "medium" : "low",
+          urgency: confidenceLevel.level === 'low' ? "medium" : "low",
           nextStep: "See complete timeline",
           sectionId: "timeline",
           confidence: confidenceLevel
@@ -194,7 +194,7 @@ export const TldrSummary = ({
                 </Badge>
                 {tldr.confidence && (
                   <Badge variant="secondary" className="text-xs px-2 py-1">
-                    {tldr.confidence} confidence
+                    {typeof tldr.confidence === 'object' ? tldr.confidence.level : tldr.confidence} confidence
                   </Badge>
                 )}
                 {tldr.hasWarnings && (

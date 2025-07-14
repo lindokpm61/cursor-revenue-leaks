@@ -707,7 +707,7 @@ const ActionPlan = () => {
         id: 'lead-response',
         title: 'Optimize Lead Response Time',
         impact: impact,
-        timeframe: calculations.confidence === 'high' ? '2-4 weeks' : '4-6 weeks',
+        timeframe: calculations.confidence.level === 'high' ? '2-4 weeks' : '4-6 weeks',
         difficulty: 'Medium',
         description: 'Implement automated lead routing and response systems',
         confidence: calculations.confidence
@@ -733,8 +733,8 @@ const ActionPlan = () => {
         id: 'self-serve',
         title: 'Optimize Self-Serve Conversion',
         impact: impact,
-        timeframe: calculations.confidence === 'high' ? '4-6 weeks' : '6-8 weeks',
-        difficulty: calculations.confidence === 'low' ? 'Very Hard' : 'Hard',
+        timeframe: calculations.confidence.level === 'high' ? '4-6 weeks' : '6-8 weeks',
+        difficulty: calculations.confidence.level === 'low' ? 'Very Hard' : 'Hard',
         description: 'Enhance onboarding flow and reduce conversion friction',
         confidence: calculations.confidence
       });
@@ -855,7 +855,7 @@ const ActionPlan = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-lg font-semibold text-revenue-danger">Total Revenue Leak</h3>
-                  {calculations.confidence === 'low' && (
+                  {calculations.confidence.level === 'low' && (
                     <Badge variant="outline" className="text-xs">
                       Estimated
                     </Badge>
@@ -873,15 +873,15 @@ const ActionPlan = () => {
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-lg font-semibold text-revenue-success">Recovery Potential</h3>
                   <Badge variant="outline" className="text-xs">
-                    {calculations.confidence === 'high' ? '70%' : calculations.confidence === 'medium' ? '50%' : '30%'} confidence
+                    {calculations.confidence.level === 'high' ? '70%' : calculations.confidence.level === 'medium' ? '50%' : '30%'} confidence
                   </Badge>
                 </div>
                 <p className="text-3xl font-bold text-revenue-success">
                   {formatCurrency(calculations.recovery_potential_70)}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {calculations.confidence === 'high' ? '70% achievable in 6 months' : 
-                   calculations.confidence === 'medium' ? 'Conservative estimate' : 'Requires validation'}
+                  {calculations.confidence.level === 'high' ? '70% achievable in 6 months' : 
+                   calculations.confidence.level === 'medium' ? 'Conservative estimate' : 'Requires validation'}
                 </p>
               </CardContent>
             </Card>
@@ -949,7 +949,7 @@ const ActionPlan = () => {
                         {formatCurrency(calculations.recovery_potential_70 * 0.3)}
                       </span>
                     </p>
-                    {calculations.confidence === 'low' && (
+                    {calculations.confidence.level === 'low' && (
                       <p className="text-xs text-muted-foreground mt-1">
                         ⚠️ Based on limited data - actual results may vary
                       </p>
@@ -986,7 +986,7 @@ const ActionPlan = () => {
                         {formatCurrency(calculations.recovery_potential_70 * 0.7)}
                       </span>
                     </p>
-                    {calculations.confidence !== 'high' && (
+                    {calculations.confidence.level !== 'high' && (
                       <p className="text-xs text-muted-foreground mt-1">
                         📊 Strategic investments - validation recommended
                       </p>
@@ -1031,7 +1031,7 @@ const ActionPlan = () => {
                           {formatCurrency(calculations.recovery_potential_70 / 3)}
                         </span>
                       </p>
-                      {index === 0 && calculations.confidence === 'low' && (
+                      {index === 0 && calculations.confidence.level === 'low' && (
                         <p className="text-xs text-muted-foreground mt-1">
                           ⚠️ Validate assumptions before major investments
                         </p>
