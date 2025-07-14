@@ -19,6 +19,8 @@ import {
   ChevronDown
 } from "lucide-react";
 import { type Submission } from "@/lib/supabase";
+import { INDUSTRY_BENCHMARKS } from '@/lib/calculator/enhancedCalculations';
+import { getCalculationConfidenceLevel } from '@/lib/calculator/validationHelpers';
 
 interface IndustryBenchmarkingProps {
   submission: Submission;
@@ -44,12 +46,28 @@ export const IndustryBenchmarking = ({ submission, formatCurrency }: IndustryBen
   const [isContentOpen, setIsContentOpen] = useState(false);
 
   const calculateBenchmarks = (): BenchmarkMetric[] => {
+    // Get industry-specific benchmarks with fallback to general SaaS
+    const industryKey = submission.industry as keyof typeof INDUSTRY_BENCHMARKS;
+    const industryData = INDUSTRY_BENCHMARKS[industryKey] || INDUSTRY_BENCHMARKS.SaaS;
+    
+    // Calculate confidence level for validation warnings
+    const confidenceLevel = getCalculationConfidenceLevel({
+      currentARR: submission.current_arr || 0,
+      monthlyLeads: submission.monthly_leads || 0,
+      monthlyFreeSignups: submission.monthly_free_signups || 0,
+      totalLeak: submission.total_leak || 0
+    });
+
+    // Get optimal lead response time based on deal size
+    const avgDealValue = submission.average_deal_value || 0;
+    const optimalResponseTime = avgDealValue > 50000 ? 1 : avgDealValue > 10000 ? 1.5 : 2;
+    
     const metrics: BenchmarkMetric[] = [
       {
         id: 'lead-response',
         title: 'Lead Response Time',
         userValue: submission.lead_response_time || 0,
-        industryMin: 1,
+        industryMin: optimalResponseTime,
         industryMax: 4,
         industryAvg: 2.5,
         unit: 'hours',
@@ -63,9 +81,9 @@ export const IndustryBenchmarking = ({ submission, formatCurrency }: IndustryBen
         id: 'conversion-rate',
         title: 'Self-Serve Conversion Rate',
         userValue: submission.free_to_paid_conversion || 0,
-        industryMin: 8,
-        industryMax: 18,
-        industryAvg: 12.5,
+        industryMin: industryData.conversionRate * 0.7,
+        industryMax: industryData.conversionRate * 1.5,
+        industryAvg: industryData.conversionRate,
         unit: '%',
         icon: Target,
         higherIsBetter: true,
@@ -77,7 +95,7 @@ export const IndustryBenchmarking = ({ submission, formatCurrency }: IndustryBen
         id: 'payment-failure',
         title: 'Failed Payment Rate',
         userValue: submission.failed_payment_rate || 0,
-        industryMin: 1,
+        industryMin: 0.5,
         industryMax: 4,
         industryAvg: 2.2,
         unit: '%',
@@ -202,6 +220,13 @@ export const IndustryBenchmarking = ({ submission, formatCurrency }: IndustryBen
   };
 
   const metrics = calculateBenchmarks();
+  const confidenceLevel = getCalculationConfidenceLevel({
+    currentARR: submission.current_arr || 0,
+    monthlyLeads: submission.monthly_leads || 0,
+    monthlyFreeSignups: submission.monthly_free_signups || 0,
+    totalLeak: submission.total_leak || 0
+  });
+  
   const biggestOpportunity = metrics.reduce((max, metric) => 
     metric.opportunityScore > max.opportunityScore ? metric : max
   );
@@ -224,7 +249,10 @@ export const IndustryBenchmarking = ({ submission, formatCurrency }: IndustryBen
               <div>
                 <CardTitle className="text-2xl">Industry Benchmarking</CardTitle>
                 <p className="text-muted-foreground mt-1">
-                  See how your performance compares to industry standards and identify opportunities
+                  See how your performance compares to {submission.industry || 'SaaS'} industry standards 
+                  {confidenceLevel !== 'high' && (
+                    <span className="text-revenue-warning"> • {confidenceLevel} confidence</span>
+                  )}
                 </p>
               </div>
             </div>

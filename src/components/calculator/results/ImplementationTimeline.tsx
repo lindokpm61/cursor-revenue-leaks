@@ -12,10 +12,12 @@ import {
   Clock,
   DollarSign,
   BarChart3,
-  ChevronDown
+  ChevronDown,
+  AlertTriangle
 } from "lucide-react";
 import { type Submission } from "@/lib/supabase";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { validateCalculationResults, getCalculationConfidenceLevel } from '@/lib/calculator/validationHelpers';
 
 interface ImplementationTimelineProps {
   submission: Submission;
@@ -38,10 +40,28 @@ export const ImplementationTimeline = ({ submission, formatCurrency }: Implement
   const [isContentOpen, setIsContentOpen] = useState(false);
 
   const calculateTimelinePhases = (): TimelinePhase[] => {
-    const leadResponseRecovery = submission.lead_response_loss || 0;
-    const conversionRecovery = submission.selfserve_gap_loss || 0;
-    const processRecovery = submission.process_inefficiency_loss || 0;
-    const totalInvestment = 50000; // Estimated implementation investment
+    // Apply validation caps to recovery values
+    // Calculate realistic recovery caps
+    const currentARR = submission.current_arr || 0;
+
+    // Use realistic recovery values based on company size
+    const maxRecoveryRate = currentARR < 1000000 ? 0.15 : currentARR < 10000000 ? 0.25 : 0.35;
+    
+    const leadResponseRecovery = Math.min(
+      submission.lead_response_loss || 0, 
+      currentARR * maxRecoveryRate * 0.4
+    );
+    const conversionRecovery = Math.min(
+      submission.selfserve_gap_loss || 0, 
+      currentARR * maxRecoveryRate * 0.5
+    );
+    const processRecovery = Math.min(
+      submission.process_inefficiency_loss || 0, 
+      currentARR * maxRecoveryRate * 0.3
+    );
+    
+    // Scale investment based on company size
+    const totalInvestment = Math.min(50000 + (currentARR * 0.02), 200000);
 
     const phases: TimelinePhase[] = [
       {
@@ -49,7 +69,7 @@ export const ImplementationTimeline = ({ submission, formatCurrency }: Implement
         months: "Month 1-2",
         title: "Quick Wins Implementation",
         description: "Immediate response time optimization and basic process improvements",
-        recovery: leadResponseRecovery * 0.7, // 70% of lead response losses recovered
+        recovery: leadResponseRecovery * 0.5, // 50% of validated lead response losses
         difficulty: "Easy",
         actions: [
           "Implement lead response automation",
@@ -65,7 +85,7 @@ export const ImplementationTimeline = ({ submission, formatCurrency }: Implement
         months: "Month 3-4",
         title: "Conversion Improvements",
         description: "Self-serve optimization and conversion rate improvements",
-        recovery: conversionRecovery * 0.6, // 60% of conversion losses recovered
+        recovery: conversionRecovery * 0.4, // 40% of validated conversion losses
         difficulty: "Medium",
         actions: [
           "Optimize onboarding flow",
@@ -81,7 +101,7 @@ export const ImplementationTimeline = ({ submission, formatCurrency }: Implement
         months: "Month 5-6", 
         title: "Process Automation",
         description: "Advanced automation and manual process elimination",
-        recovery: processRecovery * 0.8, // 80% of process losses recovered
+        recovery: processRecovery * 0.6, // 60% of validated process losses
         difficulty: "Medium-Hard",
         actions: [
           "Deploy workflow automation",
@@ -117,7 +137,18 @@ export const ImplementationTimeline = ({ submission, formatCurrency }: Implement
   const phases = calculateTimelinePhases();
   const totalRecovery = phases[phases.length - 1]?.cumulativeRecovery || 0;
   const totalLeak = submission.total_leak || 1;
-  const recoveryPercentage = Math.min((totalRecovery / totalLeak) * 100, 85);
+  const currentARR = submission.current_arr || 0;
+  
+  // Cap recovery percentage based on realistic expectations
+  const maxRecoveryPercentage = currentARR < 1000000 ? 25 : currentARR < 10000000 ? 40 : 60;
+  const recoveryPercentage = Math.min((totalRecovery / totalLeak) * 100, maxRecoveryPercentage);
+  
+  const confidenceLevel = getCalculationConfidenceLevel({
+    currentARR: submission.current_arr || 0,
+    monthlyLeads: submission.monthly_leads || 0,
+    monthlyFreeSignups: submission.monthly_free_signups || 0,
+    totalLeak: submission.total_leak || 0
+  });
 
   // Chart data for cumulative recovery
   const chartData = [
@@ -164,6 +195,9 @@ export const ImplementationTimeline = ({ submission, formatCurrency }: Implement
                 <CardTitle className="text-2xl">Implementation Timeline & ROI</CardTitle>
                 <p className="text-muted-foreground mt-1">
                   Month-by-month revenue recovery plan with {Math.round(recoveryPercentage)}% leak recovery potential
+                  {confidenceLevel !== 'high' && (
+                    <span className="text-revenue-warning"> • {confidenceLevel} confidence estimates</span>
+                  )}
                 </p>
               </div>
             </div>
@@ -177,6 +211,14 @@ export const ImplementationTimeline = ({ submission, formatCurrency }: Implement
           <CollapsibleContent>
             <CardContent className="space-y-8 pt-6">
               {/* Recovery Summary */}
+              {confidenceLevel === 'low' && (
+                <div className="flex items-center gap-2 p-3 bg-revenue-warning/10 border border-revenue-warning/20 rounded-lg mb-4">
+                  <AlertTriangle className="h-4 w-4 text-revenue-warning" />
+                  <p className="text-sm text-muted-foreground">
+                    Timeline estimates have low confidence due to limited data. Consider these as directional guidance.
+                  </p>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gradient-to-r from-background to-primary/5 rounded-lg border">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-revenue-primary mb-1">
