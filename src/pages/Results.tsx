@@ -41,7 +41,7 @@ import { PriorityActions } from "@/components/calculator/results/PriorityActions
 import { ImplementationTimeline } from "@/components/calculator/results/ImplementationTimeline";
 import { IndustryBenchmarking } from "@/components/calculator/results/IndustryBenchmarking";
 import { EnhancedInsights } from "@/components/calculator/results/EnhancedInsights";
-import { validateRecoveryAssumptions } from "@/lib/calculator/enhancedCalculations";
+import { validateRecoveryAssumptions, INDUSTRY_BENCHMARKS } from "@/lib/calculator/enhancedCalculations";
 import { ExecutiveSummaryCard } from "@/components/results/ExecutiveSummaryCard";
 import { SectionNavigation } from "@/components/results/SectionNavigation";
 import { UserIntentSelector, type UserIntent } from "@/components/results/UserIntentSelector";
@@ -229,28 +229,66 @@ const Results = () => {
     }
   ];
 
+  // Validation and sanity checks
+  const calculationValidation = (() => {
+    const leadResponseLoss = submission.lead_response_loss || 0;
+    const selfServeGap = submission.selfserve_gap_loss || 0;
+    const currentARR = submission.current_arr || 0;
+    const totalLeak = submission.total_leak || 0;
+    
+    const warnings: string[] = [];
+    let confidenceLevel: 'high' | 'medium' | 'low' = 'medium';
+    
+    // Check for unrealistic values
+    if (leadResponseLoss > currentARR * 3) {
+      warnings.push('Lead response loss calculation may be overestimated for your company size');
+    }
+    
+    if (selfServeGap > currentARR * 5) {
+      warnings.push('Self-serve opportunity calculation assumes aggressive growth targets');
+    }
+    
+    if ((submission.recovery_potential_85 || 0) > currentARR * 15) {
+      warnings.push('Recovery projections assume best-in-class execution across all areas');
+    }
+    
+    // Determine confidence level
+    if (currentARR > 1000000 && (submission.monthly_leads || 0) > 200) {
+      confidenceLevel = 'high';
+    } else if (currentARR < 100000 || totalLeak > currentARR * 10) {
+      confidenceLevel = 'low';
+    }
+    
+    return { warnings, confidenceLevel };
+  })();
+
   // Create enhanced insights breakdown for the results page
   const enhancedBreakdown = {
     leadResponse: {
       dealSizeTier: (submission.average_deal_value || 0) > 100000 ? 'Enterprise' : 
                    (submission.average_deal_value || 0) > 25000 ? 'Mid-Market' : 'SMB',
       conversionImpact: submission.lead_response_loss || 0,
-      responseTimeHours: submission.lead_response_time || 0
+      responseTimeHours: submission.lead_response_time || 0,
+      effectiveness: Math.max(0.25, 1 - ((submission.lead_response_time || 0) * 0.15))
     },
     failedPayments: {
       recoverySystem: 'Basic System',
       recoveryRate: 0.35,
-      actualLossAfterRecovery: (submission.failed_payment_loss || 0) * 0.65
+      actualLossAfterRecovery: (submission.failed_payment_loss || 0) * 0.65,
+      monthlyImpact: (submission.failed_payment_loss || 0) / 12
     },
     selfServeGap: {
-      industryBenchmark: 15,
+      industryBenchmark: INDUSTRY_BENCHMARKS[submission.industry as keyof typeof INDUSTRY_BENCHMARKS]?.conversionRate || 3.4,
       industryName: submission.industry || 'Other',
-      gapPercentage: Math.max(0, 15 - (submission.free_to_paid_conversion || 0)),
-      currentConversion: submission.free_to_paid_conversion || 0
+      gapPercentage: Math.max(0, (INDUSTRY_BENCHMARKS[submission.industry as keyof typeof INDUSTRY_BENCHMARKS]?.conversionRate || 3.4) - (submission.free_to_paid_conversion || 0)),
+      currentConversion: submission.free_to_paid_conversion || 0,
+      potentialARPU: (submission.monthly_mrr || 0) / Math.max(1, (submission.monthly_free_signups || 0) * (submission.free_to_paid_conversion || 1) / 100)
     },
     processInefficiency: {
-      revenueGeneratingPotential: (submission.process_inefficiency_loss || 0) * 0.3,
-      automationPotential: 0.7
+      revenueGeneratingPotential: (submission.process_inefficiency_loss || 0) * 0.32,
+      automationPotential: 0.7,
+      weeklyHours: submission.manual_hours || 0,
+      hourlyRate: submission.hourly_rate || 0
     },
     recoveryValidation: (() => {
       const validation = validateRecoveryAssumptions({
@@ -265,7 +303,8 @@ const Results = () => {
         canAchieve85: validation.canAchieve85,
         limitations: validation.reasons
       };
-    })()
+    })(),
+    validation: calculationValidation
   };
 
   return (
@@ -556,6 +595,43 @@ const Results = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Calculation Confidence & Warnings */}
+              {enhancedBreakdown.validation.warnings.length > 0 && (
+                <Card className="mb-6 border-orange-200 bg-orange-50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-orange-700">
+                      <AlertTriangle className="h-5 w-5" />
+                      Calculation Confidence
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">Confidence Level:</span>
+                        <Badge variant={
+                          enhancedBreakdown.validation.confidenceLevel === 'high' ? 'default' : 
+                          enhancedBreakdown.validation.confidenceLevel === 'medium' ? 'secondary' : 'destructive'
+                        }>
+                          {enhancedBreakdown.validation.confidenceLevel.toUpperCase()}
+                        </Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-orange-700">Important Notes:</p>
+                        <ul className="text-sm space-y-1 text-orange-600">
+                          {enhancedBreakdown.validation.warnings.map((warning, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <span className="text-orange-500 mt-0.5">•</span>
+                              {warning}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
               <EnhancedInsights breakdown={enhancedBreakdown} />
             </section>
 

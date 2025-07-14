@@ -9,26 +9,35 @@ interface EnhancedInsightsProps {
       dealSizeTier: string;
       conversionImpact: number;
       responseTimeHours: number;
+      effectiveness?: number;
     };
     failedPayments: {
       recoverySystem: string;
       recoveryRate: number;
       actualLossAfterRecovery: number;
+      monthlyImpact?: number;
     };
     selfServeGap: {
       industryBenchmark: number;
       industryName: string;
       gapPercentage: number;
       currentConversion: number;
+      potentialARPU?: number;
     };
     processInefficiency: {
       revenueGeneratingPotential: number;
       automationPotential: number;
+      weeklyHours?: number;
+      hourlyRate?: number;
     };
     recoveryValidation: {
       canAchieve70: boolean;
       canAchieve85: boolean;
       limitations: string[];
+    };
+    validation?: {
+      warnings: string[];
+      confidenceLevel: 'high' | 'medium' | 'low';
     };
   };
 }
@@ -90,7 +99,7 @@ export const EnhancedInsights = ({ breakdown }: EnhancedInsightsProps) => {
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Current Effectiveness</span>
               <span className="font-medium text-sm">
-                {Math.round(leadResponse.conversionImpact * 100)}%
+                {Math.round((leadResponse.effectiveness || 0.75) * 100)}%
               </span>
             </div>
             <div className="flex justify-between items-center">
@@ -132,7 +141,7 @@ export const EnhancedInsights = ({ breakdown }: EnhancedInsightsProps) => {
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Recovery Rate</span>
               <span className="font-medium text-sm text-revenue-success">
-                {Math.round(failedPayments.recoveryRate)}%
+                {Math.round(failedPayments.recoveryRate * 100)}%
               </span>
             </div>
             {failedPayments.recoveryRate < 70 && (
@@ -186,15 +195,19 @@ export const EnhancedInsights = ({ breakdown }: EnhancedInsightsProps) => {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Weekly Manual Hours</span>
+              <span className="font-medium text-sm">{processInefficiency.weeklyHours || 0}h</span>
+            </div>
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Automation Potential</span>
               <span className="font-medium text-sm text-revenue-success">
-                {processInefficiency.automationPotential}%
+                {Math.round(processInefficiency.automationPotential * 100)}%
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Revenue Generation</span>
               <span className="font-medium text-sm text-revenue-success">
-                +{processInefficiency.revenueGeneratingPotential}%
+                ${Math.round(processInefficiency.revenueGeneratingPotential).toLocaleString()}
               </span>
             </div>
             <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded">

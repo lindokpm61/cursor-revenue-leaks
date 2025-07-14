@@ -47,35 +47,35 @@ export const RECOVERY_SYSTEMS: Record<string, RecoverySystemType> = {
   'best-in-class': { name: 'Best-in-Class System', recoveryRate: 0.85, retrySuccessRate: 0.50 }
 };
 
-// Enhanced lead response time impact calculation (exponential decay)
+// Enhanced lead response time impact calculation (realistic decay model)
 export const calculateLeadResponseImpact = (responseTimeHours: number, dealValue: number): number => {
   const responseTimeMinutes = responseTimeHours * 60;
   
   // Determine optimal response time based on deal size
   const dealTier = DEAL_SIZE_TIERS.find(tier => dealValue >= tier.min && dealValue <= tier.max) || DEAL_SIZE_TIERS[0];
   
-  // Exponential decay formula based on 2025 research
+  // More realistic effectiveness decay - less aggressive than original
   let effectiveness: number;
   
   if (responseTimeMinutes <= 5) {
     effectiveness = 1.0; // 100% baseline
   } else if (responseTimeMinutes <= 30) {
-    effectiveness = 0.85 - ((responseTimeMinutes - 5) / 25) * 0.25; // 85% to 60%
+    effectiveness = 0.95 - ((responseTimeMinutes - 5) / 25) * 0.15; // 95% to 80%
   } else if (responseTimeMinutes <= 60) {
-    effectiveness = 0.60 - ((responseTimeMinutes - 30) / 30) * 0.25; // 60% to 35%
+    effectiveness = 0.80 - ((responseTimeMinutes - 30) / 30) * 0.15; // 80% to 65%
   } else if (responseTimeMinutes <= 240) { // 4 hours
-    effectiveness = 0.35 - ((responseTimeMinutes - 60) / 180) * 0.20; // 35% to 15%
+    effectiveness = 0.65 - ((responseTimeMinutes - 60) / 180) * 0.25; // 65% to 40%
   } else {
-    effectiveness = Math.max(0.05, 0.15 - ((responseTimeMinutes - 240) / 240) * 0.10); // 15% to 5%
+    effectiveness = Math.max(0.25, 0.40 - ((responseTimeMinutes - 240) / 480) * 0.15); // 40% to 25%
   }
   
-  // Apply deal size penalty if response time exceeds optimal for tier
+  // Apply smaller penalty for deal size mismatch
   if (responseTimeMinutes > dealTier.optimalResponseMinutes) {
-    const penaltyMultiplier = Math.max(0.5, 1 - ((responseTimeMinutes - dealTier.optimalResponseMinutes) / dealTier.optimalResponseMinutes) * 0.3);
+    const penaltyMultiplier = Math.max(0.8, 1 - ((responseTimeMinutes - dealTier.optimalResponseMinutes) / dealTier.optimalResponseMinutes) * 0.15);
     effectiveness *= penaltyMultiplier;
   }
   
-  return Math.max(0.05, effectiveness); // Minimum 5% effectiveness
+  return Math.max(0.25, effectiveness); // Minimum 25% effectiveness (more realistic)
 };
 
 // Enhanced failed payment loss calculation with recovery rates
@@ -93,7 +93,7 @@ export const calculateFailedPaymentLoss = (
   return actualLoss * 12; // Annual loss
 };
 
-// Enhanced self-serve conversion gap calculation with industry benchmarks
+// Enhanced self-serve conversion gap calculation with realistic bounds
 export const calculateSelfServeGap = (
   monthlyFreeSignups: number,
   currentConversionRate: number,
@@ -103,15 +103,23 @@ export const calculateSelfServeGap = (
   const benchmark = INDUSTRY_BENCHMARKS[industry] || INDUSTRY_BENCHMARKS['other'];
   const benchmarkRate = benchmark.conversionRate;
   
-  // Calculate average revenue per converted user
-  const avgRevenuePerUser = (monthlyFreeSignups > 0 && currentConversionRate > 0) 
-    ? monthlyMRR / (monthlyFreeSignups * (currentConversionRate / 100))
-    : 100; // Fallback to $100/month
+  // Calculate average revenue per converted user with bounds checking
+  let avgRevenuePerUser: number;
+  if (monthlyFreeSignups > 0 && currentConversionRate > 0) {
+    const currentConversions = monthlyFreeSignups * (currentConversionRate / 100);
+    avgRevenuePerUser = currentConversions > 0 ? monthlyMRR / currentConversions : 100;
+    // Cap at reasonable ARPU levels ($50-$500/month)
+    avgRevenuePerUser = Math.min(Math.max(avgRevenuePerUser, 50), 500);
+  } else {
+    avgRevenuePerUser = 100; // Fallback to $100/month
+  }
   
   const conversionGap = Math.max(0, benchmarkRate - currentConversionRate);
   const gapLoss = monthlyFreeSignups * (conversionGap / 100) * avgRevenuePerUser;
   
-  return gapLoss * 12; // Annual loss
+  // Cap the annual loss at reasonable levels (max 50x monthly MRR)
+  const maxReasonableLoss = monthlyMRR * 50;
+  return Math.min(gapLoss * 12, maxReasonableLoss);
 };
 
 // Enhanced process inefficiency calculation with updated multipliers
