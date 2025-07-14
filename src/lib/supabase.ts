@@ -88,6 +88,18 @@ export const submissionService = {
   },
 
   async delete(id: string) {
+    // First delete related integration_logs records
+    const { error: logsError } = await supabase
+      .from('integration_logs')
+      .delete()
+      .eq('submission_id', id);
+    
+    if (logsError) {
+      console.error('Error deleting integration logs:', logsError);
+      return { error: logsError };
+    }
+    
+    // Then delete the submission
     const { error } = await supabase
       .from('submissions')
       .delete()
