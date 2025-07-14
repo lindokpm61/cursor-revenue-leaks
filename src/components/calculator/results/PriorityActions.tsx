@@ -191,14 +191,25 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
 
     // Payment Failure Reduction
     if (submission.failed_payment_rate && submission.failed_payment_rate > 2 && submission.monthly_mrr) {
-      const paymentLoss = calculateFailedPaymentLoss(
+      // Calculate current annual loss at current failure rate
+      const currentLoss = calculateFailedPaymentLoss(
         submission.monthly_mrr,
         submission.failed_payment_rate / 100,
         'basic'
       );
       
+      // Calculate target annual loss at improved failure rate (1.5%)
+      const targetLoss = calculateFailedPaymentLoss(
+        submission.monthly_mrr,
+        1.5 / 100,
+        'basic'
+      );
+      
+      // Recovery potential is the difference between current and target losses
+      const recoveryPotential = Math.max(0, currentLoss - targetLoss);
+      
       // Cap at reasonable percentage
-      const cappedLoss = Math.min(paymentLoss, (submission.current_arr || 0) * 0.08);
+      const cappedRecovery = Math.min(recoveryPotential, (submission.current_arr || 0) * 0.08);
       
       const targetFailureRate = 1.5;
       const currentProgress = Math.max(0, 100 - (submission.failed_payment_rate * 5));
@@ -210,11 +221,11 @@ export const PriorityActions = ({ submission, formatCurrency }: PriorityActionsP
         description: 'Implement better payment retry logic and multiple payment methods',
         currentMetric: `${submission.failed_payment_rate}% failure rate`,
         targetMetric: `${targetFailureRate}% failure rate`,
-        potentialRecovery: cappedLoss,
+        potentialRecovery: cappedRecovery,
         difficulty: 'Medium',
         timeframe: '6-10 weeks',
         icon: CreditCard,
-        priority: cappedLoss > (submission.current_arr || 0) * 0.02 ? 'urgent' : 'medium',
+        priority: cappedRecovery > (submission.current_arr || 0) * 0.02 ? 'urgent' : 'medium',
         currentProgress,
         targetProgress,
         confidence,
