@@ -25,6 +25,18 @@ import { submissionService, type Submission } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { 
+  calculateLeadResponseImpact,
+  calculateFailedPaymentLoss,
+  calculateSelfServeGap,
+  calculateProcessInefficiency,
+  validateRecoveryAssumptions,
+  INDUSTRY_BENCHMARKS
+} from "@/lib/calculator/enhancedCalculations";
+import { 
+  validateCalculationResults,
+  getCalculationConfidenceLevel
+} from "@/lib/calculator/validationHelpers";
 
 const ActionPlan = () => {
   const { id } = useParams<{ id: string }>();
@@ -627,56 +639,117 @@ const ActionPlan = () => {
     );
   };
 
+  const getEnhancedCalculations = (submission: Submission) => {
+    // Enhanced calculations with validation
+    const leadResponseLoss = submission.monthly_leads && submission.average_deal_value && submission.lead_response_time
+      ? calculateLeadResponseImpact(submission.lead_response_time, submission.average_deal_value) * submission.monthly_leads * 12
+      : submission.lead_response_loss || 0;
+
+    const failedPaymentLoss = submission.monthly_mrr && submission.failed_payment_rate
+      ? calculateFailedPaymentLoss(submission.monthly_mrr, submission.failed_payment_rate)
+      : submission.failed_payment_loss || 0;
+
+    const selfServeGap = submission.monthly_free_signups && submission.free_to_paid_conversion && submission.monthly_mrr
+      ? calculateSelfServeGap(submission.monthly_free_signups, submission.free_to_paid_conversion, submission.monthly_mrr, submission.industry || 'other')
+      : submission.selfserve_gap_loss || 0;
+
+    const processLoss = submission.manual_hours && submission.hourly_rate
+      ? calculateProcessInefficiency(submission.manual_hours, submission.hourly_rate)
+      : submission.process_inefficiency_loss || 0;
+
+    const total_leak = leadResponseLoss + failedPaymentLoss + selfServeGap + processLoss;
+    
+    // Apply validation bounds
+    const validation = validateCalculationResults({
+      leadResponseLoss,
+      failedPaymentLoss,
+      selfServeGap,
+      processLoss,
+      currentARR: submission.current_arr || 0,
+      recoveryPotential70: total_leak * 0.7,
+      recoveryPotential85: total_leak * 0.85
+    });
+
+    return {
+      leadResponseLoss: validation.leadResponse.isValid ? leadResponseLoss : validation.leadResponse.adjustedValue || 0,
+      failedPaymentLoss: failedPaymentLoss,
+      selfServeGap: validation.selfServe.isValid ? selfServeGap : validation.selfServe.adjustedValue || 0,
+      processLoss: processLoss,
+      total_leak: validation.overall.isValid ? total_leak : validation.overall.adjustedValue || total_leak * 0.5,
+      recovery_potential_70: validation.recovery.isValid ? total_leak * 0.7 : validation.recovery.adjustedValue || total_leak * 0.3,
+      confidence: getCalculationConfidenceLevel({
+        currentARR: submission.current_arr || 0,
+        monthlyLeads: submission.monthly_leads || 0,
+        monthlyFreeSignups: submission.monthly_free_signups || 0,
+        totalLeak: total_leak
+      })
+    };
+  };
+
   const calculateROI = (submission: Submission) => {
-    if (!submission.total_leak || !submission.recovery_potential_70) return 0;
-    const implementationCost = submission.recovery_potential_70 * 0.15; // Assume 15% implementation cost
-    return Math.round(((submission.recovery_potential_70 - implementationCost) / implementationCost) * 100);
+    // Get enhanced calculations with validation
+    const calculations = getEnhancedCalculations(submission);
+    const validatedRecovery = Math.min(calculations.recovery_potential_70, calculations.total_leak * 0.8);
+    
+    // Base implementation cost on company size and complexity
+    const baseInvestment = submission.current_arr ? Math.max(25000, Math.min(150000, (submission.current_arr / 100))) : 50000;
+    
+    return Math.round((validatedRecovery / baseInvestment) * 100);
   };
 
   const getPriorityActions = (submission: Submission) => {
+    const calculations = getEnhancedCalculations(submission);
     const actions = [];
     
-    if (submission.lead_response_loss && submission.lead_response_loss > 0) {
+    if (calculations.leadResponseLoss > 0) {
+      const impact = Math.min(calculations.leadResponseLoss, calculations.total_leak * 0.4);
       actions.push({
         id: 'lead-response',
-        title: 'Implement Automated Lead Response',
-        impact: submission.lead_response_loss,
-        timeframe: '2-4 weeks',
+        title: 'Optimize Lead Response Time',
+        impact: impact,
+        timeframe: calculations.confidence === 'high' ? '2-4 weeks' : '4-6 weeks',
         difficulty: 'Medium',
-        description: 'Set up automated lead response systems to capture leads within minutes'
+        description: 'Implement automated lead routing and response systems',
+        confidence: calculations.confidence
       });
     }
     
-    if (submission.failed_payment_loss && submission.failed_payment_loss > 0) {
+    if (calculations.failedPaymentLoss > 0) {
+      const impact = Math.min(calculations.failedPaymentLoss, calculations.total_leak * 0.3);
       actions.push({
         id: 'payment-recovery',
         title: 'Deploy Payment Recovery System',
-        impact: submission.failed_payment_loss,
+        impact: impact,
         timeframe: '1-2 weeks',
         difficulty: 'Easy',
-        description: 'Implement automated dunning management and payment retry logic'
+        description: 'Implement automated dunning management and payment retry logic',
+        confidence: calculations.confidence
       });
     }
     
-    if (submission.selfserve_gap_loss && submission.selfserve_gap_loss > 0) {
+    if (calculations.selfServeGap > 0) {
+      const impact = Math.min(calculations.selfServeGap, calculations.total_leak * 0.5);
       actions.push({
         id: 'self-serve',
         title: 'Optimize Self-Serve Conversion',
-        impact: submission.selfserve_gap_loss,
-        timeframe: '4-6 weeks',
-        difficulty: 'Hard',
-        description: 'Enhance onboarding flow and reduce conversion friction'
+        impact: impact,
+        timeframe: calculations.confidence === 'high' ? '4-6 weeks' : '6-8 weeks',
+        difficulty: calculations.confidence === 'low' ? 'Very Hard' : 'Hard',
+        description: 'Enhance onboarding flow and reduce conversion friction',
+        confidence: calculations.confidence
       });
     }
     
-    if (submission.process_inefficiency_loss && submission.process_inefficiency_loss > 0) {
+    if (calculations.processLoss > 0) {
+      const impact = Math.min(calculations.processLoss, calculations.total_leak * 0.3);
       actions.push({
         id: 'automation',
         title: 'Automate Manual Processes',
-        impact: submission.process_inefficiency_loss,
+        impact: impact,
         timeframe: '6-8 weeks',
         difficulty: 'Hard',
-        description: 'Replace manual workflows with automated systems'
+        description: 'Replace manual workflows with automated systems',
+        confidence: calculations.confidence
       });
     }
 
@@ -718,6 +791,7 @@ const ActionPlan = () => {
 
   const priorityActions = getPriorityActions(submission);
   const roi = calculateROI(submission);
+  const calculations = getEnhancedCalculations(submission);
 
   // Dynamic progress calculation
   const calculateImplementationProgress = (checkedActions: string[], totalActions: any[]) => {
@@ -779,9 +853,16 @@ const ActionPlan = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <Card className="border-revenue-danger/20 bg-revenue-danger/5">
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-revenue-danger mb-2">Total Revenue Leak</h3>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-revenue-danger">Total Revenue Leak</h3>
+                  {calculations.confidence === 'low' && (
+                    <Badge variant="outline" className="text-xs">
+                      Estimated
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-3xl font-bold text-revenue-danger">
-                  {formatCurrency(submission.total_leak || 0)}
+                  {formatCurrency(calculations.total_leak)}
                 </p>
                 <p className="text-sm text-muted-foreground">Annual opportunity cost</p>
               </CardContent>
@@ -789,11 +870,19 @@ const ActionPlan = () => {
             
             <Card className="border-revenue-success/20 bg-revenue-success/5">
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-revenue-success mb-2">Recovery Potential</h3>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-revenue-success">Recovery Potential</h3>
+                  <Badge variant="outline" className="text-xs">
+                    {calculations.confidence === 'high' ? '70%' : calculations.confidence === 'medium' ? '50%' : '30%'} confidence
+                  </Badge>
+                </div>
                 <p className="text-3xl font-bold text-revenue-success">
-                  {formatCurrency(submission.recovery_potential_70 || 0)}
+                  {formatCurrency(calculations.recovery_potential_70)}
                 </p>
-                <p className="text-sm text-muted-foreground">70% achievable in 6 months</p>
+                <p className="text-sm text-muted-foreground">
+                  {calculations.confidence === 'high' ? '70% achievable in 6 months' : 
+                   calculations.confidence === 'medium' ? 'Conservative estimate' : 'Requires validation'}
+                </p>
               </CardContent>
             </Card>
             
@@ -857,9 +946,14 @@ const ActionPlan = () => {
                   <div className="pt-4 border-t">
                     <p className="text-sm text-muted-foreground">
                       Expected recovery: <span className="font-semibold text-revenue-success">
-                        {formatCurrency((submission.recovery_potential_70 || 0) * 0.3)}
+                        {formatCurrency(calculations.recovery_potential_70 * 0.3)}
                       </span>
                     </p>
+                    {calculations.confidence === 'low' && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        ⚠️ Based on limited data - actual results may vary
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -889,9 +983,14 @@ const ActionPlan = () => {
                   <div className="pt-4 border-t">
                     <p className="text-sm text-muted-foreground">
                       Expected recovery: <span className="font-semibold text-primary">
-                        {formatCurrency((submission.recovery_potential_70 || 0) * 0.7)}
+                        {formatCurrency(calculations.recovery_potential_70 * 0.7)}
                       </span>
                     </p>
+                    {calculations.confidence !== 'high' && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        📊 Strategic investments - validation recommended
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -929,9 +1028,14 @@ const ActionPlan = () => {
                     <div className="mt-4 pt-4 border-t">
                       <p className="text-sm text-muted-foreground">
                         Expected Recovery: <span className={`font-semibold text-${phase.color}`}>
-                          {formatCurrency((submission.recovery_potential_70 || 0) / 3)}
+                          {formatCurrency(calculations.recovery_potential_70 / 3)}
                         </span>
                       </p>
+                      {index === 0 && calculations.confidence === 'low' && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          ⚠️ Validate assumptions before major investments
+                        </p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -981,7 +1085,7 @@ const ActionPlan = () => {
                           <p className="text-sm text-muted-foreground">Recovery Potential</p>
                         </div>
                       </div>
-                      <div className="flex gap-4 mt-4 ml-20">
+                        <div className="flex gap-4 mt-4 ml-20">
                         <Badge variant="outline" className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {action.timeframe}
@@ -989,6 +1093,11 @@ const ActionPlan = () => {
                         <Badge variant="outline">
                           Difficulty: {action.difficulty}
                         </Badge>
+                        {action.confidence === 'low' && (
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                            Validation Needed
+                          </Badge>
+                        )}
                         {isChecked && (
                           <Badge variant="default" className="flex items-center gap-1">
                             <CheckCircle className="h-3 w-3" />
