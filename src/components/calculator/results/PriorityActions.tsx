@@ -82,13 +82,19 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData }: 
 
   const getActionItems = (): ActionItem[] => {
     const actions: ActionItem[] = [];
+    const currentARR = submission.current_arr || 0;
+    const totalLeak = submission.total_leak || 0;
+    
+    // Track total recovery across all actions to prevent overlap
+    let totalAllocatedRecovery = 0;
+    const maxAllowableRecovery = Math.min(totalLeak * 0.60, currentARR * 0.30); // Cap at 60% of leak or 30% of ARR
     
     // Get calculation confidence
     const confidence = getCalculationConfidenceLevel({
-      currentARR: submission.current_arr || 0,
+      currentARR: currentARR,
       monthlyLeads: submission.monthly_leads || 0,
       monthlyFreeSignups: submission.monthly_free_signups || 0,
-      totalLeak: submission.total_leak || 0
+      totalLeak: totalLeak
     });
 
     // Validate calculations
@@ -97,7 +103,7 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData }: 
       failedPaymentLoss: submission.failed_payment_loss || 0,
       selfServeGap: submission.selfserve_gap_loss || 0,
       processLoss: submission.process_inefficiency_loss || 0,
-      currentARR: submission.current_arr || 0,
+      currentARR: currentARR,
       recoveryPotential70: submission.recovery_potential_70 || 0,
       recoveryPotential85: submission.recovery_potential_85 || 0
     });
@@ -105,14 +111,14 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData }: 
     // Lead Response Time Action
     if (submission.lead_response_time && submission.lead_response_time > 2 && submission.average_deal_value) {
       // Use unified calculations if available, otherwise fallback to legacy
-      let cappedRecovery: number;
+      let baseRecovery: number;
       
       if (unifiedCalcs) {
-        cappedRecovery = unifiedCalcs.actionRecoveryPotential.leadResponse;
+        baseRecovery = unifiedCalcs.actionRecoveryPotential.leadResponse;
       } else {
-        // Legacy calculation as fallback
+        // Legacy calculation as fallback with more conservative estimates
         const currentEffectiveness = calculateLeadResponseImpact(submission.lead_response_time, submission.average_deal_value);
-        const targetEffectiveness = calculateLeadResponseImpact(1, submission.average_deal_value);
+        const targetEffectiveness = calculateLeadResponseImpact(1.5, submission.average_deal_value); // More realistic target
         
         const conversionRate = submission.free_to_paid_conversion ? submission.free_to_paid_conversion / 100 : 0.03;
         const annualLeadValue = (submission.monthly_leads || 0) * submission.average_deal_value * conversionRate * 12;
@@ -120,110 +126,130 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData }: 
         const currentLoss = annualLeadValue * (1 - currentEffectiveness);
         const targetLoss = annualLeadValue * (1 - targetEffectiveness);
         
-        const recoveryPotential = Math.max(0, currentLoss - targetLoss);
-        cappedRecovery = Math.min(recoveryPotential, (submission.current_arr || 0) * 0.15);
+        const recoveryPotential = Math.max(0, currentLoss - targetLoss) * 0.65; // 65% achievable recovery
+        baseRecovery = Math.min(recoveryPotential, Math.min(currentARR * 0.12, totalLeak * 0.20));
       }
       
-      const currentProgress = Math.max(0, Math.min(100, 100 - ((submission.lead_response_time - 1) * 15)));
-      const targetProgress = 90;
+      // Ensure we don't exceed total allowable recovery
+      const cappedRecovery = Math.min(baseRecovery, maxAllowableRecovery - totalAllocatedRecovery);
       
-      actions.push({
-        id: 'lead-response',
-        title: 'Optimize Lead Response Time',
-        description: 'Reduce response time to under 1 hour for maximum conversion',
-        currentMetric: `${submission.lead_response_time}h response time`,
-        targetMetric: '1h response time',
-        potentialRecovery: cappedRecovery,
-        difficulty: 'Easy',
-        timeframe: '2-4 weeks',
-        icon: Clock,
-        priority: cappedRecovery > (submission.current_arr || 0) * 0.05 ? 'urgent' : 'medium',
-        currentProgress,
-        targetProgress,
-        confidence: unifiedCalcs?.confidence || confidence.level,
-        explanation: 'Fast response times dramatically improve lead conversion rates. Each hour of delay reduces conversion probability exponentially.'
-      });
+      if (cappedRecovery > currentARR * 0.01) { // Only include if > 1% of ARR
+        totalAllocatedRecovery += cappedRecovery;
+        
+        const currentProgress = Math.max(0, Math.min(100, 100 - ((submission.lead_response_time - 1.5) * 20)));
+        const targetProgress = 85; // More realistic target
+        
+        actions.push({
+          id: 'lead-response',
+          title: 'Optimize Lead Response Time',
+          description: 'Reduce response time to under 1.5 hours through automation and process improvements',
+          currentMetric: `${submission.lead_response_time}h response time`,
+          targetMetric: '1.5h response time',
+          potentialRecovery: cappedRecovery,
+          difficulty: 'Easy',
+          timeframe: '4-6 weeks', // More realistic timeframe
+          icon: Clock,
+          priority: cappedRecovery > currentARR * 0.05 ? 'urgent' : 'medium',
+          currentProgress,
+          targetProgress,
+          confidence: unifiedCalcs?.confidence || confidence.level,
+          explanation: 'Fast response times improve lead conversion rates. Implementation includes automation setup, team training, and process optimization.'
+        });
+      }
     }
 
     // Self-Serve Conversion Optimization
-    if (submission.free_to_paid_conversion && submission.monthly_free_signups && submission.monthly_mrr) {
+    if (submission.free_to_paid_conversion && submission.monthly_free_signups && submission.monthly_mrr && totalAllocatedRecovery < maxAllowableRecovery) {
       const currentConversion = submission.free_to_paid_conversion;
-      const industryBenchmark = 4.2; // More realistic benchmark
+      const industryBenchmark = Math.min(4.2, currentConversion + 2.0); // More realistic benchmark - max 2% improvement
       
       if (currentConversion < industryBenchmark) {
         // Use unified calculations if available
-        let cappedRecovery: number;
+        let baseRecovery: number;
         
         if (unifiedCalcs) {
-          cappedRecovery = unifiedCalcs.actionRecoveryPotential.selfServeOptimization;
+          baseRecovery = unifiedCalcs.actionRecoveryPotential.selfServeOptimization;
         } else {
-          // Legacy calculation
+          // Legacy calculation with more conservative estimates
           const gapRecovery = calculateSelfServeGap(
             submission.monthly_free_signups,
             currentConversion,
             submission.monthly_mrr,
             submission.industry || 'other'
           );
-          cappedRecovery = Math.min(gapRecovery, (submission.current_arr || 0) * 0.25);
+          // Much more conservative - only 40% of calculated gap is achievable
+          baseRecovery = Math.min(gapRecovery * 0.40, Math.min(currentARR * 0.15, totalLeak * 0.25));
         }
         
-        const currentProgress = (currentConversion / industryBenchmark) * 100;
-        const targetProgress = 100;
+        // Ensure no overlap with previous actions
+        const cappedRecovery = Math.min(baseRecovery, maxAllowableRecovery - totalAllocatedRecovery);
         
-        actions.push({
-          id: 'conversion-optimization',
-          title: 'Self-Serve Conversion Optimization',
-          description: 'Improve free-to-paid conversion through better onboarding and product experience',
-          currentMetric: `${currentConversion}% conversion rate`,
-          targetMetric: `${industryBenchmark}% conversion rate`,
-          potentialRecovery: cappedRecovery,
-          difficulty: 'Medium',
-          timeframe: '6-12 weeks',
-          icon: Target,
-          priority: cappedRecovery > (submission.current_arr || 0) * 0.05 ? 'urgent' : 'medium',
-          currentProgress,
-          targetProgress,
-        confidence: confidence.level,
-          explanation: 'Better onboarding, feature discovery, and value demonstration can significantly improve conversion rates from free to paid plans.'
-        });
+        if (cappedRecovery > currentARR * 0.01) {
+          totalAllocatedRecovery += cappedRecovery;
+          
+          const currentProgress = (currentConversion / industryBenchmark) * 100;
+          const targetProgress = 90; // More realistic target
+          
+          actions.push({
+            id: 'conversion-optimization',
+            title: 'Self-Serve Conversion Optimization',
+            description: 'Systematic improvement of free-to-paid conversion through onboarding optimization and user experience enhancements',
+            currentMetric: `${currentConversion}% conversion rate`,
+            targetMetric: `${industryBenchmark.toFixed(1)}% conversion rate`,
+            potentialRecovery: cappedRecovery,
+            difficulty: 'Medium',
+            timeframe: '8-12 weeks', // More realistic timeframe
+            icon: Target,
+            priority: cappedRecovery > currentARR * 0.04 ? 'urgent' : 'medium',
+            currentProgress,
+            targetProgress,
+            confidence: unifiedCalcs?.confidence || confidence.level,
+            explanation: 'Systematic onboarding improvements, feature discovery enhancements, and value demonstration can improve conversion rates. Requires A/B testing and gradual optimization.'
+          });
+        }
       }
     }
 
     // Process Automation
-    if (submission.manual_hours && submission.manual_hours > 10 && submission.hourly_rate) {
+    if (submission.manual_hours && submission.manual_hours > 15 && submission.hourly_rate && totalAllocatedRecovery < maxAllowableRecovery) {
       const automationSavings = calculateProcessInefficiency(
         submission.manual_hours,
         submission.hourly_rate,
-        0.7 // 70% automation potential
+        0.45 // 45% automation potential (more realistic)
       );
       
-      // Cap at reasonable amount
-      const cappedSavings = Math.min(automationSavings, (submission.current_arr || 0) * 0.1);
+      // Much more conservative recovery estimate
+      const baseRecovery = Math.min(automationSavings * 0.60, Math.min(currentARR * 0.08, totalLeak * 0.15));
+      const cappedSavings = Math.min(baseRecovery, maxAllowableRecovery - totalAllocatedRecovery);
       
-      const automationPotential = Math.min(submission.manual_hours * 0.7, submission.manual_hours - 5);
-      const currentProgress = Math.max(0, 100 - ((submission.manual_hours / 40) * 100));
-      const targetProgress = 85;
-      
-      actions.push({
-        id: 'process-automation',
-        title: 'Process Automation Opportunities',
-        description: 'Automate repetitive manual tasks to save time and reduce errors',
-        currentMetric: `${submission.manual_hours}h/week manual work`,
-        targetMetric: `${Math.round(submission.manual_hours - automationPotential)}h/week manual work`,
-        potentialRecovery: cappedSavings,
-        difficulty: 'Easy',
-        timeframe: '3-6 weeks',
-        icon: Zap,
-        priority: cappedSavings > (submission.current_arr || 0) * 0.02 ? 'urgent' : 'medium',
-        currentProgress,
-        targetProgress,
-        confidence: confidence.level,
-        explanation: 'Automating manual processes frees up valuable time for strategic activities and reduces operational costs.'
-      });
+      if (cappedSavings > currentARR * 0.01) {
+        totalAllocatedRecovery += cappedSavings;
+        
+        const automationPotential = Math.min(submission.manual_hours * 0.45, submission.manual_hours - 8); // Keep minimum 8h manual
+        const currentProgress = Math.max(0, 100 - ((submission.manual_hours / 40) * 100));
+        const targetProgress = 75; // More realistic target
+        
+        actions.push({
+          id: 'process-automation',
+          title: 'Process Automation Initiative',
+          description: 'Systematically automate repetitive manual tasks through workflow optimization and tool implementation',
+          currentMetric: `${submission.manual_hours}h/week manual work`,
+          targetMetric: `${Math.round(submission.manual_hours - automationPotential)}h/week manual work`,
+          potentialRecovery: cappedSavings,
+          difficulty: 'Medium', // More realistic difficulty
+          timeframe: '8-12 weeks', // More realistic timeframe
+          icon: Zap,
+          priority: cappedSavings > currentARR * 0.03 ? 'urgent' : 'medium',
+          currentProgress,
+          targetProgress,
+          confidence: confidence.level,
+          explanation: 'Process automation requires careful analysis, tool selection, implementation, and team training. Recovery comes from reduced operational costs and improved efficiency.'
+        });
+      }
     }
 
     // Payment Failure Reduction
-    if (submission.failed_payment_rate && submission.failed_payment_rate > 2 && submission.monthly_mrr) {
+    if (submission.failed_payment_rate && submission.failed_payment_rate > 2.5 && submission.monthly_mrr && totalAllocatedRecovery < maxAllowableRecovery) {
       // Calculate current annual loss at current failure rate
       const currentLoss = calculateFailedPaymentLoss(
         submission.monthly_mrr,
@@ -231,39 +257,47 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData }: 
         'basic'
       );
       
-      // Calculate target annual loss at improved failure rate (1.5%)
+      // More realistic target failure rate based on current rate
+      const targetFailureRate = Math.max(1.8, submission.failed_payment_rate - 1.5); // Max 1.5% improvement
+      
+      // Calculate target annual loss at improved failure rate
       const targetLoss = calculateFailedPaymentLoss(
         submission.monthly_mrr,
-        1.5 / 100,
+        targetFailureRate / 100,
         'basic'
       );
       
-      // Recovery potential is the difference between current and target losses
-      const recoveryPotential = Math.max(0, currentLoss - targetLoss);
+      // Recovery potential with more conservative estimate
+      const baseRecoveryPotential = Math.max(0, currentLoss - targetLoss) * 0.70; // Only 70% achievable
+      const cappedRecovery = Math.min(
+        baseRecoveryPotential, 
+        Math.min(currentARR * 0.06, totalLeak * 0.12),
+        maxAllowableRecovery - totalAllocatedRecovery
+      );
       
-      // Cap at reasonable percentage
-      const cappedRecovery = Math.min(recoveryPotential, (submission.current_arr || 0) * 0.08);
-      
-      const targetFailureRate = 1.5;
-      const currentProgress = Math.max(0, 100 - (submission.failed_payment_rate * 5));
-      const targetProgress = 85;
-      
-      actions.push({
-        id: 'payment-optimization',
-        title: 'Payment Failure Reduction',
-        description: 'Implement better payment retry logic and multiple payment methods',
-        currentMetric: `${submission.failed_payment_rate}% failure rate`,
-        targetMetric: `${targetFailureRate}% failure rate`,
-        potentialRecovery: cappedRecovery,
-        difficulty: 'Medium',
-        timeframe: '6-10 weeks',
-        icon: CreditCard,
-        priority: cappedRecovery > (submission.current_arr || 0) * 0.02 ? 'urgent' : 'medium',
-        currentProgress,
-        targetProgress,
-        confidence: confidence.level,
-        explanation: 'Reducing payment failures through better retry logic and payment methods directly impacts recurring revenue.'
-      });
+      if (cappedRecovery > currentARR * 0.01) {
+        totalAllocatedRecovery += cappedRecovery;
+        
+        const currentProgress = Math.max(0, 100 - ((submission.failed_payment_rate - 1.5) * 8));
+        const targetProgress = 80; // More realistic target
+        
+        actions.push({
+          id: 'payment-optimization',
+          title: 'Payment Recovery Enhancement',
+          description: 'Reduce payment failures through improved retry logic, multiple payment methods, and dunning management',
+          currentMetric: `${submission.failed_payment_rate}% failure rate`,
+          targetMetric: `${targetFailureRate.toFixed(1)}% failure rate`,
+          potentialRecovery: cappedRecovery,
+          difficulty: 'Medium',
+          timeframe: '10-14 weeks', // More realistic timeframe
+          icon: CreditCard,
+          priority: cappedRecovery > currentARR * 0.025 ? 'urgent' : 'medium',
+          currentProgress,
+          targetProgress,
+          confidence: confidence.level,
+          explanation: 'Payment optimization requires integration work, testing, and gradual rollout. Recovery comes from reduced involuntary churn and improved payment success rates.'
+        });
+      }
     }
 
     // Filter out actions with very low recovery potential

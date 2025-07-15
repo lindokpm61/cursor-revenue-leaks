@@ -86,7 +86,8 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
 
   const calculateTimelinePhases = (): TimelinePhase[] => {
     const currentARR = submission.current_arr || 0;
-    const threshold = currentARR * 0.01; // 1% ARR threshold
+    const totalLeak = submission.total_leak || 0;
+    const threshold = Math.max(currentARR * 0.005, 10000); // 0.5% ARR or $10K minimum threshold
 
     // Calculate actual losses for each category
     const leadResponseLoss = submission.lead_response_loss || 0;
@@ -94,7 +95,7 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
     const processLoss = submission.process_inefficiency_loss || 0;
     const paymentLoss = submission.failed_payment_loss || 0;
 
-    // Create potential phases based on significant losses
+    // Create potential phases with realistic recovery rates and timelines
     const potentialPhases = [];
 
     // Lead Response Phase (Phase 1 - Quick Wins)
@@ -102,65 +103,79 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
       potentialPhases.push({
         type: 'lead_response',
         title: "Lead Response Optimization",
-        description: "Immediate response time improvements and lead capture optimization",
-        recovery: Math.min(leadResponseLoss * 0.7, currentARR * 0.15),
+        description: "Response automation and lead capture improvements with 3-month ramp-up",
+        recovery: Math.min(leadResponseLoss * 0.45, Math.min(currentARR * 0.12, totalLeak * 0.25)), // More conservative
         difficulty: "Easy" as const,
-        months: "Month 1-2",
+        months: "Month 1-3",
+        rampUpMonths: 2, // No immediate recovery
         actions: [
+          "Audit current response processes",
           "Implement lead response automation",
           "Set up notification systems", 
           "Deploy lead scoring system",
-          "Train response team"
+          "Train response team",
+          "Monitor and optimize"
         ]
       });
     }
 
-    // Self-Serve Phase (Phase 2)
+    // Self-Serve Phase (Phase 2 - Dependent on Phase 1)
     if (selfServeLoss > threshold) {
       potentialPhases.push({
         type: 'self_serve',
         title: "Self-Serve Optimization",
-        description: "Conversion rate improvements and onboarding optimization",
-        recovery: Math.min(selfServeLoss * 0.6, currentARR * 0.20),
+        description: "Conversion rate improvements and onboarding optimization over 4 months",
+        recovery: Math.min(selfServeLoss * 0.35, Math.min(currentARR * 0.15, totalLeak * 0.30)), // More conservative
         difficulty: "Medium" as const,
-        months: "Month 3-4",
+        months: "Month 4-7",
+        rampUpMonths: 2,
+        dependency: 'lead_response', // Can't start until lead response is optimized
         actions: [
+          "Analyze conversion funnel",
           "Optimize onboarding flow",
           "Implement conversion tracking",
           "A/B test pricing pages",
-          "Deploy in-app guidance"
+          "Deploy in-app guidance",
+          "Measure and iterate"
         ]
       });
     }
 
-    // Process Automation Phase (Phase 3)
+    // Process Automation Phase (Phase 3 - Complex)
     if (processLoss > threshold) {
       potentialPhases.push({
         type: 'process_automation',
         title: "Process Automation",
-        description: "Advanced automation and manual process elimination",
-        recovery: Math.min(processLoss * 0.7, currentARR * 0.25),
+        description: "Advanced automation and manual process elimination over 6 months",
+        recovery: Math.min(processLoss * 0.50, Math.min(currentARR * 0.18, totalLeak * 0.25)), // More conservative
         difficulty: "Medium-Hard" as const,
-        months: "Month 5-6",
+        months: "Month 6-11",
+        rampUpMonths: 3, // Longer ramp-up for complex changes
+        dependency: 'self_serve',
         actions: [
+          "Process audit and mapping",
+          "Design automation workflows",
           "Deploy workflow automation",
           "Eliminate manual processes",
           "Implement advanced analytics",
-          "Optimize resource allocation"
+          "Optimize resource allocation",
+          "Train team on new processes"
         ]
       });
     }
 
-    // Payment Recovery Phase (if significant)
+    // Payment Recovery Phase (can run parallel to others)
     if (paymentLoss > threshold) {
       potentialPhases.push({
         type: 'payment_recovery',
         title: "Payment Recovery System", 
         description: "Payment failure reduction and retry logic optimization",
-        recovery: Math.min(paymentLoss * 0.5, currentARR * 0.08),
+        recovery: Math.min(paymentLoss * 0.35, Math.min(currentARR * 0.06, totalLeak * 0.15)), // More conservative
         difficulty: "Medium" as const,
-        months: "Month 4-5",
+        months: "Month 3-5",
+        rampUpMonths: 1,
         actions: [
+          "Analyze payment failure patterns",
           "Implement payment retry logic",
           "Add multiple payment methods",
           "Deploy dunning management",
@@ -169,52 +184,83 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
       });
     }
 
-    // Sort by recovery potential and take top 3
+    // Sort by recovery potential and impact, but respect dependencies
     potentialPhases.sort((a, b) => b.recovery - a.recovery);
-    const selectedPhases = potentialPhases.slice(0, 3);
+    
+    // Ensure we don't exceed 60% of total leak in total recovery
+    const maxTotalRecovery = Math.min(totalLeak * 0.60, currentARR * 0.30);
+    let runningTotal = 0;
+    const selectedPhases = [];
+    
+    for (const phase of potentialPhases) {
+      if (runningTotal + phase.recovery <= maxTotalRecovery && selectedPhases.length < 3) {
+        selectedPhases.push(phase);
+        runningTotal += phase.recovery;
+      }
+    }
 
-    // Convert to timeline phases with proper numbering
-    const phases: TimelinePhase[] = selectedPhases.map((phase, index) => ({
-      phase: (index + 1).toString(),
-      months: index === 0 ? "Month 1-2" : index === 1 ? "Month 3-4" : "Month 5-6",
-      title: phase.title,
-      description: phase.description,
-      recovery: phase.recovery,
-      difficulty: phase.difficulty,
-      actions: phase.actions,
-      cumulativeRecovery: 0,
-      roiPercentage: 0
-    }));
+    // Convert to timeline phases with proper sequencing
+    const phases: TimelinePhase[] = selectedPhases.map((phase, index) => {
+      // Adjust months based on dependencies
+      let monthsText = phase.months;
+      if (phase.dependency && selectedPhases.find(p => p.type === phase.dependency)) {
+        // Delay dependent phases
+        monthsText = phase.months;
+      }
+      
+      return {
+        phase: (index + 1).toString(),
+        months: monthsText,
+        title: phase.title,
+        description: phase.description,
+        recovery: phase.recovery,
+        difficulty: phase.difficulty,
+        actions: phase.actions,
+        cumulativeRecovery: 0,
+        roiPercentage: 0
+      };
+    });
 
-    // If no significant phases found, provide default timeline
+    // If no significant phases found, provide realistic default
     if (phases.length === 0) {
+      const conservativeRecovery = Math.min(
+        Math.max(leadResponseLoss, selfServeLoss, processLoss) * 0.20,
+        currentARR * 0.08,
+        totalLeak * 0.15
+      );
+      
       phases.push({
         phase: "1",
-        months: "Month 1-6",
-        title: "General Optimization",
-        description: "Incremental improvements across all business areas",
-        recovery: Math.max(leadResponseLoss, selfServeLoss, processLoss) * 0.3,
+        months: "Month 1-9",
+        title: "Incremental Optimization",
+        description: "Conservative improvements across key business areas with gradual implementation",
+        recovery: conservativeRecovery,
         difficulty: "Easy",
         actions: [
           "Audit current processes",
           "Identify quick wins",
           "Implement basic improvements",
-          "Monitor and optimize"
+          "Monitor and optimize",
+          "Iterate based on results"
         ],
         cumulativeRecovery: 0,
         roiPercentage: 0
       });
     }
 
-    // Scale investment based on company size
-    const totalInvestment = Math.min(50000 + (currentARR * 0.02), 200000);
+    // Calculate more realistic investment and ROI
+    const baseInvestment = Math.min(25000 + (currentARR * 0.015), 150000);
+    const complexityMultiplier = phases.some(p => p.difficulty === 'Medium-Hard') ? 1.5 : 1.2;
+    const totalInvestment = baseInvestment * complexityMultiplier;
 
-    // Calculate cumulative recovery and ROI
+    // Calculate cumulative recovery with realistic ROI
     let cumulative = 0;
     phases.forEach((phase, index) => {
       cumulative += phase.recovery;
       phase.cumulativeRecovery = cumulative;
-      phase.roiPercentage = ((cumulative - totalInvestment) / totalInvestment) * 100;
+      // Account for ongoing investment and implementation costs
+      const netBenefit = cumulative - totalInvestment;
+      phase.roiPercentage = totalInvestment > 0 ? (netBenefit / totalInvestment) * 100 : 0;
     });
 
     return phases;
@@ -252,7 +298,7 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
     totalLeak: submission.total_leak || 0
   });
 
-  // Chart data - use realistic timeline if available
+  // Chart data with realistic ramp-up (no immediate recovery)
   const chartData = realisticTimeline ? 
     // Generate chart data from realistic timeline
     realisticTimeline.reduce((acc, phase, index) => {
@@ -273,16 +319,44 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
       }
       return acc;
     }, [] as any[]) :
-    // Fallback to legacy chart data for legacy timeline phases
-    [
-      { month: 'Current', recovery: 0, cumulative: 0 },
-      { month: 'Month 1', recovery: (legacyPhases[0]?.recovery || 0) * 0.5, cumulative: (legacyPhases[0]?.recovery || 0) * 0.5 },
-      { month: 'Month 2', recovery: (legacyPhases[0]?.recovery || 0) * 0.5, cumulative: legacyPhases[0]?.cumulativeRecovery || 0 },
-      { month: 'Month 3', recovery: (legacyPhases[1]?.recovery || 0) * 0.5, cumulative: (legacyPhases[0]?.cumulativeRecovery || 0) + ((legacyPhases[1]?.recovery || 0) * 0.5) },
-      { month: 'Month 4', recovery: (legacyPhases[1]?.recovery || 0) * 0.5, cumulative: legacyPhases[1]?.cumulativeRecovery || 0 },
-      { month: 'Month 5', recovery: (legacyPhases[2]?.recovery || 0) * 0.5, cumulative: (legacyPhases[1]?.cumulativeRecovery || 0) + ((legacyPhases[2]?.recovery || 0) * 0.5) },
-      { month: 'Month 6', recovery: (legacyPhases[2]?.recovery || 0) * 0.5, cumulative: legacyPhases[2]?.cumulativeRecovery || 0 }
-    ];
+    // Realistic chart data for legacy timeline phases with proper ramp-up
+    (() => {
+      const data = [{ month: 'Current', recovery: 0, cumulative: 0 }];
+      let cumulativeTotal = 0;
+      
+      legacyPhases.forEach((phase, phaseIndex) => {
+        // Each phase gets proper ramp-up period (no immediate recovery)
+        const phaseStart = phaseIndex * 3 + 1; // Phases start at month 1, 4, 7
+        const rampUpMonths = phaseIndex === 0 ? 2 : phaseIndex === 1 ? 2 : 3; // Ramp-up periods
+        const activeMonths = 3 - rampUpMonths; // Active recovery months
+        
+        // Ramp-up months (minimal recovery)
+        for (let i = 0; i < rampUpMonths; i++) {
+          const month = phaseStart + i;
+          const rampUpRecovery = phase.recovery * 0.1; // Only 10% during ramp-up
+          cumulativeTotal += rampUpRecovery;
+          data.push({
+            month: `Month ${month}`,
+            recovery: rampUpRecovery,
+            cumulative: cumulativeTotal
+          });
+        }
+        
+        // Active recovery months
+        for (let i = 0; i < activeMonths; i++) {
+          const month = phaseStart + rampUpMonths + i;
+          const monthlyRecovery = (phase.recovery * 0.9) / activeMonths; // 90% over active months
+          cumulativeTotal += monthlyRecovery;
+          data.push({
+            month: `Month ${month}`,
+            recovery: monthlyRecovery,
+            cumulative: cumulativeTotal
+          });
+        }
+      });
+      
+      return data;
+    })();
 
   const milestones = realisticTimeline ?
     // Generate milestones from realistic timeline

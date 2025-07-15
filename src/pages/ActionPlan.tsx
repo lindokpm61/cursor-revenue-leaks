@@ -49,6 +49,7 @@ const ActionPlan = () => {
   const [sessionStartTime] = useState(Date.now());
   const [timeTrackers, setTimeTrackers] = useState<NodeJS.Timeout[]>([]);
   const [engagementScore, setEngagementScore] = useState(0);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -63,9 +64,36 @@ const ActionPlan = () => {
       loadSubmission(id);
     }
     
+    // Load user profile
+    loadUserProfile();
+    
     // Set up engagement tracking when component mounts
     setupEngagementTracking();
   }, [id, user]);
+
+  const loadUserProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data: profile, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+        
+      if (error) {
+        console.error('Error loading user profile:', error);
+        return;
+      }
+      
+      setUserProfile(profile);
+      if (profile?.checked_actions && Array.isArray(profile.checked_actions)) {
+        setCheckedActions(profile.checked_actions.filter((item): item is string => typeof item === 'string'));
+      }
+    } catch (error) {
+      console.error('Failed to load user profile:', error);
+    }
+  };
 
   const setupEngagementTracking = () => {
     if (!user || !submission) return;
@@ -283,8 +311,16 @@ const ActionPlan = () => {
   };
 
   const getEngagementLevel = () => {
-    if (engagementScore >= 70 || checkedActions.length >= 2) return 'high';
-    if (engagementScore >= 40 || checkedActions.length >= 1) return 'medium';
+    // Use actual engagement data from user profile if available
+    const baseScore = userProfile?.engagement_score || 0;
+    const actionScore = checkedActions.length * 15; // 15 points per action
+    const timeScore = Math.min((Date.now() - sessionStartTime) / (1000 * 60 * 2) * 10, 20); // Up to 20 points for 2+ minutes
+    const returnVisitScore = userProfile?.return_visits ? Math.min(userProfile.return_visits * 10, 30) : 0;
+    
+    const totalScore = baseScore + actionScore + timeScore + returnVisitScore;
+    
+    if (totalScore >= 70 || checkedActions.length >= 3) return 'high';
+    if (totalScore >= 40 || checkedActions.length >= 2) return 'medium';
     return 'low';
   };
 
@@ -300,7 +336,10 @@ const ActionPlan = () => {
   };
 
   const UrgencyBanner = ({ recoveryPotential, engagementLevel }: { recoveryPotential: number, engagementLevel: string }) => {
-    if (recoveryPotential > 50000000) { // $50M+
+    const currentARR = submission?.current_arr || 0;
+    const significantOpportunity = recoveryPotential > Math.max(currentARR * 0.15, 500000); // 15% of ARR or $500K
+    
+    if (significantOpportunity && engagementLevel === 'high') {
       return (
         <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg">
           <div className="flex items-center justify-between">
@@ -324,7 +363,7 @@ const ActionPlan = () => {
               Strong Implementation Intent Detected
             </h4>
             <p className="text-gray-600 text-sm">
-              You've shown serious commitment • Priority support available
+              {formatCurrency(recoveryPotential)} opportunity • {checkedActions.length} actions tracked • Priority support available
             </p>
           </div>
         </div>
@@ -340,6 +379,22 @@ const ActionPlan = () => {
               <strong className="text-emerald-700 font-bold">Ready to Take Action?</strong>
               <p className="text-sm text-gray-600 mt-1">
                 Your engagement shows you're serious about implementation
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    if (significantOpportunity && engagementLevel === 'medium') {
+      return (
+        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">💡</span>
+            <div>
+              <strong className="text-blue-700 font-bold">Significant Opportunity Identified</strong>
+              <p className="text-sm text-gray-600 mt-1">
+                {formatCurrency(recoveryPotential)} in potential recovery • Consider prioritizing implementation
               </p>
             </div>
           </div>
