@@ -930,13 +930,17 @@ const ActionPlan = () => {
         </div>
 
         {/* Enhanced Progress Bar */}
-        <div className="relative group mb-8">
+        <div 
+          className="relative group mb-8 cursor-pointer transition-all duration-300 hover:scale-[1.02]"
+          onClick={() => handleTabChange('timeline')}
+        >
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-xl blur-lg group-hover:blur-xl transition-all duration-300"></div>
           <div className="relative backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 rounded-xl p-6 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-primary" />
                 <span className="text-sm font-semibold">Implementation Progress</span>
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
               <div className="flex items-center gap-2">
                 <Badge 
