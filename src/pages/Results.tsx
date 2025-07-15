@@ -665,57 +665,6 @@ const Results = () => {
 
 
             {/* LAYER 3: On-Demand Content */}
-            {(submission.twenty_contact_id || submission.n8n_triggered || submission.smartlead_campaign_id || submission.synced_to_self_hosted) && (
-              <Accordion type="single" collapsible className="mb-8">
-                <AccordionItem value="integrations" className="border rounded-lg px-6">
-                  <AccordionTrigger className="py-4">
-                    <div className="flex items-center gap-4">
-                       <div className="p-2 rounded-xl bg-muted/50 border border-border">
-                         <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                       </div>
-                      <div className="text-left">
-                        <h3 className="text-h3 font-semibold text-muted-foreground">Integration Status</h3>
-                        <div className="flex items-center gap-3 mt-1">
-                          <Badge variant="outline" className="text-xs px-3 py-1 text-muted-foreground">🔧 Technical</Badge>
-                          <span className="text-small text-muted-foreground">1 min read</span>
-                        </div>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-6">
-                    <p className="text-muted-foreground mb-4">
-                      External system integration and sync status
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {submission.twenty_contact_id && (
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
-                          <span className="text-sm">Twenty CRM Synced</span>
-                        </div>
-                      )}
-                      {submission.n8n_triggered && (
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
-                          <span className="text-sm">N8N Workflow Triggered</span>
-                        </div>
-                      )}
-                      {submission.smartlead_campaign_id && (
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
-                          <span className="text-sm">Smartlead Campaign Added</span>
-                        </div>
-                      )}
-                      {submission.synced_to_self_hosted && (
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-revenue-success rounded-full"></div>
-                          <span className="text-sm">Self-Hosted Synced</span>
-                        </div>
-                      )}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            )}
         </>
       </div>
     </div>
