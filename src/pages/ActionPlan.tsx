@@ -328,6 +328,84 @@ const ActionPlan = () => {
     });
   };
 
+  const handleExportPDF = async () => {
+    try {
+      // Track the export action
+      await trackEngagementEvent('export_pdf', {
+        recovery_potential: submission?.recovery_potential_70 || 0,
+        actions_checked: checkedActions.length,
+        engagement_level: getEngagementLevel()
+      });
+
+      // Create a simple PDF export using the browser's print functionality
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(`
+          <html>
+            <head>
+              <title>${submission?.company_name} Action Plan</title>
+              <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                .header { text-align: center; margin-bottom: 30px; }
+                .section { margin-bottom: 20px; }
+                .metric { display: inline-block; margin: 10px; padding: 10px; border: 1px solid #ccc; }
+                .action { margin: 10px 0; padding: 10px; background: #f5f5f5; }
+                @media print { body { margin: 0; } }
+              </style>
+            </head>
+            <body>
+              <div class="header">
+                <h1>${submission?.company_name} Revenue Recovery Action Plan</h1>
+                <p>Generated on ${new Date().toLocaleDateString()}</p>
+              </div>
+              
+              <div class="section">
+                <h2>Executive Summary</h2>
+                <div class="metric">
+                  <strong>Total Revenue Leak:</strong> ${formatCurrency(calculations.total_leak)}
+                </div>
+                <div class="metric">
+                  <strong>Recovery Potential:</strong> ${formatCurrency(calculations.recovery_potential_70)}
+                </div>
+                <div class="metric">
+                  <strong>Implementation ROI:</strong> ${calculateROI(submission)}%
+                </div>
+              </div>
+
+              <div class="section">
+                <h2>Priority Actions</h2>
+                ${priorityActions.map(action => `
+                  <div class="action">
+                    <h3>${action.title}</h3>
+                    <p><strong>Impact:</strong> ${formatCurrency(action.impact || 0)}</p>
+                    <p><strong>Timeframe:</strong> ${action.timeframe}</p>
+                    <p><strong>Difficulty:</strong> ${action.difficulty}</p>
+                    <p>${action.description}</p>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="section">
+                <h2>Implementation Progress</h2>
+                <p>Actions Completed: ${checkedActions.length} of ${priorityActions.length}</p>
+                <p>Progress: ${Math.round((checkedActions.length / priorityActions.length) * 100)}%</p>
+              </div>
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+      }
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast({
+        title: "Export Error",
+        description: "Failed to export PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const getEngagementLevel = () => {
     // Use actual engagement data from user profile if available
     const baseScore = userProfile?.engagement_score || 0;
@@ -765,6 +843,7 @@ const ActionPlan = () => {
                 variant="outline" 
                 size="sm"
                 className="backdrop-blur-sm bg-white/40 border-white/30 hover:bg-white/60 transition-all duration-200 hover:scale-105"
+                onClick={handleExportPDF}
               >
                 <Download className="h-4 w-4 mr-2" />
                 Download PDF
@@ -974,34 +1053,66 @@ const ActionPlan = () => {
           </TabsContent>
 
           <TabsContent value="timeline" className="space-y-6">
-            <div className="text-center p-8">
-              <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">Implementation Timeline</h3>
-              <p className="text-muted-foreground">Timeline features coming soon</p>
-            </div>
+            <ImplementationTimeline 
+              submission={submission}
+              formatCurrency={formatCurrency}
+              validatedValues={{
+                totalLeak: calculations.total_leak,
+                leadResponseLoss: calculations.leadResponseLoss,
+                selfServeLoss: calculations.selfServeGap,
+                recoveryPotential70: calculations.recovery_potential_70,
+                recoveryPotential85: calculations.recovery_potential_70 * 1.2
+              }}
+              calculatorData={{
+                companyInfo: {
+                  currentARR: submission.current_arr || 0,
+                  industry: submission.industry
+                },
+                leadGeneration: {
+                  monthlyLeads: submission.monthly_leads || 0,
+                  averageDealValue: submission.average_deal_value || 0,
+                  leadResponseTime: submission.lead_response_time || 0
+                },
+                selfServe: {
+                  monthlyFreeSignups: submission.monthly_free_signups || 0,
+                  freeToLaidConversion: submission.free_to_paid_conversion || 0,
+                  monthlyMRR: submission.monthly_mrr || 0,
+                  failedPaymentRate: submission.failed_payment_rate || 0
+                },
+                operations: {
+                  manualHours: submission.manual_hours || 0,
+                  hourlyRate: submission.hourly_rate || 0
+                }
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="actions" className="space-y-6">
-            <div className="space-y-4">
-              {priorityActions.map((action) => (
-                <Card key={action.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <Checkbox
-                        id={action.id}
-                        checked={checkedActions.includes(action.id)}
-                        onCheckedChange={(checked) => handleActionToggle(action.id, checked as boolean)}
-                      />
-                      <div className="flex-1">
-                        <h4 className="font-medium">{action.title}</h4>
-                        <p className="text-sm text-muted-foreground">{action.description}</p>
-                      </div>
-                      <Badge variant="outline">{action.timeframe}</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <PriorityActions 
+              submission={submission}
+              formatCurrency={formatCurrency}
+              calculatorData={{
+                companyInfo: {
+                  currentARR: submission.current_arr || 0,
+                  industry: submission.industry
+                },
+                leadGeneration: {
+                  monthlyLeads: submission.monthly_leads || 0,
+                  averageDealValue: submission.average_deal_value || 0,
+                  leadResponseTime: submission.lead_response_time || 0
+                },
+                selfServe: {
+                  monthlyFreeSignups: submission.monthly_free_signups || 0,
+                  freeToLaidConversion: submission.free_to_paid_conversion || 0,
+                  monthlyMRR: submission.monthly_mrr || 0,
+                  failedPaymentRate: submission.failed_payment_rate || 0
+                },
+                operations: {
+                  manualHours: submission.manual_hours || 0,
+                  hourlyRate: submission.hourly_rate || 0
+                }
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="next-steps" className="space-y-6">
