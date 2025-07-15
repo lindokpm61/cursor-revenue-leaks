@@ -25,6 +25,7 @@ interface PriorityActionsProps {
   submission: Submission;
   formatCurrency: (amount: number) => string;
   calculatorData?: any; // Add calculator data for unified calculations
+  variant?: 'condensed' | 'standard' | 'detailed' | 'competitive';
 }
 
 interface ActionItem {
@@ -44,8 +45,8 @@ interface ActionItem {
   explanation: string;
 }
 
-export const PriorityActions = ({ submission, formatCurrency, calculatorData }: PriorityActionsProps) => {
-  const [isContentOpen, setIsContentOpen] = useState(false);
+export const PriorityActions = ({ submission, formatCurrency, calculatorData, variant = 'standard' }: PriorityActionsProps) => {
+  const [isContentOpen, setIsContentOpen] = useState(variant === 'condensed' ? true : false);
 
   // Use centralized priority calculations
   const priorityActions = calculatePriorityActions(submission);
@@ -132,8 +133,37 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData }: 
   };
 
   const actions = getActionItems();
-  const urgentActions = actions.filter(action => action.priority === 'urgent');
-  const mediumActions = actions.filter(action => action.priority === 'medium');
+  
+  // Filter actions based on variant
+  const getFilteredActions = () => {
+    const urgentActions = actions.filter(action => action.priority === 'urgent');
+    const mediumActions = actions.filter(action => action.priority === 'medium');
+    
+    switch (variant) {
+      case 'condensed':
+        // Show only top 2 actions for quick wins
+        return {
+          urgent: urgentActions.slice(0, 1),
+          medium: mediumActions.slice(0, 1)
+        };
+      case 'competitive':
+        // Add competitive messaging to actions
+        return {
+          urgent: urgentActions.map(action => ({
+            ...action,
+            description: `${action.description} • Close competitive gaps faster`
+          })),
+          medium: mediumActions.map(action => ({
+            ...action,
+            description: `${action.description} • Industry benchmark alignment`
+          }))
+        };
+      default:
+        return { urgent: urgentActions, medium: mediumActions };
+    }
+  };
+
+  const { urgent: urgentActions, medium: mediumActions } = getFilteredActions();
 
   // Determine overall confidence based on actions
   const overallConfidence = { level: 'medium' }; // Default confidence

@@ -31,6 +31,7 @@ interface ImplementationTimelineProps {
     recoveryPotential85: number;
   };
   calculatorData?: any; // Add calculator data for unified calculations
+  variant?: 'condensed' | 'standard' | 'detailed' | 'competitive';
 }
 
 interface TimelinePhase {
@@ -45,8 +46,8 @@ interface TimelinePhase {
   roiPercentage: number;
 }
 
-export const ImplementationTimeline = ({ submission, formatCurrency, validatedValues, calculatorData }: ImplementationTimelineProps) => {
-  const [isContentOpen, setIsContentOpen] = useState(false);
+export const ImplementationTimeline = ({ submission, formatCurrency, validatedValues, calculatorData, variant = 'standard' }: ImplementationTimelineProps) => {
+  const [isContentOpen, setIsContentOpen] = useState(variant === 'condensed' ? false : variant === 'detailed' ? true : false);
 
   // Use unified calculations if calculator data is available
   const getUnifiedCalculations = () => {

@@ -25,6 +25,7 @@ import { getCalculationConfidenceLevel } from '@/lib/calculator/validationHelper
 interface IndustryBenchmarkingProps {
   submission: Submission;
   formatCurrency: (amount: number) => string;
+  variant?: 'condensed' | 'standard' | 'detailed' | 'competitive';
 }
 
 interface BenchmarkMetric {
@@ -42,8 +43,8 @@ interface BenchmarkMetric {
   opportunityScore: number;
 }
 
-export const IndustryBenchmarking = ({ submission, formatCurrency }: IndustryBenchmarkingProps) => {
-  const [isContentOpen, setIsContentOpen] = useState(false);
+export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'standard' }: IndustryBenchmarkingProps) => {
+  const [isContentOpen, setIsContentOpen] = useState(variant === 'detailed' ? true : false);
 
   const calculateBenchmarks = (): BenchmarkMetric[] => {
     // Map submission industry to benchmark keys with fallback

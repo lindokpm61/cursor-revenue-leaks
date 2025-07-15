@@ -51,6 +51,7 @@ import { TldrSummary } from "@/components/results/TldrSummary";
 import { ProgressIndicator } from "@/components/results/ProgressIndicator";
 import { ProgressiveNavigation } from "@/components/results/ProgressiveNavigation";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useContentSequence } from "@/hooks/useContentSequence";
 
 const Results = () => {
   const { id } = useParams<{ id: string }>();
@@ -62,6 +63,7 @@ const Results = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const contentSequence = useContentSequence(userIntent);
 
   useEffect(() => {
     if (id) {
@@ -159,14 +161,231 @@ const Results = () => {
   };
 
   const getEstimatedReadTime = () => {
-    if (!userIntent) return "15 min";
-    
-    switch (userIntent) {
-      case "understand-problem": return "8 min";
-      case "quick-wins": return "5 min";
-      case "plan-implementation": return "12 min";
-      case "compare-competitors": return "10 min";
-      default: return "15 min";
+    return contentSequence.getEstimatedReadTime();
+  };
+
+  // Component renderers for dynamic content sequencing
+  const renderSection = (sectionId: string, variant?: string) => {
+    const sectionVariant = variant || contentSequence.getContentVariant(sectionId);
+    const isExpanded = contentSequence.isAccordionExpanded(sectionId);
+
+    switch (sectionId) {
+      case 'executive-summary':
+        return (
+          <section id="executive-summary" className="mb-12">
+            <ExecutiveSummaryCard 
+              submission={submission} 
+              formatCurrency={formatCurrency} 
+              onGetActionPlan={scrollToActions}
+            />
+          </section>
+        );
+
+      case 'revenue-overview':
+        return (
+          <section id="revenue-overview" className="mb-12">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="p-3 rounded-2xl bg-revenue-warning/10 border-2 border-revenue-warning/20">
+                <GrowthIcon className="h-5 w-5 text-revenue-warning" />
+              </div>
+              <div>
+                <h2 className="text-h1 font-bold mb-2">Revenue Optimization Opportunity</h2>
+                <div className="flex items-center gap-3">
+                  <Badge variant="outline" className="text-xs font-bold px-3 py-1 bg-revenue-warning/10 border-revenue-warning/30 text-revenue-warning">
+                    💡 Essential
+                  </Badge>
+                  <span className="text-small text-muted-foreground">3 min read</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-8 bg-gradient-to-br from-background via-revenue-warning/5 to-revenue-success/5 rounded-2xl border-2 border-revenue-warning/20 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent"></div>
+              <div className="text-center relative border-l-4 border-revenue-warning/30 pl-4">
+                <div className={`text-2xl sm:text-3xl font-bold mb-3 ${getLeakageColor(validatedTotalLeak)} leading-none`}>
+                  {formatCurrency(validatedTotalLeak)}
+                </div>
+                <p className="text-sm font-medium text-revenue-warning">💰 Opportunity Size</p>
+              </div>
+              <div className="text-center relative border-l-4 border-revenue-success/30 pl-4">
+                <div className="text-2xl sm:text-3xl font-bold text-revenue-success mb-3 leading-none flex items-center justify-center gap-2">
+                  <ArrowUp className="h-5 w-5" />
+                  {formatCurrency(realisticRecovery70)}
+                </div>
+                <p className="text-sm font-medium text-revenue-success">✅ Recovery Potential (70%)</p>
+              </div>
+              <div className="text-center relative border-l-4 border-revenue-primary/30 pl-4">
+                <div className="text-2xl sm:text-3xl font-bold text-revenue-primary mb-3 leading-none flex items-center justify-center gap-2">
+                  <ArrowUp className="h-5 w-5" />
+                  {formatCurrency(realisticRecovery85)}
+                </div>
+                <p className="text-sm font-medium text-revenue-primary">🎯 Max Recovery (85%)</p>
+              </div>
+            </div>
+
+            {/* Detailed Breakdown - conditionally show based on variant */}
+            {(sectionVariant === 'detailed' || isExpanded) && (
+              <Accordion type="multiple" className="space-y-6" defaultValue={isExpanded ? ["breakdown"] : []}>
+                <AccordionItem value="breakdown" className="border rounded-lg px-6">
+                  <AccordionTrigger className="py-4">
+                    <div className="flex items-center gap-4">
+                      <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
+                        <BarChart className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="text-2xl font-semibold">Detailed Revenue Breakdown</h3>
+                        <div className="flex items-center gap-3 mt-1">
+                          <Badge variant="secondary" className="text-xs font-semibold px-3 py-1">📊 Detailed</Badge>
+                          <span className="text-small text-muted-foreground">5 min read</span>
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-6">
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {leakageBreakdown.map((item, index) => {
+                          const Icon = item.icon;
+                          return (
+                            <Card key={index} className="border-border/50 shadow-lg h-full">
+                              <CardHeader className="pb-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                                    <Icon className="h-4 w-4 text-primary" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <CardTitle className="font-semibold leading-tight">{item.title}</CardTitle>
+                                    <CardDescription className="text-sm mt-1 line-clamp-2">
+                                      {item.description}
+                                    </CardDescription>
+                                  </div>
+                                </div>
+                              </CardHeader>
+                              <CardContent className="pt-0">
+                                <div className={`text-2xl font-bold ${getLeakageColor(item.amount)} mb-2`}>
+                                  {formatCurrency(item.amount)}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {submission.current_arr && submission.current_arr > 0 
+                                    ? `${((item.amount / submission.current_arr) * 100).toFixed(1)}% of ARR`
+                                    : 'N/A'
+                                  }
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            )}
+          </section>
+        );
+
+      case 'enhanced-insights':
+        const showCompetitiveFraming = sectionVariant === 'competitive';
+        return (
+          <section className="mb-12">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 rounded-2xl bg-primary/10 border-2 border-primary/20">
+                <Zap className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-h1 font-bold mb-2">
+                  {showCompetitiveFraming ? "Competitive Analysis & Insights" : "Enhanced Analytics & Insights"}
+                </h2>
+                <div className="flex items-center gap-3">
+                  <Badge variant="outline" className="text-xs font-bold px-3 py-1 bg-primary/10 border-primary/30 text-primary">
+                    {showCompetitiveFraming ? "🏆 Competitive" : "🔬 Advanced Analysis"}
+                  </Badge>
+                  <span className="text-small text-muted-foreground">4 min read</span>
+                </div>
+              </div>
+            </div>
+            
+            {enhancedBreakdown.validation.warnings.length > 0 && (
+              <Card className="mb-6 border-orange-200 bg-orange-50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-orange-700">
+                    <AlertTriangle className="h-5 w-5" />
+                    Calculation Confidence
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">Confidence Level:</span>
+                      <Badge variant={
+                        enhancedBreakdown.validation.confidenceLevel === 'high' ? 'default' : 
+                        enhancedBreakdown.validation.confidenceLevel === 'medium' ? 'secondary' : 'destructive'
+                      }>
+                        {enhancedBreakdown.validation.confidenceLevel.toUpperCase()}
+                      </Badge>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-orange-700">Important Notes:</p>
+                      <ul className="text-sm space-y-1 text-orange-600">
+                        {enhancedBreakdown.validation.warnings.map((warning, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <span className="text-orange-500 mt-0.5">•</span>
+                            {warning}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            <EnhancedInsights breakdown={enhancedBreakdown} />
+          </section>
+        );
+
+      case 'benchmarking':
+        return (
+          <section id="benchmarking" className="mb-12">
+            <IndustryBenchmarking 
+              submission={submission} 
+              formatCurrency={formatCurrency}
+              variant={sectionVariant as any}
+            />
+          </section>
+        );
+
+      case 'priority-actions':
+        return (
+          <section id="priority-actions" className="mb-12">
+            <PriorityActions 
+              submission={submission} 
+              formatCurrency={formatCurrency}
+              variant={sectionVariant as any}
+            />
+          </section>
+        );
+
+      case 'timeline':
+        return (
+          <section id="timeline" className="mb-12">
+            <ImplementationTimeline 
+              submission={submission} 
+              formatCurrency={formatCurrency}
+              validatedValues={{
+                totalLeak: validatedTotalLeak,
+                leadResponseLoss: validatedLeadLoss,
+                selfServeLoss: validatedSelfServeLoss,
+                recoveryPotential70: realisticRecovery70,
+                recoveryPotential85: realisticRecovery85
+              }}
+              variant={sectionVariant as any}
+            />
+          </section>
+        );
+
+      default:
+        return null;
     }
   };
 
@@ -386,66 +605,19 @@ const Results = () => {
           </div>
         </div>
 
-        {/* Unified Layout for All Devices */}
+        {/* LAYER 1: Always Visible - Executive Summary and User Intent */}
         <>
-            {/* LAYER 1: Always Visible */}
-            {/* Executive Summary */}
-            <section id="executive-summary" className="mb-12">
-              <ExecutiveSummaryCard 
-                submission={submission} 
-                formatCurrency={formatCurrency} 
-                onGetActionPlan={scrollToActions}
-              />
-            </section>
+            {/* Executive Summary - Always first */}
+            {renderSection('executive-summary')}
 
-            {/* Revenue Overview - Essential Metrics */}
-            <section id="revenue-overview" className="mb-12">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="p-3 rounded-2xl bg-revenue-warning/10 border-2 border-revenue-warning/20">
-                  <GrowthIcon className="h-5 w-5 text-revenue-warning" />
-                </div>
-                <div>
-                  <h2 className="text-h1 font-bold mb-2">Revenue Optimization Opportunity</h2>
-                  <div className="flex items-center gap-3">
-                    <Badge variant="outline" className="text-xs font-bold px-3 py-1 bg-revenue-warning/10 border-revenue-warning/30 text-revenue-warning">
-                      💡 Essential
-                    </Badge>
-                    <span className="text-small text-muted-foreground">3 min read</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-8 bg-gradient-to-br from-background via-revenue-warning/5 to-revenue-success/5 rounded-2xl border-2 border-revenue-warning/20 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent"></div>
-                <div className="text-center relative border-l-4 border-revenue-warning/30 pl-4">
-                  <div className={`text-2xl sm:text-3xl font-bold mb-3 ${getLeakageColor(validatedTotalLeak)} leading-none`}>
-                    {formatCurrency(validatedTotalLeak)}
-                  </div>
-                  <p className="text-sm font-medium text-revenue-warning">💰 Opportunity Size</p>
-                </div>
-                <div className="text-center relative border-l-4 border-revenue-success/30 pl-4">
-                  <div className="text-2xl sm:text-3xl font-bold text-revenue-success mb-3 leading-none flex items-center justify-center gap-2">
-                    <ArrowUp className="h-5 w-5" />
-                    {formatCurrency(realisticRecovery70)}
-                  </div>
-                  <p className="text-sm font-medium text-revenue-success">✅ Recovery Potential (70%)</p>
-                </div>
-                <div className="text-center relative border-l-4 border-revenue-primary/30 pl-4">
-                  <div className="text-2xl sm:text-3xl font-bold text-revenue-primary mb-3 leading-none flex items-center justify-center gap-2">
-                    <ArrowUp className="h-5 w-5" />
-                    {formatCurrency(realisticRecovery85)}
-                  </div>
-                  <p className="text-sm font-medium text-revenue-primary">🎯 Max Recovery (85%)</p>
-                </div>
-              </div>
-            </section>
-
+            {/* User Intent Selector - After executive summary */}
             <UserIntentSelector
               selectedIntent={userIntent}
               onIntentChange={setUserIntent}
               estimatedTime={getEstimatedReadTime()}
             />
 
+            {/* TLDR Summary - After intent selection */}
             {userIntent && (
               <TldrSummary 
                 submission={submission}
@@ -455,209 +627,26 @@ const Results = () => {
               />
             )}
 
-            {/* Detailed Breakdown */}
-            <Accordion type="multiple" className="space-y-6 mb-12">
-              <AccordionItem value="breakdown" className="border rounded-lg px-6">
-                <AccordionTrigger className="py-4">
-                    <div className="flex items-center gap-4">
-                       <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
-                         <BarChart className="h-4 w-4 text-primary" />
-                       </div>
-                      <div className="text-left">
-                        <h3 className="text-2xl font-semibold">Detailed Revenue Breakdown</h3>
-                        <div className="flex items-center gap-3 mt-1">
-                          <Badge variant="secondary" className="text-xs font-semibold px-3 py-1">📊 Detailed</Badge>
-                          <span className="text-small text-muted-foreground">5 min read</span>
-                        </div>
-                      </div>
-                    </div>
-                </AccordionTrigger>
-                <AccordionContent className="pb-6">
-                  <div className="space-y-6">
-                    {/* Revenue Breakdown Cards */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {leakageBreakdown.map((item, index) => {
-                        const Icon = item.icon;
-                        return (
-                          <Card key={index} className="border-border/50 shadow-lg h-full">
-                            <CardHeader className="pb-4">
-                              <div className="flex items-center gap-3">
-                                 <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-                                   <Icon className="h-4 w-4 text-primary" />
-                                 </div>
-                                <div className="flex-1 min-w-0">
-                                  <CardTitle className="font-semibold leading-tight">{item.title}</CardTitle>
-                                  <CardDescription className="text-sm mt-1 line-clamp-2">
-                                    {item.description}
-                                  </CardDescription>
-                                </div>
-                              </div>
-                            </CardHeader>
-                            <CardContent className="pt-0">
-                              <div className={`text-2xl font-bold ${getLeakageColor(item.amount)} mb-2`}>
-                                {formatCurrency(item.amount)}
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                {submission.current_arr && submission.current_arr > 0 
-                                  ? `${((item.amount / submission.current_arr) * 100).toFixed(1)}% of ARR`
-                                  : 'N/A'
-                                }
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
-
-                    {/* Technical Metrics & Operations */}
-                    <Card className="border-border/50 shadow-lg">
-                      <CardHeader className="pb-4">
-                        <div className="flex items-center gap-3">
-                           <div className="p-2 rounded-lg bg-muted/50 flex-shrink-0">
-                             <Settings className="h-4 w-4 text-muted-foreground" />
-                           </div>
-                          <div className="flex-1 min-w-0">
-                            <CardTitle className="font-semibold leading-tight">Technical Metrics & Operations</CardTitle>
-                            <CardDescription className="text-sm mt-1">
-                              Operational data and system metrics
-                            </CardDescription>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                          <div className="space-y-4">
-                            <h4 className="text-lg font-semibold flex items-center gap-2">
-                              <Users className="h-4 w-4" />
-                              Lead Generation
-                            </h4>
-                            <div className="space-y-3">
-                              <div className="flex justify-between items-center py-1">
-                                <span className="text-sm text-muted-foreground">Monthly Leads</span>
-                                <span className="font-medium text-sm">{submission.monthly_leads || 0}</span>
-                              </div>
-                              <div className="flex justify-between items-center py-1">
-                                <span className="text-sm text-muted-foreground">Avg Deal Value</span>
-                                <span className="font-medium text-sm">{formatCurrency(submission.average_deal_value || 0)}</span>
-                              </div>
-                              <div className="flex justify-between items-center py-1">
-                                <span className="text-sm text-muted-foreground">Response Time</span>
-                                <span className="font-medium text-sm">{submission.lead_response_time || 0}h</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="space-y-4">
-                            <h4 className="text-lg font-semibold flex items-center gap-2">
-                              <Target className="h-4 w-4" />
-                              Self-Serve Metrics
-                            </h4>
-                            <div className="space-y-3">
-                              <div className="flex justify-between items-center py-1">
-                                <span className="text-sm text-muted-foreground">Free Signups</span>
-                                <span className="font-medium text-sm">{submission.monthly_free_signups || 0}/month</span>
-                              </div>
-                              <div className="flex justify-between items-center py-1">
-                                <span className="text-sm text-muted-foreground">Conversion Rate</span>
-                                <span className="font-medium text-sm">{submission.free_to_paid_conversion || 0}%</span>
-                              </div>
-                              <div className="flex justify-between items-center py-1">
-                                <span className="text-sm text-muted-foreground">Monthly MRR</span>
-                                <span className="font-medium text-sm">{formatCurrency(submission.monthly_mrr || 0)}</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="space-y-4">
-                            <h4 className="text-lg font-semibold flex items-center gap-2">
-                              <Settings className="h-4 w-4" />
-                              Operations
-                            </h4>
-                            <div className="space-y-3">
-                              <div className="flex justify-between items-center py-1">
-                                <span className="text-sm text-muted-foreground">Failed Payment Rate</span>
-                                <span className="font-medium text-sm">{submission.failed_payment_rate || 0}%</span>
-                              </div>
-                              <div className="flex justify-between items-center py-1">
-                                <span className="text-sm text-muted-foreground">Manual Hours/Week</span>
-                                <span className="font-medium text-sm">{submission.manual_hours || 0}h</span>
-                              </div>
-                              <div className="flex justify-between items-center py-1">
-                                <span className="text-sm text-muted-foreground">Hourly Rate</span>
-                                <span className="font-medium text-sm">{formatCurrency(submission.hourly_rate || 0)}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-
-            {/* Enhanced Insights Section */}
-            <section className="mb-12">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 rounded-2xl bg-primary/10 border-2 border-primary/20">
-                  <Zap className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h2 className="text-h1 font-bold mb-2">Enhanced Analytics & Insights</h2>
-                  <div className="flex items-center gap-3">
-                    <Badge variant="outline" className="text-xs font-bold px-3 py-1 bg-primary/10 border-primary/30 text-primary">
-                      🔬 Advanced Analysis
-                    </Badge>
-                    <span className="text-small text-muted-foreground">4 min read</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Calculation Confidence & Warnings */}
-              {enhancedBreakdown.validation.warnings.length > 0 && (
-                <Card className="mb-6 border-orange-200 bg-orange-50">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-orange-700">
-                      <AlertTriangle className="h-5 w-5" />
-                      Calculation Confidence
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">Confidence Level:</span>
-                        <Badge variant={
-                          enhancedBreakdown.validation.confidenceLevel === 'high' ? 'default' : 
-                          enhancedBreakdown.validation.confidenceLevel === 'medium' ? 'secondary' : 'destructive'
-                        }>
-                          {enhancedBreakdown.validation.confidenceLevel.toUpperCase()}
-                        </Badge>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-orange-700">Important Notes:</p>
-                        <ul className="text-sm space-y-1 text-orange-600">
-                          {enhancedBreakdown.validation.warnings.map((warning, index) => (
-                            <li key={index} className="flex items-start gap-2">
-                              <span className="text-orange-500 mt-0.5">•</span>
-                              {warning}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-              
-              <EnhancedInsights breakdown={enhancedBreakdown} />
-            </section>
-
-            <ProgressIndicator sections={sections} />
-
-            {/* Industry Benchmarking */}
-            <section id="benchmarking" className="mb-12">
-              <IndustryBenchmarking submission={submission} formatCurrency={formatCurrency} />
-            </section>
+            {/* LAYER 2: Intent-Based Content Sequence */}
+            {userIntent ? (
+              // Personalized content sequence based on user intent
+              <>
+                {contentSequence.getContentSequence().sections
+                  .filter(section => section.id !== 'executive-summary') // Already rendered
+                  .sort((a, b) => a.priority - b.priority)
+                  .map(section => renderSection(section.id, section.variant))
+                }
+              </>
+            ) : (
+              // Default linear flow for exploring
+              <>
+                {renderSection('revenue-overview')}
+                {renderSection('enhanced-insights')}
+                {renderSection('benchmarking')}
+                {renderSection('priority-actions')}
+                {renderSection('timeline')}
+              </>
+            )}
 
             {/* Decision Support Panel - Intelligent Content Based on User Intent */}
             {userIntent && (
@@ -667,26 +656,6 @@ const Results = () => {
                 formatCurrency={formatCurrency}
               />
             )}
-
-            {/* Implementation Timeline & ROI */}
-            <section id="timeline" className="mb-12">
-              <ImplementationTimeline 
-                submission={submission} 
-                formatCurrency={formatCurrency}
-                validatedValues={{
-                  totalLeak: validatedTotalLeak,
-                  leadResponseLoss: validatedLeadLoss,
-                  selfServeLoss: validatedSelfServeLoss,
-                  recoveryPotential70: realisticRecovery70,
-                  recoveryPotential85: realisticRecovery85
-                }}
-              />
-            </section>
-
-            {/* Priority Actions */}
-            <section id="priority-actions" className="mb-12">
-              <PriorityActions submission={submission} formatCurrency={formatCurrency} />
-            </section>
 
 
 
