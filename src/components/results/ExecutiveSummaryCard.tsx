@@ -114,9 +114,9 @@ export const ExecutiveSummaryCard = ({
             </div>
             {/* PRIMARY LEVEL: Hero headline */}
             <div>
-              <CardTitle className="text-hero text-center mb-4 text-foreground">
-                {getSimplifiedMessage()}
-              </CardTitle>
+            <h1 className="text-hero text-center mb-4 text-foreground font-bold">
+                Major Growth Potential Identified
+              </h1>
               <div className="flex flex-wrap gap-2 justify-center">
                 <Badge 
                   variant={localUrgencyLevel === 'critical' ? 'default' : 'outline'} 
@@ -191,9 +191,9 @@ export const ExecutiveSummaryCard = ({
           <div className={`p-4 rounded-2xl ${config.bg} border ${config.border} mx-auto w-fit`}>
             <UrgencyIcon className={`h-10 w-10 ${config.color}`} />
           </div>
-          <CardTitle className="text-hero text-center text-foreground">
-            {getSimplifiedMessage()}
-          </CardTitle>
+          <h1 className="text-hero text-center text-foreground font-bold">
+            Major Growth Potential Identified
+          </h1>
           <div className="text-h2 font-semibold text-revenue-warning flex items-center justify-center gap-3">
             <ArrowUp className="h-6 w-6" />
             {formatCurrency(totalLeak)} Recovery Opportunity
