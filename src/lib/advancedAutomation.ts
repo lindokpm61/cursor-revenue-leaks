@@ -314,7 +314,7 @@ export const createUserProfile = async (profileData: any) => {
   try {
       const { data, error } = await supabase
         .from('user_profiles')
-        .insert([{
+        .insert({
           id: profileData.user_id,
           company_name: profileData.actual_company_name,
           actual_company_name: profileData.actual_company_name,
@@ -329,9 +329,7 @@ export const createUserProfile = async (profileData: any) => {
           utm_source: profileData.attribution_data?.utm_source,
           utm_medium: profileData.attribution_data?.utm_medium,
           utm_campaign: profileData.attribution_data?.utm_campaign
-        }])
-      .select()
-      .single();
+        });
 
     if (error) throw error;
     return data;
