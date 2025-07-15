@@ -48,6 +48,7 @@ import { SectionNavigation } from "@/components/results/SectionNavigation";
 import { UserIntentSelector, type UserIntent } from "@/components/results/UserIntentSelector";
 import { DecisionSupportPanel } from "@/components/results/DecisionSupportPanel";
 import { TldrSummary } from "@/components/results/TldrSummary";
+import { DetailedBreakdown } from "@/components/calculator/results/DetailedBreakdown";
 import { ProgressIndicator } from "@/components/results/ProgressIndicator";
 import { ProgressiveNavigation } from "@/components/results/ProgressiveNavigation";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -229,54 +230,58 @@ const Results = () => {
                 <AccordionItem value="breakdown" className="border rounded-lg px-6">
                   <AccordionTrigger className="py-4">
                     <div className="flex items-center gap-4">
-                      <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
-                        <BarChart className="h-4 w-4 text-primary" />
+                      <div className="p-3 rounded-2xl bg-primary/10 border-2 border-primary/20">
+                        <BarChart className="h-5 w-5 text-primary" />
                       </div>
                       <div className="text-left">
-                        <h3 className="text-h2">Detailed Revenue Breakdown</h3>
-                        <div className="flex items-center gap-3 mt-1">
-                          <Badge variant="secondary" className="text-xs font-semibold px-3 py-1">📊 Detailed</Badge>
+                        <h2 className="text-h1 font-bold mb-2">Detailed Revenue Breakdown</h2>
+                        <div className="flex items-center gap-3">
+                          <Badge variant="outline" className="text-xs font-bold px-3 py-1 bg-primary/10 border-primary/30 text-primary">📊 Detailed</Badge>
                           <span className="text-small text-muted-foreground">5 min read</span>
                         </div>
                       </div>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pb-6">
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {leakageBreakdown.map((item, index) => {
-                          const Icon = item.icon;
-                          return (
-                            <Card key={index} className="border-border/50 shadow-lg h-full">
-                              <CardHeader className="pb-4">
-                                <div className="flex items-center gap-3">
-                                  <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-                                    <Icon className="h-4 w-4 text-primary" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <CardTitle className="font-semibold leading-tight">{item.title}</CardTitle>
-                                    <CardDescription className="text-sm mt-1 line-clamp-2">
-                                      {item.description}
-                                    </CardDescription>
-                                  </div>
-                                </div>
-                              </CardHeader>
-                              <CardContent className="pt-0">
-                                <div className={`text-h2 ${getLeakageColor(item.amount)} mb-2`}>
-                                  {formatCurrency(item.amount)}
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  {submission.current_arr && submission.current_arr > 0 
-                                    ? `${((item.amount / submission.current_arr) * 100).toFixed(1)}% of ARR`
-                                    : 'N/A'
-                                  }
-                                </div>
-                              </CardContent>
-                            </Card>
-                          );
-                        })}
-                      </div>
-                    </div>
+                    <DetailedBreakdown 
+                      data={{
+                        companyInfo: {
+                          companyName: submission.company_name || '',
+                          email: submission.contact_email || '',
+                          phone: submission.phone || '',
+                          currentARR: submission.current_arr || 0,
+                          industry: submission.industry || 'Software'
+                        },
+                        leadGeneration: {
+                          monthlyLeads: submission.monthly_leads || 0,
+                          averageDealValue: submission.average_deal_value || 0,
+                          leadResponseTimeHours: submission.lead_response_time || 0
+                        },
+                        selfServeMetrics: {
+                          monthlyFreeSignups: submission.monthly_free_signups || 0,
+                          freeToPaidConversionRate: submission.free_to_paid_conversion || 0,
+                          monthlyMRR: submission.monthly_mrr || 0
+                        },
+                        operationsData: {
+                          failedPaymentRate: submission.failed_payment_rate || 0,
+                          manualHoursPerWeek: submission.manual_hours || 0,
+                          hourlyRate: submission.hourly_rate || 0
+                        }
+                      }}
+                      calculations={{
+                        leadResponseLoss: submission.lead_response_loss || 0,
+                        failedPaymentLoss: submission.failed_payment_loss || 0,
+                        selfServeGap: submission.selfserve_gap_loss || 0,
+                        processLoss: submission.process_inefficiency_loss || 0,
+                        totalLeakage: submission.total_leak || 0,
+                        potentialRecovery70: submission.recovery_potential_70 || 0,
+                        potentialRecovery85: submission.recovery_potential_85 || 0,
+                        totalLeak: submission.total_leak || 0,
+                        recoveryPotential70: submission.recovery_potential_70 || 0,
+                        recoveryPotential85: submission.recovery_potential_85 || 0
+                      }}
+                      formatCurrency={formatCurrency}
+                    />
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
