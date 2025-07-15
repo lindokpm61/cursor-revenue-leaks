@@ -19,7 +19,23 @@ import {
   Zap,
   AlertTriangle,
   BookOpen,
-  Phone
+  Phone,
+  Trophy,
+  Sparkles,
+  Rocket,
+  Star,
+  ChevronRight,
+  Play,
+  ArrowRight,
+  Timer,
+  Users2,
+  Lightbulb,
+  TrendingDown,
+  Eye,
+  Share2,
+  Copy,
+  BarChart3,
+  Activity
 } from "lucide-react";
 import { submissionService, type Submission } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
