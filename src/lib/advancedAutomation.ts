@@ -275,12 +275,12 @@ export const createUserAccount = async (registrationData: any) => {
         });
         
         if (signInError) {
-          throw new Error('User already registered with different password');
+          throw new Error('An account with this email already exists. Please sign in instead or use a different email address.');
         }
         
         return signInData.user;
       }
-      throw error;
+      throw new Error(error.message || 'Registration failed. Please try again.');
     }
     
     if (!data.user) throw new Error('User creation failed');
