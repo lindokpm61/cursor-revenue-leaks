@@ -770,8 +770,8 @@ const ActionPlan = () => {
               <div className="absolute inset-0 bg-destructive/10 rounded-full blur-xl"></div>
               <AlertTriangle className="relative h-16 w-16 text-destructive mx-auto animate-pulse" />
             </div>
-            <h2 className="text-xl font-bold mb-2">Action Plan Not Found</h2>
-            <p className="text-muted-foreground mb-6">
+            <h2 className="text-h2 font-bold mb-2">Action Plan Not Found</h2>
+            <p className="text-body text-muted-foreground mb-6">
               The action plan you're looking for doesn't exist or you don't have permission to view it.
             </p>
             <Link to="/dashboard">
@@ -864,13 +864,13 @@ const ActionPlan = () => {
                   <Trophy className="h-10 w-10 text-primary animate-pulse" />
                   <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-yellow-500 animate-bounce" />
                 </div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
+                <h1 className="text-h1 font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
                   {submission.company_name} Action Plan
                 </h1>
               </div>
               <div className="flex items-center gap-2">
                 <Rocket className="h-5 w-5 text-primary" />
-                <p className="text-xl text-muted-foreground">
+                <p className="text-h3 text-muted-foreground">
                   Personalized recovery roadmap • Generated {new Date().toLocaleDateString()}
                 </p>
               </div>
@@ -882,17 +882,17 @@ const ActionPlan = () => {
           <Card className="border-revenue-danger/20 bg-revenue-danger/5">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold text-revenue-danger">Total Revenue Leak</h3>
-                {calculations.confidence.level === 'low' && (
-                  <Badge variant="outline" className="text-xs">
-                    Estimated
-                  </Badge>
-                )}
-              </div>
-              <p className="text-3xl font-bold text-revenue-danger">
-                {formatCurrency(calculations.total_leak)}
-              </p>
-              <p className="text-sm text-muted-foreground">
+                 <h3 className="text-h3 font-semibold text-revenue-danger">Total Revenue Leak</h3>
+                 {calculations.confidence.level === 'low' && (
+                   <Badge variant="outline" className="text-xs">
+                     Estimated
+                   </Badge>
+                 )}
+               </div>
+               <p className="text-h1 font-bold text-revenue-danger">
+                 {formatCurrency(calculations.total_leak)}
+               </p>
+               <p className="text-small text-muted-foreground">
                 Lost annually due to system gaps
               </p>
             </CardContent>
@@ -901,13 +901,13 @@ const ActionPlan = () => {
           <Card className="border-revenue-success/20 bg-revenue-success/5">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold text-revenue-success">Recovery Potential</h3>
-                <Badge variant="outline" className="text-xs">70% Confidence</Badge>
-              </div>
-              <p className="text-3xl font-bold text-revenue-success">
-                {formatCurrency(calculations.recovery_potential_70)}
-              </p>
-              <p className="text-sm text-muted-foreground">
+                 <h3 className="text-h3 font-semibold text-revenue-success">Recovery Potential</h3>
+                 <Badge variant="outline" className="text-xs">70% Confidence</Badge>
+               </div>
+               <p className="text-h1 font-bold text-revenue-success">
+                 {formatCurrency(calculations.recovery_potential_70)}
+               </p>
+               <p className="text-small text-muted-foreground">
                 Recoverable with implementation
               </p>
             </CardContent>
@@ -916,13 +916,13 @@ const ActionPlan = () => {
           <Card className="border-primary/20 bg-primary/5">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold text-primary">Implementation ROI</h3>
-                <Badge variant="secondary" className="text-xs">12 months</Badge>
-              </div>
-              <p className="text-3xl font-bold text-primary">
-                {roi}%
-              </p>
-              <p className="text-sm text-muted-foreground">
+                 <h3 className="text-h3 font-semibold text-primary">Implementation ROI</h3>
+                 <Badge variant="secondary" className="text-xs">12 months</Badge>
+               </div>
+               <p className="text-h1 font-bold text-primary">
+                 {roi}%
+               </p>
+               <p className="text-small text-muted-foreground">
                 Expected revenue improvement
               </p>
             </CardContent>
@@ -939,7 +939,7 @@ const ActionPlan = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-primary" />
-                <span className="text-sm font-semibold">Implementation Progress</span>
+                <span className="text-small font-semibold">Implementation Progress</span>
                 <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
               <div className="flex items-center gap-2">
@@ -949,9 +949,9 @@ const ActionPlan = () => {
                 >
                   {checkedActions.length} of {priorityActions.length}
                 </Badge>
-                <span className="text-sm text-muted-foreground">
-                  actions completed
-                </span>
+                 <span className="text-small text-muted-foreground">
+                   actions completed
+                 </span>
               </div>
             </div>
             <div className="relative">
@@ -990,26 +990,26 @@ const ActionPlan = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Lead Response Loss</span>
-                      <span className="font-medium text-revenue-danger">
-                        {formatCurrency(calculations.leadResponseLoss)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Failed Payment Loss</span>
-                      <span className="font-medium text-revenue-danger">
-                        {formatCurrency(calculations.failedPaymentLoss)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Self-Serve Gap</span>
-                      <span className="font-medium text-revenue-danger">
-                        {formatCurrency(calculations.selfServeGap)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Process Inefficiency</span>
+                     <div className="flex justify-between items-center">
+                       <span className="text-small">Lead Response Loss</span>
+                       <span className="font-medium text-revenue-danger">
+                         {formatCurrency(calculations.leadResponseLoss)}
+                       </span>
+                     </div>
+                     <div className="flex justify-between items-center">
+                       <span className="text-small">Failed Payment Loss</span>
+                       <span className="font-medium text-revenue-danger">
+                         {formatCurrency(calculations.failedPaymentLoss)}
+                       </span>
+                     </div>
+                     <div className="flex justify-between items-center">
+                       <span className="text-small">Self-Serve Gap</span>
+                       <span className="font-medium text-revenue-danger">
+                         {formatCurrency(calculations.selfServeGap)}
+                       </span>
+                     </div>
+                     <div className="flex justify-between items-center">
+                       <span className="text-small">Process Inefficiency</span>
                       <span className="font-medium text-revenue-danger">
                         {formatCurrency(calculations.processLoss)}
                       </span>
@@ -1043,7 +1043,7 @@ const ActionPlan = () => {
                             checked={checkedActions.includes(action.id)}
                             onCheckedChange={(checked) => handleActionToggle(action.id, checked as boolean)}
                           />
-                          <span className="text-sm font-medium">{action.title}</span>
+                          <span className="text-small font-medium">{action.title}</span>
                         </div>
                         <Badge variant="outline" className="ml-auto text-xs">
                           {action.timeframe}
@@ -1130,21 +1130,21 @@ const ActionPlan = () => {
                     <CheckCircle className="h-5 w-5 text-revenue-success mt-0.5" />
                     <div>
                       <p className="font-medium">1. Review Priority Actions</p>
-                      <p className="text-sm text-muted-foreground">Check off the actions you want to implement first</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Calendar className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium">2. Schedule Implementation</p>
-                      <p className="text-sm text-muted-foreground">Book a strategy call to discuss timeline and resources</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Zap className="h-5 w-5 text-revenue-warning mt-0.5" />
-                    <div>
-                      <p className="font-medium">3. Start with Quick Wins</p>
-                      <p className="text-sm text-muted-foreground">Begin with the highest-impact, lowest-effort improvements</p>
+                       <p className="text-small text-muted-foreground">Check off the actions you want to implement first</p>
+                     </div>
+                   </div>
+                   <div className="flex items-start gap-3">
+                     <Calendar className="h-5 w-5 text-primary mt-0.5" />
+                     <div>
+                       <p className="font-medium">2. Schedule Implementation</p>
+                       <p className="text-small text-muted-foreground">Book a strategy call to discuss timeline and resources</p>
+                     </div>
+                   </div>
+                   <div className="flex items-start gap-3">
+                     <Zap className="h-5 w-5 text-revenue-warning mt-0.5" />
+                     <div>
+                       <p className="font-medium">3. Start with Quick Wins</p>
+                       <p className="text-small text-muted-foreground">Begin with the highest-impact, lowest-effort improvements</p>
                     </div>
                   </div>
                 </CardContent>

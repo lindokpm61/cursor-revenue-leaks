@@ -14,7 +14,7 @@ const Landing = () => {
               <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-revenue-primary">
                 <Calculator className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">Revenue Leak Calculator</span>
+              <span className="text-h2 font-bold">Revenue Leak Calculator</span>
             </div>
             <div className="flex items-center gap-4">
               <Link to="/login">
@@ -34,21 +34,21 @@ const Landing = () => {
       <section className="py-20 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <div className="mb-8">
-            <h1 className="text-5xl lg:text-6xl font-bold mb-6">
+            <h1 className="text-hero font-bold mb-6">
               <span className="bg-gradient-to-r from-primary to-revenue-primary bg-clip-text text-transparent">
                 Identify & Quantify
               </span>
               <br />
               Your SaaS Revenue Leaks
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
+            <p className="text-h3 text-muted-foreground max-w-3xl mx-auto mb-8">
               Discover hidden revenue opportunities in your sales funnel. Our enterprise-grade calculator 
               analyzes lead response times, payment failures, conversion gaps, and operational inefficiencies 
               to show you exactly how much revenue you're losing.
             </p>
             <div className="flex justify-center">
               <Link to="/calculator">
-                <Button size="lg" className="bg-gradient-to-r from-primary to-revenue-primary text-lg px-8 py-4">
+                <Button size="lg" className="bg-gradient-to-r from-primary to-revenue-primary text-h3 px-8 py-4">
                   Calculate Your Revenue Leaks
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -60,20 +60,20 @@ const Landing = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             <Card className="border-border/50 shadow-lg">
               <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-revenue-success mb-2">110%</div>
-                <div className="text-sm text-muted-foreground">Average Net Revenue Retention</div>
+                <div className="text-h1 font-bold text-revenue-success mb-2">110%</div>
+                <div className="text-small text-muted-foreground">Average Net Revenue Retention</div>
               </CardContent>
             </Card>
             <Card className="border-border/50 shadow-lg">
               <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-revenue-primary mb-2">78%</div>
-                <div className="text-sm text-muted-foreground">Typical Gross Margin</div>
+                <div className="text-h1 font-bold text-revenue-primary mb-2">78%</div>
+                <div className="text-small text-muted-foreground">Typical Gross Margin</div>
               </CardContent>
             </Card>
             <Card className="border-border/50 shadow-lg">
               <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-revenue-warning mb-2">32%</div>
-                <div className="text-sm text-muted-foreground">Annual Growth Rate</div>
+                <div className="text-h1 font-bold text-revenue-warning mb-2">32%</div>
+                <div className="text-small text-muted-foreground">Annual Growth Rate</div>
               </CardContent>
             </Card>
           </div>
@@ -84,8 +84,8 @@ const Landing = () => {
       <section className="py-20 px-4 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Why Revenue Leaks Cost You Millions</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <h2 className="text-h1 font-bold mb-4">Why Revenue Leaks Cost You Millions</h2>
+            <p className="text-h3 text-muted-foreground max-w-3xl mx-auto">
               Most SaaS companies lose 15-30% of potential revenue through preventable leaks. 
               Our calculator identifies the four critical areas where money slips through the cracks.
             </p>
@@ -151,8 +151,8 @@ const Landing = () => {
       <section className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Trusted by Growing SaaS Companies</h2>
-            <p className="text-xl text-muted-foreground">
+            <h2 className="text-h1 font-bold mb-4">Trusted by Growing SaaS Companies</h2>
+            <p className="text-h3 text-muted-foreground">
               Join 500+ SaaS leaders who've identified millions in hidden revenue
             </p>
           </div>
@@ -161,7 +161,7 @@ const Landing = () => {
             {['TechCorp', 'GrowthSaaS', 'ScaleCo', 'DataFlow'].map((company) => (
               <div key={company} className="text-center">
                 <div className="h-16 bg-muted rounded-lg flex items-center justify-center mb-4">
-                  <span className="text-lg font-semibold text-muted-foreground">{company}</span>
+                  <span className="text-h3 font-semibold text-muted-foreground">{company}</span>
                 </div>
               </div>
             ))}
@@ -212,16 +212,16 @@ const Landing = () => {
       {/* CTA Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-primary/10 to-revenue-primary/10">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-6">
+          <h2 className="text-h1 font-bold mb-6">
             Ready to Discover Your Hidden Revenue?
           </h2>
-          <p className="text-xl text-muted-foreground mb-8">
+          <p className="text-h3 text-muted-foreground mb-8">
             It takes less than 5 minutes to complete the assessment and see your personalized results.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Link to="/calculator">
-              <Button size="lg" className="bg-gradient-to-r from-primary to-revenue-primary text-lg px-8 py-4">
+              <Button size="lg" className="bg-gradient-to-r from-primary to-revenue-primary text-h3 px-8 py-4">
                 Start Your Free Assessment
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -253,7 +253,7 @@ const Landing = () => {
               <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-revenue-primary">
                 <Calculator className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">Revenue Leak Calculator</span>
+              <span className="text-h2 font-bold">Revenue Leak Calculator</span>
             </div>
             <div className="flex gap-6 text-sm text-muted-foreground">
               <a href="/privacy" className="hover:text-foreground">Privacy Policy</a>
