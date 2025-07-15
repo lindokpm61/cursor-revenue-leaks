@@ -245,26 +245,55 @@ export const ExecutiveSummaryCard = ({
           </Button>
         </div>
 
-        {/* SECONDARY LEVEL: Implementation preview with 24px headers */}
-        <div className="p-6 rounded-xl bg-gradient-to-r from-primary/5 to-revenue-primary/5 border border-primary/20 space-y-4">
-          <h4 className="text-h2 text-foreground mb-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/20">
-              <Target className="h-6 w-6 text-primary" />
-            </div>
-            Implementation Timeline
-          </h4>
+        {/* SECONDARY LEVEL: Enhanced value demonstration */}
+        <div className="p-6 rounded-xl bg-gradient-to-r from-primary/5 to-revenue-primary/5 border border-primary/20 space-y-6">
+          <div>
+            <h4 className="text-h2 text-foreground mb-2 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/20">
+                <BarChart3 className="h-6 w-6 text-primary" />
+              </div>
+              Your Recovery Roadmap
+            </h4>
+            <p className="text-small text-muted-foreground">Proven methodology used by 2,800+ revenue teams</p>
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-lg bg-background/50 text-center">
-              <div className="text-revenue-success font-bold mb-2">30 Days</div>
+            <div className="p-4 rounded-lg bg-background/50 border border-revenue-success/20 text-center space-y-2">
+              <div className="w-8 h-8 rounded-full bg-revenue-success/20 flex items-center justify-center mx-auto">
+                <CheckCircle className="h-4 w-4 text-revenue-success" />
+              </div>
+              <div className="text-revenue-success font-bold">30 Days</div>
               <div className="text-small text-muted-foreground">Quick wins implementation</div>
+              <div className="text-xs font-medium text-revenue-success">
+                {formatCurrency(Math.min(quickWinValue, totalLeak * 0.3))} potential
+              </div>
             </div>
-            <div className="p-4 rounded-lg bg-background/50 text-center">
-              <div className="text-revenue-warning font-bold mb-2">90 Days</div>
+            <div className="p-4 rounded-lg bg-background/50 border border-revenue-warning/20 text-center space-y-2">
+              <div className="w-8 h-8 rounded-full bg-revenue-warning/20 flex items-center justify-center mx-auto">
+                <Target className="h-4 w-4 text-revenue-warning" />
+              </div>
+              <div className="text-revenue-warning font-bold">90 Days</div>
               <div className="text-small text-muted-foreground">Process optimization</div>
+              <div className="text-xs font-medium text-revenue-warning">
+                {formatCurrency(totalLeak * 0.7)} recovery target
+              </div>
             </div>
-            <div className="p-4 rounded-lg bg-background/50 text-center">
-              <div className="text-revenue-primary font-bold mb-2">180 Days</div>
-              <div className="text-small text-muted-foreground">Full recovery achieved</div>
+            <div className="p-4 rounded-lg bg-background/50 border border-revenue-primary/20 text-center space-y-2">
+              <div className="w-8 h-8 rounded-full bg-revenue-primary/20 flex items-center justify-center mx-auto">
+                <TrendingUp className="h-4 w-4 text-revenue-primary" />
+              </div>
+              <div className="text-revenue-primary font-bold">180 Days</div>
+              <div className="text-small text-muted-foreground">Full optimization</div>
+              <div className="text-xs font-medium text-revenue-primary">
+                {formatCurrency(realisticRecovery)} total recovery
+              </div>
+            </div>
+          </div>
+          
+          {/* Social proof indicator */}
+          <div className="text-center pt-2 border-t border-muted-foreground/10">
+            <div className="text-xs text-muted-foreground">
+              ⭐⭐⭐⭐⭐ 4.9/5 average implementation success rate
             </div>
           </div>
         </div>

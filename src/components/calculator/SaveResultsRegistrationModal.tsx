@@ -305,18 +305,42 @@ export const SaveResultsRegistrationModal = ({
           </p>
         </DialogHeader>
 
-        {/* Value Proposition */}
-        <Card className="border-revenue-success/20 bg-revenue-success/5 mb-6">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <TrendingUp className="h-5 w-5 text-revenue-success" />
-              <div className="text-lg font-bold text-revenue-success">
+        {/* Enhanced Value Proposition */}
+        <Card className="border-revenue-success/20 bg-gradient-to-r from-revenue-success/5 to-primary/5 mb-6">
+          <CardContent className="p-6 space-y-4">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-revenue-success mb-2">
                 {formatCurrency(calculations.totalLeakage)}
               </div>
+              <p className="text-sm font-medium text-foreground mb-3">
+                Annual Recovery Opportunity
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {config.message}
+              </p>
             </div>
-            <p className="text-sm text-muted-foreground">
-              {config.message}
-            </p>
+            
+            {/* What you get */}
+            <div className="grid grid-cols-1 gap-3 pt-4 border-t border-muted-foreground/20">
+              <div className="flex items-center gap-2 text-xs">
+                <div className="w-4 h-4 rounded-full bg-revenue-success flex items-center justify-center">
+                  <span className="text-white text-[10px]">✓</span>
+                </div>
+                <span>Detailed implementation roadmap</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <div className="w-4 h-4 rounded-full bg-revenue-success flex items-center justify-center">
+                  <span className="text-white text-[10px]">✓</span>
+                </div>
+                <span>90-day priority action checklist</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <div className="w-4 h-4 rounded-full bg-revenue-success flex items-center justify-center">
+                  <span className="text-white text-[10px]">✓</span>
+                </div>
+                <span>Monthly progress tracking dashboard</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

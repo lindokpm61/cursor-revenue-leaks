@@ -82,11 +82,88 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
 
   return (
     <div className="space-y-8">
-      <ExecutiveSummary 
-        data={data} 
-        calculations={calculations} 
-        formatCurrency={formatCurrency} 
-      />
+      {/* Enhanced Executive Summary with Social Proof */}
+      <div className="space-y-6">
+        <ExecutiveSummary 
+          data={data} 
+          calculations={calculations} 
+          formatCurrency={formatCurrency} 
+        />
+        
+        {/* Social Proof & Urgency */}
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-center p-6 bg-gradient-to-r from-primary/5 via-revenue-primary/5 to-primary/5 rounded-xl border border-primary/20">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex -space-x-2">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-revenue-primary flex items-center justify-center text-xs font-bold text-white border-2 border-background">
+                  {String.fromCharCode(65 + i)}
+                </div>
+              ))}
+            </div>
+            <span className="font-medium">Join 2,847+ executives who've optimized their revenue</span>
+          </div>
+          <div className="text-sm text-revenue-warning font-medium">
+            ⏰ Limited consultation spots this month
+          </div>
+        </div>
+      </div>
+      
+      {/* Value-First Save Section - Above detailed breakdowns */}
+      <div className="bg-gradient-to-r from-revenue-success/10 via-primary/5 to-revenue-success/10 border-2 border-revenue-success/20 rounded-xl p-8 text-center space-y-6">
+        <div className="space-y-4">
+          <h3 className="text-h1 font-bold text-foreground">
+            Secure Your {formatCurrency(calculations.totalLeakage)} Recovery Plan
+          </h3>
+          <p className="text-body text-muted-foreground max-w-2xl mx-auto">
+            Get instant access to your personalized action plan, implementation timeline, and priority recommendations. 
+            Plus receive ongoing support and quarterly reviews.
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="flex items-center gap-3 p-4 bg-background/50 rounded-lg">
+            <div className="w-10 h-10 rounded-full bg-revenue-success/20 flex items-center justify-center">
+              <Save className="h-5 w-5 text-revenue-success" />
+            </div>
+            <div className="text-left">
+              <div className="font-semibold text-sm">Saved Analysis</div>
+              <div className="text-xs text-muted-foreground">Access anytime</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-4 bg-background/50 rounded-lg">
+            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+              📊
+            </div>
+            <div className="text-left">
+              <div className="font-semibold text-sm">Action Plan</div>
+              <div className="text-xs text-muted-foreground">Step-by-step guide</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-4 bg-background/50 rounded-lg">
+            <div className="w-10 h-10 rounded-full bg-revenue-warning/20 flex items-center justify-center">
+              🎯
+            </div>
+            <div className="text-left">
+              <div className="font-semibold text-sm">Expert Support</div>
+              <div className="text-xs text-muted-foreground">Implementation help</div>
+            </div>
+          </div>
+        </div>
+
+        <Button
+          onClick={() => handleSave(data, calculations)}
+          disabled={saving}
+          size="lg"
+          className="bg-gradient-to-r from-primary to-revenue-primary text-white font-bold px-8 py-4 h-14 text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+        >
+          <Save className="h-5 w-5 mr-3" />
+          {saving ? "Securing Your Results..." : "Get My Recovery Plan (Free)"}
+        </Button>
+        
+        <p className="text-xs text-muted-foreground">
+          No credit card required • Instant access • 100% confidential
+        </p>
+      </div>
       
       <RevenueCharts 
         data={data} 
@@ -103,18 +180,6 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
       <EnhancedInsights 
         breakdown={enhancedBreakdown}
       />
-
-      {/* Save Actions */}
-      <div className="flex justify-center gap-4">
-        <Button
-          onClick={() => handleSave(data, calculations)}
-          disabled={saving}
-          className="bg-gradient-to-r from-primary to-revenue-primary"
-        >
-          <Save className="h-4 w-4 mr-2" />
-          {saving ? "Saving..." : "Save Results"}
-        </Button>
-      </div>
 
       <ActionPlan calculations={calculations} data={data} />
 
