@@ -13,6 +13,7 @@ import {
 import { type Submission } from "@/lib/supabase";
 import { type UserIntent } from "./UserIntentSelector";
 import { validateCalculationResults, getCalculationConfidenceLevel } from "@/lib/calculator/validationHelpers";
+import { calculateQuickWins, getConfidenceMultiplier } from "@/lib/calculator/priorityCalculations";
 
 interface TldrSummaryProps {
   submission: Submission;
@@ -68,16 +69,14 @@ export const TldrSummary = ({
       validatedProcessLoss
     );
 
-    // Quick win based on implementation ease vs value
-    const quickWinOptions = [
-      { value: validatedFailedPaymentLoss, ease: 4, name: 'payment_recovery' },
-      { value: validatedLeadLoss * 0.3, ease: 3, name: 'lead_response' }, // 30% of lead response is quick
-      { value: validatedProcessLoss * 0.5, ease: 2, name: 'process_automation' }
-    ];
-    
-    const quickestWin = quickWinOptions
-      .filter(option => option.value > 0)
-      .sort((a, b) => (b.value / (6 - b.ease)) - (a.value / (6 - a.ease)))[0] || quickWinOptions[0];
+    // Use unified calculation service for quick wins
+    const quickWins = calculateQuickWins(submission as any);
+    const topQuickWin = quickWins[0] || {
+      action: 'Process optimization',
+      impact: 25,
+      timeframe: '2-4 weeks',
+      recoveryAmount: validatedFailedPaymentLoss * 0.8
+    };
 
     switch (userIntent) {
       case "understand-problem":
@@ -95,12 +94,12 @@ export const TldrSummary = ({
         };
         
       case "quick-wins":
-        const quickWinValue = quickestWin.value * 0.8; // 80% success rate
-        const quickWinName = quickestWin.name === 'payment_recovery' ? 'payment recovery systems' : 
-                             quickestWin.name === 'lead_response' ? 'lead response automation' : 'process automation';
+        const quickWinValue = topQuickWin.recoveryAmount * 0.8; // 80% success rate
+        const quickWinName = topQuickWin.action.toLowerCase().includes('payment') ? 'payment recovery systems' : 
+                             topQuickWin.action.toLowerCase().includes('lead') ? 'lead response automation' : 'process automation';
         return {
           title: "Your Quick Win",
-          summary: `Start with ${quickWinName} - you can recover ${formatCurrency(quickWinValue)} in 30-60 days with ${quickestWin.ease >= 3 ? 'minimal' : 'moderate'} complexity and high success probability.`,
+          summary: `Start with ${quickWinName} - you can recover ${formatCurrency(quickWinValue)} in ${topQuickWin.timeframe} with high success probability.`,
           actionText: `Implement ${quickWinName} first`,
           urgency: quickWinValue > 500000 ? "medium" : "low",
           nextStep: "View implementation plan",
