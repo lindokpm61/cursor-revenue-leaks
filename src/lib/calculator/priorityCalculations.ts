@@ -59,7 +59,24 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
   const processRecovery = processLoss * 0.8; // 80% recovery potential
   const paymentRecovery = failedPaymentLoss * 0.85; // 85% recovery potential
 
+  // Calculate total potential recovery for impact percentages
+  const totalActionRecovery = leadResponseRecovery + selfserveRecovery + processRecovery + paymentRecovery;
+  
   const actions: PriorityAction[] = [];
+
+  console.log('Priority Action Thresholds Debug:', {
+    currentARR,
+    leadResponseLoss,
+    selfserveGapLoss,
+    processLoss,
+    failedPaymentLoss,
+    leadResponseThreshold: currentARR * 0.05,
+    selfserveThreshold: currentARR * 0.08,
+    processThreshold: currentARR * 0.03,
+    paymentThreshold: currentARR * 0.02,
+    totalActionRecovery,
+    totalRecovery
+  });
 
   // Lead Response Optimization (if significant loss)
   if (leadResponseLoss > currentARR * 0.05) {
@@ -67,7 +84,7 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
       id: 'lead-response',
       title: 'Accelerate Lead Response Time',
       description: 'Implement automated lead routing and instant response systems',
-      impact: Math.round((leadResponseRecovery / totalRecovery) * 100),
+      impact: Math.round((leadResponseRecovery / totalActionRecovery) * 100),
       effort: 'Medium',
       timeframe: '4-6 weeks',
       recoveryAmount: leadResponseRecovery,
@@ -92,7 +109,7 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
       id: 'selfserve-optimization',
       title: 'Optimize Self-Serve Experience',
       description: 'Improve onboarding flow and reduce friction points',
-      impact: Math.round((selfserveRecovery / totalRecovery) * 100),
+      impact: Math.round((selfserveRecovery / totalActionRecovery) * 100),
       effort: 'High',
       timeframe: '8-12 weeks',
       recoveryAmount: selfserveRecovery,
@@ -118,7 +135,7 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
       id: 'process-automation',
       title: 'Automate Manual Processes',
       description: 'Eliminate repetitive tasks and streamline workflows',
-      impact: Math.round((processRecovery / totalRecovery) * 100),
+      impact: Math.round((processRecovery / totalActionRecovery) * 100),
       effort: 'Low',
       timeframe: '2-4 weeks',
       recoveryAmount: processRecovery,
@@ -144,7 +161,7 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
       id: 'payment-recovery',
       title: 'Improve Payment Recovery',
       description: 'Implement dunning management and payment retry logic',
-      impact: Math.round((paymentRecovery / totalRecovery) * 100),
+      impact: Math.round((paymentRecovery / totalActionRecovery) * 100),
       effort: 'Low',
       timeframe: '1-2 weeks',
       recoveryAmount: paymentRecovery,
