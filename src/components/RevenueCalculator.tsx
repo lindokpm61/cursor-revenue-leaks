@@ -189,35 +189,91 @@ export const RevenueCalculator = () => {
   const progress = (currentStep / steps.length) * 100;
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/[0.02] to-accent/[0.02] p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="p-3 rounded-lg bg-gradient-to-r from-primary to-revenue-primary">
-              <Calculator className="h-8 w-8 text-primary-foreground" />
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary to-revenue-primary rounded-xl blur-sm opacity-60"></div>
+              <div className="relative p-4 rounded-xl bg-gradient-to-r from-primary to-revenue-primary shadow-attention-glow">
+                <Calculator className="h-10 w-10 text-primary-foreground" />
+              </div>
             </div>
-             <h1 className="text-hero bg-gradient-to-r from-primary to-revenue-primary bg-clip-text text-transparent text-center">
-               SaaS Revenue Leak Calculator
-             </h1>
-           </div>
-           <p className="text-h3 text-muted-foreground max-w-2xl mx-auto text-center">
-            Identify and quantify revenue leaks in your sales funnel to maximize growth potential
+            <div>
+              <h1 className="text-hero bg-gradient-to-r from-primary via-revenue-primary to-accent bg-clip-text text-transparent font-black">
+                SaaS Revenue Leak Calculator
+              </h1>
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <div className="w-2 h-2 bg-revenue-success rounded-full animate-pulse"></div>
+                <span className="text-small text-revenue-success font-medium">Free Analysis</span>
+                <div className="w-2 h-2 bg-revenue-success rounded-full animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+          <p className="text-h3 text-muted-foreground max-w-2xl mx-auto text-center leading-relaxed">
+            <span className="font-semibold text-foreground">Discover hidden revenue opportunities</span><br/>
+            Get a personalized analysis of your sales funnel leaks in under 5 minutes
           </p>
+          
+          {/* Trust indicators */}
+          <div className="flex items-center justify-center gap-6 mt-6 text-small text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-revenue-success rounded-full"></div>
+              <span>No signup required</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-revenue-success rounded-full"></div>
+              <span>Instant results</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-revenue-success rounded-full"></div>
+              <span>Used by 1000+ SaaS companies</span>
+            </div>
+          </div>
         </div>
 
-        {/* Progress Bar */}
-        <Card className="mb-8 border-border/50 shadow-lg">
+        {/* Enhanced Progress Bar */}
+        <Card className="mb-8 border-border/30 shadow-xl bg-gradient-to-r from-card via-card to-card/95 backdrop-blur-sm">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-medium text-muted-foreground">
-                Step {currentStep} of {steps.length}
-              </span>
-              <span className="text-sm font-medium text-primary">
-                {Math.round(progress)}% Complete
-              </span>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <span className="text-body font-semibold text-foreground">
+                  Step {currentStep} of {steps.length}
+                </span>
+                {currentStep === 5 && (
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-revenue-success/10 rounded-full">
+                    <TrendingUp className="h-4 w-4 text-revenue-success" />
+                    <span className="text-small font-medium text-revenue-success">Complete!</span>
+                  </div>
+                )}
+              </div>
+              <div className="text-right">
+                <div className="text-h3 font-bold text-primary">
+                  {Math.round(progress)}%
+                </div>
+                <div className="text-xs text-muted-foreground">Complete</div>
+              </div>
             </div>
-            <Progress value={progress} className="h-2 mb-4" />
+            
+            {/* Enhanced Progress Bar with Animation */}
+            <div className="relative mb-6">
+              <div className="h-3 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-primary via-revenue-primary to-accent rounded-full transition-all duration-700 ease-out relative"
+                  style={{ width: `${progress}%` }}
+                >
+                  <div className="absolute inset-0 bg-white/20 rounded-full animate-pulse"></div>
+                </div>
+              </div>
+              {currentStep < 5 && (
+                <div className="absolute -top-1 -bottom-1" style={{ left: `${progress}%` }}>
+                  <div className="w-5 h-5 bg-primary rounded-full shadow-attention-glow animate-attention-pulse border-2 border-background transform -translate-x-1/2"></div>
+                </div>
+              )}
+            </div>
+            
+            {/* Enhanced Step Indicators */}
             <div className="flex items-center justify-between">
               {steps.map((step, index) => (
                 <div
@@ -226,20 +282,33 @@ export const RevenueCalculator = () => {
                 >
                   <div className="flex flex-col items-center">
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                      className={`relative w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500 ${
                         step.id <= currentStep
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted text-muted-foreground'
+                          ? 'bg-gradient-to-r from-primary to-revenue-primary text-primary-foreground shadow-lg scale-110'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
                       }`}
                     >
-                      {step.id}
+                      {step.id <= currentStep && step.id < currentStep ? (
+                        <div className="text-primary-foreground">✓</div>
+                      ) : (
+                        step.id
+                      )}
+                      {step.id === currentStep && (
+                        <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping"></div>
+                      )}
                     </div>
-                    <span className="text-xs text-center mt-2 max-w-20">
+                    <span className={`text-xs text-center mt-2 max-w-20 transition-colors ${
+                      step.id <= currentStep ? 'text-foreground font-medium' : 'text-muted-foreground'
+                    }`}>
                       {step.title}
                     </span>
                   </div>
                   {index < steps.length - 1 && (
-                    <div className="flex-1 h-px bg-border mx-4" />
+                    <div className={`flex-1 h-0.5 mx-4 rounded-full transition-colors duration-500 ${
+                      step.id < currentStep 
+                        ? 'bg-gradient-to-r from-primary to-revenue-primary' 
+                        : 'bg-border'
+                    }`} />
                   )}
                 </div>
               ))}
@@ -247,56 +316,121 @@ export const RevenueCalculator = () => {
           </CardContent>
         </Card>
 
-        {/* Current Step Content */}
-        <Card className="mb-8 border-border/50 shadow-lg">
-          <CardHeader className="border-b border-border/50">
-            <CardTitle className="text-h2 flex items-center gap-3">
-              {steps[currentStep - 1].title}
-              {currentStep === 5 && <TrendingUp className="h-6 w-6 text-revenue-success" />}
-              {currentStep < 5 && <AlertTriangle className="h-6 w-6 text-revenue-warning" />}
-            </CardTitle>
-            <CardDescription className="text-body">
-              {steps[currentStep - 1].description}
-            </CardDescription>
+        {/* Enhanced Current Step Content */}
+        <Card className="mb-8 border-border/30 shadow-2xl bg-gradient-to-br from-card via-card to-card/90 backdrop-blur-sm">
+          <CardHeader className="border-b border-border/30 bg-gradient-to-r from-muted/30 to-transparent">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className={`p-2 rounded-lg ${
+                  currentStep === 5 
+                    ? 'bg-revenue-success/10 text-revenue-success' 
+                    : 'bg-revenue-warning/10 text-revenue-warning'
+                }`}>
+                  {currentStep === 5 ? <TrendingUp className="h-6 w-6" /> : <AlertTriangle className="h-6 w-6" />}
+                </div>
+                <div>
+                  <CardTitle className="text-h2 text-foreground">
+                    {steps[currentStep - 1].title}
+                  </CardTitle>
+                  <CardDescription className="text-body mt-1">
+                    {steps[currentStep - 1].description}
+                  </CardDescription>
+                </div>
+              </div>
+              
+              {/* Step time estimate */}
+              {currentStep < 5 && (
+                <div className="text-right">
+                  <div className="text-small text-muted-foreground">
+                    ⏱ ~1 min
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    to complete
+                  </div>
+                </div>
+              )}
+            </div>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-8">
             {renderStep()}
           </CardContent>
         </Card>
 
-        {/* Navigation */}
+        {/* Enhanced Navigation */}
         {currentStep < 5 && (
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center">
             <Button
               variant="outline"
               onClick={prevStep}
               disabled={currentStep === 1}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 touch-target hover:bg-muted/50 disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" />
               Previous
             </Button>
+            
+            {/* Progress indicator for mobile */}
+            <div className="hidden max-sm:flex items-center gap-1">
+              {steps.slice(0, 4).map((step) => (
+                <div
+                  key={step.id}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    step.id <= currentStep ? 'bg-primary' : 'bg-muted'
+                  }`}
+                />
+              ))}
+            </div>
+            
             <Button
               onClick={nextStep}
-              className="flex items-center gap-2 bg-gradient-to-r from-primary to-revenue-primary hover:opacity-90"
+              className="flex items-center gap-3 bg-gradient-to-r from-primary via-revenue-primary to-accent hover:opacity-90 shadow-attention-glow touch-target font-semibold text-body transition-all duration-300 hover:scale-105"
               disabled={currentStep === 1 && (!data.companyInfo.companyName?.trim() || !data.companyInfo.email?.trim())}
             >
-              {currentStep === 4 ? 'Calculate Results' : 'Next'}
-              <ChevronRight className="h-4 w-4" />
+              {currentStep === 4 ? (
+                <>
+                  <Calculator className="h-4 w-4" />
+                  Calculate My Revenue Leaks
+                </>
+              ) : (
+                <>
+                  Continue
+                  <ChevronRight className="h-4 w-4" />
+                </>
+              )}
             </Button>
           </div>
         )}
 
         {currentStep === 5 && (
-          <div className="text-center">
-            <Button
-              variant="outline"
-              onClick={prevStep}
-              className="flex items-center gap-2 mx-auto"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Back to Edit Data
-            </Button>
+          <div className="text-center space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+              <Button
+                variant="outline"
+                onClick={prevStep}
+                className="flex items-center gap-2 touch-target"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Back to Edit Data
+              </Button>
+              
+              <Button
+                className="bg-gradient-to-r from-revenue-success to-accent text-white hover:opacity-90 shadow-lg touch-target font-semibold"
+                onClick={() => {
+                  const element = document.querySelector('[data-section="action-plan"]');
+                  element?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                <TrendingUp className="h-4 w-4 mr-2" />
+                View Action Plan
+              </Button>
+            </div>
+            
+            {/* Success message */}
+            <div className="bg-revenue-success/5 border border-revenue-success/20 rounded-lg p-4 max-w-md mx-auto">
+              <p className="text-small text-revenue-success font-medium">
+                🎉 Analysis complete! Scroll down to see your personalized recommendations.
+              </p>
+            </div>
           </div>
         )}
       </div>
