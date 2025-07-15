@@ -114,7 +114,7 @@ export const ExecutiveSummaryCard = ({
             </div>
             {/* PRIMARY LEVEL: Hero headline */}
             <div>
-              <CardTitle className="text-[48px] leading-tight font-black mb-4 text-foreground">
+              <CardTitle className="text-hero text-center mb-4 text-foreground">
                 {getSimplifiedMessage()}
               </CardTitle>
               <div className="flex flex-wrap gap-2 justify-center">
@@ -137,11 +137,11 @@ export const ExecutiveSummaryCard = ({
           <div className="text-center p-8 rounded-xl bg-revenue-warning/10 border-2 border-revenue-warning/20 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-revenue-warning/5 to-revenue-warning/10"></div>
             <div className="relative space-y-4">
-              <div className="text-[48px] font-black text-revenue-warning leading-none flex items-center justify-center gap-3">
+              <div className="text-hero text-revenue-warning leading-none flex items-center justify-center gap-3">
                 <ArrowUp className="h-12 w-12" />
                 {formatCurrency(totalLeak)}
               </div>
-              <div className="text-[16px] text-muted-foreground">
+              <div className="text-body text-muted-foreground">
                 Annual Recovery Opportunity
               </div>
             </div>
@@ -153,7 +153,7 @@ export const ExecutiveSummaryCard = ({
             onClick={handleGetActionPlan}
             size="lg" 
             variant="gradient"
-            className="w-full text-[20px] font-bold px-8 py-4 h-[56px] transition-all duration-300 shadow-lg hover:shadow-xl"
+            className="w-full text-h3 font-bold px-8 py-4 h-[56px] transition-all duration-300 shadow-lg hover:shadow-xl"
           >
             <Target className="h-6 w-6 mr-3" />
             {user ? 'Get Action Plan' : 'Get Action Plan (Register)'}
@@ -164,7 +164,7 @@ export const ExecutiveSummaryCard = ({
             <Button 
               variant="outline" 
               size="lg"
-              className="w-full text-[16px] px-8 py-3 h-[48px] transition-all duration-300"
+              className="w-full text-body px-8 py-3 h-[48px] transition-all duration-300"
             >
               <Mail className="h-5 w-5 mr-2" />
               Email Me Results
@@ -172,7 +172,7 @@ export const ExecutiveSummaryCard = ({
             
             {/* TERTIARY LEVEL: Details with 14px font */}
             <div className="text-center">
-              <button className="text-[14px] text-muted-foreground underline">
+              <button className="text-small text-muted-foreground underline">
                 How we calculated this
               </button>
             </div>
@@ -191,10 +191,10 @@ export const ExecutiveSummaryCard = ({
           <div className={`p-4 rounded-2xl ${config.bg} border ${config.border} mx-auto w-fit`}>
             <UrgencyIcon className={`h-10 w-10 ${config.color}`} />
           </div>
-          <CardTitle className="text-[48px] leading-tight font-black text-foreground">
+          <CardTitle className="text-hero text-center text-foreground">
             {getSimplifiedMessage()}
           </CardTitle>
-          <div className="text-[24px] font-semibold text-revenue-warning flex items-center justify-center gap-3">
+          <div className="text-h2 font-semibold text-revenue-warning flex items-center justify-center gap-3">
             <ArrowUp className="h-6 w-6" />
             {formatCurrency(totalLeak)} Recovery Opportunity
           </div>
@@ -219,7 +219,7 @@ export const ExecutiveSummaryCard = ({
           onClick={handleGetActionPlan}
           size="lg" 
           variant="gradient"
-          className="w-full text-[20px] font-bold px-8 py-4 h-[56px] transition-all duration-300 shadow-lg hover:shadow-xl"
+          className="w-full text-h3 font-bold px-8 py-4 h-[56px] transition-all duration-300 shadow-lg hover:shadow-xl"
         >
           <Target className="h-6 w-6 mr-3" />
           {user ? 'Get Action Plan' : 'Get Action Plan (Register)'}
@@ -230,7 +230,7 @@ export const ExecutiveSummaryCard = ({
           <Button 
             variant="outline" 
             size="lg"
-            className="text-[16px] px-6 py-3 h-[48px] transition-all duration-300"
+            className="text-body px-6 py-3 h-[48px] transition-all duration-300"
           >
             <Mail className="h-5 w-5 mr-2" />
             Email Me Results
@@ -238,7 +238,7 @@ export const ExecutiveSummaryCard = ({
           <Button 
             variant="outline" 
             size="lg"
-            className="text-[16px] px-6 py-3 h-[48px] transition-all duration-300"
+            className="text-body px-6 py-3 h-[48px] transition-all duration-300"
           >
             <Calendar className="h-5 w-5 mr-2" />
             Book Expert Call
@@ -247,7 +247,7 @@ export const ExecutiveSummaryCard = ({
 
         {/* SECONDARY LEVEL: Implementation preview with 24px headers */}
         <div className="p-6 rounded-xl bg-gradient-to-r from-primary/5 to-revenue-primary/5 border border-primary/20 space-y-4">
-          <h4 className="text-[24px] font-bold text-foreground mb-4 flex items-center gap-3">
+          <h4 className="text-h2 text-foreground mb-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/20">
               <Target className="h-6 w-6 text-primary" />
             </div>
@@ -256,27 +256,27 @@ export const ExecutiveSummaryCard = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-lg bg-background/50 text-center">
               <div className="text-revenue-success font-bold mb-2">30 Days</div>
-              <div className="text-[14px] text-muted-foreground">Quick wins implementation</div>
+              <div className="text-small text-muted-foreground">Quick wins implementation</div>
             </div>
             <div className="p-4 rounded-lg bg-background/50 text-center">
               <div className="text-revenue-warning font-bold mb-2">90 Days</div>
-              <div className="text-[14px] text-muted-foreground">Process optimization</div>
+              <div className="text-small text-muted-foreground">Process optimization</div>
             </div>
             <div className="p-4 rounded-lg bg-background/50 text-center">
               <div className="text-revenue-primary font-bold mb-2">180 Days</div>
-              <div className="text-[14px] text-muted-foreground">Full recovery achieved</div>
+              <div className="text-small text-muted-foreground">Full recovery achieved</div>
             </div>
           </div>
         </div>
 
         {/* TERTIARY LEVEL: Details with 14px font, collapsible */}
         <details className="group">
-          <summary className="cursor-pointer text-[14px] text-muted-foreground hover:text-foreground transition-colors list-none flex items-center gap-2">
+          <summary className="cursor-pointer text-small text-muted-foreground hover:text-foreground transition-colors list-none flex items-center gap-2">
             <span className="group-open:rotate-90 transition-transform">▶</span>
             How we calculated this analysis
           </summary>
           <div className="mt-4 p-4 rounded-lg bg-muted/20 border border-muted-foreground/20">
-            <div className="text-[14px] text-muted-foreground space-y-2">
+            <div className="text-small text-muted-foreground space-y-2">
               <p>• Revenue leak calculated from operational inefficiencies and missed opportunities</p>
               <p>• Quick win estimates based on industry benchmarks for immediate improvements</p>
               <p>• ROI potential derived from conservative recovery scenarios (70% success rate)</p>

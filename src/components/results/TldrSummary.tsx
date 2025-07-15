@@ -159,7 +159,7 @@ export const TldrSummary = ({
           
           <div className="flex-1 min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3 mb-3">
-              <h3 className="font-bold text-xl sm:text-h2 leading-tight">{tldr.title}</h3>
+              <h3 className="text-h2 leading-tight">{tldr.title}</h3>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline" className="text-xs font-bold px-3 py-1">
                   {config.badge}
@@ -174,7 +174,7 @@ export const TldrSummary = ({
               </div>
             </div>
             
-            <p className="text-sm sm:text-body mb-4 leading-relaxed">
+            <p className="text-body mb-4 leading-relaxed">
               {tldr.summary}
             </p>
             
@@ -183,7 +183,7 @@ export const TldrSummary = ({
                 <div className={`p-2 rounded-lg ${config.bg} border ${config.border} flex-shrink-0`}>
                   <Lightbulb className={`h-4 w-4 ${config.color}`} />
                 </div>
-                <span className="font-medium text-sm sm:text-small">{tldr.actionText}</span>
+                <span className="font-medium text-small">{tldr.actionText}</span>
               </div>
               
               {onExpandSection && (

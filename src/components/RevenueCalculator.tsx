@@ -197,11 +197,11 @@ export const RevenueCalculator = () => {
             <div className="p-3 rounded-lg bg-gradient-to-r from-primary to-revenue-primary">
               <Calculator className="h-8 w-8 text-primary-foreground" />
             </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-revenue-primary bg-clip-text text-transparent">
-              SaaS Revenue Leak Calculator
-            </h1>
-          </div>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+             <h1 className="text-hero bg-gradient-to-r from-primary to-revenue-primary bg-clip-text text-transparent text-center">
+               SaaS Revenue Leak Calculator
+             </h1>
+           </div>
+           <p className="text-h3 text-muted-foreground max-w-2xl mx-auto text-center">
             Identify and quantify revenue leaks in your sales funnel to maximize growth potential
           </p>
         </div>
@@ -250,12 +250,12 @@ export const RevenueCalculator = () => {
         {/* Current Step Content */}
         <Card className="mb-8 border-border/50 shadow-lg">
           <CardHeader className="border-b border-border/50">
-            <CardTitle className="text-2xl flex items-center gap-3">
+            <CardTitle className="text-h2 flex items-center gap-3">
               {steps[currentStep - 1].title}
               {currentStep === 5 && <TrendingUp className="h-6 w-6 text-revenue-success" />}
               {currentStep < 5 && <AlertTriangle className="h-6 w-6 text-revenue-warning" />}
             </CardTitle>
-            <CardDescription className="text-lg">
+            <CardDescription className="text-body">
               {steps[currentStep - 1].description}
             </CardDescription>
           </CardHeader>

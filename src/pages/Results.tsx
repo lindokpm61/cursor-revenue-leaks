@@ -202,20 +202,20 @@ const Results = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-8 bg-gradient-to-br from-background via-revenue-warning/5 to-revenue-success/5 rounded-2xl border-2 border-revenue-warning/20 relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent"></div>
               <div className="text-center relative border-l-4 border-revenue-warning/30 pl-4">
-                <div className={`text-2xl sm:text-3xl font-bold mb-3 ${getLeakageColor(validatedTotalLeak)} leading-none`}>
+                <div className={`text-h2 mb-3 ${getLeakageColor(validatedTotalLeak)} leading-none`}>
                   {formatCurrency(validatedTotalLeak)}
                 </div>
                 <p className="text-sm font-medium text-revenue-warning">💰 Opportunity Size</p>
               </div>
               <div className="text-center relative border-l-4 border-revenue-success/30 pl-4">
-                <div className="text-2xl sm:text-3xl font-bold text-revenue-success mb-3 leading-none flex items-center justify-center gap-2">
+                <div className="text-h2 text-revenue-success mb-3 leading-none flex items-center justify-center gap-2">
                   <ArrowUp className="h-5 w-5" />
                   {formatCurrency(realisticRecovery70)}
                 </div>
                 <p className="text-sm font-medium text-revenue-success">✅ Recovery Potential (70%)</p>
               </div>
               <div className="text-center relative border-l-4 border-revenue-primary/30 pl-4">
-                <div className="text-2xl sm:text-3xl font-bold text-revenue-primary mb-3 leading-none flex items-center justify-center gap-2">
+                <div className="text-h2 text-revenue-primary mb-3 leading-none flex items-center justify-center gap-2">
                   <ArrowUp className="h-5 w-5" />
                   {formatCurrency(realisticRecovery85)}
                 </div>
@@ -233,7 +233,7 @@ const Results = () => {
                         <BarChart className="h-4 w-4 text-primary" />
                       </div>
                       <div className="text-left">
-                        <h3 className="text-2xl font-semibold">Detailed Revenue Breakdown</h3>
+                        <h3 className="text-h2">Detailed Revenue Breakdown</h3>
                         <div className="flex items-center gap-3 mt-1">
                           <Badge variant="secondary" className="text-xs font-semibold px-3 py-1">📊 Detailed</Badge>
                           <span className="text-small text-muted-foreground">5 min read</span>
@@ -262,7 +262,7 @@ const Results = () => {
                                 </div>
                               </CardHeader>
                               <CardContent className="pt-0">
-                                <div className={`text-2xl font-bold ${getLeakageColor(item.amount)} mb-2`}>
+                                <div className={`text-h2 ${getLeakageColor(item.amount)} mb-2`}>
                                   {formatCurrency(item.amount)}
                                 </div>
                                 <div className="text-sm text-muted-foreground">
@@ -406,7 +406,7 @@ const Results = () => {
         <Card className="max-w-md mx-auto text-center">
           <CardContent className="p-8">
             <AlertTriangle className="h-12 w-12 text-revenue-warning mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Results Not Found</h2>
+            <h2 className="text-h2 mb-2">Results Not Found</h2>
             <p className="text-muted-foreground mb-6">
               The requested results could not be found or you don't have access to them.
             </p>
@@ -560,7 +560,7 @@ const Results = () => {
                 <div className="p-1.5 sm:p-2 rounded-lg bg-gradient-to-r from-primary to-revenue-primary flex-shrink-0">
                   <Calculator className="h-4 w-4 sm:h-6 sm:w-6 text-primary-foreground" />
                 </div>
-                <span className="text-sm sm:text-xl font-bold leading-tight truncate">
+                <span className="text-h3 leading-tight truncate">
                   Revenue Analysis Results
                 </span>
               </div>
@@ -586,9 +586,9 @@ const Results = () => {
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4">
-            <h1 className="text-xl sm:text-3xl font-bold mb-2 break-words">{submission.company_name}</h1>
+            <h1 className="text-h1 mb-2 break-words">{submission.company_name}</h1>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-muted-foreground">
-              <span className="break-all text-sm sm:text-base">{submission.contact_email}</span>
+              <span className="break-all text-body">{submission.contact_email}</span>
               {submission.industry && (
                 <div className="flex items-center gap-2">
                   <span className="hidden sm:inline">•</span>
