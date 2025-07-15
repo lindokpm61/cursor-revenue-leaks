@@ -18,6 +18,7 @@ import {
 import { type Submission } from "@/lib/supabase";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { validateCalculationResults, getCalculationConfidenceLevel } from '@/lib/calculator/validationHelpers';
+import { calculateUnifiedResults, generateRealisticTimeline, UnifiedCalculationInputs } from '@/lib/calculator/unifiedCalculations';
 
 interface ImplementationTimelineProps {
   submission: Submission;
@@ -29,6 +30,7 @@ interface ImplementationTimelineProps {
     recoveryPotential70: number;
     recoveryPotential85: number;
   };
+  calculatorData?: any; // Add calculator data for unified calculations
 }
 
 interface TimelinePhase {
@@ -43,8 +45,44 @@ interface TimelinePhase {
   roiPercentage: number;
 }
 
-export const ImplementationTimeline = ({ submission, formatCurrency, validatedValues }: ImplementationTimelineProps) => {
+export const ImplementationTimeline = ({ submission, formatCurrency, validatedValues, calculatorData }: ImplementationTimelineProps) => {
   const [isContentOpen, setIsContentOpen] = useState(false);
+
+  // Use unified calculations if calculator data is available
+  const getUnifiedCalculations = () => {
+    if (!calculatorData) return null;
+    
+    const inputs: UnifiedCalculationInputs = {
+      currentARR: calculatorData.companyInfo?.currentARR || submission.current_arr || 0,
+      monthlyMRR: calculatorData.selfServe?.monthlyMRR || submission.monthly_mrr || 0,
+      monthlyLeads: calculatorData.leadGeneration?.monthlyLeads || submission.monthly_leads || 0,
+      averageDealValue: calculatorData.leadGeneration?.averageDealValue || submission.average_deal_value || 0,
+      leadResponseTime: calculatorData.leadGeneration?.leadResponseTime || submission.lead_response_time || 0,
+      monthlyFreeSignups: calculatorData.selfServe?.monthlyFreeSignups || submission.monthly_free_signups || 0,
+      freeToLaidConversion: calculatorData.selfServe?.freeToLaidConversion || submission.free_to_paid_conversion || 0,
+      failedPaymentRate: calculatorData.selfServe?.failedPaymentRate || submission.failed_payment_rate || 0,
+      manualHours: calculatorData.operations?.manualHours || submission.manual_hours || 0,
+      hourlyRate: calculatorData.operations?.hourlyRate || submission.hourly_rate || 0,
+      industry: calculatorData.companyInfo?.industry || submission.industry
+    };
+    
+    return calculateUnifiedResults(inputs);
+  };
+
+  const unifiedCalcs = getUnifiedCalculations();
+  const realisticTimeline = unifiedCalcs ? generateRealisticTimeline(unifiedCalcs, {
+    currentARR: calculatorData?.companyInfo?.currentARR || submission.current_arr || 0,
+    monthlyMRR: calculatorData?.selfServe?.monthlyMRR || submission.monthly_mrr || 0,
+    monthlyLeads: calculatorData?.leadGeneration?.monthlyLeads || submission.monthly_leads || 0,
+    averageDealValue: calculatorData?.leadGeneration?.averageDealValue || submission.average_deal_value || 0,
+    leadResponseTime: calculatorData?.leadGeneration?.leadResponseTime || submission.lead_response_time || 0,
+    monthlyFreeSignups: calculatorData?.selfServe?.monthlyFreeSignups || submission.monthly_free_signups || 0,
+    freeToLaidConversion: calculatorData?.selfServe?.freeToLaidConversion || submission.free_to_paid_conversion || 0,
+    failedPaymentRate: calculatorData?.selfServe?.failedPaymentRate || submission.failed_payment_rate || 0,
+    manualHours: calculatorData?.operations?.manualHours || submission.manual_hours || 0,
+    hourlyRate: calculatorData?.operations?.hourlyRate || submission.hourly_rate || 0,
+    industry: calculatorData?.companyInfo?.industry || submission.industry
+  }) : null;
 
   const calculateTimelinePhases = (): TimelinePhase[] => {
     const currentARR = submission.current_arr || 0;
@@ -191,14 +229,21 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
     }
   };
 
-  const phases = calculateTimelinePhases();
-  const totalRecovery = phases[phases.length - 1]?.cumulativeRecovery || 0;
-  const totalLeak = validatedValues ? validatedValues.totalLeak : (submission.total_leak || 1);
+  // Use realistic timeline if available, otherwise fallback to legacy calculation
+  const legacyPhases = calculateTimelinePhases();
+  const phases = realisticTimeline || legacyPhases;
+  
+  // Calculate total recovery appropriately based on phase type
+  const totalRecovery = unifiedCalcs ? unifiedCalcs.optimisticRecovery : 
+    (legacyPhases.length > 0 ? legacyPhases[legacyPhases.length - 1].cumulativeRecovery : 0);
+  
+  const totalLeak = unifiedCalcs ? unifiedCalcs.totalLeak : (validatedValues ? validatedValues.totalLeak : (submission.total_leak || 1));
   const currentARR = submission.current_arr || 0;
   
-  // Cap recovery percentage based on realistic expectations
-  const maxRecoveryPercentage = currentARR < 1000000 ? 25 : currentARR < 10000000 ? 40 : 60;
-  const recoveryPercentage = Math.min((totalRecovery / totalLeak) * 100, maxRecoveryPercentage);
+  // Use more realistic recovery percentage calculation
+  const maxRecoveryPercentage = unifiedCalcs?.confidence === 'high' ? 75 : 
+                                unifiedCalcs?.confidence === 'medium' ? 60 : 50;
+  const recoveryPercentage = Math.min((totalRecovery / Math.max(totalLeak, 1)) * 100, maxRecoveryPercentage);
   
   const confidenceLevel = getCalculationConfidenceLevel({
     currentARR: submission.current_arr || 0,
@@ -207,40 +252,71 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
     totalLeak: submission.total_leak || 0
   });
 
-  // Chart data for cumulative recovery - monthly intervals for 6 months
-  const chartData = [
-    { month: 'Current', recovery: 0, cumulative: 0 },
-    { month: 'Month 1', recovery: phases[0]?.recovery * 0.5 || 0, cumulative: phases[0]?.recovery * 0.5 || 0 },
-    { month: 'Month 2', recovery: phases[0]?.recovery * 0.5 || 0, cumulative: phases[0]?.cumulativeRecovery || 0 },
-    { month: 'Month 3', recovery: phases[1]?.recovery * 0.5 || 0, cumulative: (phases[0]?.cumulativeRecovery || 0) + (phases[1]?.recovery * 0.5 || 0) },
-    { month: 'Month 4', recovery: phases[1]?.recovery * 0.5 || 0, cumulative: phases[1]?.cumulativeRecovery || 0 },
-    { month: 'Month 5', recovery: phases[2]?.recovery * 0.5 || 0, cumulative: (phases[1]?.cumulativeRecovery || 0) + (phases[2]?.recovery * 0.5 || 0) },
-    { month: 'Month 6', recovery: phases[2]?.recovery * 0.5 || 0, cumulative: phases[2]?.cumulativeRecovery || 0 }
-  ];
+  // Chart data - use realistic timeline if available
+  const chartData = realisticTimeline ? 
+    // Generate chart data from realistic timeline
+    realisticTimeline.reduce((acc, phase, index) => {
+      const monthsInPhase = phase.endMonth - phase.startMonth + 1;
+      const recoveryPerMonth = phase.recoveryPotential / monthsInPhase;
+      
+      for (let month = phase.startMonth; month <= phase.endMonth; month++) {
+        const cumulativeRecovery = realisticTimeline
+          .filter(p => p.endMonth < month)
+          .reduce((sum, p) => sum + p.recoveryPotential, 0) + 
+          (month - phase.startMonth + 1) * recoveryPerMonth;
+          
+        acc.push({
+          month: `Month ${month}`,
+          recovery: recoveryPerMonth,
+          cumulative: cumulativeRecovery
+        });
+      }
+      return acc;
+    }, [] as any[]) :
+    // Fallback to legacy chart data for legacy timeline phases
+    [
+      { month: 'Current', recovery: 0, cumulative: 0 },
+      { month: 'Month 1', recovery: (legacyPhases[0]?.recovery || 0) * 0.5, cumulative: (legacyPhases[0]?.recovery || 0) * 0.5 },
+      { month: 'Month 2', recovery: (legacyPhases[0]?.recovery || 0) * 0.5, cumulative: legacyPhases[0]?.cumulativeRecovery || 0 },
+      { month: 'Month 3', recovery: (legacyPhases[1]?.recovery || 0) * 0.5, cumulative: (legacyPhases[0]?.cumulativeRecovery || 0) + ((legacyPhases[1]?.recovery || 0) * 0.5) },
+      { month: 'Month 4', recovery: (legacyPhases[1]?.recovery || 0) * 0.5, cumulative: legacyPhases[1]?.cumulativeRecovery || 0 },
+      { month: 'Month 5', recovery: (legacyPhases[2]?.recovery || 0) * 0.5, cumulative: (legacyPhases[1]?.cumulativeRecovery || 0) + ((legacyPhases[2]?.recovery || 0) * 0.5) },
+      { month: 'Month 6', recovery: (legacyPhases[2]?.recovery || 0) * 0.5, cumulative: legacyPhases[2]?.cumulativeRecovery || 0 }
+    ];
 
-  const milestones = [
-    {
-      day: "30-day mark",
-      title: "First Improvements Visible", 
-      description: "Lead response metrics show improvement",
-      icon: CheckCircle,
-      progress: 25
-    },
-    {
-      day: "90-day mark",
-      title: "Major Systems Optimized",
-      description: "Conversion rates stabilize at new levels",
-      icon: Target,
-      progress: 65
-    },
-    {
-      day: "180-day mark", 
-      title: "Full Automation Implemented",
-      description: "All manual processes eliminated",
-      icon: TrendingUp,
-      progress: 100
-    }
-  ];
+  const milestones = realisticTimeline ?
+    // Generate milestones from realistic timeline
+    realisticTimeline.map((phase, index) => ({
+      day: `Month ${phase.endMonth}`,
+      title: `${phase.title} Complete`,
+      description: phase.description,
+      icon: index === 0 ? CheckCircle : index === 1 ? Target : TrendingUp,
+      progress: ((index + 1) / realisticTimeline.length) * 100
+    })) :
+    // Fallback milestones
+    [
+      {
+        day: "30-day mark",
+        title: "First Improvements Visible", 
+        description: "Lead response metrics show improvement",
+        icon: CheckCircle,
+        progress: 25
+      },
+      {
+        day: "90-day mark",
+        title: "Major Systems Optimized",
+        description: "Conversion rates stabilize at new levels",
+        icon: Target,
+        progress: 65
+      },
+      {
+        day: "180-day mark", 
+        title: "Full Automation Implemented",
+        description: "All manual processes eliminated",
+        icon: TrendingUp,
+        progress: 100
+      }
+    ];
 
   return (
     <Card className="border-border/50 shadow-lg">
@@ -254,9 +330,12 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
               <div>
                 <CardTitle className="text-2xl">Implementation Timeline & ROI</CardTitle>
                 <p className="text-muted-foreground mt-1">
-                  Month-by-month revenue recovery plan with {Math.round(recoveryPercentage)}% leak recovery potential
-                  {confidenceLevel.level !== 'high' && (
-                    <span className="text-revenue-warning"> • {confidenceLevel.level} confidence estimates</span>
+                  {realisticTimeline ? 
+                    `${realisticTimeline.length}-phase revenue recovery plan with ${Math.round(recoveryPercentage)}% leak recovery potential` :
+                    `Month-by-month revenue recovery plan with ${Math.round(recoveryPercentage)}% leak recovery potential`
+                  }
+                  {unifiedCalcs?.confidence === 'low' && (
+                    <span className="text-revenue-warning"> • Low confidence estimates</span>
                   )}
                 </p>
               </div>
@@ -271,7 +350,7 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
           <CollapsibleContent>
             <CardContent className="space-y-8 pt-6">
               {/* Recovery Summary */}
-              {confidenceLevel.level === 'low' && (
+              {unifiedCalcs?.confidence === 'low' && (
                 <div className="flex items-center gap-2 p-3 bg-revenue-warning/10 border border-revenue-warning/20 rounded-lg mb-4">
                   <AlertTriangle className="h-4 w-4 text-revenue-warning" />
                   <p className="text-sm text-muted-foreground">
@@ -294,9 +373,14 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-revenue-warning mb-1">
-                    {phases[phases.length - 1]?.roiPercentage > 0 ? '+' : ''}{Math.round(phases[phases.length - 1]?.roiPercentage || 0)}%
+                    {unifiedCalcs ? 
+                      `${Math.round(((totalRecovery / Math.max(currentARR * 0.1, 50000)) - 1) * 100)}%` : // ROI calculation
+                      legacyPhases.length > 0 && legacyPhases[legacyPhases.length - 1].roiPercentage !== undefined ?
+                        `${legacyPhases[legacyPhases.length - 1].roiPercentage > 0 ? '+' : ''}${Math.round(legacyPhases[legacyPhases.length - 1].roiPercentage)}%` :
+                        'N/A'
+                    }
                   </div>
-                  <p className="text-sm text-muted-foreground">6-Month ROI</p>
+                  <p className="text-sm text-muted-foreground">{realisticTimeline ? `${realisticTimeline[realisticTimeline.length - 1]?.endMonth}-Month ROI` : '6-Month ROI'}</p>
                 </div>
               </div>
 
@@ -334,76 +418,91 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
               <div>
                 <h3 className="text-lg font-semibold mb-6">Implementation Phases</h3>
                 <div className="space-y-6">
-                  {phases.map((phase, index) => (
-                    <Card key={phase.phase} className="border-border/30">
+                  {(realisticTimeline || legacyPhases).map((phase, index) => {
+                    // Handle both phase types
+                    const isLegacyPhase = 'phase' in phase;
+                    const phaseKey = isLegacyPhase ? phase.phase : phase.id;
+                    const phaseNumber = isLegacyPhase ? phase.phase : (index + 1).toString();
+                    const phaseTitle = phase.title;
+                    const phaseDescription = phase.description;
+                    const phaseRecovery = isLegacyPhase ? phase.recovery : phase.recoveryPotential;
+                    const phaseDifficulty = isLegacyPhase ? phase.difficulty : phase.difficulty;
+                    const phaseMonths = isLegacyPhase ? phase.months : `Month ${phase.startMonth}-${phase.endMonth}`;
+                    const phaseActions = isLegacyPhase ? phase.actions : phase.actions.map(a => a.title);
+                    
+                    return (
+                    <Card key={phaseKey} className="border-border/30">
                       <CardContent className="p-4 sm:p-6">
                         <div className="space-y-4">
                           {/* Header section with phase number and title */}
-                          <div className="flex items-start gap-3 sm:gap-4">
-                            <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 text-primary font-bold text-lg flex-shrink-0">
-                              {phase.phase}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                                <h4 className="text-lg sm:text-xl font-semibold leading-tight">{phase.title}</h4>
-                                <Badge className={getDifficultyColor(phase.difficulty)}>
-                                  {phase.difficulty}
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground mb-1">{phase.months}</p>
-                              <p className="text-sm text-muted-foreground leading-relaxed">{phase.description}</p>
-                            </div>
-                          </div>
-                          
-                          {/* Recovery potential - mobile optimized */}
-                          <div className="bg-primary/5 rounded-lg p-3 border border-primary/10">
-                            <div className="text-center sm:text-left">
-                              <div className="text-xl sm:text-2xl font-bold text-revenue-primary mb-1">
-                                {formatCurrency(phase.recovery)}
-                              </div>
-                              <p className="text-sm text-muted-foreground">Recovery Potential</p>
-                            </div>
-                          </div>
+                           <div className="flex items-start gap-3 sm:gap-4">
+                             <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 text-primary font-bold text-lg flex-shrink-0">
+                               {phaseNumber}
+                             </div>
+                             <div className="flex-1 min-w-0">
+                               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                                 <h4 className="text-lg sm:text-xl font-semibold leading-tight">{phaseTitle}</h4>
+                                 <Badge className={getDifficultyColor(phaseDifficulty)}>
+                                   {phaseDifficulty}
+                                 </Badge>
+                               </div>
+                               <p className="text-sm text-muted-foreground mb-1">{phaseMonths}</p>
+                               <p className="text-sm text-muted-foreground leading-relaxed">{phaseDescription}</p>
+                             </div>
+                           </div>
+                           
+                           {/* Recovery potential - mobile optimized */}
+                           <div className="bg-primary/5 rounded-lg p-3 border border-primary/10">
+                             <div className="text-center sm:text-left">
+                               <div className="text-xl sm:text-2xl font-bold text-revenue-primary mb-1">
+                                 {formatCurrency(phaseRecovery)}
+                               </div>
+                               <p className="text-sm text-muted-foreground">Recovery Potential</p>
+                             </div>
+                           </div>
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                           <div>
-                            <h5 className="font-medium mb-3">Key Actions:</h5>
-                            <ul className="space-y-2">
-                              {phase.actions.map((action, actionIndex) => (
-                                <li key={actionIndex} className="flex items-center gap-2 text-sm">
-                                  <CheckCircle className="h-4 w-4 text-revenue-success" />
-                                  {action}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                          
-                          <div className="space-y-4">
-                            <div>
-                              <div className="flex justify-between text-sm mb-2">
-                                <span>Cumulative Recovery</span>
-                                <span className="font-medium">{formatCurrency(phase.cumulativeRecovery)}</span>
-                              </div>
-                              <Progress 
-                                value={(phase.cumulativeRecovery / totalRecovery) * 100} 
-                                className="h-2"
-                              />
-                            </div>
-                            
-                            <div>
-                              <div className="flex justify-between text-sm mb-1">
-                                <span>ROI by this phase</span>
-                                <span className={`font-medium ${phase.roiPercentage > 0 ? 'text-revenue-success' : 'text-revenue-warning'}`}>
-                                  {phase.roiPercentage > 0 ? '+' : ''}{Math.round(phase.roiPercentage)}%
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                             <h5 className="font-medium mb-3">Key Actions:</h5>
+                             <ul className="space-y-2">
+                               {phaseActions.map((action, actionIndex) => (
+                                 <li key={actionIndex} className="flex items-center gap-2 text-sm">
+                                   <CheckCircle className="h-4 w-4 text-revenue-success" />
+                                   {action}
+                                 </li>
+                               ))}
+                             </ul>
+                           </div>
+                           
+                           {isLegacyPhase && (
+                             <div className="space-y-4">
+                               <div>
+                                 <div className="flex justify-between text-sm mb-2">
+                                   <span>Cumulative Recovery</span>
+                                   <span className="font-medium">{formatCurrency(phase.cumulativeRecovery)}</span>
+                                 </div>
+                                 <Progress 
+                                   value={(phase.cumulativeRecovery / totalRecovery) * 100} 
+                                   className="h-2"
+                                 />
+                               </div>
+                               
+                               <div>
+                                 <div className="flex justify-between text-sm mb-1">
+                                   <span>ROI by this phase</span>
+                                   <span className={`font-medium ${phase.roiPercentage > 0 ? 'text-revenue-success' : 'text-revenue-warning'}`}>
+                                     {phase.roiPercentage > 0 ? '+' : ''}{Math.round(phase.roiPercentage)}%
+                                   </span>
+                                 </div>
+                               </div>
+                             </div>
+                           )}
+                         </div>
+                       </CardContent>
+                     </Card>
+                    );
+                  })}
                 </div>
               </div>
 
