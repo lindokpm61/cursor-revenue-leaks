@@ -804,10 +804,21 @@ const ActionPlan = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Calculator className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading your action plan...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background/80 to-primary/5">
+        <div className="text-center relative">
+          {/* Glassmorphism loading card */}
+          <div className="backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 rounded-2xl p-8 border border-white/20 shadow-2xl">
+            <div className="relative mb-6">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/20 border-t-primary mx-auto"></div>
+              <Sparkles className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-primary animate-pulse" />
+            </div>
+            <p className="text-muted-foreground font-medium">Crafting your personalized action plan...</p>
+            <div className="mt-4 flex items-center justify-center gap-1">
+              <div className="h-1 w-8 bg-primary/30 rounded-full animate-pulse delay-0"></div>
+              <div className="h-1 w-8 bg-primary/50 rounded-full animate-pulse delay-100"></div>
+              <div className="h-1 w-8 bg-primary/70 rounded-full animate-pulse delay-200"></div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -815,18 +826,23 @@ const ActionPlan = () => {
 
   if (!submission) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-md mx-auto text-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background/80 to-destructive/5">
+        <Card className="max-w-md mx-auto text-center backdrop-blur-sm bg-white/90 dark:bg-gray-900/90 border-white/20 shadow-2xl">
           <CardContent className="p-8">
-            <AlertTriangle className="h-12 w-12 text-revenue-warning mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Action Plan Not Found</h2>
+            <div className="relative mb-6">
+              <div className="absolute inset-0 bg-destructive/10 rounded-full blur-xl"></div>
+              <AlertTriangle className="relative h-16 w-16 text-destructive mx-auto animate-pulse" />
+            </div>
+            <h2 className="text-xl font-bold mb-2">Action Plan Not Found</h2>
             <p className="text-muted-foreground mb-6">
-              The requested action plan could not be found or you don't have access to it.
+              The action plan you're looking for doesn't exist or you don't have permission to view it.
             </p>
             <Link to="/dashboard">
-              <Button>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
+              <Button 
+                className="transition-all duration-200 hover:scale-105 hover:shadow-lg"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Return to Dashboard
               </Button>
             </Link>
           </CardContent>
@@ -857,27 +873,38 @@ const ActionPlan = () => {
   const progressMessage = getProgressMessage(checkedActions.length, priorityActions.length);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="border-b border-border/50">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
+      {/* Enhanced Navigation with glassmorphism */}
+      <nav className="sticky top-0 z-40 border-b border-white/20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-900/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-4">
               <Link to={`/results/${submission.id}`}>
-                <Button variant="ghost" size="sm">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="transition-all duration-200 hover:scale-105 hover:bg-primary/10"
+                >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Results
                 </Button>
               </Link>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-revenue-primary">
+                <div className="relative p-2 rounded-lg bg-gradient-to-r from-primary to-primary/70 shadow-lg">
                   <Target className="h-6 w-6 text-primary-foreground" />
+                  <div className="absolute -top-1 -right-1 h-3 w-3 bg-yellow-400 rounded-full animate-pulse"></div>
                 </div>
-                <span className="text-xl font-bold">Action Plan</span>
+                <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  Action Plan
+                </span>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="backdrop-blur-sm bg-white/40 border-white/30 hover:bg-white/60 transition-all duration-200 hover:scale-105"
+              >
                 <Download className="h-4 w-4 mr-2" />
                 Download PDF
               </Button>
@@ -887,16 +914,31 @@ const ActionPlan = () => {
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
-        <div className="bg-gradient-to-br from-primary/5 via-revenue-primary/5 to-revenue-success/5 rounded-2xl p-8 mb-12 border border-primary/20">
-          <div className="mb-6">
-            <h1 className="text-4xl font-bold mb-2">{submission.company_name} Action Plan</h1>
-            <p className="text-xl text-muted-foreground">
-              Personalized recovery roadmap • Generated {new Date().toLocaleDateString()}
-            </p>
+        {/* Enhanced Hero Section with animations */}
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+          <div className="relative backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 rounded-2xl p-8 mb-12 border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-300">
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="relative">
+                  <Trophy className="h-10 w-10 text-primary animate-pulse" />
+                  <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-yellow-500 animate-bounce" />
+                </div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
+                  {submission.company_name} Action Plan
+                </h1>
+              </div>
+              <div className="flex items-center gap-2">
+                <Rocket className="h-5 w-5 text-primary" />
+                <p className="text-xl text-muted-foreground">
+                  Personalized recovery roadmap • Generated {new Date().toLocaleDateString()}
+                </p>
+              </div>
+            </div>
           </div>
+        </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <Card className="border-revenue-danger/20 bg-revenue-danger/5">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-2">
