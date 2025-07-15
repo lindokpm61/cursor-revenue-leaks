@@ -33,6 +33,7 @@ import {
   validateRecoveryAssumptions,
   INDUSTRY_BENCHMARKS
 } from "@/lib/calculator/enhancedCalculations";
+import { calculateUnifiedResults, generateRealisticTimeline, UnifiedCalculationInputs } from "@/lib/calculator/unifiedCalculations";
 import { 
   validateCalculationResults,
   getCalculationConfidenceLevel
@@ -640,7 +641,41 @@ const ActionPlan = () => {
   };
 
   const getEnhancedCalculations = (submission: Submission) => {
-    // Enhanced calculations with validation
+    // Use unified calculations first
+    const inputs: UnifiedCalculationInputs = {
+      currentARR: submission.current_arr || 0,
+      monthlyMRR: submission.monthly_mrr || 0,
+      monthlyLeads: submission.monthly_leads || 0,
+      averageDealValue: submission.average_deal_value || 0,
+      leadResponseTime: submission.lead_response_time || 0,
+      monthlyFreeSignups: submission.monthly_free_signups || 0,
+      freeToLaidConversion: submission.free_to_paid_conversion || 0,
+      failedPaymentRate: submission.failed_payment_rate || 0,
+      manualHours: submission.manual_hours || 0,
+      hourlyRate: submission.hourly_rate || 0,
+      industry: submission.industry
+    };
+
+    const unifiedResults = calculateUnifiedResults(inputs);
+    
+    // If we have good data quality, use unified results
+    if (unifiedResults.confidence !== 'low') {
+      return {
+        leadResponseLoss: unifiedResults.leadResponseLoss,
+        failedPaymentLoss: unifiedResults.failedPaymentLoss,
+        selfServeGap: unifiedResults.selfServeGapLoss,
+        processLoss: unifiedResults.processInefficiencyLoss,
+        total_leak: unifiedResults.totalLeak,
+        recovery_potential_70: unifiedResults.conservativeRecovery,
+        confidence: {
+          level: unifiedResults.confidence,
+          score: unifiedResults.confidence === 'high' ? 85 : unifiedResults.confidence === 'medium' ? 65 : 45,
+          factors: unifiedResults.bounds.warningFlags
+        }
+      };
+    }
+
+    // Fallback to legacy calculations for low confidence data
     const leadResponseLoss = submission.monthly_leads && submission.average_deal_value && submission.lead_response_time
       ? calculateLeadResponseImpact(submission.lead_response_time, submission.average_deal_value) * submission.monthly_leads * 12
       : submission.lead_response_loss || 0;
@@ -659,7 +694,7 @@ const ActionPlan = () => {
 
     const total_leak = leadResponseLoss + failedPaymentLoss + selfServeGap + processLoss;
     
-    // Apply validation bounds
+    // Apply validation bounds with legacy system
     const validation = validateCalculationResults({
       leadResponseLoss,
       failedPaymentLoss,
@@ -699,10 +734,44 @@ const ActionPlan = () => {
 
   const getPriorityActions = (submission: Submission) => {
     const calculations = getEnhancedCalculations(submission);
+    
+    // Try to get realistic timeline first
+    const inputs: UnifiedCalculationInputs = {
+      currentARR: submission.current_arr || 0,
+      monthlyMRR: submission.monthly_mrr || 0,
+      monthlyLeads: submission.monthly_leads || 0,
+      averageDealValue: submission.average_deal_value || 0,
+      leadResponseTime: submission.lead_response_time || 0,
+      monthlyFreeSignups: submission.monthly_free_signups || 0,
+      freeToLaidConversion: submission.free_to_paid_conversion || 0,
+      failedPaymentRate: submission.failed_payment_rate || 0,
+      manualHours: submission.manual_hours || 0,
+      hourlyRate: submission.hourly_rate || 0,
+      industry: submission.industry
+    };
+
+    const unifiedResults = calculateUnifiedResults(inputs);
+    const realisticTimeline = generateRealisticTimeline(unifiedResults, inputs);
+    
+    // If we have realistic timeline, use it
+    if (realisticTimeline && realisticTimeline.length > 0) {
+      return realisticTimeline.map((phase, index) => ({
+        id: phase.id,
+        title: phase.title,
+        impact: phase.recoveryPotential,
+        timeframe: `${phase.endMonth - phase.startMonth + 1} months (${phase.startMonth}-${phase.endMonth})`,
+        difficulty: phase.difficulty.charAt(0).toUpperCase() + phase.difficulty.slice(1),
+        description: phase.description,
+        confidence: unifiedResults.confidence,
+        actions: phase.actions
+      }));
+    }
+    
+    // Fallback to legacy action generation
     const actions = [];
     
-    if (calculations.leadResponseLoss > 0) {
-      const impact = Math.min(calculations.leadResponseLoss, calculations.total_leak * 0.4);
+    if (calculations.leadResponseLoss > (submission.current_arr || 0) * 0.01) {
+      const impact = Math.min(calculations.leadResponseLoss, calculations.total_leak * 0.3);
       actions.push({
         id: 'lead-response',
         title: 'Optimize Lead Response Time',
@@ -710,12 +779,12 @@ const ActionPlan = () => {
         timeframe: calculations.confidence.level === 'high' ? '2-4 weeks' : '4-6 weeks',
         difficulty: 'Medium',
         description: 'Implement automated lead routing and response systems',
-        confidence: calculations.confidence
+        confidence: calculations.confidence.level
       });
     }
     
-    if (calculations.failedPaymentLoss > 0) {
-      const impact = Math.min(calculations.failedPaymentLoss, calculations.total_leak * 0.3);
+    if (calculations.failedPaymentLoss > (submission.current_arr || 0) * 0.005) {
+      const impact = Math.min(calculations.failedPaymentLoss, calculations.total_leak * 0.1);
       actions.push({
         id: 'payment-recovery',
         title: 'Deploy Payment Recovery System',
@@ -723,12 +792,12 @@ const ActionPlan = () => {
         timeframe: '1-2 weeks',
         difficulty: 'Easy',
         description: 'Implement automated dunning management and payment retry logic',
-        confidence: calculations.confidence
+        confidence: calculations.confidence.level
       });
     }
     
-    if (calculations.selfServeGap > 0) {
-      const impact = Math.min(calculations.selfServeGap, calculations.total_leak * 0.5);
+    if (calculations.selfServeGap > (submission.current_arr || 0) * 0.02) {
+      const impact = Math.min(calculations.selfServeGap, calculations.total_leak * 0.3);
       actions.push({
         id: 'self-serve',
         title: 'Optimize Self-Serve Conversion',
@@ -736,12 +805,12 @@ const ActionPlan = () => {
         timeframe: calculations.confidence.level === 'high' ? '4-6 weeks' : '6-8 weeks',
         difficulty: calculations.confidence.level === 'low' ? 'Very Hard' : 'Hard',
         description: 'Enhance onboarding flow and reduce conversion friction',
-        confidence: calculations.confidence
+        confidence: calculations.confidence.level
       });
     }
     
-    if (calculations.processLoss > 0) {
-      const impact = Math.min(calculations.processLoss, calculations.total_leak * 0.3);
+    if (calculations.processLoss > (submission.current_arr || 0) * 0.01) {
+      const impact = Math.min(calculations.processLoss, calculations.total_leak * 0.15);
       actions.push({
         id: 'automation',
         title: 'Automate Manual Processes',
@@ -749,7 +818,7 @@ const ActionPlan = () => {
         timeframe: '6-8 weeks',
         difficulty: 'Hard',
         description: 'Replace manual workflows with automated systems',
-        confidence: calculations.confidence
+        confidence: calculations.confidence.level
       });
     }
 
@@ -919,82 +988,202 @@ const ActionPlan = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-8">
-            {/* Quick Wins vs Long-term */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-revenue-warning" />
-                    Quick Wins (0-30 days)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-revenue-success/10 border border-revenue-success/20">
-                      <CheckCircle className="h-4 w-4 text-revenue-success" />
-                      <span className="text-sm">Set up automated lead response alerts</span>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-revenue-success/10 border border-revenue-success/20">
-                      <CheckCircle className="h-4 w-4 text-revenue-success" />
-                      <span className="text-sm">Implement basic payment retry logic</span>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-revenue-success/10 border border-revenue-success/20">
-                      <CheckCircle className="h-4 w-4 text-revenue-success" />
-                      <span className="text-sm">Audit current manual processes</span>
-                    </div>
-                  </div>
-                  <div className="pt-4 border-t">
-                    <p className="text-sm text-muted-foreground">
-                      Expected recovery: <span className="font-semibold text-revenue-success">
-                        {formatCurrency(calculations.recovery_potential_70 * 0.3)}
-                      </span>
-                    </p>
-                    {calculations.confidence.level === 'low' && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        ⚠️ Based on limited data - actual results may vary
+            {/* Dynamic Action Plan based on unified calculations */}
+            {(() => {
+              const inputs: UnifiedCalculationInputs = {
+                currentARR: submission.current_arr || 0,
+                monthlyMRR: submission.monthly_mrr || 0,
+                monthlyLeads: submission.monthly_leads || 0,
+                averageDealValue: submission.average_deal_value || 0,
+                leadResponseTime: submission.lead_response_time || 0,
+                monthlyFreeSignups: submission.monthly_free_signups || 0,
+                freeToLaidConversion: submission.free_to_paid_conversion || 0,
+                failedPaymentRate: submission.failed_payment_rate || 0,
+                manualHours: submission.manual_hours || 0,
+                hourlyRate: submission.hourly_rate || 0,
+                industry: submission.industry
+              };
+              
+              const unifiedResults = calculateUnifiedResults(inputs);
+              const realisticTimeline = generateRealisticTimeline(unifiedResults, inputs);
+              
+              // Show confidence warning if calculations are uncertain
+              const showConfidenceWarning = unifiedResults.confidence === 'low' || unifiedResults.bounds.warningFlags.length > 0;
+              
+              return (
+                <div className="space-y-8">
+                  {/* Confidence Warning */}
+                  {showConfidenceWarning && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                        <h4 className="font-semibold text-yellow-800">Data Quality Advisory</h4>
+                      </div>
+                      <p className="text-sm text-yellow-700 mb-2">
+                        {unifiedResults.confidence === 'low' 
+                          ? 'Calculations based on limited data. These estimates should be used as directional guidance.'
+                          : 'Some calculations have been adjusted for realistic bounds.'
+                        }
                       </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                      {unifiedResults.bounds.warningFlags.length > 0 && (
+                        <ul className="text-xs text-yellow-600 space-y-1">
+                          {unifiedResults.bounds.warningFlags.map((flag, index) => (
+                            <li key={index}>• {flag}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  )}
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-primary" />
-                    Strategic Initiatives (3-6 months)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
-                      <Target className="h-4 w-4 text-primary" />
-                      <span className="text-sm">Advanced lead scoring and qualification</span>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
-                      <Target className="h-4 w-4 text-primary" />
-                      <span className="text-sm">Predictive churn prevention system</span>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
-                      <Target className="h-4 w-4 text-primary" />
-                      <span className="text-sm">Complete process automation suite</span>
-                    </div>
-                  </div>
-                  <div className="pt-4 border-t">
-                    <p className="text-sm text-muted-foreground">
-                      Expected recovery: <span className="font-semibold text-primary">
-                        {formatCurrency(calculations.recovery_potential_70 * 0.7)}
-                      </span>
-                    </p>
-                    {calculations.confidence.level !== 'high' && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        📊 Strategic investments - validation recommended
-                      </p>
+                  {/* Priority Focus */}
+                  <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Target className="h-6 w-6 text-primary" />
+                        <h3 className="text-xl font-bold text-primary">Strategic Priority Focus</h3>
+                      </div>
+                      {(() => {
+                        const { actionRecoveryPotential } = unifiedResults;
+                        const priorities = [
+                          { name: "Lead Response Optimization", value: actionRecoveryPotential.leadResponse, id: "lead-response" },
+                          { name: "Self-Serve Optimization", value: actionRecoveryPotential.selfServeOptimization, id: "self-serve" },
+                          { name: "Payment Recovery", value: actionRecoveryPotential.paymentRecovery, id: "payment" },
+                          { name: "Process Automation", value: actionRecoveryPotential.processAutomation, id: "automation" }
+                        ];
+                        
+                        const topPriority = priorities.sort((a, b) => b.value - a.value)[0];
+                        
+                        return (
+                          <div>
+                            <p className="text-lg font-medium text-foreground mb-2">
+                              🎯 {topPriority.name}
+                            </p>
+                            <p className="text-sm text-muted-foreground mb-3">
+                              Recovery potential: {formatCurrency(topPriority.value)} • Represents your largest opportunity
+                            </p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                              {priorities.map((priority) => (
+                                <div key={priority.id} className={`p-3 rounded-lg border ${priority.id === topPriority.id ? 'bg-primary/10 border-primary/30' : 'bg-background border-border'}`}>
+                                  <div className="font-medium">{formatCurrency(priority.value)}</div>
+                                  <div className="text-xs text-muted-foreground">{priority.name}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </CardContent>
+                  </Card>
+
+                  {/* Enhanced Timeline */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {realisticTimeline && realisticTimeline.length > 0 ? (
+                      realisticTimeline.slice(0, 2).map((phase, index) => (
+                        <Card key={phase.id} className={index === 0 ? "border-green-200 bg-green-50" : "border-blue-200 bg-blue-50"}>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              {index === 0 ? <Zap className="h-5 w-5 text-green-600" /> : <TrendingUp className="h-5 w-5 text-blue-600" />}
+                              {phase.title}
+                            </CardTitle>
+                            <p className="text-sm text-muted-foreground">
+                              Months {phase.startMonth}-{phase.endMonth} • {phase.difficulty} complexity
+                            </p>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <p className="text-sm text-muted-foreground">{phase.description}</p>
+                            
+                            <div className="space-y-2">
+                              <h5 className="font-medium text-sm">Key Actions:</h5>
+                              {phase.actions.slice(0, 3).map((action, actionIndex) => (
+                                <div key={actionIndex} className="flex items-center gap-2 text-sm p-2 rounded bg-background/50">
+                                  <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
+                                  <span>{action.title} ({action.weeks}w)</span>
+                                </div>
+                              ))}
+                            </div>
+                            
+                            <div className="pt-3 border-t">
+                              <p className="text-sm text-muted-foreground">
+                                Expected recovery: <span className={`font-semibold ${index === 0 ? 'text-green-600' : 'text-blue-600'}`}>
+                                  {formatCurrency(phase.recoveryPotential)}
+                                </span>
+                              </p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      // Fallback to generic timeline
+                      <>
+                        <Card className="border-green-200 bg-green-50">
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <Zap className="h-5 w-5 text-green-600" />
+                              Quick Wins (0-60 days)
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-3 p-3 rounded-lg bg-white/80 border border-green-200">
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                                <span className="text-sm">Implement automated lead response</span>
+                              </div>
+                              <div className="flex items-center gap-3 p-3 rounded-lg bg-white/80 border border-green-200">
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                                <span className="text-sm">Set up payment recovery workflows</span>
+                              </div>
+                              <div className="flex items-center gap-3 p-3 rounded-lg bg-white/80 border border-green-200">
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                                <span className="text-sm">Optimize onboarding flow</span>
+                              </div>
+                            </div>
+                            <div className="pt-4 border-t">
+                              <p className="text-sm text-muted-foreground">
+                                Expected recovery: <span className="font-semibold text-green-600">
+                                  {formatCurrency(unifiedResults.conservativeRecovery * 0.4)}
+                                </span>
+                              </p>
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="border-blue-200 bg-blue-50">
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <TrendingUp className="h-5 w-5 text-blue-600" />
+                              Strategic Initiatives (3-8 months)
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-3 p-3 rounded-lg bg-white/80 border border-blue-200">
+                                <Target className="h-4 w-4 text-blue-500" />
+                                <span className="text-sm">Advanced lead scoring and qualification</span>
+                              </div>
+                              <div className="flex items-center gap-3 p-3 rounded-lg bg-white/80 border border-blue-200">
+                                <Target className="h-4 w-4 text-blue-500" />
+                                <span className="text-sm">Predictive churn prevention</span>
+                              </div>
+                              <div className="flex items-center gap-3 p-3 rounded-lg bg-white/80 border border-blue-200">
+                                <Target className="h-4 w-4 text-blue-500" />
+                                <span className="text-sm">Complete process automation suite</span>
+                              </div>
+                            </div>
+                            <div className="pt-4 border-t">
+                              <p className="text-sm text-muted-foreground">
+                                Expected recovery: <span className="font-semibold text-blue-600">
+                                  {formatCurrency(unifiedResults.conservativeRecovery * 0.6)}
+                                </span>
+                              </p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </>
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              );
+            })()}
           </TabsContent>
 
           <TabsContent value="timeline" className="space-y-8">
