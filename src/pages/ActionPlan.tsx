@@ -102,7 +102,7 @@ const ActionPlan = () => {
     
     // Track initial page view
     trackEngagementEvent('action_plan_viewed', {
-      recovery_potential: submission.total_leak,
+      recovery_potential: submission.recovery_potential_70 || submission.total_leak,
       user_type: user.user_metadata?.role || 'standard'
     });
     
@@ -307,7 +307,7 @@ const ActionPlan = () => {
       cta_priority: priority,
       engagement_score: engagementScore,
       actions_checked: checkedActions.length,
-      recovery_potential: submission?.total_leak,
+      recovery_potential: submission?.recovery_potential_70 || submission?.total_leak,
       engagement_level: getEngagementLevel()
     });
   };
@@ -698,184 +698,88 @@ const ActionPlan = () => {
   };
 
   const getEnhancedCalculations = (submission: Submission) => {
-    // Use unified calculations first
-    const inputs: UnifiedCalculationInputs = {
-      currentARR: submission.current_arr || 0,
-      monthlyMRR: submission.monthly_mrr || 0,
-      monthlyLeads: submission.monthly_leads || 0,
-      averageDealValue: submission.average_deal_value || 0,
-      leadResponseTime: submission.lead_response_time || 0,
-      monthlyFreeSignups: submission.monthly_free_signups || 0,
-      freeToLaidConversion: submission.free_to_paid_conversion || 0,
-      failedPaymentRate: submission.failed_payment_rate || 0,
-      manualHours: submission.manual_hours || 0,
-      hourlyRate: submission.hourly_rate || 0,
-      industry: submission.industry
-    };
-
-    const unifiedResults = calculateUnifiedResults(inputs);
-    
-    // If we have good data quality, use unified results
-    if (unifiedResults.confidence !== 'low') {
-      return {
-        leadResponseLoss: unifiedResults.leadResponseLoss,
-        failedPaymentLoss: unifiedResults.failedPaymentLoss,
-        selfServeGap: unifiedResults.selfServeGapLoss,
-        processLoss: unifiedResults.processInefficiencyLoss,
-        total_leak: unifiedResults.totalLeak,
-        recovery_potential_70: unifiedResults.conservativeRecovery,
-        confidence: {
-          level: unifiedResults.confidence,
-          score: unifiedResults.confidence === 'high' ? 85 : unifiedResults.confidence === 'medium' ? 65 : 45,
-          factors: unifiedResults.bounds.warningFlags
-        }
-      };
-    }
-
-    // Fallback to legacy calculations for low confidence data
-    const leadResponseLoss = submission.monthly_leads && submission.average_deal_value && submission.lead_response_time
-      ? calculateLeadResponseImpact(submission.lead_response_time, submission.average_deal_value) * submission.monthly_leads * 12
-      : submission.lead_response_loss || 0;
-
-    const failedPaymentLoss = submission.monthly_mrr && submission.failed_payment_rate
-      ? calculateFailedPaymentLoss(submission.monthly_mrr, submission.failed_payment_rate)
-      : submission.failed_payment_loss || 0;
-
-    const selfServeGap = submission.monthly_free_signups && submission.free_to_paid_conversion && submission.monthly_mrr
-      ? calculateSelfServeGap(submission.monthly_free_signups, submission.free_to_paid_conversion, submission.monthly_mrr, submission.industry || 'other')
-      : submission.selfserve_gap_loss || 0;
-
-    const processLoss = submission.manual_hours && submission.hourly_rate
-      ? calculateProcessInefficiency(submission.manual_hours, submission.hourly_rate)
-      : submission.process_inefficiency_loss || 0;
-
-    const total_leak = leadResponseLoss + failedPaymentLoss + selfServeGap + processLoss;
-    
-    // Apply validation bounds with legacy system
-    const validation = validateCalculationResults({
-      leadResponseLoss,
-      failedPaymentLoss,
-      selfServeGap,
-      processLoss,
-      currentARR: submission.current_arr || 0,
-      recoveryPotential70: total_leak * 0.7,
-      recoveryPotential85: total_leak * 0.85
-    });
-
+    // Use stored submission values directly to ensure consistency with Results page
     return {
-      leadResponseLoss: validation.leadResponse.isValid ? leadResponseLoss : validation.leadResponse.adjustedValue || 0,
-      failedPaymentLoss: failedPaymentLoss,
-      selfServeGap: validation.selfServe.isValid ? selfServeGap : validation.selfServe.adjustedValue || 0,
-      processLoss: processLoss,
-      total_leak: validation.overall.isValid ? total_leak : validation.overall.adjustedValue || total_leak * 0.5,
-      recovery_potential_70: validation.recovery.isValid ? total_leak * 0.7 : validation.recovery.adjustedValue || total_leak * 0.3,
-      confidence: getCalculationConfidenceLevel({
-        currentARR: submission.current_arr || 0,
-        monthlyLeads: submission.monthly_leads || 0,
-        monthlyFreeSignups: submission.monthly_free_signups || 0,
-        totalLeak: total_leak
-      })
+      leadResponseLoss: submission.lead_response_loss || 0,
+      failedPaymentLoss: submission.failed_payment_loss || 0,
+      selfServeGap: submission.selfserve_gap_loss || 0,
+      processLoss: submission.process_inefficiency_loss || 0,
+      total_leak: submission.total_leak || 0,
+      recovery_potential_70: submission.recovery_potential_70 || 0,
+      confidence: {
+        level: submission.lead_score ? (submission.lead_score > 70 ? 'high' : submission.lead_score > 40 ? 'medium' : 'low') : 'medium',
+        factors: []
+      }
     };
   };
 
   const calculateROI = (submission: Submission) => {
-    // Get enhanced calculations with validation
-    const calculations = getEnhancedCalculations(submission);
-    const validatedRecovery = Math.min(calculations.recovery_potential_70, calculations.total_leak * 0.8);
+    // Use stored recovery potential directly
+    const recoveryPotential = submission.recovery_potential_70 || 0;
+    const currentARR = submission.current_arr || 0;
     
-    // Base implementation cost on company size and complexity
-    const baseInvestment = submission.current_arr ? Math.max(25000, Math.min(150000, (submission.current_arr / 100))) : 50000;
+    // Calculate realistic ROI as percentage improvement over current ARR
+    if (currentARR > 0 && recoveryPotential > 0) {
+      return Math.round((recoveryPotential / currentARR) * 100);
+    }
     
-    return Math.round((validatedRecovery / baseInvestment) * 100);
+    return 0;
   };
 
   const getPriorityActions = (submission: Submission) => {
-    const calculations = getEnhancedCalculations(submission);
-    
-    // Try to get realistic timeline first
-    const inputs: UnifiedCalculationInputs = {
-      currentARR: submission.current_arr || 0,
-      monthlyMRR: submission.monthly_mrr || 0,
-      monthlyLeads: submission.monthly_leads || 0,
-      averageDealValue: submission.average_deal_value || 0,
-      leadResponseTime: submission.lead_response_time || 0,
-      monthlyFreeSignups: submission.monthly_free_signups || 0,
-      freeToLaidConversion: submission.free_to_paid_conversion || 0,
-      failedPaymentRate: submission.failed_payment_rate || 0,
-      manualHours: submission.manual_hours || 0,
-      hourlyRate: submission.hourly_rate || 0,
-      industry: submission.industry
-    };
-
-    const unifiedResults = calculateUnifiedResults(inputs);
-    const realisticTimeline = generateRealisticTimeline(unifiedResults, inputs);
-    
-    // If we have realistic timeline, use it
-    if (realisticTimeline && realisticTimeline.length > 0) {
-      return realisticTimeline.map((phase, index) => ({
-        id: phase.id,
-        title: phase.title,
-        impact: phase.recoveryPotential,
-        timeframe: `${phase.endMonth - phase.startMonth + 1} months (${phase.startMonth}-${phase.endMonth})`,
-        difficulty: phase.difficulty.charAt(0).toUpperCase() + phase.difficulty.slice(1),
-        description: phase.description,
-        confidence: unifiedResults.confidence,
-        actions: phase.actions
-      }));
-    }
-    
-    // Fallback to legacy action generation
+    // Use stored submission values for priority actions
     const actions = [];
+    const currentARR = submission.current_arr || 0;
     
-    if (calculations.leadResponseLoss > (submission.current_arr || 0) * 0.01) {
-      const impact = Math.min(calculations.leadResponseLoss, calculations.total_leak * 0.3);
+    // Lead Response Optimization
+    if ((submission.lead_response_loss || 0) > currentARR * 0.01) {
       actions.push({
         id: 'lead-response',
         title: 'Optimize Lead Response Time',
-        impact: impact,
-        timeframe: calculations.confidence.level === 'high' ? '2-4 weeks' : '4-6 weeks',
+        impact: submission.lead_response_loss || 0,
+        timeframe: '2-4 weeks',
         difficulty: 'Medium',
         description: 'Implement automated lead routing and response systems',
-        confidence: calculations.confidence.level
+        confidence: 'high'
       });
     }
     
-    if (calculations.failedPaymentLoss > (submission.current_arr || 0) * 0.005) {
-      const impact = Math.min(calculations.failedPaymentLoss, calculations.total_leak * 0.1);
-      actions.push({
-        id: 'payment-recovery',
-        title: 'Deploy Payment Recovery System',
-        impact: impact,
-        timeframe: '1-2 weeks',
-        difficulty: 'Easy',
-        description: 'Implement automated dunning management and payment retry logic',
-        confidence: calculations.confidence.level
-      });
-    }
-    
-    if (calculations.selfServeGap > (submission.current_arr || 0) * 0.02) {
-      const impact = Math.min(calculations.selfServeGap, calculations.total_leak * 0.3);
+    // Self-Serve Optimization
+    if ((submission.selfserve_gap_loss || 0) > currentARR * 0.01) {
       actions.push({
         id: 'self-serve',
         title: 'Optimize Self-Serve Conversion',
-        impact: impact,
-        timeframe: calculations.confidence.level === 'high' ? '4-6 weeks' : '6-8 weeks',
-        difficulty: calculations.confidence.level === 'low' ? 'Very Hard' : 'Hard',
+        impact: submission.selfserve_gap_loss || 0,
+        timeframe: '4-6 weeks',
+        difficulty: 'Hard',
         description: 'Enhance onboarding flow and reduce conversion friction',
-        confidence: calculations.confidence.level
+        confidence: 'high'
       });
     }
     
-    if (calculations.processLoss > (submission.current_arr || 0) * 0.01) {
-      const impact = Math.min(calculations.processLoss, calculations.total_leak * 0.15);
+    // Payment Recovery
+    if ((submission.failed_payment_loss || 0) > currentARR * 0.005) {
+      actions.push({
+        id: 'payment-recovery',
+        title: 'Deploy Payment Recovery System',
+        impact: submission.failed_payment_loss || 0,
+        timeframe: '1-2 weeks',
+        difficulty: 'Easy',
+        description: 'Implement automated dunning management and payment retry logic',
+        confidence: 'high'
+      });
+    }
+    
+    // Process Automation
+    if ((submission.process_inefficiency_loss || 0) > currentARR * 0.005) {
       actions.push({
         id: 'automation',
         title: 'Automate Manual Processes',
-        impact: impact,
+        impact: submission.process_inefficiency_loss || 0,
         timeframe: '6-8 weeks',
         difficulty: 'Hard',
         description: 'Replace manual workflows with automated systems',
-        confidence: calculations.confidence.level
+        confidence: 'medium'
       });
     }
 
@@ -1100,12 +1004,12 @@ const ActionPlan = () => {
                         <h3 className="text-xl font-bold text-primary">Strategic Priority Focus</h3>
                       </div>
                       {(() => {
-                        const { actionRecoveryPotential } = unifiedResults;
+                         // Use stored submission values for priorities
                         const priorities = [
-                          { name: "Lead Response Optimization", value: actionRecoveryPotential.leadResponse, id: "lead-response" },
-                          { name: "Self-Serve Optimization", value: actionRecoveryPotential.selfServeOptimization, id: "self-serve" },
-                          { name: "Payment Recovery", value: actionRecoveryPotential.paymentRecovery, id: "payment" },
-                          { name: "Process Automation", value: actionRecoveryPotential.processAutomation, id: "automation" }
+                          { name: "Lead Response Optimization", value: submission.lead_response_loss || 0, id: "lead-response" },
+                          { name: "Self-Serve Optimization", value: submission.selfserve_gap_loss || 0, id: "self-serve" },
+                          { name: "Payment Recovery", value: submission.failed_payment_loss || 0, id: "payment" },
+                          { name: "Process Automation", value: submission.process_inefficiency_loss || 0, id: "automation" }
                         ];
                         
                         const topPriority = priorities.sort((a, b) => b.value - a.value)[0];
@@ -1197,7 +1101,7 @@ const ActionPlan = () => {
                             <div className="pt-4 border-t">
                               <p className="text-sm text-muted-foreground">
                                 Expected recovery: <span className="font-semibold text-green-600">
-                                  {formatCurrency(unifiedResults.conservativeRecovery * 0.4)}
+                                  {formatCurrency((submission.recovery_potential_70 || 0) * 0.4)}
                                 </span>
                               </p>
                             </div>
@@ -1229,7 +1133,7 @@ const ActionPlan = () => {
                             <div className="pt-4 border-t">
                               <p className="text-sm text-muted-foreground">
                                 Expected recovery: <span className="font-semibold text-blue-600">
-                                  {formatCurrency(unifiedResults.conservativeRecovery * 0.6)}
+                                  {formatCurrency((submission.recovery_potential_70 || 0) * 0.6)}
                                 </span>
                               </p>
                             </div>
