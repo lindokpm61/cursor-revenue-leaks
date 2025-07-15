@@ -38,6 +38,8 @@ import {
   validateCalculationResults,
   getCalculationConfidenceLevel
 } from "@/lib/calculator/validationHelpers";
+import { ImplementationTimeline } from "@/components/calculator/results/ImplementationTimeline";
+import { PriorityActions } from "@/components/calculator/results/PriorityActions";
 
 const ActionPlan = () => {
   const { id } = useParams<{ id: string }>();
@@ -161,7 +163,7 @@ const ActionPlan = () => {
       }
 
       setSubmission(data);
-      
+      console.log('Action Plan - Loaded submission:', data);
       // Load saved action progress
       await loadActionProgress(data.id);
       
@@ -1242,146 +1244,24 @@ const ActionPlan = () => {
           </TabsContent>
 
           <TabsContent value="timeline" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {[
-                { phase: "Phase 1", duration: "Weeks 1-8", focus: "Foundation & Quick Wins", color: "revenue-warning" },
-                { phase: "Phase 2", duration: "Weeks 9-16", focus: "System Integration", color: "primary" },
-                { phase: "Phase 3", duration: "Weeks 17-24", focus: "Optimization & Scale", color: "revenue-success" }
-              ].map((phase, index) => (
-                <Card key={phase.phase} className={`border-${phase.color}/20 bg-${phase.color}/5`}>
-                  <CardHeader>
-                    <div className="flex items-center gap-3">
-                      <div className={`bg-${phase.color}/10 rounded-full p-3`}>
-                        <span className="text-2xl">⭐</span>
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg">{phase.phase}</CardTitle>
-                        <p className="text-sm text-muted-foreground">{phase.duration}</p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <h4 className="font-semibold mb-3">{phase.focus}</h4>
-                    <div className="space-y-2">
-                      {priorityActions.slice(index, index + 2).map(action => (
-                        <div key={action.id} className="text-sm p-2 rounded bg-background/50">
-                          {action.title}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-4 pt-4 border-t">
-                      <p className="text-sm text-muted-foreground">
-                        Expected Recovery: <span className={`font-semibold text-${phase.color}`}>
-                          {formatCurrency(calculations.recovery_potential_70 / 3)}
-                        </span>
-                      </p>
-                      {index === 0 && calculations.confidence.level === 'low' && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          ⚠️ Validate assumptions before major investments
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <ImplementationTimeline 
+              submission={submission}
+              formatCurrency={formatCurrency}
+              validatedValues={{
+                totalLeak: calculations.total_leak,
+                leadResponseLoss: calculations.leadResponseLoss,
+                selfServeLoss: calculations.selfServeGap,
+                recoveryPotential70: calculations.recovery_potential_70,
+                recoveryPotential85: calculations.recovery_potential_70
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="actions" className="space-y-8">
-            <div className="space-y-6">
-              {priorityActions.map((action, index) => {
-                const isChecked = checkedActions.includes(action.id);
-                return (
-                  <Card 
-                    key={action.id} 
-                    className={`overflow-hidden transition-all duration-200 ${
-                      isChecked 
-                        ? 'bg-primary/5 border-primary/20 border-l-4 border-l-primary' 
-                        : 'hover:shadow-md'
-                    }`}
-                  >
-                    <CardHeader className="pb-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-4">
-                          <div className="flex items-center gap-3 pt-1">
-                            <Checkbox
-                              id={`action-${action.id}`}
-                              checked={isChecked}
-                              onCheckedChange={(checked) => handleActionToggle(action.id, checked as boolean)}
-                              className="w-5 h-5"
-                            />
-                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                              <span className="text-xl font-bold text-primary">#{index + 1}</span>
-                            </div>
-                          </div>
-                          <label 
-                            htmlFor={`action-${action.id}`} 
-                            className={`cursor-pointer flex-1 ${isChecked ? 'opacity-75' : ''}`}
-                          >
-                            <CardTitle className="text-xl mb-2">{action.title}</CardTitle>
-                            <p className="text-muted-foreground">{action.description}</p>
-                          </label>
-                        </div>
-                        <div className="text-right">
-                          <p className={`text-2xl font-bold ${isChecked ? 'text-primary' : 'text-revenue-success'}`}>
-                            {formatCurrency(action.impact || 0)}
-                          </p>
-                          <p className="text-sm text-muted-foreground">Recovery Potential</p>
-                        </div>
-                      </div>
-                        <div className="flex gap-4 mt-4 ml-20">
-                        <Badge variant="outline" className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {action.timeframe}
-                        </Badge>
-                        <Badge variant="outline">
-                          Difficulty: {action.difficulty}
-                        </Badge>
-                        {action.confidence === 'low' && (
-                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                            Validation Needed
-                          </Badge>
-                        )}
-                        {isChecked && (
-                          <Badge variant="default" className="flex items-center gap-1">
-                            <CheckCircle className="h-3 w-3" />
-                            Completed
-                          </Badge>
-                        )}
-                      </div>
-                    </CardHeader>
-                  </Card>
-                );
-              })}
-            </div>
-            
-            {/* Progress Summary */}
-            <Card className="bg-gradient-to-r from-primary/5 to-revenue-primary/5 border-primary/20">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Implementation Progress</h3>
-                  <span className="text-2xl font-bold text-primary transition-all duration-300 ease-in-out">
-                    {Math.round((checkedActions.length / priorityActions.length) * 100)}%
-                  </span>
-                </div>
-                <Progress 
-                  value={(checkedActions.length / priorityActions.length) * 100} 
-                  className="mb-3 transition-all duration-500 ease-in-out"
-                />
-                <p className="text-sm text-muted-foreground transition-all duration-300 ease-in-out">
-                  {checkedActions.length} of {priorityActions.length} priority actions completed
-                  {checkedActions.length > 0 && checkedActions.length < priorityActions.length && " • Keep going!"}
-                </p>
-                {checkedActions.length === priorityActions.length && (
-                  <div className="mt-4 p-3 bg-revenue-success/10 border border-revenue-success/20 rounded-lg animate-fade-in">
-                    <p className="text-revenue-success font-medium flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4" />
-                      Congratulations! You've completed all priority actions.
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <PriorityActions 
+              submission={submission}
+              formatCurrency={formatCurrency}
+            />
           </TabsContent>
 
           <TabsContent value="next-steps" className="space-y-8">
