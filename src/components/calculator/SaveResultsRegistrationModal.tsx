@@ -276,6 +276,12 @@ export const SaveResultsRegistrationModal = ({
 
     } catch (error) {
       console.error('Registration error:', error);
+      console.error('Registration error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        tempId: getTempId(),
+        email: formData.email
+      });
       toast({
         title: "Registration Failed",
         description: error instanceof Error ? error.message : "Please try again.",
