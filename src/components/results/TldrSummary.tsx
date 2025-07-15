@@ -12,8 +12,7 @@ import {
 } from "lucide-react";
 import { type Submission } from "@/lib/supabase";
 import { type UserIntent } from "./UserIntentSelector";
-import { validateCalculationResults, getCalculationConfidenceLevel } from "@/lib/calculator/validationHelpers";
-import { calculateQuickWins, getConfidenceMultiplier } from "@/lib/calculator/priorityCalculations";
+import { calculateExecutiveSummary, getUrgencyConfig } from "@/lib/calculator/priorityCalculations";
 
 interface TldrSummaryProps {
   submission: Submission;
@@ -28,69 +27,43 @@ export const TldrSummary = ({
   formatCurrency,
   onExpandSection 
 }: TldrSummaryProps) => {
-  // Validate calculations and apply realistic bounds
-  const validation = validateCalculationResults({
-    leadResponseLoss: submission.lead_response_loss || 0,
-    failedPaymentLoss: submission.failed_payment_loss || 0,
-    selfServeGap: submission.selfserve_gap_loss || 0,
-    processLoss: submission.process_inefficiency_loss || 0,
-    currentARR: submission.current_arr || 0,
-    recoveryPotential70: submission.recovery_potential_70 || 0,
-    recoveryPotential85: submission.recovery_potential_85 || 0
-  });
-
-  const confidenceLevel = getCalculationConfidenceLevel({
-    currentARR: submission.current_arr || 0,
-    monthlyLeads: submission.monthly_leads || 0,
-    monthlyFreeSignups: submission.monthly_free_signups || 0,
-    totalLeak: submission.total_leak || 0
-  });
-
-  // Use validated values or apply caps
-  const validatedLeadLoss = validation.leadResponse.adjustedValue || submission.lead_response_loss || 0;
-  const validatedSelfServeLoss = validation.selfServe.adjustedValue || submission.selfserve_gap_loss || 0;
-  const validatedFailedPaymentLoss = submission.failed_payment_loss || 0;
-  const validatedProcessLoss = submission.process_inefficiency_loss || 0;
-  
-  const validatedTotalLeak = validatedLeadLoss + validatedFailedPaymentLoss + validatedSelfServeLoss + validatedProcessLoss;
-  
-  // Calculate realistic recovery potential (capped at validated totals)
-  const realisticRecovery70 = Math.min(
-    submission.recovery_potential_70 || 0,
-    validatedTotalLeak * 0.7,
-    (submission.current_arr || 0) * 2 // Never more than 2x ARR
-  );
+  // Use unified calculation service for all data
+  const executiveSummary = calculateExecutiveSummary(submission as any);
+  const { totalLeakage, realisticRecovery, quickWins, urgencyLevel, confidenceLevel } = executiveSummary;
 
   const getTldrContent = () => {
-    const biggestLoss = Math.max(
-      validatedLeadLoss,
-      validatedFailedPaymentLoss,
-      validatedSelfServeLoss,
-      validatedProcessLoss
-    );
-
-    // Use unified calculation service for quick wins
-    const quickWins = calculateQuickWins(submission as any);
+    // Get individual loss components from submission
+    const leadLoss = submission.lead_response_loss || 0;
+    const paymentLoss = submission.failed_payment_loss || 0;
+    const selfServeLoss = submission.selfserve_gap_loss || 0;
+    const processLoss = submission.process_inefficiency_loss || 0;
+    
+    const biggestLoss = Math.max(leadLoss, paymentLoss, selfServeLoss, processLoss);
     const topQuickWin = quickWins[0] || {
       action: 'Process optimization',
-      impact: 25,
       timeframe: '2-4 weeks',
-      recoveryAmount: validatedFailedPaymentLoss * 0.8
+      recoveryAmount: paymentLoss * 0.8
     };
+
+    // Map urgency level to string format for UI
+    const urgencyMapping = {
+      'Critical': 'high',
+      'High': 'high', 
+      'Medium': 'medium',
+      'Low': 'low'
+    } as const;
 
     switch (userIntent) {
       case "understand-problem":
-        const leakPercentage = submission.current_arr ? (validatedTotalLeak / submission.current_arr) * 100 : 0;
-        const hasWarnings = !validation.overall.isValid;
+        const leakPercentage = submission.current_arr ? (totalLeakage / submission.current_arr) * 100 : 0;
         return {
           title: "Your Biggest Problem",
-          summary: `You're losing ${formatCurrency(validatedTotalLeak)} annually, with ${formatCurrency(biggestLoss)} from your worst area. This represents ${leakPercentage.toFixed(1)}% of your ARR${hasWarnings ? ' (estimate adjusted for realism)' : ''}.`,
+          summary: `You're losing ${formatCurrency(totalLeakage)} annually, with ${formatCurrency(biggestLoss)} from your worst area. This represents ${leakPercentage.toFixed(1)}% of your ARR.`,
           actionText: "Focus on the largest leak first",
-          urgency: leakPercentage > 15 ? "high" : leakPercentage > 8 ? "medium" : "low",
+          urgency: urgencyMapping[urgencyLevel],
           nextStep: "See detailed breakdown",
           sectionId: "breakdown",
-          confidence: confidenceLevel,
-          hasWarnings
+          confidence: confidenceLevel
         };
         
       case "quick-wins":
@@ -99,7 +72,7 @@ export const TldrSummary = ({
                              topQuickWin.action.toLowerCase().includes('lead') ? 'lead response automation' : 'process automation';
         return {
           title: "Your Quick Win",
-          summary: `Start with ${quickWinName} - you can recover ${formatCurrency(quickWinValue)} in ${topQuickWin.timeframe} with high success probability.`,
+          summary: `Start with ${quickWinName} - you can recover ${formatCurrency(quickWinValue)} in ${topQuickWin.timeframe} with ${confidenceLevel.toLowerCase()} success probability.`,
           actionText: `Implement ${quickWinName} first`,
           urgency: quickWinValue > 500000 ? "medium" : "low",
           nextStep: "View implementation plan",
@@ -112,21 +85,21 @@ export const TldrSummary = ({
         const phases = timelineComplexity === 'enterprise-grade' ? '4-phase' : '3-phase';
         return {
           title: "Your Implementation Strategy",
-          summary: `Follow a ${phases} approach: Fix payments (60 days), improve lead response (90 days), then optimize conversion (120 days). Realistic recovery: ${formatCurrency(realisticRecovery70)} with ${confidenceLevel} confidence.`,
+          summary: `Follow a ${phases} approach: Fix payments (60 days), improve lead response (90 days), then optimize conversion (120 days). Realistic recovery: ${formatCurrency(realisticRecovery)} with ${confidenceLevel.toLowerCase()} confidence.`,
           actionText: "Follow the proven sequence",
-          urgency: confidenceLevel.level === 'low' ? "medium" : "low",
+          urgency: confidenceLevel === 'Low' ? "medium" : "low",
           nextStep: "See complete timeline",
           sectionId: "timeline",
           confidence: confidenceLevel
         };
         
       case "compare-competitors":
-        const gapCount = [validatedLeadLoss, validatedSelfServeLoss, validatedFailedPaymentLoss, validatedProcessLoss]
+        const gapCount = [leadLoss, selfServeLoss, paymentLoss, processLoss]
           .filter(loss => loss > (submission.current_arr || 0) * 0.02).length; // Gaps >2% of ARR
         const competitiveUrgency = gapCount >= 3 ? "high" : gapCount >= 2 ? "medium" : "low";
         return {
           title: "Competitive Position",
-          summary: `You're underperforming industry benchmarks in ${gapCount} key area${gapCount !== 1 ? 's' : ''}, representing ${competitiveUrgency} competitive risk. Closing these gaps could recover ${formatCurrency(realisticRecovery70)}.`,
+          summary: `You're underperforming industry benchmarks in ${gapCount} key area${gapCount !== 1 ? 's' : ''}, representing ${competitiveUrgency} competitive risk. Closing these gaps could recover ${formatCurrency(realisticRecovery)}.`,
           actionText: "Close competitive gaps",
           urgency: competitiveUrgency,
           nextStep: "View benchmarking details",
@@ -137,9 +110,9 @@ export const TldrSummary = ({
       default:
         return {
           title: "Key Insight",
-          summary: `You have ${formatCurrency(validatedTotalLeak)} in annual revenue leakage with ${formatCurrency(realisticRecovery70)} realistic recovery potential through systematic fixes (${confidenceLevel} confidence).`,
+          summary: `You have ${formatCurrency(totalLeakage)} in annual revenue leakage with ${formatCurrency(realisticRecovery)} realistic recovery potential through systematic fixes (${confidenceLevel.toLowerCase()} confidence).`,
           actionText: "Start with highest ROI actions",
-          urgency: "medium",
+          urgency: urgencyMapping[urgencyLevel],
           nextStep: "See action plan",
           sectionId: "priority-actions",
           confidence: confidenceLevel
@@ -191,17 +164,9 @@ export const TldrSummary = ({
                 <Badge variant="outline" className="text-xs font-bold px-3 py-1">
                   {config.badge}
                 </Badge>
-                {tldr.confidence && (
-                  <Badge variant="secondary" className="text-xs px-2 py-1">
-                    {typeof tldr.confidence === 'object' ? tldr.confidence.level : tldr.confidence} confidence
-                  </Badge>
-                )}
-                {tldr.hasWarnings && (
-                  <Badge variant="outline" className="text-xs px-2 py-1 text-revenue-warning border-revenue-warning/50">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    adjusted
-                  </Badge>
-                )}
+                <Badge variant="secondary" className="text-xs px-2 py-1">
+                  {tldr.confidence} confidence
+                </Badge>
                 <Badge variant="secondary" className="text-xs px-2 py-1">
                   <Clock className="h-3 w-3 mr-1" />
                   30 sec read
