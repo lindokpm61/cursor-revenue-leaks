@@ -227,13 +227,13 @@ const Results = () => {
             {/* Detailed Breakdown - conditionally show based on variant */}
             {(sectionVariant === 'detailed' || isExpanded) && (
               <Accordion type="multiple" className="space-y-6" defaultValue={isExpanded ? ["breakdown"] : []}>
-                <AccordionItem value="breakdown" className="border rounded-lg px-6">
-                  <AccordionTrigger className="py-4">
-                    <div className="flex items-center gap-4">
+                <AccordionItem value="breakdown" className="border rounded-lg">
+                  <AccordionTrigger className="py-4 px-6 hover:no-underline">
+                    <div className="flex items-center gap-4 w-full">
                       <div className="p-3 rounded-2xl bg-primary/10 border-2 border-primary/20">
                         <BarChart className="h-5 w-5 text-primary" />
                       </div>
-                      <div className="text-left">
+                      <div className="text-left flex-1">
                         <h2 className="text-h1 font-bold mb-2">Detailed Revenue Breakdown</h2>
                         <div className="flex items-center gap-3">
                           <Badge variant="outline" className="text-xs font-bold px-3 py-1 bg-primary/10 border-primary/30 text-primary">📊 Detailed</Badge>
