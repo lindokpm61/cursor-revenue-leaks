@@ -55,19 +55,20 @@ export const useExitIntent = (config: ExitIntentConfig = {
 
   // Exit intent detection
   useEffect(() => {
-    const handleMouseLeave = (e: MouseEvent) => {
+    const handleMouseOut = (e: MouseEvent) => {
       setState(currentState => {
-        console.log('Mouse leave detected:', {
+        console.log('Mouse out detected:', {
           clientY: e.clientY,
           movementY: e.movementY,
           threshold: config.threshold,
           hasEngagement: currentState.hasEngagement,
-          isTriggered: currentState.isTriggered
+          isTriggered: currentState.isTriggered,
+          toElement: e.relatedTarget
         });
         
-        // Only trigger if mouse is moving upward toward browser chrome
-        if (e.clientY <= config.threshold && e.movementY < 0) {
-          console.log('Exit intent conditions met');
+        // Check if mouse is leaving the document (going to browser chrome)
+        if (!e.relatedTarget && e.clientY <= config.threshold) {
+          console.log('Exit intent conditions met - mouse left viewport');
           if (!currentState.isTriggered && currentState.hasEngagement) {
             console.log('Triggering exit intent modal');
             return { ...currentState, isTriggered: true };
@@ -87,11 +88,11 @@ export const useExitIntent = (config: ExitIntentConfig = {
     };
 
     // Add listeners
-    document.addEventListener('mouseleave', handleMouseLeave);
+    document.addEventListener('mouseout', handleMouseOut);
     window.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
-      document.removeEventListener('mouseleave', handleMouseLeave);
+      document.removeEventListener('mouseout', handleMouseOut);
       window.removeEventListener('scroll', handleScroll);
     };
   }, [config.threshold, updateScrollDepth]);
