@@ -189,11 +189,11 @@ export const RevenueCalculator = () => {
       case 1:
         return <CompanyInfoStep data={data.companyInfo} onUpdate={(updates) => updateData('companyInfo', updates)} />;
       case 2:
-        return <LeadGenerationStep data={data.leadGeneration} onUpdate={(updates) => updateData('leadGeneration', updates)} />;
+        return <LeadGenerationStep data={data.leadGeneration} onUpdate={(updates) => updateData('leadGeneration', updates)} industry={data.companyInfo.industry} />;
       case 3:
-        return <SelfServeStep data={data.selfServeMetrics} onUpdate={(updates) => updateData('selfServeMetrics', updates)} />;
+        return <SelfServeStep data={data.selfServeMetrics} onUpdate={(updates) => updateData('selfServeMetrics', updates)} industry={data.companyInfo.industry} />;
       case 4:
-        return <OperationsStep data={data.operationsData} onUpdate={(updates) => updateData('operationsData', updates)} />;
+        return <OperationsStep data={data.operationsData} onUpdate={(updates) => updateData('operationsData', updates)} industry={data.companyInfo.industry} />;
       case 5:
         // Always use the live calculations from useCalculatorData for consistency
         return <ResultsStep data={data} calculations={calculations} />;

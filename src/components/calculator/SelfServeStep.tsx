@@ -1,10 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { SelfServeMetrics } from "./useCalculatorData";
-import { Users, Percent, DollarSign } from "lucide-react";
+import { Users, Percent, DollarSign, Target } from "lucide-react";
 import { saveCalculatorProgress } from "@/lib/coreDataCapture";
 import { useEffect } from "react";
+import { EnhancedInput } from "./EnhancedInput";
+import { getValidationRules, getBenchmark, formatValue, industryDefaults } from "@/lib/industryDefaults";
 
 // Helper function to safely convert input values to numbers
 const safeInputNumber = (value: string): number => {
@@ -16,9 +16,11 @@ const safeInputNumber = (value: string): number => {
 interface SelfServeStepProps {
   data: SelfServeMetrics;
   onUpdate: (updates: Partial<SelfServeMetrics>) => void;
+  industry?: string;
 }
 
-export const SelfServeStep = ({ data, onUpdate }: SelfServeStepProps) => {
+export const SelfServeStep = ({ data, onUpdate, industry }: SelfServeStepProps) => {
+  const industryData = industry ? industryDefaults[industry] : industryDefaults.other;
   // Enhanced auto-save data when it changes with validation
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
@@ -52,75 +54,107 @@ export const SelfServeStep = ({ data, onUpdate }: SelfServeStepProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="monthly-free-signups">Monthly Free Signups</Label>
-            <div className="relative">
-              <Users className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="monthly-free-signups"
-                type="number"
-                value={data.monthlyFreeSignups ?? ""}
-                onChange={(e) => onUpdate({ monthlyFreeSignups: safeInputNumber(e.target.value) })}
-                placeholder="1000"
-                className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <p className="text-sm text-muted-foreground">Free trial or freemium signups per month</p>
-          </div>
+          <EnhancedInput
+            id="monthly-free-signups"
+            label="Monthly Free Signups"
+            type="number"
+            value={data.monthlyFreeSignups ?? ""}
+            onChange={(value) => onUpdate({ monthlyFreeSignups: safeInputNumber(value as string) })}
+            placeholder="1000"
+            icon={<Users className="h-4 w-4 text-muted-foreground" />}
+            validation={getValidationRules('monthlyFreeSignups', industry)}
+            benchmark={getBenchmark('monthlyFreeSignups', industry)}
+            industryDefaults={{ [industry || 'other']: industryData.monthlyFreeSignups }}
+            currentIndustry={industry}
+            helpText="Free trial or freemium signups per month"
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="conversion-rate">Free-to-Paid Conversion %</Label>
-            <div className="relative">
-              <Percent className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="conversion-rate"
-                type="number"
-                value={data.freeToPaidConversionRate ?? ""}
-                onChange={(e) => onUpdate({ freeToPaidConversionRate: safeInputNumber(e.target.value) })}
-                placeholder="10"
-                max="100"
-                className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <p className="text-sm text-muted-foreground">Percentage of free users who become paid</p>
-          </div>
+          <EnhancedInput
+            id="conversion-rate"
+            label="Free-to-Paid Conversion %"
+            type="number"
+            value={data.freeToPaidConversionRate ?? ""}
+            onChange={(value) => onUpdate({ freeToPaidConversionRate: safeInputNumber(value as string) })}
+            placeholder="10"
+            icon={<Percent className="h-4 w-4 text-muted-foreground" />}
+            suffix="%"
+            validation={getValidationRules('freeToPaidConversionRate', industry)}
+            benchmark={getBenchmark('freeToPaidConversionRate', industry)}
+            industryDefaults={{ [industry || 'other']: industryData.freeToPaidConversionRate }}
+            currentIndustry={industry}
+            helpText="Percentage of free users who become paid customers"
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="monthly-mrr">Monthly MRR</Label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="monthly-mrr"
-                type="number"
-                value={data.monthlyMRR ?? ""}
-                onChange={(e) => onUpdate({ monthlyMRR: safeInputNumber(e.target.value) })}
-                placeholder="50000"
-                className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <p className="text-sm text-muted-foreground">Monthly Recurring Revenue</p>
-          </div>
+          <EnhancedInput
+            id="monthly-mrr"
+            label="Monthly MRR"
+            type="number"
+            value={data.monthlyMRR ?? ""}
+            onChange={(value) => onUpdate({ monthlyMRR: safeInputNumber(value as string) })}
+            placeholder="50000"
+            icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+            validation={getValidationRules('monthlyMRR', industry)}
+            benchmark={getBenchmark('monthlyMRR', industry)}
+            industryDefaults={{ [industry || 'other']: industryData.monthlyMRR }}
+            currentIndustry={industry}
+            helpText="Monthly Recurring Revenue"
+            formatValue={(value) => `$${value.toLocaleString()}`}
+          />
         </CardContent>
       </Card>
 
-      <Card className="border-revenue-success/20 bg-revenue-success/5">
-        <CardContent className="pt-6">
-          <h3 className="font-semibold text-foreground mb-4">🎯 2025 Industry Benchmarks</h3>
-          <div className="grid grid-cols-2 gap-4 text-center mb-3">
-            <div>
-              <div className="text-lg font-bold text-revenue-success">2.6-5.8%</div>
-              <p className="text-xs text-muted-foreground">Freemium Models</p>
+      {/* Low Conversion Alert */}
+      {data.freeToPaidConversionRate && data.freeToPaidConversionRate < 2 && (
+        <Card className="border-destructive/20 bg-destructive/5 animate-fade-in">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <Target className="h-5 w-5 text-destructive mt-0.5" />
+              <div>
+                <h4 className="font-semibold text-destructive mb-2">Low Conversion Rate Alert</h4>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Your {data.freeToPaidConversionRate}% conversion rate is significantly below industry standards. 
+                  This suggests major self-serve onboarding gaps.
+                </p>
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Potential monthly loss: </span>
+                  <span className="font-semibold text-destructive">
+                    ${((data.monthlyFreeSignups || 0) * (industryData.freeToPaidConversionRate - (data.freeToPaidConversionRate || 0)) / 100 * (data.monthlyMRR || 0) / ((data.monthlyFreeSignups || 1) * (data.freeToPaidConversionRate || 1) / 100)).toLocaleString()}
+                  </span>
+                </div>
+              </div>
             </div>
-            <div>
-              <div className="text-lg font-bold text-revenue-warning">17.8%</div>
-              <p className="text-xs text-muted-foreground">Free Trials (Opt-in)</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Industry Benchmarks */}
+      <Card className="border-accent/20 bg-accent/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Target className="h-5 w-5 text-accent" />
+            Self-Serve Conversion Benchmarks
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+            <div className="p-4 rounded-lg bg-background/50">
+              <div className="text-xl font-bold text-success">
+                {formatValue('freeToPaidConversionRate', industryData.freeToPaidConversionRate)}
+              </div>
+              <p className="text-sm text-muted-foreground">Industry Average</p>
             </div>
-          </div>
-          <div className="text-xs text-muted-foreground space-y-1">
-            <p><strong>Technology/SaaS:</strong> 4.2% (1.5x value multiplier)</p>
-            <p><strong>Financial Services:</strong> 3.8% (1.3x multiplier)</p>
-            <p><strong>Healthcare:</strong> 3.2% (1.2x multiplier)</p>
-            <p><strong>Education:</strong> 2.6% (lowest benchmark)</p>
+            <div className="p-4 rounded-lg bg-background/50">
+              <div className="text-xl font-bold text-primary">
+                {formatValue('monthlyFreeSignups', industryData.monthlyFreeSignups)}
+              </div>
+              <p className="text-sm text-muted-foreground">Monthly Signups</p>
+            </div>
+            <div className="p-4 rounded-lg bg-background/50">
+              <div className="text-xl font-bold text-revenue-warning">
+                {formatValue('monthlyMRR', industryData.monthlyMRR)}
+              </div>
+              <p className="text-sm text-muted-foreground">Target MRR</p>
+            </div>
           </div>
         </CardContent>
       </Card>

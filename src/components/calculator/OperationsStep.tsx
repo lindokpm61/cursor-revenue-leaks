@@ -1,10 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { OperationsData } from "./useCalculatorData";
-import { AlertTriangle, Clock, DollarSign } from "lucide-react";
+import { AlertTriangle, Clock, DollarSign, Target, TrendingDown } from "lucide-react";
 import { saveCalculatorProgress } from "@/lib/coreDataCapture";
 import { useEffect } from "react";
+import { EnhancedInput } from "./EnhancedInput";
+import { getValidationRules, getBenchmark, formatValue, industryDefaults } from "@/lib/industryDefaults";
 
 // Helper function to safely convert input values to numbers
 const safeInputNumber = (value: string): number => {
@@ -16,9 +16,11 @@ const safeInputNumber = (value: string): number => {
 interface OperationsStepProps {
   data: OperationsData;
   onUpdate: (updates: Partial<OperationsData>) => void;
+  industry?: string;
 }
 
-export const OperationsStep = ({ data, onUpdate }: OperationsStepProps) => {
+export const OperationsStep = ({ data, onUpdate, industry }: OperationsStepProps) => {
+  const industryData = industry ? industryDefaults[industry] : industryDefaults.other;
   // Enhanced auto-save data when it changes with validation
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
@@ -52,77 +54,108 @@ export const OperationsStep = ({ data, onUpdate }: OperationsStepProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="failed-payment-rate">Failed Payment Rate %</Label>
-            <Input
-              id="failed-payment-rate"
-              type="number"
-              value={data.failedPaymentRate ?? ""}
-              onChange={(e) => onUpdate({ failedPaymentRate: safeInputNumber(e.target.value) })}
-              placeholder="3"
-              max="100"
-              className="transition-all duration-200 focus:ring-2 focus:ring-primary"
-            />
-            <p className="text-sm text-muted-foreground">Percentage of payments that fail monthly</p>
-          </div>
+          <EnhancedInput
+            id="failed-payment-rate"
+            label="Failed Payment Rate"
+            type="number"
+            value={data.failedPaymentRate ?? ""}
+            onChange={(value) => onUpdate({ failedPaymentRate: safeInputNumber(value as string) })}
+            placeholder="3"
+            icon={<TrendingDown className="h-4 w-4 text-muted-foreground" />}
+            suffix="%"
+            validation={getValidationRules('failedPaymentRate', industry)}
+            benchmark={getBenchmark('failedPaymentRate', industry)}
+            industryDefaults={{ [industry || 'other']: industryData.failedPaymentRate }}
+            currentIndustry={industry}
+            helpText="Percentage of payments that fail monthly"
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="manual-hours">Manual Hours Per Week</Label>
-            <div className="relative">
-              <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="manual-hours"
-                type="number"
-                value={data.manualHoursPerWeek ?? ""}
-                onChange={(e) => onUpdate({ manualHoursPerWeek: safeInputNumber(e.target.value) })}
-                placeholder="20"
-                className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <p className="text-sm text-muted-foreground">Hours spent on manual processes weekly</p>
-          </div>
+          <EnhancedInput
+            id="manual-hours"
+            label="Manual Hours Per Week"
+            type="number"
+            value={data.manualHoursPerWeek ?? ""}
+            onChange={(value) => onUpdate({ manualHoursPerWeek: safeInputNumber(value as string) })}
+            placeholder="20"
+            icon={<Clock className="h-4 w-4 text-muted-foreground" />}
+            validation={getValidationRules('manualHours', industry)}
+            benchmark={getBenchmark('manualHours', industry)}
+            industryDefaults={{ [industry || 'other']: industryData.manualHours }}
+            currentIndustry={industry}
+            helpText="Hours spent on manual processes weekly"
+            formatValue={(value) => `${value} hrs/week`}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="hourly-rate">Hourly Rate</Label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="hourly-rate"
-                type="number"
-                value={data.hourlyRate ?? ""}
-                onChange={(e) => onUpdate({ hourlyRate: safeInputNumber(e.target.value) })}
-                placeholder="75"
-                className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <p className="text-sm text-muted-foreground">Average hourly cost for manual work</p>
-          </div>
+          <EnhancedInput
+            id="hourly-rate"
+            label="Hourly Rate"
+            type="number"
+            value={data.hourlyRate ?? ""}
+            onChange={(value) => onUpdate({ hourlyRate: safeInputNumber(value as string) })}
+            placeholder="75"
+            icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+            validation={getValidationRules('hourlyRate', industry)}
+            benchmark={getBenchmark('hourlyRate', industry)}
+            industryDefaults={{ [industry || 'other']: industryData.hourlyRate }}
+            currentIndustry={industry}
+            helpText="Average hourly cost for manual work"
+            formatValue={(value) => `$${value}/hr`}
+          />
         </CardContent>
       </Card>
 
-      <Card className="border-revenue-warning/20 bg-revenue-warning/5">
-        <CardContent className="pt-6">
-          <h3 className="font-semibold text-foreground mb-4">🚀 2025 Recovery & Automation Framework</h3>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <p className="text-sm font-medium text-foreground mb-2">Payment Recovery Systems</p>
-              <div className="text-xs text-muted-foreground space-y-1">
-                <p><strong>Basic:</strong> 30-40% recovery rate</p>
-                <p><strong>Advanced:</strong> 60-80% recovery rate</p>
-                <p><strong>Best-in-Class:</strong> 80-90% recovery rate</p>
+      {/* High Manual Hours Alert */}
+      {data.manualHoursPerWeek && data.manualHoursPerWeek > 40 && (
+        <Card className="border-destructive/20 bg-destructive/5 animate-fade-in">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
+              <div>
+                <h4 className="font-semibold text-destructive mb-2">High Manual Hours Alert</h4>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Your {data.manualHoursPerWeek} hours/week of manual work significantly exceeds automation targets. 
+                  This represents a major efficiency opportunity.
+                </p>
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Annual cost: </span>
+                  <span className="font-semibold text-destructive">
+                    ${((data.manualHoursPerWeek || 0) * (data.hourlyRate || 0) * 52).toLocaleString()}
+                  </span>
+                </div>
               </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-foreground mb-2">Process Automation ROI</p>
-              <div className="text-xs text-muted-foreground space-y-1">
-                <p><strong>Productivity:</strong> +32% revenue generation</p>
-                <p><strong>Sales Efficiency:</strong> +14.5% productivity</p>
-                <p><strong>Marketing:</strong> +40% efficiency gains</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Industry Benchmarks */}
+      <Card className="border-accent/20 bg-accent/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Target className="h-5 w-5 text-accent" />
+            Operations Efficiency Benchmarks
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+            <div className="p-4 rounded-lg bg-background/50">
+              <div className="text-xl font-bold text-success">
+                {formatValue('failedPaymentRate', industryData.failedPaymentRate)}
               </div>
+              <p className="text-sm text-muted-foreground">Target Failed Rate</p>
             </div>
-          </div>
-          <div className="text-xs text-muted-foreground border-t pt-3">
-            <p><strong>McKinsey 2024:</strong> Up to 70% of work activities could be automated with 76% of companies seeing positive ROI within first year.</p>
+            <div className="p-4 rounded-lg bg-background/50">
+              <div className="text-xl font-bold text-primary">
+                {formatValue('manualHours', industryData.manualHours)}
+              </div>
+              <p className="text-sm text-muted-foreground">Efficiency Target</p>
+            </div>
+            <div className="p-4 rounded-lg bg-background/50">
+              <div className="text-xl font-bold text-revenue-warning">
+                {formatValue('hourlyRate', industryData.hourlyRate)}
+              </div>
+              <p className="text-sm text-muted-foreground">Market Rate</p>
+            </div>
           </div>
         </CardContent>
       </Card>
