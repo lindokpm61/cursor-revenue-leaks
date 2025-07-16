@@ -140,10 +140,7 @@ export class UserRegistrationService {
 
       const { error } = await supabase
         .from('user_profiles')
-        .upsert(profileData, { 
-          onConflict: 'id',
-          ignoreDuplicates: false 
-        });
+        .upsert(profileData);
 
       if (error) {
         console.error('Profile creation failed:', error);
