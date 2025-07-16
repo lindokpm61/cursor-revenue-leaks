@@ -312,7 +312,8 @@ export const createSubmission = async (submissionData: any) => {
 // Create enhanced user profile
 export const createUserProfile = async (profileData: any) => {
   try {
-    console.log('Creating user profile with data:', {
+    // Remove any UTM fields that don't exist in the table
+    const cleanProfileData = {
       id: profileData.user_id,
       company_name: profileData.actual_company_name,
       actual_company_name: profileData.actual_company_name,
@@ -324,23 +325,13 @@ export const createUserProfile = async (profileData: any) => {
       first_submission_date: profileData.first_submission_date,
       total_companies_analyzed: profileData.total_companies_analyzed,
       engagement_score: profileData.engagement_score
-    });
+    };
+
+    console.log('Creating user profile with cleaned data:', cleanProfileData);
 
     const { data, error } = await supabase
       .from('user_profiles')
-      .insert({
-        id: profileData.user_id,
-        company_name: profileData.actual_company_name,
-        actual_company_name: profileData.actual_company_name,
-        role: profileData.actual_role,
-        actual_role: profileData.actual_role,
-        phone: profileData.phone,
-        user_classification: profileData.user_classification,
-        business_model: profileData.business_model,
-        first_submission_date: profileData.first_submission_date,
-        total_companies_analyzed: profileData.total_companies_analyzed,
-        engagement_score: profileData.engagement_score
-      });
+      .insert(cleanProfileData);
 
     if (error) {
       console.error('Supabase error creating user profile:', error);
