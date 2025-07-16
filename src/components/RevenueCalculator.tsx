@@ -9,7 +9,9 @@ import { SelfServeStep } from "./calculator/SelfServeStep";
 import { OperationsStep } from "./calculator/OperationsStep";
 import { ResultsStep } from "./calculator/ResultsStep";
 import { ResultsPreview } from "./calculator/ResultsPreview";
+import { ExitIntentModal } from "./calculator/ExitIntentModal";
 import { useCalculatorData } from "./calculator/useCalculatorData";
+import { useExitIntent } from "@/hooks/useExitIntent";
 import { updateCalculatorProgress, trackEngagement, getTemporarySubmission } from "@/lib/submission";
 import { 
   handleStep1Complete, 
@@ -31,8 +33,16 @@ const steps = [
 export const RevenueCalculator = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [calculationResults, setCalculationResults] = useState<any>(null);
+  const [tempId, setTempId] = useState<string | null>(null);
   const { data, updateData, calculations } = useCalculatorData();
   const { toast } = useToast();
+  
+  // Exit intent detection
+  const exitIntent = useExitIntent({
+    threshold: 50,
+    delay: 30000, // 30 seconds
+    scrollThreshold: 50 // 50% scroll
+  });
 
   // Initialize calculator and load any existing temporary data
   useEffect(() => {
@@ -43,25 +53,29 @@ export const RevenueCalculator = () => {
         
         // Try to load existing temporary submission
         const existingSubmission = await getTemporarySubmission();
-        if (existingSubmission && existingSubmission.calculator_data) {
-          // Restore data from temporary submission
-          const savedData = existingSubmission.calculator_data as Record<string, any>;
-          if (savedData.step_1) {
-            updateData('companyInfo', savedData.step_1);
-          }
-          if (savedData.step_2) {
-            updateData('leadGeneration', savedData.step_2);
-          }
-          if (savedData.step_3) {
-            updateData('selfServeMetrics', savedData.step_3);
-          }
-          if (savedData.step_4) {
-            updateData('operationsData', savedData.step_4);
-          }
+        if (existingSubmission) {
+          setTempId(existingSubmission.temp_id);
           
-          // Set current step to where user left off
-          if (existingSubmission.current_step) {
-            setCurrentStep(existingSubmission.current_step);
+          if (existingSubmission.calculator_data) {
+            // Restore data from temporary submission
+            const savedData = existingSubmission.calculator_data as Record<string, any>;
+            if (savedData.step_1) {
+              updateData('companyInfo', savedData.step_1);
+            }
+            if (savedData.step_2) {
+              updateData('leadGeneration', savedData.step_2);
+            }
+            if (savedData.step_3) {
+              updateData('selfServeMetrics', savedData.step_3);
+            }
+            if (savedData.step_4) {
+              updateData('operationsData', savedData.step_4);
+            }
+            
+            // Set current step to where user left off
+            if (existingSubmission.current_step) {
+              setCurrentStep(existingSubmission.current_step);
+            }
           }
         }
       } catch (error) {
@@ -206,6 +220,16 @@ export const RevenueCalculator = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/[0.02] to-accent/[0.02] p-4">
+      {/* Exit Intent Modal */}
+      <ExitIntentModal
+        isOpen={exitIntent.isTriggered}
+        onClose={exitIntent.resetTrigger}
+        currentStep={currentStep}
+        tempId={tempId}
+        companyName={data.companyInfo.companyName}
+        estimatedLeak={getEstimatedLeak()}
+      />
+      
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
