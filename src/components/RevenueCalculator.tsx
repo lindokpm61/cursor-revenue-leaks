@@ -44,6 +44,16 @@ export const RevenueCalculator = () => {
     scrollThreshold: 50 // 50% scroll
   });
 
+  // Debug exit intent state
+  useEffect(() => {
+    console.log('Exit intent state:', {
+      isTriggered: exitIntent.isTriggered,
+      hasEngagement: exitIntent.hasEngagement,
+      timeOnPage: exitIntent.timeOnPage,
+      scrollDepth: exitIntent.scrollDepth
+    });
+  }, [exitIntent.isTriggered, exitIntent.hasEngagement, exitIntent.timeOnPage, exitIntent.scrollDepth]);
+
   // Initialize calculator and load any existing temporary data
   useEffect(() => {
     const initializeCalculator = async () => {
