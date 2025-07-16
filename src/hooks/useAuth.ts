@@ -34,15 +34,11 @@ export const useAuthProvider = () => {
           setIsAdmin(false);
         }
 
-        // Ensure user profile exists when user signs in - use setTimeout to avoid deadlock
+        // For existing users, ensure profile exists (handled by new registration service for new users)
         if (event === 'SIGNED_IN' && session?.user) {
           setTimeout(() => {
             ensureUserProfile(session.user).catch(error => {
               console.error('Failed to ensure user profile:', error);
-            });
-            // Also ensure CRM person exists for existing users
-            ensureCrmPerson(session.user).catch(error => {
-              console.error('Failed to ensure CRM person:', error);
             });
           }, 0);
         }
@@ -121,19 +117,6 @@ export const useAuthProvider = () => {
 
       if (error) {
         return { success: false, error: error.message };
-      }
-
-      // Create user profile immediately after successful registration
-      if (data.user) {
-        try {
-          await createUserProfile(data.user);
-          
-          // Create CRM person for new user
-          await createCrmPerson(data.user, email);
-        } catch (profileError) {
-          console.error('Failed to create user profile or CRM person:', profileError);
-          // Don't fail the registration if profile creation fails
-        }
       }
 
       return { success: true };

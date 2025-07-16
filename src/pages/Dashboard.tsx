@@ -45,9 +45,15 @@ const Dashboard = () => {
         setSubmissions(sortedSubmissions);
       }
 
-      // Set user profile if found
+      // Set user profile if found, ensuring all UTM fields are present
       if (profileResponse.data) {
-        setUserProfile(profileResponse.data);
+        const profile = profileResponse.data as any;
+        setUserProfile({
+          ...profile,
+          utm_source: profile.utm_source || '',
+          utm_medium: profile.utm_medium || '',
+          utm_campaign: profile.utm_campaign || ''
+        });
       }
     } catch (error) {
       console.error('Dashboard load error:', error);

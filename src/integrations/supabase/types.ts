@@ -677,6 +677,9 @@ export type Database = {
           user_classification: string | null
           user_tier: string | null
           user_type: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
         }
         Insert: {
           actions_checked_count?: number | null
@@ -710,6 +713,9 @@ export type Database = {
           user_classification?: string | null
           user_tier?: string | null
           user_type?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Update: {
           actions_checked_count?: number | null
@@ -743,6 +749,9 @@ export type Database = {
           user_classification?: string | null
           user_tier?: string | null
           user_type?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: []
       }

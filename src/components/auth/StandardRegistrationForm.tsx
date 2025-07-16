@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { User, TrendingUp } from "lucide-react";
-import { multiCompanyUserService } from "@/lib/supabase";
+import { UserRegistrationService } from "@/services/UserRegistrationService";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -62,7 +62,7 @@ const StandardRegistrationForm = ({
     setLoading(true);
 
     try {
-      const result = await multiCompanyUserService.createUserWithClassification({
+      const result = await UserRegistrationService.register({
         email: formData.email,
         password: formData.password,
         firstName: formData.firstName,
