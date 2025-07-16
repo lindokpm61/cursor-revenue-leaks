@@ -491,17 +491,23 @@ export const handleUserRegistration = async (registrationData: any, tempId: stri
         }
       } catch (crmError) {
         console.error('❌ CRM integration error during registration:', crmError);
+        // Don't fail registration due to CRM integration issues
       }
       
       // 8. Update CRM with full user data via N8N
-      await triggerN8NWorkflow('crm-integration', {
-        action: 'update_contact_registration',
-        user_id: user.id,
-        temp_id: tempId,
-        registration_data: registrationData,
-        submission_data: permanentSubmission,
-        user_classification: determineUserClassification(registrationData, tempSubmission)
-      });
+      try {
+        await triggerN8NWorkflow('crm-integration', {
+          action: 'update_contact_registration',
+          user_id: user.id,
+          temp_id: tempId,
+          registration_data: registrationData,
+          submission_data: permanentSubmission,
+          user_classification: determineUserClassification(registrationData, tempSubmission)
+        });
+      } catch (n8nError) {
+        console.error('❌ N8N workflow error during registration:', n8nError);
+        // Don't fail registration due to N8N integration issues
+      }
       
       // 9. Cancel any pending abandonment emails
       await cancelPendingAbandonmentEmails(tempId);
