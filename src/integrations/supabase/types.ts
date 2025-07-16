@@ -266,6 +266,194 @@ export type Database = {
           },
         ]
       }
+      experiment_assignments: {
+        Row: {
+          assigned_at: string
+          experiment_id: string
+          id: string
+          user_identifier: string
+          variant_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          experiment_id: string
+          id?: string
+          user_identifier: string
+          variant_id: string
+        }
+        Update: {
+          assigned_at?: string
+          experiment_id?: string
+          id?: string
+          user_identifier?: string
+          variant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experiment_assignments_experiment_id_fkey"
+            columns: ["experiment_id"]
+            isOneToOne: false
+            referencedRelation: "experiments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experiment_assignments_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "experiment_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      experiment_events: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          experiment_id: string
+          id: string
+          user_identifier: string
+          value: number | null
+          variant_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          experiment_id: string
+          id?: string
+          user_identifier: string
+          value?: number | null
+          variant_id: string
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          experiment_id?: string
+          id?: string
+          user_identifier?: string
+          value?: number | null
+          variant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experiment_events_experiment_id_fkey"
+            columns: ["experiment_id"]
+            isOneToOne: false
+            referencedRelation: "experiments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experiment_events_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "experiment_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      experiment_variants: {
+        Row: {
+          configuration: Json
+          created_at: string
+          description: string | null
+          experiment_id: string
+          id: string
+          is_control: boolean
+          name: string
+          traffic_weight: number
+          updated_at: string
+        }
+        Insert: {
+          configuration?: Json
+          created_at?: string
+          description?: string | null
+          experiment_id: string
+          id?: string
+          is_control?: boolean
+          name: string
+          traffic_weight?: number
+          updated_at?: string
+        }
+        Update: {
+          configuration?: Json
+          created_at?: string
+          description?: string | null
+          experiment_id?: string
+          id?: string
+          is_control?: boolean
+          name?: string
+          traffic_weight?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experiment_variants_experiment_id_fkey"
+            columns: ["experiment_id"]
+            isOneToOne: false
+            referencedRelation: "experiments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      experiments: {
+        Row: {
+          configuration: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          name: string
+          results: Json | null
+          start_date: string | null
+          statistical_significance: number | null
+          status: string
+          target_metric: string
+          traffic_allocation: number
+          type: string
+          updated_at: string
+          winner_variant_id: string | null
+        }
+        Insert: {
+          configuration?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          results?: Json | null
+          start_date?: string | null
+          statistical_significance?: number | null
+          status?: string
+          target_metric: string
+          traffic_allocation?: number
+          type?: string
+          updated_at?: string
+          winner_variant_id?: string | null
+        }
+        Update: {
+          configuration?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          results?: Json | null
+          start_date?: string | null
+          statistical_significance?: number | null
+          status?: string
+          target_metric?: string
+          traffic_allocation?: number
+          type?: string
+          updated_at?: string
+          winner_variant_id?: string | null
+        }
+        Relationships: []
+      }
       integration_logs: {
         Row: {
           created_at: string | null
@@ -831,8 +1019,16 @@ export type Database = {
           total_arr: number
         }[]
       }
+      assign_experiment_variant: {
+        Args: { p_experiment_id: string; p_user_identifier: string }
+        Returns: string
+      }
       calculate_engagement_score: {
         Args: { user_events: Json[] }
+        Returns: number
+      }
+      calculate_experiment_significance: {
+        Args: { p_experiment_id: string }
         Returns: number
       }
       check_admin_access: {

@@ -3,7 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
   Shield, BarChart3, Users, Settings, Monitor, 
-  UserCog, ArrowLeft, Menu, X, Loader2
+  UserCog, ArrowLeft, Menu, X, Loader2, TestTube
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -41,6 +41,7 @@ const AdminLayout = () => {
     { name: "Dashboard", href: "/admin", icon: Shield },
     { name: "Leads", href: "/admin/leads", icon: Users },
     { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+    { name: "Experiments", href: "/admin/experiments", icon: TestTube },
     { name: "Integrations", href: "/admin/integrations", icon: Monitor },
     { name: "Users", href: "/admin/users", icon: UserCog },
     { name: "Settings", href: "/admin/settings", icon: Settings },

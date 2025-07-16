@@ -17,10 +17,12 @@ import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminIntegrations from "./pages/admin/AdminIntegrations";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminExperiments from "./pages/admin/AdminExperiments";
 import Results from "./pages/Results";
 import ActionPlan from "./pages/ActionPlan";
 import NotFound from "./pages/NotFound";
 import TestSync from "./pages/TestSync";
+import { ExperimentProvider } from "./components/experiments/ExperimentProvider";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +51,7 @@ const App = () => (
               <Route index element={<AdminDashboard />} />
               <Route path="leads" element={<AdminLeads />} />
               <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="experiments" element={<AdminExperiments />} />
               <Route path="integrations" element={<AdminIntegrations />} />
               <Route path="users" element={<AdminUsers />} />
               <Route path="settings" element={<AdminSettings />} />
