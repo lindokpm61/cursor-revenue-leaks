@@ -7,7 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { submissionService, userProfileService, type Submission, type UserProfile } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { ExecutiveSummaryCard } from "@/components/results/ExecutiveSummaryCard";
+import { DashboardHeroSection } from "@/components/DashboardHeroSection";
 
 const Dashboard = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -540,7 +540,12 @@ const Dashboard = () => {
         ) : (
           <>
             {/* Hero Section with Latest Analysis */}
-            <ExecutiveSummaryCard submission={latestAnalysis} formatCurrency={formatCurrency} />
+            <DashboardHeroSection 
+              latestAnalysis={latestAnalysis} 
+              formatCurrency={formatCurrency}
+              formatDate={formatDate}
+              calculateROI={calculateROI}
+            />
             
             {/* Simplified Summary Cards */}
             <SimplifiedSummaryCards />
