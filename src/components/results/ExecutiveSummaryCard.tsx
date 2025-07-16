@@ -54,6 +54,10 @@ export const ExecutiveSummaryCard = ({
     }
   };
 
+  const handleViewResults = () => {
+    navigate(`/results/${submission.id}`);
+  };
+
   const handleEmailResults = async () => {
     if (!user?.email) {
       toast({
@@ -215,6 +219,16 @@ export const ExecutiveSummaryCard = ({
           {/* SECONDARY ACTIONS with generous spacing */}
           <div className="space-y-4 pt-4">
             <Button 
+              onClick={handleViewResults}
+              variant="outline" 
+              size="lg"
+              className="w-full text-body px-8 py-3 h-[48px] transition-all duration-300"
+            >
+              <BarChart3 className="h-5 w-5 mr-2" />
+              View Full Results
+            </Button>
+            
+            <Button 
               onClick={handleEmailResults}
               disabled={isEmailLoading}
               variant="outline" 
@@ -281,7 +295,16 @@ export const ExecutiveSummaryCard = ({
         </Button>
 
         {/* SECONDARY ACTIONS with reduced visual weight */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Button 
+            onClick={handleViewResults}
+            variant="outline" 
+            size="lg"
+            className="text-body px-6 py-3 h-[48px] transition-all duration-300"
+          >
+            <BarChart3 className="h-5 w-5 mr-2" />
+            View Full Results
+          </Button>
           <Button 
             onClick={handleEmailResults}
             disabled={isEmailLoading}
