@@ -18,6 +18,7 @@ import AdminIntegrations from "./pages/admin/AdminIntegrations";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminExperiments from "./pages/admin/AdminExperiments";
+import AdminSystemHealth from "./pages/admin/AdminSystemHealth";
 import Results from "./pages/Results";
 import ActionPlan from "./pages/ActionPlan";
 import NotFound from "./pages/NotFound";
@@ -52,6 +53,7 @@ const App = () => (
               <Route path="leads" element={<AdminLeads />} />
               <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="experiments" element={<AdminExperiments />} />
+              <Route path="system-health" element={<AdminSystemHealth />} />
               <Route path="integrations" element={<AdminIntegrations />} />
               <Route path="users" element={<AdminUsers />} />
               <Route path="settings" element={<AdminSettings />} />

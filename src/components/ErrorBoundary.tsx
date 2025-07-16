@@ -2,6 +2,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { captureError } from '@/lib/sentry';
 
 interface Props {
   children: ReactNode;
@@ -36,6 +37,12 @@ export class ErrorBoundary extends Component<Props, State> {
     this.setState({
       error,
       errorInfo,
+    });
+
+    // Send to Sentry
+    captureError(error, {
+      componentStack: errorInfo.componentStack,
+      errorBoundary: 'ErrorBoundary'
     });
 
     // Call the onError callback if provided
