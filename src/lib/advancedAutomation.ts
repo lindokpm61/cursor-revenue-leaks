@@ -517,24 +517,26 @@ export const handleUserRegistration = async (registrationData: any, tempId: stri
 // Background automation processing (to be called periodically)
 export const processAutomationTasks = async () => {
   try {
-    // Run abandonment recovery
-    await setupAbandonmentRecovery();
+    console.log('🤖 Triggering automation processor...');
     
-    // Process consultant detection for recent submissions
-    const recentSubmissions = await supabase
-      .from('temporary_submissions')
-      .select('temp_id')
-      .gte('last_activity_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
-      .is('user_classification', null);
-    
-    if (recentSubmissions.data) {
-      for (const submission of recentSubmissions.data) {
-        await detectAndHandleConsultants(submission.temp_id);
+    // Call the automation-processor edge function to handle all automation tasks
+    const { data, error } = await supabase.functions.invoke('automation-processor', {
+      body: { 
+        action: 'process_all',
+        triggered_at: new Date().toISOString()
       }
+    });
+
+    if (error) {
+      console.error('Error calling automation processor:', error);
+      throw error;
     }
+
+    console.log('✅ Automation processor completed:', data);
+    return data;
     
-    console.log('Automation tasks processed successfully');
   } catch (error) {
-    console.error('Error processing automation tasks:', error);
+    console.error('❌ Error processing automation tasks:', error);
+    throw error;
   }
 };

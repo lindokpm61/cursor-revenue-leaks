@@ -52,7 +52,11 @@ export const triggerAbandonmentRecoveryTest = async () => {
     console.log('🚀 Manually triggering abandonment recovery...');
     
     const response = await supabase.functions.invoke('automation-processor', {
-      body: { action: 'process_abandonment_recovery' }
+      body: { 
+        action: 'process_all',
+        test_mode: true,
+        triggered_by: 'manual_test'
+      }
     });
 
     if (response.error) {
