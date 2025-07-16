@@ -364,7 +364,39 @@ export const userProfileService = {
   async getByUserId(userId: string) {
     const { data, error } = await supabase
       .from('user_profiles')
-      .select('*')
+      .select(`
+        id,
+        company_name,
+        actual_company_name,
+        role,
+        actual_role,
+        phone,
+        user_classification,
+        business_model,
+        first_submission_date,
+        total_companies_analyzed,
+        engagement_score,
+        engagement_tier,
+        user_tier,
+        user_type,
+        high_intent_lead,
+        high_value_user,
+        enterprise_qualified,
+        partnership_qualified,
+        return_visits,
+        total_time_spent,
+        actions_checked_count,
+        checked_actions,
+        last_action_plan_visit,
+        last_analysis_date,
+        most_recent_submission_date,
+        total_opportunity,
+        total_portfolio_value,
+        unique_industries_analyzed,
+        companies_analyzed,
+        created_at,
+        updated_at
+      `)
       .eq('id', userId)
       .maybeSingle();
     
