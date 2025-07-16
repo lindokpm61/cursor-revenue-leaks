@@ -92,10 +92,7 @@ export const LeadGenerationStep = ({ data, onUpdate, industry }: LeadGenerationS
             icon={<Clock className="h-4 w-4 text-muted-foreground" />}
             suffix="hours"
             validation={getValidationRules('leadResponseTimeHours', industry)}
-            benchmark={{
-              ...getBenchmark('leadResponseTimeHours', industry),
-              type: "inverse" as const
-            }}
+            benchmark={getBenchmark('leadResponseTimeHours', industry)}
             industryDefaults={{ [industry || 'other']: industryData.leadResponseTimeHours }}
             currentIndustry={industry}
             helpText="Average time to respond to new leads (lower is better)"

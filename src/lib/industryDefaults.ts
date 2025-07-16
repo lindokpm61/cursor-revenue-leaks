@@ -216,12 +216,12 @@ export const getBenchmark = (field: keyof IndustryBenchmarks, industry?: string)
   
   // Determine if higher or lower values are better
   const lowerIsBetter = ["leadResponseTimeHours", "failedPaymentRate", "manualHours"];
-  const type = lowerIsBetter.includes(field) ? "inverse" : "normal";
+  const type = lowerIsBetter.includes(field) ? "warning" : "good";
   
   return {
     value,
     label,
-    type: type as "normal" | "inverse"
+    type: type as "good" | "warning" | "danger"
   };
 };
 
