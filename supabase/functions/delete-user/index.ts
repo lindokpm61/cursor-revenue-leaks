@@ -6,8 +6,11 @@ interface DeleteUserRequest {
 }
 
 Deno.serve(async (req) => {
+  console.log('Delete user function called with method:', req.method)
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('Handling CORS preflight request')
     return new Response('ok', { headers: corsHeaders })
   }
 
@@ -74,7 +77,22 @@ Deno.serve(async (req) => {
     console.log('Admin user authenticated:', user.email)
 
     // Parse the request body
-    const { userId }: DeleteUserRequest = await req.json()
+    let requestBody;
+    try {
+      requestBody = await req.json()
+      console.log('Parsed request body:', requestBody)
+    } catch (parseError) {
+      console.error('Error parsing request body:', parseError)
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+    
+    const { userId }: DeleteUserRequest = requestBody
 
     if (!userId) {
       console.error('Missing userId in request')
