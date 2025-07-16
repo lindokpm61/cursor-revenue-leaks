@@ -479,14 +479,19 @@ const AdminLeads = () => {
           <Button 
             onClick={() => {
               if (filteredSubmissions.length > 0) {
-                handleQuickAction('Test Welcome Email', filteredSubmissions[0]);
+                // Create a test submission with your email for testing
+                const testSubmission = {
+                  ...filteredSubmissions[0],
+                  contact_email: 'keithantony6@gmail.com' // Use verified email for testing
+                };
+                handleQuickAction('Test Welcome Email', testSubmission);
               }
             }}
             className="bg-revenue-success text-white"
             disabled={filteredSubmissions.length === 0}
           >
             <Mail className="h-4 w-4 mr-2" />
-            Test Email
+            Test Email (to your email)
           </Button>
           <Button onClick={exportData} variant="outline">
             <Download className="h-4 w-4 mr-2" />
