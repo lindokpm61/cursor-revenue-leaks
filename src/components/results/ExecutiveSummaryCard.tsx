@@ -18,7 +18,10 @@ import { type Submission } from "@/lib/supabase";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { calculateExecutiveSummary, getUrgencyConfig } from "@/lib/calculator/priorityCalculations";
+import { useState } from "react";
 
 interface ExecutiveSummaryCardProps {
   submission: Submission;
@@ -34,6 +37,8 @@ export const ExecutiveSummaryCard = ({
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isEmailLoading, setIsEmailLoading] = useState(false);
 
   // Use unified calculation service for all data
   const executiveSummary = calculateExecutiveSummary(submission as any);
@@ -46,6 +51,54 @@ export const ExecutiveSummaryCard = ({
     } else {
       // If user is authenticated, go directly to action plan page
       navigate(`/action-plan/${submission.id}`);
+    }
+  };
+
+  const handleEmailResults = async () => {
+    if (!user?.email) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to email your results.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsEmailLoading(true);
+    try {
+      const resultUrl = `${window.location.origin}/results/${submission.id}`;
+      
+      const { data, error } = await supabase.functions.invoke('send-email', {
+        body: {
+          type: 'results',
+          to: user.email,
+          data: {
+            userName: user.user_metadata?.full_name || user.email.split('@')[0],
+            companyName: submission.company_name,
+            totalLeak: totalLeakage,
+            recoveryPotential: realisticRecovery,
+            resultUrl: resultUrl
+          }
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Email Sent!",
+        description: "Your revenue analysis results have been sent to your email address.",
+      });
+    } catch (error) {
+      console.error('Error sending email:', error);
+      toast({
+        title: "Email Failed",
+        description: "Failed to send results. Please try again or contact support.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsEmailLoading(false);
     }
   };
   
@@ -162,12 +215,14 @@ export const ExecutiveSummaryCard = ({
           {/* SECONDARY ACTIONS with generous spacing */}
           <div className="space-y-4 pt-4">
             <Button 
+              onClick={handleEmailResults}
+              disabled={isEmailLoading}
               variant="outline" 
               size="lg"
               className="w-full text-body px-8 py-3 h-[48px] transition-all duration-300"
             >
               <Mail className="h-5 w-5 mr-2" />
-              Email Me Results
+              {isEmailLoading ? "Sending..." : "Email Me Results"}
             </Button>
             
             {/* TERTIARY LEVEL: Details with 14px font */}
@@ -228,12 +283,14 @@ export const ExecutiveSummaryCard = ({
         {/* SECONDARY ACTIONS with reduced visual weight */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Button 
+            onClick={handleEmailResults}
+            disabled={isEmailLoading}
             variant="outline" 
             size="lg"
             className="text-body px-6 py-3 h-[48px] transition-all duration-300"
           >
             <Mail className="h-5 w-5 mr-2" />
-            Email Me Results
+            {isEmailLoading ? "Sending..." : "Email Me Results"}
           </Button>
           <Button 
             variant="outline" 
