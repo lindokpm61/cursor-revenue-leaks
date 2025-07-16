@@ -72,13 +72,13 @@ const Landing = () => {
             </div>
 
             <div className="mb-8">
-              <h1 id="hero-heading" className="text-hero font-bold mb-6">
+              <h1 id="hero-heading" className="text-hero mb-6 text-center">
                 <span className="bg-gradient-to-r from-primary to-revenue-primary bg-clip-text text-transparent">
                   Identify & Quantify
                 </span>
                 <br />
                 Your SaaS Revenue Leaks
-                <span className="block text-h2 font-normal text-muted-foreground mt-2">
+                <span className="block text-h1 text-muted-foreground mt-2">
                   In Less Than 5 Minutes
                 </span>
               </h1>
@@ -152,7 +152,7 @@ const Landing = () => {
       <section className="py-20 px-4 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-h1 font-bold mb-4">Why Revenue Leaks Cost You Millions</h2>
+            <h2 className="text-h1 mb-4">Why Revenue Leaks Cost You Millions</h2>
             <p className="text-h3 text-muted-foreground max-w-3xl mx-auto">
               Most SaaS companies lose 15-30% of potential revenue through preventable leaks. 
               Our calculator identifies the four critical areas where money slips through the cracks.
@@ -219,8 +219,8 @@ const Landing = () => {
       <section className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-h1 font-bold mb-4">Research-Backed Revenue Analytics</h2>
-            <p className="text-h3 text-muted-foreground">
+            <h2 className="text-h1 mb-4">Research-Backed Revenue Analytics</h2>
+            <p className="text-h3 text-muted-foreground max-w-3xl mx-auto">
               Our methodology is validated by industry research and proven benchmarks
             </p>
           </div>
@@ -331,7 +331,7 @@ const Landing = () => {
       <section className="py-20 px-4 bg-muted/30" aria-labelledby="testimonials-heading">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 id="testimonials-heading" className="text-h1 font-bold mb-4">
+            <h2 id="testimonials-heading" className="text-h1 mb-4">
               Trusted by Revenue Leaders Worldwide
             </h2>
             <p className="text-h3 text-muted-foreground max-w-3xl mx-auto">
@@ -381,7 +381,7 @@ const Landing = () => {
           {/* Beta Program CTA */}
           <div className="text-center">
             <div className="bg-gradient-to-r from-primary/10 to-revenue-primary/10 border border-primary/20 rounded-lg p-8 max-w-2xl mx-auto">
-              <h3 className="text-h2 font-bold mb-4">Join Our Beta Program</h3>
+              <h3 className="text-h2 mb-4">Join Our Beta Program</h3>
               <p className="text-body text-muted-foreground mb-6">
                 Get early access to our revenue leak calculator and help shape the future of SaaS revenue optimization. 
                 Your insights will contribute to building the most accurate assessment tool available.
@@ -409,7 +409,7 @@ const Landing = () => {
       {/* CTA Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-primary/10 to-revenue-primary/10">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-h1 font-bold mb-6">
+          <h2 className="text-h1 mb-6">
             Ready to Discover Your Hidden Revenue?
           </h2>
           <p className="text-h3 text-muted-foreground mb-8">
