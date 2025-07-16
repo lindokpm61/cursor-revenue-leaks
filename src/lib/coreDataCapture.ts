@@ -3,7 +3,9 @@ import {
   saveTemporarySubmission, 
   getTemporarySubmission, 
   getTempId as getBaseTempId,
-  getTrackingData 
+  getTrackingData,
+  scheduleEmailSequence,
+  hasSequenceBeenTriggered
 } from "@/lib/submission";
 
 // Enhanced temporary ID generation with better entropy
@@ -46,6 +48,61 @@ const trackSessionStart = async (tempId: string) => {
 const getUrlParameter = (name: string): string | null => {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get(name);
+};
+
+// Abandonment recovery scheduling
+const scheduleAbandonmentRecovery = async (tempId: string, progressData: any) => {
+  try {
+    // Cancel any existing abandonment sequences first
+    await supabase
+      .from('email_sequence_queue')
+      .update({ status: 'cancelled' })
+      .eq('temp_id', tempId)
+      .eq('status', 'pending')
+      .like('sequence_type', 'abandonment_%');
+
+    // Determine appropriate abandonment sequence based on progress
+    let abandonmentType = 'abandonment_step1';
+    let delayHours = 24;
+
+    if (progressData.completion_percentage >= 75) {
+      abandonmentType = 'abandonment_results';
+      delayHours = 12; // Shorter delay for near-completion
+    } else if (progressData.completion_percentage >= 50) {
+      abandonmentType = 'abandonment_step3';
+      delayHours = 18;
+    } else if (progressData.completion_percentage >= 25) {
+      abandonmentType = 'abandonment_step2';
+      delayHours = 24;
+    }
+
+    // Only schedule if we have an email
+    if (!progressData.email) return;
+
+    // Schedule the abandonment recovery
+    const scheduledFor = new Date();
+    scheduledFor.setHours(scheduledFor.getHours() + delayHours);
+
+    await scheduleEmailSequence({
+      temp_id: tempId,
+      contact_email: progressData.email,
+      sequence_type: abandonmentType,
+      scheduled_for: scheduledFor.toISOString(),
+      contact_data: {
+        company_name: progressData.company_name,
+        completion_percentage: progressData.completion_percentage,
+        current_step: progressData.current_step,
+        recovery_potential: progressData.recovery_potential,
+        abandoned_at: new Date().toISOString(),
+        delay_hours: delayHours
+      },
+      status: 'pending'
+    });
+
+    console.log(`Abandonment recovery scheduled: ${abandonmentType} for ${tempId} in ${delayHours}h`);
+  } catch (error) {
+    console.error('Error scheduling abandonment recovery:', error);
+  }
 };
 
 // N8N webhook integration for email automation
@@ -122,8 +179,8 @@ const updateN8NExecutionStatus = async (tempId: string, workflowType: string, ex
   }
 };
 
-// Check if email sequence has already been triggered
-const hasSequenceBeenTriggered = async (tempId: string, sequenceType: string): Promise<boolean> => {
+// Local function to check triggered sequences in temporary submission
+const checkLocalTriggeredSequences = async (tempId: string, sequenceType: string): Promise<boolean> => {
   try {
     const existing = await getTemporarySubmission(tempId);
     if (!existing) return false;
@@ -226,6 +283,11 @@ export const triggerEmailSequence = async (sequenceType: string, contactData: an
     const alreadyTriggered = await hasSequenceBeenTriggered(contactData.temp_id, sequenceType);
     if (alreadyTriggered) {
       return; // Exit silently to avoid spam logs
+    }
+
+    // Schedule abandonment recovery when user progresses (cancel previous ones)
+    if (sequenceType.includes('step_') && contactData.completion_percentage > 0) {
+      await scheduleAbandonmentRecovery(contactData.temp_id, contactData);
     }
     
     // Trigger N8N workflow for email automation
