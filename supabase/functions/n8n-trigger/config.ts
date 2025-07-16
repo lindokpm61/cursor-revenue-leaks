@@ -11,6 +11,7 @@ export const getN8NWebhooks = () => ({
   'high-value-alert': Deno.env.get('N8N_HIGH_VALUE_ALERT_WEBHOOK') || 'https://webhook.site/placeholder-high-value-alert',
   'abandonment-recovery': Deno.env.get('N8N_ABANDONMENT_RECOVERY_WEBHOOK') || 'https://webhook.site/placeholder-abandonment-recovery',
   'analytics-reporting': Deno.env.get('N8N_ANALYTICS_REPORTING_WEBHOOK') || 'https://webhook.site/placeholder-analytics-reporting',
+  'person-company-linking': Deno.env.get('N8N_CRM_INTEGRATION_WEBHOOK') || 'https://webhook.site/placeholder-person-company-linking',
   
   // Results and calculation workflows
   'results-calculated': Deno.env.get('N8N_ANALYTICS_REPORTING_WEBHOOK') || 'https://webhook.site/placeholder-results-calculated',
