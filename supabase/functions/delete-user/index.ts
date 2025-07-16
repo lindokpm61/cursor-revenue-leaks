@@ -114,7 +114,62 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Delete the user - this will cascade delete related data due to foreign keys
+    // Delete the user - first clean up related data to avoid foreign key constraints
+    console.log('Starting user deletion process for:', userId)
+
+    // First, delete from user_profiles table to avoid foreign key constraint violations
+    const { error: profileDeleteError } = await supabaseAdmin
+      .from('user_profiles')
+      .delete()
+      .eq('id', userId)
+
+    if (profileDeleteError) {
+      console.error('Error deleting user profile:', profileDeleteError)
+      // Continue anyway - profile might not exist
+    } else {
+      console.log('Successfully deleted user profile')
+    }
+
+    // Delete any user_company_relationships
+    const { error: relationshipsError } = await supabaseAdmin
+      .from('user_company_relationships')
+      .delete()
+      .eq('user_id', userId)
+
+    if (relationshipsError) {
+      console.error('Error deleting user relationships:', relationshipsError)
+      // Continue anyway
+    } else {
+      console.log('Successfully deleted user relationships')
+    }
+
+    // Delete any user_engagement_events
+    const { error: engagementError } = await supabaseAdmin
+      .from('user_engagement_events')
+      .delete()
+      .eq('user_id', userId)
+
+    if (engagementError) {
+      console.error('Error deleting user engagement events:', engagementError)
+      // Continue anyway
+    } else {
+      console.log('Successfully deleted user engagement events')
+    }
+
+    // Update any submissions to remove user_id reference
+    const { error: submissionUpdateError } = await supabaseAdmin
+      .from('submissions')
+      .update({ user_id: null })
+      .eq('user_id', userId)
+
+    if (submissionUpdateError) {
+      console.error('Error updating submissions:', submissionUpdateError)
+      // Continue anyway
+    } else {
+      console.log('Successfully updated submissions to remove user reference')
+    }
+
+    // Finally, delete the user from auth
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
 
     if (deleteError) {
