@@ -206,11 +206,11 @@ export const useAuthProvider = () => {
   const ensureCrmPerson = async (user: User) => {
     try {
       // Check if CRM person already exists
-      const { data: existingPerson } = await supabase
+      const { data: existingPerson, error: checkError } = await supabase
         .from('crm_persons')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       // Create CRM person if it doesn't exist
       if (!existingPerson) {
