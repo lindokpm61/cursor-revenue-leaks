@@ -47,6 +47,7 @@ Deno.serve(async (req) => {
     )
 
     if (authError || !user) {
+      console.error('Authentication error:', authError)
       return new Response(
         JSON.stringify({ error: 'Invalid authentication' }),
         { 
@@ -56,10 +57,11 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Check if the authenticated user is an admin
-    const { data: adminCheck, error: adminError } = await supabaseAdmin.rpc('is_admin')
+    // Check if the authenticated user is an admin by checking their role
+    const userRole = user.user_metadata?.role || 'user'
     
-    if (adminError || !adminCheck) {
+    if (userRole !== 'admin') {
+      console.error('Non-admin user attempted deletion:', user.email)
       return new Response(
         JSON.stringify({ error: 'Unauthorized - Admin access required' }),
         { 
@@ -69,10 +71,13 @@ Deno.serve(async (req) => {
       )
     }
 
+    console.log('Admin user authenticated:', user.email)
+
     // Parse the request body
     const { userId }: DeleteUserRequest = await req.json()
 
     if (!userId) {
+      console.error('Missing userId in request')
       return new Response(
         JSON.stringify({ error: 'User ID is required' }),
         { 
@@ -81,6 +86,8 @@ Deno.serve(async (req) => {
         }
       )
     }
+
+    console.log('Attempting to delete user with ID:', userId)
 
     // Prevent deletion of admin users
     const { data: targetUser, error: fetchError } = await supabaseAdmin.auth.admin.getUserById(userId)

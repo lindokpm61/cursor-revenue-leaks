@@ -167,15 +167,23 @@ export const userService = {
       return { data: null, error: { message: 'Not authenticated' } };
     }
 
-    // Call the Edge Function with proper authorization
-    const { data, error } = await supabase.functions.invoke('delete-user', {
-      body: { userId },
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-      },
-    });
+    console.log('Calling delete-user function with userId:', userId);
 
-    return { data, error };
+    try {
+      // Call the Edge Function with proper authorization
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      console.log('Delete function response:', { data, error });
+      return { data, error };
+    } catch (err) {
+      console.error('Error calling delete function:', err);
+      return { data: null, error: err };
+    }
   }
 };
 
