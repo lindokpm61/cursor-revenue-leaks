@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 import { submissionService, leadScoringService } from "@/lib/supabase";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { EmailService } from "@/lib/emailService";
 
 const AdminLeads = () => {
   const [submissions, setSubmissions] = useState<any[]>([]);
@@ -229,14 +230,71 @@ const AdminLeads = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
-  const handleQuickAction = (action: string, submission: any) => {
+  const handleQuickAction = async (action: string, submission: any) => {
     // Track admin action
     console.log(`Admin action: ${action} for submission ${submission.id}`);
     
-    toast({
-      title: "Action Logged",
-      description: `${action} action recorded for ${submission.company_name}`,
-    });
+    if (action === 'Send Follow-up Email') {
+      try {
+        const result = await EmailService.sendResultsEmail(
+          submission.contact_email,
+          {
+            userName: submission.contact_email.split('@')[0],
+            companyName: submission.company_name,
+            totalLeak: submission.total_leak || 0,
+            recoveryPotential: submission.recovery_potential_70 || 0,
+            resultUrl: `${window.location.origin}/results/${submission.id}`
+          }
+        );
+
+        if (result.success) {
+          toast({
+            title: "Email Sent Successfully",
+            description: `Follow-up email sent to ${submission.contact_email}`,
+          });
+        } else {
+          throw new Error(result.error || 'Failed to send email');
+        }
+      } catch (error) {
+        console.error('Email sending error:', error);
+        toast({
+          title: "Email Failed",
+          description: `Failed to send email: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          variant: "destructive",
+        });
+      }
+    } else if (action === 'Test Welcome Email') {
+      try {
+        const result = await EmailService.sendWelcomeEmail(
+          submission.contact_email,
+          {
+            userName: submission.contact_email.split('@')[0],
+            companyName: submission.company_name
+          }
+        );
+
+        if (result.success) {
+          toast({
+            title: "Welcome Email Sent",
+            description: `Welcome email sent to ${submission.contact_email}`,
+          });
+        } else {
+          throw new Error(result.error || 'Failed to send email');
+        }
+      } catch (error) {
+        console.error('Email sending error:', error);
+        toast({
+          title: "Email Failed",
+          description: `Failed to send email: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          variant: "destructive",
+        });
+      }
+    } else {
+      toast({
+        title: "Action Logged",
+        description: `${action} action recorded for ${submission.company_name}`,
+      });
+    }
   };
 
   const LeadEngagementInsights = ({ lead }: { lead: any }) => (
@@ -417,10 +475,24 @@ const AdminLeads = () => {
             Manage and track revenue leak calculator submissions ({filteredSubmissions.length} leads)
           </p>
         </div>
-        <Button onClick={exportData} variant="outline">
-          <Download className="h-4 w-4 mr-2" />
-          Export CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => {
+              if (filteredSubmissions.length > 0) {
+                handleQuickAction('Test Welcome Email', filteredSubmissions[0]);
+              }
+            }}
+            className="bg-revenue-success text-white"
+            disabled={filteredSubmissions.length === 0}
+          >
+            <Mail className="h-4 w-4 mr-2" />
+            Test Email
+          </Button>
+          <Button onClick={exportData} variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
