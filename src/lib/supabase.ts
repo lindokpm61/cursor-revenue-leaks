@@ -160,10 +160,21 @@ export const userService = {
   },
 
   async deleteUser(userId: string) {
-    // Use Supabase Admin API to delete the user
-    // This will cascade delete all related data due to foreign key constraints
-    const { data, error } = await supabase.auth.admin.deleteUser(userId);
+    // Get the current user's session to include auth token
+    const { data: { session } } = await supabase.auth.getSession();
     
+    if (!session) {
+      return { data: null, error: { message: 'Not authenticated' } };
+    }
+
+    // Call the Edge Function with proper authorization
+    const { data, error } = await supabase.functions.invoke('delete-user', {
+      body: { userId },
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
+
     return { data, error };
   }
 };
