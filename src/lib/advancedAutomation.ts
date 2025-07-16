@@ -409,12 +409,7 @@ export const handleUserRegistration = async (registrationData: any, tempId: stri
         // Preserve calculated results and timing
         total_leak: tempSubmission.total_revenue_leak,
         recovery_potential_70: tempSubmission.recovery_potential,
-        lead_score: tempSubmission.lead_score,
-        
-        // Engagement and attribution data
-        utm_source: tempSubmission.utm_source,
-        utm_medium: tempSubmission.utm_medium,
-        utm_campaign: tempSubmission.utm_campaign
+        lead_score: tempSubmission.lead_score
       });
       
       // 4. Create enhanced user profile
