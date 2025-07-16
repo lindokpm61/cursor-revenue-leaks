@@ -5,25 +5,6 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 const Landing = () => {
-  const [visitorCount, setVisitorCount] = useState(12847);
-  const [recentCompletions, setRecentCompletions] = useState(3);
-
-  useEffect(() => {
-    // Simulate real-time visitor counter for social proof
-    const interval = setInterval(() => {
-      setVisitorCount(prev => prev + Math.floor(Math.random() * 3));
-    }, 30000);
-
-    // Simulate recent completions counter
-    const completionsInterval = setInterval(() => {
-      setRecentCompletions(prev => Math.floor(Math.random() * 8) + 1);
-    }, 45000);
-
-    return () => {
-      clearInterval(interval);
-      clearInterval(completionsInterval);
-    };
-  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -72,21 +53,21 @@ const Landing = () => {
       <main id="main-content">
         <section className="py-20 px-4" aria-labelledby="hero-heading">
           <div className="max-w-7xl mx-auto text-center">
-            {/* Social Proof Banner */}
+            {/* New System Banner */}
             <div className="mb-6 flex flex-wrap justify-center items-center gap-4 text-small text-muted-foreground">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-revenue-success rounded-full animate-pulse" aria-hidden="true"></div>
-                <span><strong>{visitorCount.toLocaleString()}+</strong> assessments completed</span>
+                <span><strong>New System</strong> - Beta Access Available</span>
               </div>
               <div className="hidden sm:block w-px h-4 bg-border" aria-hidden="true"></div>
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-revenue-primary" aria-hidden="true" />
-                <span><strong>{recentCompletions}</strong> completed in the last hour</span>
+                <span><strong>5 minutes</strong> to complete assessment</span>
               </div>
               <div className="hidden sm:block w-px h-4 bg-border" aria-hidden="true"></div>
               <div className="flex items-center gap-2">
                 <Award className="h-4 w-4 text-revenue-warning" aria-hidden="true" />
-                <span>Trusted by <strong>Fortune 500</strong> companies</span>
+                <span>Research-backed <strong>methodology</strong></span>
               </div>
             </div>
 
@@ -115,8 +96,8 @@ const Landing = () => {
                   <span className="font-semibold text-foreground">Average Result:</span>
                 </div>
                 <p className="text-body text-muted-foreground">
-                  Companies discover <strong className="text-revenue-danger">$2.4M+ in recoverable revenue</strong> 
-                  in their first assessment
+                  Industry research shows SaaS companies typically lose <strong className="text-revenue-danger">15-30% of potential revenue</strong> 
+                  through preventable operational gaps
                 </p>
               </div>
 
@@ -358,90 +339,68 @@ const Landing = () => {
             </p>
           </div>
 
-          {/* Testimonials Grid */}
+          {/* Industry Insights Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             <Card className="border-border/50 shadow-lg">
               <CardContent className="p-6">
-                <div className="flex items-center gap-1 mb-4" aria-label="5 star rating">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-revenue-warning text-revenue-warning" aria-hidden="true" />
-                  ))}
+                <div className="text-h2 font-bold text-revenue-primary mb-2">
+                  New System
                 </div>
-                <blockquote className="text-body text-muted-foreground mb-4">
-                  "We discovered $3.2M in recoverable revenue in just 4 minutes. The calculator identified gaps we hadn't even considered."
-                </blockquote>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-primary to-revenue-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold" aria-hidden="true">
-                    SH
-                  </div>
-                  <div>
-                    <div className="font-semibold text-foreground">Sarah Chen</div>
-                    <div className="text-small text-muted-foreground">VP Revenue, TechScale Inc.</div>
-                  </div>
-                </div>
+                <h3 className="text-body font-semibold mb-4">Built for Modern SaaS</h3>
+                <p className="text-small text-muted-foreground">
+                  Our calculator uses the latest industry research and validated methodologies to provide accurate revenue leak assessments for today's SaaS businesses.
+                </p>
               </CardContent>
             </Card>
 
             <Card className="border-border/50 shadow-lg">
               <CardContent className="p-6">
-                <div className="flex items-center gap-1 mb-4" aria-label="5 star rating">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-revenue-warning text-revenue-warning" aria-hidden="true" />
-                  ))}
+                <div className="text-h2 font-bold text-revenue-success mb-2">
+                  Research-Backed
                 </div>
-                <blockquote className="text-body text-muted-foreground mb-4">
-                  "The lead response insights alone saved us $500K annually. This should be mandatory for every SaaS company."
-                </blockquote>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-primary to-revenue-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold" aria-hidden="true">
-                    MR
-                  </div>
-                  <div>
-                    <div className="font-semibold text-foreground">Michael Rodriguez</div>
-                    <div className="text-small text-muted-foreground">CEO, CloudFlow Solutions</div>
-                  </div>
-                </div>
+                <h3 className="text-body font-semibold mb-4">Validated Methodology</h3>
+                <p className="text-small text-muted-foreground">
+                  Based on industry benchmarks from SaaS Capital, ChartMogul, and Harvard Business Review research on revenue optimization patterns.
+                </p>
               </CardContent>
             </Card>
 
             <Card className="border-border/50 shadow-lg">
               <CardContent className="p-6">
-                <div className="flex items-center gap-1 mb-4" aria-label="5 star rating">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-revenue-warning text-revenue-warning" aria-hidden="true" />
-                  ))}
+                <div className="text-h2 font-bold text-revenue-warning mb-2">
+                  Beta Access
                 </div>
-                <blockquote className="text-body text-muted-foreground mb-4">
-                  "Finally, a tool that quantifies what we suspected. The ROI calculations helped us prioritize our optimization efforts."
-                </blockquote>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-primary to-revenue-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold" aria-hidden="true">
-                    LK
-                  </div>
-                  <div>
-                    <div className="font-semibold text-foreground">Lisa Kim</div>
-                    <div className="text-small text-muted-foreground">CRO, DataDriven SaaS</div>
-                  </div>
-                </div>
+                <h3 className="text-body font-semibold mb-4">Early Access Program</h3>
+                <p className="text-small text-muted-foreground">
+                  Be among the first to use our revenue leak calculator. Your feedback helps us refine the tool for maximum accuracy and value.
+                </p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Company Logos */}
+          {/* Beta Program CTA */}
           <div className="text-center">
-            <p className="text-small text-muted-foreground mb-8">
-              Trusted by teams at industry-leading companies
-            </p>
-            <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
-              {['TechCorp', 'DataFlow', 'CloudScale', 'RevTech', 'SaaSGrow', 'MetricsPro'].map((company, index) => (
-                <div 
-                  key={index} 
-                  className="px-4 py-2 bg-muted rounded-lg text-muted-foreground font-semibold"
-                  aria-label={`${company} logo`}
-                >
-                  {company}
+            <div className="bg-gradient-to-r from-primary/10 to-revenue-primary/10 border border-primary/20 rounded-lg p-8 max-w-2xl mx-auto">
+              <h3 className="text-h2 font-bold mb-4">Join Our Beta Program</h3>
+              <p className="text-body text-muted-foreground mb-6">
+                Get early access to our revenue leak calculator and help shape the future of SaaS revenue optimization. 
+                Your insights will contribute to building the most accurate assessment tool available.
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center gap-4 items-center">
+                <Link to="/calculator">
+                  <Button 
+                    size="lg" 
+                    className="bg-gradient-to-r from-primary to-revenue-primary"
+                  >
+                    Start Beta Assessment
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+                <div className="flex items-center gap-2 text-small text-muted-foreground">
+                  <CheckCircle className="h-4 w-4 text-revenue-success" />
+                  <span>Free • No Commitment • Instant Results</span>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         </div>
