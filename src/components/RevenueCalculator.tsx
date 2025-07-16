@@ -10,8 +10,10 @@ import { OperationsStep } from "./calculator/OperationsStep";
 import { ResultsStep } from "./calculator/ResultsStep";
 import { ResultsPreview } from "./calculator/ResultsPreview";
 import { ExitIntentModal } from "./calculator/ExitIntentModal";
+import { ProgressiveEmailCapture } from "./calculator/ProgressiveEmailCapture";
 import { useCalculatorData } from "./calculator/useCalculatorData";
 import { useExitIntent } from "@/hooks/useExitIntent";
+import { useProgressiveEmailCapture } from "@/hooks/useProgressiveEmailCapture";
 import { updateCalculatorProgress, trackEngagement, getTemporarySubmission } from "@/lib/submission";
 import { 
   handleStep1Complete, 
@@ -44,15 +46,23 @@ export const RevenueCalculator = () => {
     scrollThreshold: 30 // Reduce scroll threshold for testing
   });
 
-  // Debug exit intent state
+  // Progressive email capture
+  const emailCapture = useProgressiveEmailCapture(tempId, currentStep, {
+    timeBasedDelay: 90000, // 1.5 minutes for time-based capture
+    stepCaptureSteps: [2, 3], // Trigger after steps 2 and 3
+    minimumValueThreshold: 25000 // $25k minimum for value-based triggers
+  });
+
+  // Integrate exit intent with progressive email capture
   useEffect(() => {
-    console.log('Exit intent state:', {
-      isTriggered: exitIntent.isTriggered,
-      hasEngagement: exitIntent.hasEngagement,
-      timeOnPage: exitIntent.timeOnPage,
-      scrollDepth: exitIntent.scrollDepth
-    });
-  }, [exitIntent.isTriggered, exitIntent.hasEngagement, exitIntent.timeOnPage, exitIntent.scrollDepth]);
+    if (exitIntent.isTriggered && !emailCapture.hasEmail && !emailCapture.isActive) {
+      emailCapture.triggerExitIntent({
+        companyName: data.companyInfo.companyName,
+        estimatedValue: getEstimatedLeak()
+      });
+      exitIntent.resetTrigger(); // Reset exit intent since we're handling it with progressive capture
+    }
+  }, [exitIntent.isTriggered, emailCapture.hasEmail, emailCapture.isActive]);
 
   // Initialize calculator and load any existing temporary data
   useEffect(() => {
@@ -122,6 +132,12 @@ export const RevenueCalculator = () => {
             }
             
             await handleStep1Complete(data.companyInfo, setCurrentStep);
+            
+            // Update progressive email capture with the email from step 1
+            if (data.companyInfo.email && !emailCapture.hasEmail) {
+              emailCapture.handleEmailCaptured(data.companyInfo.email);
+            }
+            
             toast({
               title: "Company Information Saved",
               description: "Welcome! Let's analyze your lead generation metrics.",
@@ -130,6 +146,12 @@ export const RevenueCalculator = () => {
             
           case 2:
             await handleStep2Complete(data.leadGeneration, setCurrentStep);
+            
+            // Trigger progressive email capture after step 2 completion
+            if (!emailCapture.hasEmail) {
+              emailCapture.triggerStepCompletion(2, data.leadGeneration);
+            }
+            
             toast({
               title: "Lead Generation Data Saved",
               description: "Great! Now let's look at your self-serve metrics.",
@@ -138,6 +160,12 @@ export const RevenueCalculator = () => {
             
           case 3:
             await handleStep3Complete(data.selfServeMetrics, setCurrentStep);
+            
+            // Trigger progressive email capture after step 3 completion
+            if (!emailCapture.hasEmail) {
+              emailCapture.triggerStepCompletion(3, data.selfServeMetrics);
+            }
+            
             toast({
               title: "Self-Serve Metrics Saved",
               description: "Excellent! Finally, let's capture your operations data.",
@@ -150,6 +178,15 @@ export const RevenueCalculator = () => {
               setCurrentStep, 
               (results) => setCalculationResults(results)
             );
+            
+            // Trigger value-based email capture when results are calculated
+            if (!emailCapture.hasEmail && calculations.totalLeakage > 0) {
+              emailCapture.triggerValueReveal(
+                calculations.totalLeakage, 
+                data.companyInfo.companyName
+              );
+            }
+            
             toast({
               title: "Analysis Complete!",
               description: "Your revenue leak analysis is ready. Check out your results below.",
@@ -230,9 +267,20 @@ export const RevenueCalculator = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/[0.02] to-accent/[0.02] p-4">
-      {/* Exit Intent Modal */}
+      {/* Progressive Email Capture Modal */}
+      <ProgressiveEmailCapture
+        isOpen={emailCapture.isActive}
+        onClose={emailCapture.handleCaptureDismissed}
+        onSuccess={emailCapture.handleEmailCaptured}
+        currentStep={currentStep}
+        tempId={tempId}
+        trigger={emailCapture.activeCapture || 'exit_intent'}
+        context={emailCapture.captureContext}
+      />
+      
+      {/* Legacy Exit Intent Modal - Only show if progressive capture is not active */}
       <ExitIntentModal
-        isOpen={exitIntent.isTriggered}
+        isOpen={exitIntent.isTriggered && !emailCapture.isActive}
         onClose={exitIntent.resetTrigger}
         currentStep={currentStep}
         tempId={tempId}
