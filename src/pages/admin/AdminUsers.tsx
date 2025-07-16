@@ -7,8 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { 
   Search, Users, Building, TrendingUp, Crown, Shield, Clock,
-  ArrowUpDown, Filter, CheckCircle, XCircle, AlertCircle, UserCheck
+  ArrowUpDown, Filter, CheckCircle, XCircle, AlertCircle, UserCheck, Trash2
 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { userService } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
@@ -253,6 +254,31 @@ const AdminUsers = () => {
     }
   };
 
+  const handleDeleteUser = async (userId: string, email: string) => {
+    try {
+      const response = await userService.deleteUser(userId);
+      
+      if (response.error) {
+        throw response.error;
+      }
+
+      // Remove user from local state
+      setUsers(prev => prev.filter(u => u.user_id !== userId));
+      
+      toast({
+        title: "Success",
+        description: `User ${email} has been deleted successfully`,
+      });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete user. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -461,6 +487,7 @@ const AdminUsers = () => {
                     </Button>
                   </TableHead>
                   <TableHead>Last Activity</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -513,6 +540,43 @@ const AdminUsers = () => {
                           </div>
                         )}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                            disabled={user.user_role === 'admin'}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete User</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete user <strong>{user.email}</strong>? 
+                              This action cannot be undone and will permanently delete:
+                              <ul className="list-disc list-inside mt-2 space-y-1">
+                                <li>User account and profile</li>
+                                <li>{user.total_submissions} submission(s)</li>
+                                <li>All related analytics and engagement data</li>
+                              </ul>
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteUser(user.user_id, user.email)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete User
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))}

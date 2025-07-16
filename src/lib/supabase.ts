@@ -157,6 +157,14 @@ export const userService = {
     });
     
     return { data, error };
+  },
+
+  async deleteUser(userId: string) {
+    // Use Supabase Admin API to delete the user
+    // This will cascade delete all related data due to foreign key constraints
+    const { data, error } = await supabase.auth.admin.deleteUser(userId);
+    
+    return { data, error };
   }
 };
 
