@@ -266,14 +266,14 @@ const AdminUsers = () => {
       setUsers(prev => prev.filter(u => u.user_id !== userId));
       
       toast({
-        title: "Success",
-        description: `User ${email} has been deleted successfully`,
+        title: "User Data Cleaned",
+        description: response.data?.message || `User data for ${email} has been cleaned successfully`,
       });
     } catch (error) {
       console.error('Error deleting user:', error);
       toast({
         title: "Error",
-        description: "Failed to delete user. Please try again.",
+        description: "Failed to clean user data. Please try again.",
         variant: "destructive",
       });
     }
