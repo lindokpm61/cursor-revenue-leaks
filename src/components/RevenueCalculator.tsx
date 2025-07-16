@@ -8,6 +8,7 @@ import { LeadGenerationStep } from "./calculator/LeadGenerationStep";
 import { SelfServeStep } from "./calculator/SelfServeStep";
 import { OperationsStep } from "./calculator/OperationsStep";
 import { ResultsStep } from "./calculator/ResultsStep";
+import { ResultsPreview } from "./calculator/ResultsPreview";
 import { useCalculatorData } from "./calculator/useCalculatorData";
 import { updateCalculatorProgress, trackEngagement, getTemporarySubmission } from "@/lib/submission";
 import { 
@@ -166,6 +167,21 @@ export const RevenueCalculator = () => {
       default:
         return {};
     }
+  };
+
+  // Helper function to check if we have valid data for preview
+  const hasValidData = () => {
+    return (data.companyInfo.companyName && data.companyInfo.email && 
+           (data.leadGeneration.monthlyLeads > 0 || data.selfServeMetrics.monthlyFreeSignups > 0));
+  };
+
+  // Calculate estimated leak for preview
+  const getEstimatedLeak = () => {
+    if (!hasValidData()) return undefined;
+    
+    const arr = data.companyInfo.currentARR || 1000000; // Default 1M if not provided
+    const estimatedLeak = arr * 0.2; // Rough 20% estimate for preview
+    return estimatedLeak;
   };
 
   const renderStep = () => {
@@ -355,6 +371,17 @@ export const RevenueCalculator = () => {
             {renderStep()}
           </CardContent>
         </Card>
+
+        {/* Results Preview */}
+        {currentStep < 5 && (
+          <ResultsPreview
+            completedSteps={currentStep - 1}
+            totalSteps={4}
+            hasValidData={hasValidData()}
+            estimatedLeakValue={getEstimatedLeak()}
+            topLeakCategory="Lead Response"
+          />
+        )}
 
         {/* Enhanced Navigation */}
         {currentStep < 5 && (
