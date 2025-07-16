@@ -392,8 +392,17 @@ const Landing = () => {
                     size="lg" 
                     className="bg-gradient-to-r from-primary to-revenue-primary"
                   >
-                    Start Beta Assessment
+                    Start Free Assessment
                     <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link to="/register">
+                  <Button 
+                    variant="outline"
+                    size="lg" 
+                    className="border-primary/20 hover:bg-primary/5"
+                  >
+                    Create Account
                   </Button>
                 </Link>
                 <div className="flex items-center gap-2 text-small text-muted-foreground">

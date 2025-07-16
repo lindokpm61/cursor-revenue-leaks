@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -35,8 +36,16 @@ const App = () => (
             <Route path="/calculator" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/admin" element={<AdminLayout />}>
+            <Route path="/dashboard" element={
+              <AuthGuard requireAuth={true}>
+                <Dashboard />
+              </AuthGuard>
+            } />
+            <Route path="/admin" element={
+              <AuthGuard requireAuth={true} requireAdmin={true}>
+                <AdminLayout />
+              </AuthGuard>
+            }>
               <Route index element={<AdminDashboard />} />
               <Route path="leads" element={<AdminLeads />} />
               <Route path="analytics" element={<AdminAnalytics />} />
@@ -44,9 +53,21 @@ const App = () => (
               <Route path="users" element={<AdminUsers />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
-            <Route path="/results/:id" element={<Results />} />
-            <Route path="/action-plan/:id" element={<ActionPlan />} />
-            <Route path="/test-sync" element={<TestSync />} />
+            <Route path="/results/:id" element={
+              <AuthGuard requireAuth={true}>
+                <Results />
+              </AuthGuard>
+            } />
+            <Route path="/action-plan/:id" element={
+              <AuthGuard requireAuth={true}>
+                <ActionPlan />
+              </AuthGuard>
+            } />
+            <Route path="/test-sync" element={
+              <AuthGuard requireAuth={true} requireAdmin={true}>
+                <TestSync />
+              </AuthGuard>
+            } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

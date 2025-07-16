@@ -90,38 +90,78 @@ export const useAuthProvider = () => {
 
   const login = async (email: string, password: string) => {
     try {
+      // Import validation inside function to avoid circular dependencies
+      const { validateEmail, mapAuthError } = await import('@/lib/authValidation');
+      
+      // Validate email format
+      const emailValidation = validateEmail(email);
+      if (!emailValidation.isValid) {
+        return { success: false, error: emailValidation.error };
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: mapAuthError(error) };
       }
 
       return { success: true };
     } catch (error) {
-      return { success: false, error: 'Network error' };
+      const { mapAuthError } = await import('@/lib/authValidation');
+      return { success: false, error: mapAuthError(error) };
     }
   };
 
-  const register = async (email: string, password: string) => {
+  const register = async (email: string, password: string, metadata?: Record<string, any>) => {
     try {
+      // Import validation inside function to avoid circular dependencies
+      const { validateEmail, validatePassword, mapAuthError } = await import('@/lib/authValidation');
+      
+      // Validate inputs
+      const emailValidation = validateEmail(email);
+      if (!emailValidation.isValid) {
+        return { success: false, error: emailValidation.error };
+      }
+
+      const passwordValidation = validatePassword(password);
+      if (!passwordValidation.isValid) {
+        return { success: false, error: passwordValidation.error };
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${window.location.origin}/`,
+          data: metadata || {}
         }
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: mapAuthError(error) };
+      }
+
+      // Send welcome email if registration successful
+      if (data.user) {
+        try {
+          const { EmailService } = await import('@/lib/emailService');
+          await EmailService.sendWelcomeEmail(email, {
+            userName: metadata?.firstName || email.split('@')[0],
+            companyName: metadata?.companyName || 'your company'
+          });
+        } catch (emailError) {
+          console.warn('Failed to send welcome email:', emailError);
+          // Don't fail registration if email fails
+        }
       }
 
       return { success: true };
     } catch (error) {
-      return { success: false, error: 'Network error' };
+      const { mapAuthError } = await import('@/lib/authValidation');
+      return { success: false, error: mapAuthError(error) };
     }
   };
 
