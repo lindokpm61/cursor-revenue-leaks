@@ -352,9 +352,12 @@ export const leadScoringService = {
 // User profile operations
 export const userProfileService = {
   async create(data: UserProfileInsert) {
+    // Filter out UTM fields that don't exist in the user_profiles table
+    const { utm_source, utm_medium, utm_campaign, ...cleanData } = data as any;
+    
     const { data: result, error } = await supabase
       .from('user_profiles')
-      .insert(data)
+      .insert(cleanData)
       .select()
       .single();
     
