@@ -51,7 +51,7 @@ const getUrlParameter = (name: string): string | null => {
 };
 
 // Abandonment recovery scheduling
-const scheduleAbandonmentRecovery = async (tempId: string, progressData: any) => {
+export const scheduleAbandonmentRecovery = async (tempId: string, progressData: any) => {
   try {
     // Cancel any existing abandonment sequences first
     await supabase

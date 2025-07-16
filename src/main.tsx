@@ -13,6 +13,23 @@ if (typeof window !== 'undefined') {
     trigger: triggerAbandonmentRecoveryTest,
     process: processAutomationTasks
   };
+  
+  // Additional debugging helpers
+  (window as any).debug = {
+    clearLocalStorage: () => {
+      localStorage.removeItem('temp_submission_id');
+      console.log('🗑️ Cleared temp submission ID from localStorage');
+    },
+    simulateAbandonment: async () => {
+      console.log('🚨 Simulating abandonment...');
+      const tempId = localStorage.getItem('temp_submission_id');
+      if (tempId) {
+        await triggerAbandonmentRecoveryTest();
+      } else {
+        console.log('No temp ID found - start calculator first');
+      }
+    }
+  };
 }
 
 createRoot(document.getElementById("root")!).render(

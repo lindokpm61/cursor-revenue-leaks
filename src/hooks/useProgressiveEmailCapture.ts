@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getTemporarySubmission } from '@/lib/submission/submissionStorage';
 import { trackEngagement } from '@/lib/submission/engagementTracking';
+import { scheduleAbandonmentRecovery } from '@/lib/coreDataCapture';
 
 interface ProgressiveEmailCaptureConfig {
   stepCompletionCapture: boolean;
@@ -168,7 +169,7 @@ export const useProgressiveEmailCapture = (
   }, [triggerCapture]);
 
   // Handle successful email capture
-  const handleEmailCaptured = useCallback((email: string) => {
+  const handleEmailCaptured = useCallback(async (email: string) => {
     setState(prev => ({
       ...prev,
       hasEmail: true,
@@ -184,7 +185,22 @@ export const useProgressiveEmailCapture = (
       time_on_page: state.timeOnPage,
       email_provided: true
     }).catch(error => console.error('Error tracking email capture:', error));
-  }, [activeCapture.type, currentStep, state.timeOnPage]);
+
+    // Schedule abandonment recovery now that we have email
+    if (tempId && currentStep > 1) {
+      try {
+        await scheduleAbandonmentRecovery(tempId, {
+          email,
+          current_step: currentStep,
+          completion_percentage: (currentStep / 5) * 100,
+          company_name: activeCapture.context?.companyName,
+          recovery_potential: activeCapture.context?.estimatedValue
+        });
+      } catch (error) {
+        console.error('Error scheduling abandonment recovery:', error);
+      }
+    }
+  }, [activeCapture.type, activeCapture.context, currentStep, state.timeOnPage, tempId]);
 
   // Handle capture dismissal
   const handleCaptureDismissed = useCallback(() => {

@@ -23,6 +23,8 @@ import {
   isValidEmail 
 } from "@/lib/calculatorHandlers";
 import { useToast } from "@/hooks/use-toast";
+import { useAbandonmentDetection } from "@/hooks/useAbandonmentDetection";
+import { AbandonmentWarning } from "@/components/AbandonmentWarning";
 
 const steps = [
   { id: 1, title: "Company Info", description: "Basic company information" },
@@ -51,6 +53,21 @@ export const RevenueCalculator = () => {
     timeBasedDelay: 90000, // 1.5 minutes for time-based capture
     stepCaptureSteps: [2, 3], // Trigger after steps 2 and 3
     minimumValueThreshold: 25000 // $25k minimum for value-based triggers
+  });
+
+  // Real-time abandonment detection
+  const abandonmentDetection = useAbandonmentDetection(tempId, currentStep, data, {
+    inactivityTimeout: 240000, // 4 minutes for testing (normally 5 minutes)
+    warningTimeout: 180000, // 3 minutes for testing (normally 4 minutes)
+    minimumTimeOnPage: 20000, // 20 seconds for testing
+    stepTimeouts: {
+      1: 480000, // 8 minutes for step 1
+      2: 360000, // 6 minutes for step 2
+      3: 300000, // 5 minutes for step 3
+      4: 240000, // 4 minutes for step 4
+      5: 120000  // 2 minutes for step 5
+    },
+    criticalSteps: [2, 3, 4] // Enable abandonment recovery for these steps
   });
 
   // Integrate exit intent with progressive email capture
@@ -278,6 +295,18 @@ export const RevenueCalculator = () => {
         context={emailCapture.captureContext}
       />
       
+      {/* Abandonment Warning */}
+      <AbandonmentWarning
+        isVisible={abandonmentDetection.showWarning}
+        onDismiss={abandonmentDetection.dismissWarning}
+        onStayActive={() => {
+          abandonmentDetection.dismissWarning();
+          abandonmentDetection.recordActivity('click', { action: 'stay_active' });
+        }}
+        timeRemaining={abandonmentDetection.config.inactivityTimeout - (Date.now() - abandonmentDetection.lastActivity)}
+        currentStep={currentStep}
+      />
+
       {/* Legacy Exit Intent Modal - Only show if progressive capture is not active */}
       <ExitIntentModal
         isOpen={exitIntent.isTriggered && !emailCapture.isActive}
