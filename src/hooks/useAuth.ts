@@ -193,7 +193,8 @@ export const useAuthProvider = () => {
       });
 
       if (error) {
-        console.error('Failed to create CRM person:', error);
+        console.warn('CRM person creation had issues (non-blocking):', error);
+        // This is non-blocking - registration should still succeed
       } else {
         console.log('CRM person created successfully:', data);
       }

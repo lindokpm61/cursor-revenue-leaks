@@ -139,10 +139,68 @@ Deno.serve(async (req) => {
     // Check for GraphQL errors first
     if (result.errors && result.errors.length > 0) {
       console.error('GraphQL errors:', result.errors);
-      throw new Error(`GraphQL error: ${result.errors[0].message}`);
+      
+      // Check for duplicate email error specifically
+      const isDuplicateEmail = result.errors.some(error => 
+        error.message?.includes('Duplicate Emails') || 
+        error.extensions?.code === 'BAD_USER_INPUT'
+      );
+      
+      if (isDuplicateEmail) {
+        // Try to find existing person with this email
+        console.log('Person with this email already exists, attempting to find existing person');
+        
+        try {
+          const findPersonQuery = `
+            query FindPersonByEmail($email: String!) {
+              people(filter: { emails: { primaryEmail: { eq: $email } } }) {
+                edges {
+                  node {
+                    id
+                    emails {
+                      primaryEmail
+                    }
+                  }
+                }
+              }
+            }
+          `;
+          
+          const findResponse = await fetch(`${twentyCrmUrl}/graphql`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${twentyCrmApiKey}`
+            },
+            body: JSON.stringify({
+              query: findPersonQuery,
+              variables: { email }
+            })
+          });
+          
+          if (findResponse.ok) {
+            const findResult = await findResponse.json();
+            const existingPerson = findResult.data?.people?.edges?.[0]?.node;
+            
+            if (existingPerson?.id) {
+              console.log('Found existing person:', existingPerson.id);
+              personId = existingPerson.id;
+            }
+          }
+        } catch (findError) {
+          console.error('Error finding existing person:', findError);
+        }
+        
+        if (!personId) {
+          throw new Error(`GraphQL error: ${result.errors[0].message}`);
+        }
+      } else {
+        throw new Error(`GraphQL error: ${result.errors[0].message}`);
+      }
+    } else {
+      // No errors, extract person ID from successful creation
+      personId = result.data?.createPerson?.id;
     }
-    
-    personId = result.data?.createPerson?.id;
     
     if (!personId) {
       console.error('No person ID in response. Full response:', JSON.stringify(result, null, 2));
