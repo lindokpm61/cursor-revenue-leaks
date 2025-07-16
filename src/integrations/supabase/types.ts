@@ -307,6 +307,39 @@ export type Database = {
           },
         ]
       }
+      security_audit_log: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          record_id: string | null
+          table_name: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          record_id?: string | null
+          table_name?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          record_id?: string | null
+          table_name?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       submissions: {
         Row: {
           average_deal_value: number | null
@@ -801,6 +834,18 @@ export type Database = {
       calculate_engagement_score: {
         Args: { user_events: Json[] }
         Returns: number
+      }
+      check_admin_access: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      check_rate_limit: {
+        Args: {
+          user_identifier: string
+          action_type: string
+          max_per_hour?: number
+        }
+        Returns: boolean
       }
       cleanup_expired_temp_submissions: {
         Args: Record<PropertyKey, never>
