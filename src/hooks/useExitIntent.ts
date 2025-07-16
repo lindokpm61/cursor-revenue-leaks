@@ -56,25 +56,29 @@ export const useExitIntent = (config: ExitIntentConfig = {
   // Exit intent detection
   useEffect(() => {
     const handleMouseLeave = (e: MouseEvent) => {
-      console.log('Mouse leave detected:', {
-        clientY: e.clientY,
-        movementY: e.movementY,
-        threshold: config.threshold,
-        hasEngagement: state.hasEngagement
-      });
-      
-      // Only trigger if mouse is moving upward toward browser chrome
-      if (e.clientY <= config.threshold && e.movementY < 0) {
-        console.log('Exit intent conditions met');
-        setState(prev => {
-          if (!prev.isTriggered && prev.hasEngagement) {
-            console.log('Triggering exit intent modal');
-            return { ...prev, isTriggered: true };
-          }
-          console.log('Exit intent not triggered:', { isTriggered: prev.isTriggered, hasEngagement: prev.hasEngagement });
-          return prev;
+      setState(currentState => {
+        console.log('Mouse leave detected:', {
+          clientY: e.clientY,
+          movementY: e.movementY,
+          threshold: config.threshold,
+          hasEngagement: currentState.hasEngagement,
+          isTriggered: currentState.isTriggered
         });
-      }
+        
+        // Only trigger if mouse is moving upward toward browser chrome
+        if (e.clientY <= config.threshold && e.movementY < 0) {
+          console.log('Exit intent conditions met');
+          if (!currentState.isTriggered && currentState.hasEngagement) {
+            console.log('Triggering exit intent modal');
+            return { ...currentState, isTriggered: true };
+          }
+          console.log('Exit intent not triggered:', { 
+            isTriggered: currentState.isTriggered, 
+            hasEngagement: currentState.hasEngagement 
+          });
+        }
+        return currentState;
+      });
     };
 
     // Track scroll for engagement

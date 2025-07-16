@@ -39,9 +39,9 @@ export const RevenueCalculator = () => {
   
   // Exit intent detection
   const exitIntent = useExitIntent({
-    threshold: 50,
-    delay: 30000, // 30 seconds
-    scrollThreshold: 50 // 50% scroll
+    threshold: 100, // Increase threshold to make it easier to trigger
+    delay: 10000, // Reduce delay to 10 seconds for testing
+    scrollThreshold: 30 // Reduce scroll threshold for testing
   });
 
   // Debug exit intent state
