@@ -15,6 +15,7 @@ import AdminLeads from "./pages/admin/AdminLeads";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminIntegrations from "./pages/admin/AdminIntegrations";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminSettings from "./pages/admin/AdminSettings";
 import Results from "./pages/Results";
 import ActionPlan from "./pages/ActionPlan";
 import NotFound from "./pages/NotFound";
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="integrations" element={<AdminIntegrations />} />
               <Route path="users" element={<AdminUsers />} />
+              <Route path="settings" element={<AdminSettings />} />
             </Route>
             <Route path="/results/:id" element={<Results />} />
             <Route path="/action-plan/:id" element={<ActionPlan />} />
