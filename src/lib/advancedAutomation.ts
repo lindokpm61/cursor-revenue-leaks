@@ -312,26 +312,48 @@ export const createSubmission = async (submissionData: any) => {
 // Create enhanced user profile
 export const createUserProfile = async (profileData: any) => {
   try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .insert({
-          id: profileData.user_id,
-          company_name: profileData.actual_company_name,
-          actual_company_name: profileData.actual_company_name,
-          role: profileData.actual_role,
-          actual_role: profileData.actual_role,
-          phone: profileData.phone,
-          user_classification: profileData.user_classification,
-          business_model: profileData.business_model,
-          first_submission_date: profileData.first_submission_date,
-          total_companies_analyzed: profileData.total_companies_analyzed,
-          engagement_score: profileData.engagement_score,
-          utm_source: profileData.attribution_data?.utm_source,
-          utm_medium: profileData.attribution_data?.utm_medium,
-          utm_campaign: profileData.attribution_data?.utm_campaign
-        });
+    console.log('Creating user profile with data:', {
+      id: profileData.user_id,
+      company_name: profileData.actual_company_name,
+      actual_company_name: profileData.actual_company_name,
+      role: profileData.actual_role,
+      actual_role: profileData.actual_role,
+      phone: profileData.phone,
+      user_classification: profileData.user_classification,
+      business_model: profileData.business_model,
+      first_submission_date: profileData.first_submission_date,
+      total_companies_analyzed: profileData.total_companies_analyzed,
+      engagement_score: profileData.engagement_score,
+      utm_source: profileData.attribution_data?.utm_source,
+      utm_medium: profileData.attribution_data?.utm_medium,
+      utm_campaign: profileData.attribution_data?.utm_campaign
+    });
 
-    if (error) throw error;
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .insert({
+        id: profileData.user_id,
+        company_name: profileData.actual_company_name,
+        actual_company_name: profileData.actual_company_name,
+        role: profileData.actual_role,
+        actual_role: profileData.actual_role,
+        phone: profileData.phone,
+        user_classification: profileData.user_classification,
+        business_model: profileData.business_model,
+        first_submission_date: profileData.first_submission_date,
+        total_companies_analyzed: profileData.total_companies_analyzed,
+        engagement_score: profileData.engagement_score,
+        utm_source: profileData.attribution_data?.utm_source,
+        utm_medium: profileData.attribution_data?.utm_medium,
+        utm_campaign: profileData.attribution_data?.utm_campaign
+      });
+
+    if (error) {
+      console.error('Supabase error creating user profile:', error);
+      throw error;
+    }
+    
+    console.log('User profile created successfully:', data);
     return data;
   } catch (error) {
     console.error('Error creating user profile:', error);

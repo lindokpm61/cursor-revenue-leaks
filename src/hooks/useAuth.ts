@@ -143,25 +143,40 @@ export const useAuthProvider = () => {
   };
 
   const createUserProfile = async (user: User) => {
+    console.log('useAuth createUserProfile called with user:', user.id);
+    console.log('User metadata:', user.user_metadata);
+    
+    const profileData = {
+      id: user.id,
+      company_name: user.user_metadata?.company_name || null,
+      business_model: user.user_metadata?.business_model || 'internal',
+      role: user.user_metadata?.role || 'user',
+      actual_company_name: user.user_metadata?.company_name || null,
+      actual_role: user.user_metadata?.actual_role || null,
+      phone: user.user_metadata?.phone || null,
+      user_type: 'standard',
+      engagement_tier: 'standard',
+      user_tier: 'standard'
+    };
+    
+    console.log('Inserting profile data:', profileData);
+    
     const { error } = await supabase
       .from('user_profiles')
-      .insert({
-        id: user.id,
-        company_name: user.user_metadata?.company_name || null,
-        business_model: user.user_metadata?.business_model || 'internal',
-        role: user.user_metadata?.role || 'user',
-        actual_company_name: user.user_metadata?.company_name || null,
-        actual_role: user.user_metadata?.actual_role || null,
-        phone: user.user_metadata?.phone || null,
-        user_type: 'standard',
-        engagement_tier: 'standard',
-        user_tier: 'standard'
-      });
+      .insert(profileData);
     
     if (error) {
-      console.error('Error creating user profile:', error);
+      console.error('useAuth error creating user profile:', error);
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
       throw error;
     }
+    
+    console.log('useAuth user profile created successfully');
   };
 
   const createCrmPerson = async (user: User, email: string) => {
