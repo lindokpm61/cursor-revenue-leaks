@@ -323,10 +323,7 @@ export const createUserProfile = async (profileData: any) => {
       business_model: profileData.business_model,
       first_submission_date: profileData.first_submission_date,
       total_companies_analyzed: profileData.total_companies_analyzed,
-      engagement_score: profileData.engagement_score,
-      utm_source: profileData.attribution_data?.utm_source,
-      utm_medium: profileData.attribution_data?.utm_medium,
-      utm_campaign: profileData.attribution_data?.utm_campaign
+      engagement_score: profileData.engagement_score
     });
 
     const { data, error } = await supabase
@@ -342,10 +339,7 @@ export const createUserProfile = async (profileData: any) => {
         business_model: profileData.business_model,
         first_submission_date: profileData.first_submission_date,
         total_companies_analyzed: profileData.total_companies_analyzed,
-        engagement_score: profileData.engagement_score,
-        utm_source: profileData.attribution_data?.utm_source,
-        utm_medium: profileData.attribution_data?.utm_medium,
-        utm_campaign: profileData.attribution_data?.utm_campaign
+        engagement_score: profileData.engagement_score
       });
 
     if (error) {
