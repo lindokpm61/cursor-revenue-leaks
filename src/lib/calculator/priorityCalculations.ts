@@ -45,6 +45,129 @@ const safeNumber = (value: any): number => {
   return isNaN(num) ? 0 : num;
 };
 
+// Dynamic confidence scoring based on loss amount and company size
+function getConfidenceLevel(lossAmount: number, currentARR: number, actionType: string): 'High' | 'Medium' | 'Low' {
+  const lossPercentage = currentARR > 0 ? (lossAmount / currentARR) * 100 : 0;
+  
+  // Higher confidence for larger companies and more significant losses
+  if (currentARR > 10000000 && lossPercentage > 5) return 'High'; // $10M+ ARR with 5%+ loss
+  if (currentARR > 5000000 && lossPercentage > 3) return 'High';  // $5M+ ARR with 3%+ loss
+  if (currentARR > 1000000 && lossPercentage > 2) return 'Medium'; // $1M+ ARR with 2%+ loss
+  if (lossPercentage > 1) return 'Medium'; // Any company with 1%+ loss
+  return 'Low';
+}
+
+// Dynamic urgency based on relative impact
+function getUrgencyLevel(lossAmount: number, currentARR: number, actionType: string): 'Critical' | 'High' | 'Medium' | 'Low' {
+  const lossPercentage = currentARR > 0 ? (lossAmount / currentARR) * 100 : 0;
+  
+  // Urgency based on percentage of ARR lost
+  if (lossPercentage > 8) return 'Critical';
+  if (lossPercentage > 5) return 'High';
+  if (lossPercentage > 2) return 'Medium';
+  return 'Low';
+}
+
+// Helper functions to create action objects
+function createLeadResponseAction(recovery: number, totalRecovery: number, currentARR: number, loss: number): PriorityAction {
+  return {
+    id: 'lead-response',
+    title: 'Accelerate Lead Response Time',
+    description: 'Implement automated lead routing and instant response systems',
+    impact: Math.round((recovery / totalRecovery) * 100),
+    effort: 'Medium',
+    timeframe: '4-6 weeks',
+    recoveryAmount: recovery,
+    confidence: getConfidenceLevel(loss, currentARR, 'lead_response'),
+    urgency: getUrgencyLevel(loss, currentARR, 'lead_response'),
+    complexity: 'Medium',
+    paybackPeriod: '2-3 months',
+    whyItMatters: 'Faster lead response dramatically increases conversion rates. Every hour of delay reduces conversion probability by 10%.',
+    dependencies: ['CRM integration', 'Sales team training'],
+    implementationSteps: [
+      'Set up automated lead routing',
+      'Create instant response templates',
+      'Train sales team on new process',
+      'Monitor response time metrics'
+    ]
+  };
+}
+
+function createSelfServeAction(recovery: number, totalRecovery: number, currentARR: number, loss: number): PriorityAction {
+  return {
+    id: 'selfserve-optimization',
+    title: 'Optimize Self-Serve Experience',
+    description: 'Improve onboarding flow and reduce friction points',
+    impact: Math.round((recovery / totalRecovery) * 100),
+    effort: 'High',
+    timeframe: '8-12 weeks',
+    recoveryAmount: recovery,
+    confidence: getConfidenceLevel(loss, currentARR, 'selfserve'),
+    urgency: getUrgencyLevel(loss, currentARR, 'selfserve'),
+    complexity: 'High',
+    paybackPeriod: '4-6 months',
+    whyItMatters: 'Self-serve optimization reduces customer acquisition costs and improves user experience, leading to higher conversion rates.',
+    dependencies: ['UX/UI team', 'Product development', 'User research'],
+    implementationSteps: [
+      'Conduct user journey analysis',
+      'Identify friction points in onboarding',
+      'Design improved user flows',
+      'A/B test new experience',
+      'Roll out optimized flow'
+    ]
+  };
+}
+
+function createProcessAction(recovery: number, totalRecovery: number, currentARR: number, loss: number): PriorityAction {
+  return {
+    id: 'process-automation',
+    title: 'Automate Manual Processes',
+    description: 'Eliminate repetitive tasks and streamline workflows',
+    impact: Math.round((recovery / totalRecovery) * 100),
+    effort: 'Low',
+    timeframe: '2-4 weeks',
+    recoveryAmount: recovery,
+    confidence: getConfidenceLevel(loss, currentARR, 'process'),
+    urgency: getUrgencyLevel(loss, currentARR, 'process'),
+    complexity: 'Low',
+    paybackPeriod: '1-2 months',
+    whyItMatters: 'Automation reduces operational costs, eliminates human error, and frees up team capacity for strategic work.',
+    dependencies: ['Operations team', 'Technical resources'],
+    implementationSteps: [
+      'Map current manual processes',
+      'Identify automation opportunities',
+      'Implement workflow automation',
+      'Train team on new processes',
+      'Monitor efficiency gains'
+    ]
+  };
+}
+
+function createPaymentAction(recovery: number, totalRecovery: number, currentARR: number, loss: number): PriorityAction {
+  return {
+    id: 'payment-recovery',
+    title: 'Improve Payment Recovery',
+    description: 'Implement dunning management and payment retry logic',
+    impact: Math.round((recovery / totalRecovery) * 100),
+    effort: 'Low',
+    timeframe: '1-2 weeks',
+    recoveryAmount: recovery,
+    confidence: getConfidenceLevel(loss, currentARR, 'payment'),
+    urgency: getUrgencyLevel(loss, currentARR, 'payment'),
+    complexity: 'Low',
+    paybackPeriod: '1 month',
+    whyItMatters: 'Failed payment recovery directly impacts revenue retention and reduces involuntary churn.',
+    dependencies: ['Payment processor integration', 'Customer success team'],
+    implementationSteps: [
+      'Set up automated dunning sequences',
+      'Implement smart retry logic',
+      'Create customer communication templates',
+      'Monitor recovery rates',
+      'Optimize based on performance'
+    ]
+  };
+}
+
 export function calculatePriorityActions(submission: Submission): PriorityAction[] {
   const currentARR = safeNumber(submission.current_arr);
   const leadResponseLoss = safeNumber(submission.lead_response_loss);
@@ -53,16 +176,22 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
   const failedPaymentLoss = safeNumber(submission.failed_payment_loss);
   const totalRecovery = safeNumber(submission.recovery_potential_70);
 
-  // Calculate realistic action-specific recoveries (no overlap)
-  const leadResponseRecovery = leadResponseLoss * 0.7; // 70% recovery potential
-  const selfserveRecovery = selfserveGapLoss * 0.6; // 60% recovery potential
-  const processRecovery = processLoss * 0.8; // 80% recovery potential
-  const paymentRecovery = failedPaymentLoss * 0.85; // 85% recovery potential
+  // Calculate realistic action-specific recoveries (conservative estimates)
+  const leadResponseRecovery = leadResponseLoss * 0.5; // 50% recovery potential
+  const selfserveRecovery = selfserveGapLoss * 0.4; // 40% recovery potential
+  const processRecovery = processLoss * 0.6; // 60% recovery potential
+  const paymentRecovery = failedPaymentLoss * 0.7; // 70% recovery potential
 
   // Calculate total potential recovery for impact percentages
   const totalActionRecovery = leadResponseRecovery + selfserveRecovery + processRecovery + paymentRecovery;
   
   const actions: PriorityAction[] = [];
+
+  // Adjusted realistic thresholds (as % of ARR)
+  const leadResponseThreshold = currentARR * 0.02; // 2% of ARR
+  const selfserveThreshold = currentARR * 0.01; // 1% of ARR
+  const processThreshold = currentARR * 0.01; // 1% of ARR
+  const paymentThreshold = currentARR * 0.005; // 0.5% of ARR
 
   console.log('Priority Action Thresholds Debug:', {
     currentARR,
@@ -70,16 +199,16 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
     selfserveGapLoss,
     processLoss,
     failedPaymentLoss,
-    leadResponseThreshold: currentARR * 0.05,
-    selfserveThreshold: currentARR * 0.08,
-    processThreshold: currentARR * 0.03,
-    paymentThreshold: currentARR * 0.02,
+    leadResponseThreshold,
+    selfserveThreshold,
+    processThreshold,
+    paymentThreshold,
     totalActionRecovery,
     totalRecovery
   });
 
   // Lead Response Optimization (if significant loss)
-  if (leadResponseLoss > currentARR * 0.05) {
+  if (leadResponseLoss > leadResponseThreshold) {
     actions.push({
       id: 'lead-response',
       title: 'Accelerate Lead Response Time',
@@ -88,8 +217,8 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
       effort: 'Medium',
       timeframe: '4-6 weeks',
       recoveryAmount: leadResponseRecovery,
-      confidence: leadResponseLoss > currentARR * 0.1 ? 'High' : 'Medium',
-      urgency: leadResponseLoss > currentARR * 0.12 ? 'Critical' : 'High',
+      confidence: getConfidenceLevel(leadResponseLoss, currentARR, 'lead_response'),
+      urgency: getUrgencyLevel(leadResponseLoss, currentARR, 'lead_response'),
       complexity: 'Medium',
       paybackPeriod: '2-3 months',
       whyItMatters: 'Faster lead response dramatically increases conversion rates. Every hour of delay reduces conversion probability by 10%.',
@@ -104,7 +233,7 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
   }
 
   // Self-Serve Gap (if significant loss)
-  if (selfserveGapLoss > currentARR * 0.08) {
+  if (selfserveGapLoss > selfserveThreshold) {
     actions.push({
       id: 'selfserve-optimization',
       title: 'Optimize Self-Serve Experience',
@@ -113,8 +242,8 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
       effort: 'High',
       timeframe: '8-12 weeks',
       recoveryAmount: selfserveRecovery,
-      confidence: 'Medium',
-      urgency: selfserveGapLoss > currentARR * 0.15 ? 'High' : 'Medium',
+      confidence: getConfidenceLevel(selfserveGapLoss, currentARR, 'selfserve'),
+      urgency: getUrgencyLevel(selfserveGapLoss, currentARR, 'selfserve'),
       complexity: 'High',
       paybackPeriod: '4-6 months',
       whyItMatters: 'Self-serve optimization reduces customer acquisition costs and improves user experience, leading to higher conversion rates.',
@@ -130,7 +259,7 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
   }
 
   // Process Inefficiency (if significant loss)
-  if (processLoss > currentARR * 0.03) {
+  if (processLoss > processThreshold) {
     actions.push({
       id: 'process-automation',
       title: 'Automate Manual Processes',
@@ -139,8 +268,8 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
       effort: 'Low',
       timeframe: '2-4 weeks',
       recoveryAmount: processRecovery,
-      confidence: 'High',
-      urgency: 'Medium',
+      confidence: getConfidenceLevel(processLoss, currentARR, 'process'),
+      urgency: getUrgencyLevel(processLoss, currentARR, 'process'),
       complexity: 'Low',
       paybackPeriod: '1-2 months',
       whyItMatters: 'Automation reduces operational costs, eliminates human error, and frees up team capacity for strategic work.',
@@ -156,7 +285,7 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
   }
 
   // Payment Recovery (if significant loss)
-  if (failedPaymentLoss > currentARR * 0.02) {
+  if (failedPaymentLoss > paymentThreshold) {
     actions.push({
       id: 'payment-recovery',
       title: 'Improve Payment Recovery',
@@ -165,8 +294,8 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
       effort: 'Low',
       timeframe: '1-2 weeks',
       recoveryAmount: paymentRecovery,
-      confidence: 'High',
-      urgency: failedPaymentLoss > currentARR * 0.05 ? 'High' : 'Medium',
+      confidence: getConfidenceLevel(failedPaymentLoss, currentARR, 'payment'),
+      urgency: getUrgencyLevel(failedPaymentLoss, currentARR, 'payment'),
       complexity: 'Low',
       paybackPeriod: '1 month',
       whyItMatters: 'Failed payment recovery directly impacts revenue retention and reduces involuntary churn.',
@@ -181,8 +310,41 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
     });
   }
 
-  // Sort by impact (highest first)
-  return actions.sort((a, b) => b.impact - a.impact).slice(0, 3);
+  // Ensure we have actions to show - if none meet thresholds, show top potential actions
+  if (actions.length === 0) {
+    // Calculate all potential actions with lower thresholds for display
+    const potentialActions = [
+      { type: 'lead_response', loss: leadResponseLoss, recovery: leadResponseRecovery },
+      { type: 'selfserve', loss: selfserveGapLoss, recovery: selfserveRecovery },
+      { type: 'process', loss: processLoss, recovery: processRecovery },
+      { type: 'payment', loss: failedPaymentLoss, recovery: paymentRecovery }
+    ].filter(a => a.loss > 0).sort((a, b) => b.recovery - a.recovery);
+
+    // Add top action even if below threshold
+    if (potentialActions.length > 0) {
+      const topAction = potentialActions[0];
+      if (topAction.type === 'lead_response') {
+        actions.push(createLeadResponseAction(leadResponseRecovery, totalActionRecovery, currentARR, leadResponseLoss));
+      } else if (topAction.type === 'selfserve') {
+        actions.push(createSelfServeAction(selfserveRecovery, totalActionRecovery, currentARR, selfserveGapLoss));
+      } else if (topAction.type === 'process') {
+        actions.push(createProcessAction(processRecovery, totalActionRecovery, currentARR, processLoss));
+      } else if (topAction.type === 'payment') {
+        actions.push(createPaymentAction(paymentRecovery, totalActionRecovery, currentARR, failedPaymentLoss));
+      }
+    }
+  }
+
+  // Recalculate impact percentages for displayed actions only
+  const totalDisplayedRecovery = actions.reduce((sum, action) => sum + action.recoveryAmount, 0);
+  if (totalDisplayedRecovery > 0) {
+    actions.forEach(action => {
+      action.impact = Math.round((action.recoveryAmount / totalDisplayedRecovery) * 100);
+    });
+  }
+
+  // Sort by recovery amount (highest first) and limit to top 3
+  return actions.sort((a, b) => b.recoveryAmount - a.recoveryAmount).slice(0, 3);
 }
 
 export function calculateQuickWins(submission: Submission): QuickWin[] {
