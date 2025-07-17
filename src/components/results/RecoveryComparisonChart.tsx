@@ -5,7 +5,12 @@ import { calculateRecoveryRanges, type ConfidenceFactors } from "@/lib/calculato
 interface RecoveryComparisonChartProps {
   leakageData: Array<{
     category: string;
+    title: string;
     amount: number;
+    percentage: number;
+    icon: any;
+    description: string;
+    color: string;
   }>;
   formatCurrency: (amount: number) => string;
   confidenceFactors?: ConfidenceFactors;
@@ -37,12 +42,12 @@ export const RecoveryComparisonChart = ({ leakageData, formatCurrency, confidenc
     },
   };
 
-  // Map category names to match enhanced calculations
+  // Map category keys to enhanced calculation keys
   const categoryMap: Record<string, keyof typeof losses> = {
-    'Lead Response Loss': 'leadResponse',
-    'Failed Payment Loss': 'paymentRecovery',
-    'Self-Serve Gap': 'selfServe',
-    'Process Inefficiency': 'processAutomation'
+    'leadResponseLoss': 'leadResponse',
+    'failedPaymentLoss': 'paymentRecovery',
+    'selfServeGap': 'selfServe',
+    'processInefficiency': 'processAutomation'
   };
 
   // Prepare losses for enhanced calculation
@@ -53,7 +58,7 @@ export const RecoveryComparisonChart = ({ leakageData, formatCurrency, confidenc
     paymentRecovery: 0
   };
 
-  // Map leakage data to losses structure
+  // Map leakage data to losses structure using category key
   leakageData.forEach((item) => {
     const mappedKey = categoryMap[item.category];
     if (mappedKey) {
@@ -64,18 +69,23 @@ export const RecoveryComparisonChart = ({ leakageData, formatCurrency, confidenc
   // Calculate realistic recovery potential using enhanced calculations
   const recoveryRanges = calculateRecoveryRanges(losses, factors);
 
-  const chartData = leakageData.map((item) => {
-    const mappedKey = categoryMap[item.category];
-    const conservativeRecovery = mappedKey ? recoveryRanges.conservative.categoryRecovery[mappedKey] || 0 : 0;
-    const optimisticRecovery = mappedKey ? recoveryRanges.optimistic.categoryRecovery[mappedKey] || 0 : 0;
-    
-    return {
-      category: item.category,
-      currentLoss: item.amount,
-      conservative: Math.round(conservativeRecovery),
-      optimistic: Math.round(optimisticRecovery),
-    };
-  });
+  // Filter out zero-value categories and prepare chart data
+  const chartData = leakageData
+    .filter(item => item.amount > 0) // Only show categories with losses
+    .map((item) => {
+      const mappedKey = categoryMap[item.category];
+      const conservativeRecovery = mappedKey ? recoveryRanges.conservative.categoryRecovery[mappedKey] || 0 : 0;
+      const optimisticRecovery = mappedKey ? recoveryRanges.optimistic.categoryRecovery[mappedKey] || 0 : 0;
+      
+      return {
+        category: item.title, // Use display title instead of category key
+        currentLoss: item.amount,
+        afterConservative: Math.round(item.amount - conservativeRecovery), // Remaining loss after recovery
+        afterOptimistic: Math.round(item.amount - optimisticRecovery), // Remaining loss after recovery
+        conservativeRecovery: Math.round(conservativeRecovery),
+        optimisticRecovery: Math.round(optimisticRecovery),
+      };
+    });
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -108,15 +118,15 @@ export const RecoveryComparisonChart = ({ leakageData, formatCurrency, confidenc
                 radius={[3, 3, 0, 0]}
               />
               <Bar 
-                dataKey="conservative" 
+                dataKey="afterConservative" 
                 fill="hsl(var(--revenue-success))"
-                name="Conservative Recovery"
+                name="After Conservative Recovery"
                 radius={[3, 3, 0, 0]}
               />
               <Bar 
-                dataKey="optimistic" 
+                dataKey="afterOptimistic" 
                 fill="hsl(var(--revenue-primary))"
-                name="Optimistic Recovery"
+                name="After Optimistic Recovery"
                 radius={[3, 3, 0, 0]}
               />
               <ChartTooltip
@@ -137,11 +147,11 @@ export const RecoveryComparisonChart = ({ leakageData, formatCurrency, confidenc
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-sm bg-revenue-success"></div>
-          <span>Conservative Recovery</span>
+          <span>After Conservative Recovery</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-sm bg-revenue-primary"></div>
-          <span>Optimistic Recovery</span>
+          <span>After Optimistic Recovery</span>
         </div>
       </div>
     </div>
