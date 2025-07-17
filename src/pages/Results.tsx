@@ -384,14 +384,28 @@ const Results = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                    <LeakageBreakdownChart 
-                      leakageData={leakageBreakdown.map(item => ({
-                        category: item.title,
-                        amount: item.amount,
-                        percentage: item.percentage
-                      }))}
-                      formatCurrency={formatCurrency}
-                    />
+                    {(() => {
+                      const chartData = leakageBreakdown
+                        .filter(item => item.amount > 0) // Only show items with actual losses
+                        .map(item => ({
+                          category: item.title,
+                          amount: item.amount,
+                          percentage: item.percentage
+                        }));
+                      
+                      console.log('Leakage chart data:', chartData);
+                      
+                      return chartData.length > 0 ? (
+                        <LeakageBreakdownChart 
+                          leakageData={chartData}
+                          formatCurrency={formatCurrency}
+                        />
+                      ) : (
+                        <div className="text-center text-muted-foreground py-8">
+                          No revenue leakage data available for this analysis.
+                        </div>
+                      );
+                    })()}
               </CardContent>
             </Card>
 
