@@ -2,78 +2,102 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AlertTriangle, DollarSign, Zap } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { CalculatorData, Calculations } from "../useCalculatorData";
+import { calculateRecoveryRanges, type ConfidenceFactors } from "@/lib/calculator/enhancedCalculations";
 
 interface RevenueChartsProps {
   data: CalculatorData;
   calculations: Calculations;
   formatCurrency: (amount: number) => string;
+  confidenceFactors?: ConfidenceFactors;
 }
 
-export const RevenueCharts = ({ data, calculations, formatCurrency }: RevenueChartsProps) => {
+export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFactors }: RevenueChartsProps) => {
+  // Default confidence factors if not provided
+  const defaultConfidenceFactors: ConfidenceFactors = {
+    companySize: 'scaleup',
+    currentMaturity: 'intermediate',
+    changeManagementCapability: 'medium',
+    resourceAvailable: true
+  };
+
+  const factors = confidenceFactors || defaultConfidenceFactors;
+  
+  // Calculate realistic recovery potential using enhanced calculations
+  const losses = {
+    leadResponse: calculations.leadResponseLoss,
+    selfServe: calculations.selfServeGap,
+    processAutomation: calculations.processLoss,
+    paymentRecovery: calculations.failedPaymentLoss
+  };
+
+  const recoveryRanges = calculateRecoveryRanges(losses, factors);
+
   const leakageData = [
     {
       name: 'Lead Response',
       value: calculations.leadResponseLoss,
-      color: '#EF4444',
+      color: 'hsl(var(--destructive))',
     },
     {
       name: 'Failed Payments',
       value: calculations.failedPaymentLoss,
-      color: '#F97316',
+      color: 'hsl(var(--revenue-warning))',
     },
     {
       name: 'Self-Serve Gap',
       value: calculations.selfServeGap,
-      color: '#EAB308',
+      color: 'hsl(var(--primary))',
     },
     {
       name: 'Process Loss',
       value: calculations.processLoss,
-      color: '#8B5CF6',
+      color: 'hsl(var(--accent))',
     },
   ];
 
+  // Use enhanced calculations for recovery data
   const recoveryData = [
     {
       category: 'Lead Response',
       current: calculations.leadResponseLoss,
-      potential70: calculations.leadResponseLoss * 0.7,
-      potential85: calculations.leadResponseLoss * 0.85,
+      conservative: recoveryRanges.conservative.categoryRecovery.leadResponse,
+      optimistic: recoveryRanges.optimistic.categoryRecovery.leadResponse,
     },
     {
       category: 'Failed Payments',
       current: calculations.failedPaymentLoss,
-      potential70: calculations.failedPaymentLoss * 0.7,
-      potential85: calculations.failedPaymentLoss * 0.85,
+      conservative: recoveryRanges.conservative.categoryRecovery.paymentRecovery,
+      optimistic: recoveryRanges.optimistic.categoryRecovery.paymentRecovery,
     },
     {
       category: 'Self-Serve Gap',
       current: calculations.selfServeGap,
-      potential70: calculations.selfServeGap * 0.7,
-      potential85: calculations.selfServeGap * 0.85,
+      conservative: recoveryRanges.conservative.categoryRecovery.selfServe,
+      optimistic: recoveryRanges.optimistic.categoryRecovery.selfServe,
     },
     {
       category: 'Process Loss',
       current: calculations.processLoss,
-      potential70: calculations.processLoss * 0.7,
-      potential85: calculations.processLoss * 0.85,
+      conservative: recoveryRanges.conservative.categoryRecovery.processAutomation,
+      optimistic: recoveryRanges.optimistic.categoryRecovery.processAutomation,
     },
   ];
 
-  const totalVsLeakedData = [
+  // Fix: Show "Current ARR vs Recovery Opportunity" instead of misleading total vs leaked
+  const totalVsRecoveryData = [
     {
-      name: 'Current Revenue',
+      name: 'Current ARR',
       value: data.companyInfo.currentARR,
-      color: '#22C55E',
+      color: 'hsl(var(--revenue-success))',
     },
     {
-      name: 'Lost Revenue',
-      value: calculations.totalLeakage,
-      color: '#EF4444',
+      name: 'Recovery Opportunity',
+      value: recoveryRanges.conservative.totalRecovery,
+      color: 'hsl(var(--revenue-primary))',
     },
   ];
 
-  const TOTAL_COLORS = ['#22C55E', '#EF4444'];
+  
 
   return (
     <>
@@ -96,7 +120,7 @@ export const RevenueCharts = ({ data, calculations, formatCurrency }: RevenueCha
                 <XAxis dataKey="name" />
                 <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
                 <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                <Bar dataKey="value" fill="#EF4444" />
+                <Bar dataKey="value" fill="hsl(var(--destructive))" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -106,17 +130,17 @@ export const RevenueCharts = ({ data, calculations, formatCurrency }: RevenueCha
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-revenue-success" />
-              Total Revenue vs Lost Revenue
+              Current ARR vs Recovery Opportunity
             </CardTitle>
             <CardDescription>
-              Current ARR compared to leaked revenue
+              Current annual recurring revenue vs potential recovery
             </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={totalVsLeakedData}
+                  data={totalVsRecoveryData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -125,8 +149,8 @@ export const RevenueCharts = ({ data, calculations, formatCurrency }: RevenueCha
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {totalVsLeakedData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={TOTAL_COLORS[index % TOTAL_COLORS.length]} />
+                  {totalVsRecoveryData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(value) => formatCurrency(Number(value))} />
@@ -143,9 +167,9 @@ export const RevenueCharts = ({ data, calculations, formatCurrency }: RevenueCha
             <Zap className="h-5 w-5 text-revenue-success" />
             Recovery Potential by Category
           </CardTitle>
-          <CardDescription>
-            Conservative (70%) vs optimistic (85%) recovery scenarios
-          </CardDescription>
+            <CardDescription>
+              Realistic recovery potential based on implementation factors
+            </CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={400}>
@@ -154,9 +178,9 @@ export const RevenueCharts = ({ data, calculations, formatCurrency }: RevenueCha
               <XAxis dataKey="category" />
               <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
               <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-              <Bar dataKey="current" fill="#EF4444" name="Current Loss" />
-              <Bar dataKey="potential70" fill="#F97316" name="70% Recovery" />
-              <Bar dataKey="potential85" fill="#22C55E" name="85% Recovery" />
+              <Bar dataKey="current" fill="hsl(var(--destructive))" name="Current Loss" />
+              <Bar dataKey="conservative" fill="hsl(var(--revenue-warning))" name="Conservative Recovery" />
+              <Bar dataKey="optimistic" fill="hsl(var(--revenue-success))" name="Optimistic Recovery" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>

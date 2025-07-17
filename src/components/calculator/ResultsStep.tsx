@@ -8,7 +8,7 @@ import { ActionPlan } from "./results/ActionPlan";
 import { EnhancedInsights } from "./results/EnhancedInsights";
 import { useSaveResults } from "./results/useSaveResults";
 import { SaveResultsRegistrationModal } from "./SaveResultsRegistrationModal";
-import { validateRecoveryAssumptions } from '@/lib/calculator/enhancedCalculations';
+import { validateRecoveryAssumptions, type ConfidenceFactors } from '@/lib/calculator/enhancedCalculations';
 
 interface ResultsStepProps {
   data: CalculatorData;
@@ -168,7 +168,15 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
       <RevenueCharts 
         data={data} 
         calculations={calculations} 
-        formatCurrency={formatCurrency} 
+        formatCurrency={formatCurrency}
+        confidenceFactors={{
+          companySize: data.companyInfo.currentARR > 10000000 ? 'enterprise' :
+                       data.companyInfo.currentARR > 1000000 ? 'scaleup' : 'startup',
+          currentMaturity: data.companyInfo.currentARR > 5000000 && calculations.totalLeakage < data.companyInfo.currentARR * 0.15 ? 'advanced' :
+                           data.companyInfo.currentARR > 1000000 && calculations.totalLeakage < data.companyInfo.currentARR * 0.25 ? 'intermediate' : 'basic',
+          changeManagementCapability: data.companyInfo.currentARR > 5000000 ? 'high' : 'medium',
+          resourceAvailable: true
+        } as ConfidenceFactors}
       />
       
       <DetailedBreakdown 

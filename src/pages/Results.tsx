@@ -37,6 +37,7 @@ import { FloatingCTABar } from "@/components/results/FloatingCTABar";
 import { EnhancedExportCTA } from "@/components/results/EnhancedExportCTA";
 import { validateCalculationResults } from "@/lib/calculator/validationHelpers";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { type ConfidenceFactors } from "@/lib/calculator/enhancedCalculations";
 
 const Results = () => {
   const { id } = useParams<{ id: string }>();
@@ -155,6 +156,16 @@ const Results = () => {
   const recovery70 = submission.recovery_potential_70 || 0;
   const recovery85 = submission.recovery_potential_85 || 0;
   const leadScore = submission.lead_score || 0;
+
+  // Derive confidence factors from submission data
+  const confidenceFactors: ConfidenceFactors = {
+    companySize: submission.current_arr && submission.current_arr > 10000000 ? 'enterprise' :
+                 submission.current_arr && submission.current_arr > 1000000 ? 'scaleup' : 'startup',
+    currentMaturity: submission.lead_score && submission.lead_score > 75 ? 'advanced' :
+                     submission.lead_score && submission.lead_score > 45 ? 'intermediate' : 'basic',
+    changeManagementCapability: submission.current_arr && submission.current_arr > 5000000 ? 'high' : 'medium',
+    resourceAvailable: true
+  };
 
   const leakageBreakdown = [
     {
@@ -470,6 +481,7 @@ const Results = () => {
                   <RecoveryComparisonChart
                     leakageData={leakageBreakdown}
                     formatCurrency={formatCurrency}
+                    confidenceFactors={confidenceFactors}
                   />
                 </CardContent>
               </Card>

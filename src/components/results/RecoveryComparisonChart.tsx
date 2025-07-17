@@ -1,5 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { calculateRecoveryRanges, type ConfidenceFactors } from "@/lib/calculator/enhancedCalculations";
 
 interface RecoveryComparisonChartProps {
   leakageData: Array<{
@@ -7,9 +8,20 @@ interface RecoveryComparisonChartProps {
     amount: number;
   }>;
   formatCurrency: (amount: number) => string;
+  confidenceFactors?: ConfidenceFactors;
 }
 
-export const RecoveryComparisonChart = ({ leakageData, formatCurrency }: RecoveryComparisonChartProps) => {
+export const RecoveryComparisonChart = ({ leakageData, formatCurrency, confidenceFactors }: RecoveryComparisonChartProps) => {
+  // Default confidence factors if not provided
+  const defaultConfidenceFactors: ConfidenceFactors = {
+    companySize: 'scaleup',
+    currentMaturity: 'intermediate',
+    changeManagementCapability: 'medium',
+    resourceAvailable: true
+  };
+
+  const factors = confidenceFactors || defaultConfidenceFactors;
+
   const chartConfig = {
     currentLoss: {
       label: "Current Loss",
@@ -25,24 +37,43 @@ export const RecoveryComparisonChart = ({ leakageData, formatCurrency }: Recover
     },
   };
 
-  // Apply realistic category-specific recovery rates instead of blanket percentages
-  const categoryRecoveryRates = {
-    'Lead Response Loss': { conservative: 0.45, optimistic: 0.60 },
-    'Failed Payment Loss': { conservative: 0.65, optimistic: 0.75 },
-    'Self-Serve Gap': { conservative: 0.25, optimistic: 0.40 },
-    'Process Inefficiency': { conservative: 0.50, optimistic: 0.65 }
+  // Map category names to match enhanced calculations
+  const categoryMap: Record<string, keyof typeof losses> = {
+    'Lead Response Loss': 'leadResponse',
+    'Failed Payment Loss': 'paymentRecovery',
+    'Self-Serve Gap': 'selfServe',
+    'Process Inefficiency': 'processAutomation'
   };
 
+  // Prepare losses for enhanced calculation
+  const losses = {
+    leadResponse: 0,
+    selfServe: 0,
+    processAutomation: 0,
+    paymentRecovery: 0
+  };
+
+  // Map leakage data to losses structure
+  leakageData.forEach((item) => {
+    const mappedKey = categoryMap[item.category];
+    if (mappedKey) {
+      losses[mappedKey] = item.amount;
+    }
+  });
+
+  // Calculate realistic recovery potential using enhanced calculations
+  const recoveryRanges = calculateRecoveryRanges(losses, factors);
+
   const chartData = leakageData.map((item) => {
-    const categoryName = item.category.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-    const rates = categoryRecoveryRates[categoryName as keyof typeof categoryRecoveryRates] || 
-                  { conservative: 0.40, optimistic: 0.55 }; // Default rates
+    const mappedKey = categoryMap[item.category];
+    const conservativeRecovery = mappedKey ? recoveryRanges.conservative.categoryRecovery[mappedKey] || 0 : 0;
+    const optimisticRecovery = mappedKey ? recoveryRanges.optimistic.categoryRecovery[mappedKey] || 0 : 0;
     
     return {
-      category: categoryName,
+      category: item.category,
       currentLoss: item.amount,
-      conservative: Math.round(item.amount * rates.conservative),
-      optimistic: Math.round(item.amount * rates.optimistic),
+      conservative: Math.round(conservativeRecovery),
+      optimistic: Math.round(optimisticRecovery),
     };
   });
 
