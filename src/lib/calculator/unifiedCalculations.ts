@@ -315,8 +315,8 @@ export const generateRealisticTimeline = (
   const phases: TimelinePhase[] = [];
   const { actionSpecificRecovery } = calculations;
   
-  // Stricter thresholds - only include phases with meaningful impact
-  const arrThreshold = inputs.currentARR * 0.02; // 2% of ARR minimum
+  // Realistic thresholds - include phases with meaningful impact
+  const arrThreshold = Math.max(inputs.currentARR * 0.005, 25000); // 0.5% of ARR or $25K minimum
   
   // Phase 1: Lead Response (Months 1-3) - Always start here if viable
   if (actionSpecificRecovery.leadResponse > arrThreshold) {
@@ -341,7 +341,7 @@ export const generateRealisticTimeline = (
   }
 
   // Phase 2: Payment Recovery (Months 2-5) - Can run parallel with Phase 1
-  if (actionSpecificRecovery.paymentRecovery > inputs.currentARR * 0.01) {
+  if (actionSpecificRecovery.paymentRecovery > Math.max(inputs.currentARR * 0.003, 15000)) {
     phases.push({
       id: 'payment-recovery',
       title: 'Payment Recovery System',
@@ -372,7 +372,7 @@ export const generateRealisticTimeline = (
       endMonth: 8,
       difficulty: 'medium',
       recoveryPotential: actionSpecificRecovery.selfServe,
-      prerequisites: ['lead-response'], // Need better lead data first
+      prerequisites: [], // Can run independently
       actions: [
         { title: 'Deep-dive conversion funnel analysis', weeks: 4, owner: 'Product Analytics' },
         { title: 'User research and feedback collection', weeks: 3, owner: 'UX Research' },
@@ -385,7 +385,7 @@ export const generateRealisticTimeline = (
   }
 
   // Phase 4: Process Automation (Months 6-12) - Most complex, requires stable foundation
-  if (actionSpecificRecovery.processAutomation > inputs.currentARR * 0.015) {
+  if (actionSpecificRecovery.processAutomation > Math.max(inputs.currentARR * 0.004, 20000)) {
     phases.push({
       id: 'process-automation',
       title: 'Process Automation Initiative',
@@ -394,7 +394,7 @@ export const generateRealisticTimeline = (
       endMonth: 12,
       difficulty: 'hard',
       recoveryPotential: actionSpecificRecovery.processAutomation,
-      prerequisites: ['payment-recovery'], // Need stable operational foundation
+      prerequisites: [], // Can run independently with proper planning
       actions: [
         { title: 'Comprehensive process audit', weeks: 4, owner: 'Operations' },
         { title: 'Process mapping and documentation', weeks: 3, owner: 'Operations' },
