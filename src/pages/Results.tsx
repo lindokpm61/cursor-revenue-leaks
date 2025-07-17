@@ -28,9 +28,9 @@ import { useNavigate } from "react-router-dom";
 import { PriorityActions } from "@/components/calculator/results/PriorityActions";
 import { ImplementationTimeline } from "@/components/calculator/results/ImplementationTimeline";
 import { IndustryBenchmarking } from "@/components/calculator/results/IndustryBenchmarking";
+import { DetailedBreakdown } from "@/components/calculator/results/DetailedBreakdown";
+import { RevenueCharts } from "@/components/calculator/results/RevenueCharts";
 import { HeroRevenueChart } from "@/components/results/HeroRevenueChart";
-import { LeakagePieChart } from "@/components/results/LeakagePieChart";
-import { RecoveryComparisonChart } from "@/components/results/RecoveryComparisonChart";
 import { StrategicCTASection } from "@/components/results/StrategicCTASection";
 import { SectionCTA } from "@/components/results/SectionCTAs";
 import { FloatingCTABar } from "@/components/results/FloatingCTABar";
@@ -38,6 +38,7 @@ import { EnhancedExportCTA } from "@/components/results/EnhancedExportCTA";
 import { validateCalculationResults } from "@/lib/calculator/validationHelpers";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { type ConfidenceFactors } from "@/lib/calculator/enhancedCalculations";
+import { type CalculatorData, type Calculations } from "@/components/calculator/useCalculatorData";
 
 const Results = () => {
   const { id } = useParams<{ id: string }>();
@@ -205,6 +206,48 @@ const Results = () => {
       color: "text-muted-foreground"
     }
   ];
+
+  // Convert submission data to CalculatorData format for enhanced components
+  const createCalculatorData = (): CalculatorData => ({
+    companyInfo: {
+      companyName: submission.company_name,
+      email: submission.contact_email,
+      phone: submission.phone || '',
+      industry: submission.industry || 'Software & Technology',
+      currentARR: submission.current_arr || 0
+    },
+    leadGeneration: {
+      monthlyLeads: submission.monthly_leads || 0,
+      averageDealValue: submission.average_deal_value || 0,
+      leadResponseTimeHours: submission.lead_response_time || 24
+    },
+    selfServeMetrics: {
+      monthlyFreeSignups: submission.monthly_free_signups || 0,
+      freeToPaidConversionRate: submission.free_to_paid_conversion || 0,
+      monthlyMRR: submission.monthly_mrr || 0
+    },
+    operationsData: {
+      failedPaymentRate: submission.failed_payment_rate || 0,
+      manualHoursPerWeek: submission.manual_hours || 0,
+      hourlyRate: submission.hourly_rate || 0
+    }
+  });
+
+  const createCalculations = (): Calculations => ({
+    leadResponseLoss: submission.lead_response_loss || 0,
+    failedPaymentLoss: submission.failed_payment_loss || 0,
+    selfServeGap: submission.selfserve_gap_loss || 0,
+    processLoss: submission.process_inefficiency_loss || 0,
+    totalLeakage: totalLeak,
+    totalLeak: totalLeak,
+    recoveryPotential70: recovery70,
+    recoveryPotential85: recovery85,
+    potentialRecovery70: recovery70,
+    potentialRecovery85: recovery85
+  });
+
+  const calculatorData = createCalculatorData();
+  const calculations = createCalculations();
 
   const sections = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
@@ -493,124 +536,23 @@ const Results = () => {
 
         {activeSection === 'breakdown' && (
           <div className="space-y-8">
-            {/* Key Metrics Summary Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="text-center">
-                <CardContent className="pt-6">
-                  <div className="text-3xl font-bold text-revenue-warning mb-2">
-                    {formatCurrency(totalLeak)}
-                  </div>
-                  <p className="text-sm text-muted-foreground">Total Revenue at Risk</p>
-                </CardContent>
-              </Card>
-              <Card className="text-center">
-                <CardContent className="pt-6">
-                  <div className="text-3xl font-bold text-revenue-success mb-2">
-                    {formatCurrency(recovery70)}
-                  </div>
-                  <p className="text-sm text-muted-foreground">Conservative Recovery</p>
-                  <p className="text-xs text-muted-foreground/70">Category-specific rates applied</p>
-                </CardContent>
-              </Card>
-              <Card className="text-center">
-                <CardContent className="pt-6">
-                  <div className="text-3xl font-bold text-revenue-primary mb-2">
-                    {formatCurrency(recovery85)}
-                  </div>
-                  <p className="text-sm text-muted-foreground">Optimistic Recovery</p>
-                  <p className="text-xs text-muted-foreground/70">With strong execution capability</p>
-                </CardContent>
-              </Card>
-            </div>
-
             {/* Section CTA */}
             <SectionCTA type="breakdown" totalLeak={totalLeak} formatCurrency={formatCurrency} />
 
-            {/* Charts Layout - Equal Height */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {/* Leakage Breakdown Chart */}
-              <Card className="h-fit">
-                <CardHeader>
-                  <CardTitle className="text-lg">Revenue Leakage by Category</CardTitle>
-                  <CardDescription className="text-sm">
-                    Breakdown of revenue losses across different operational areas
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="h-[400px] flex items-center justify-center">
-                  {(() => {
-                    const chartData = leakageBreakdown
-                      .filter(item => item.amount > 0)
-                      .map(item => ({
-                        category: item.title,
-                        amount: item.amount,
-                        percentage: item.percentage
-                      }));
-                    
-                    return chartData.length > 0 ? (
-                      <LeakagePieChart 
-                        leakageData={chartData}
-                        formatCurrency={formatCurrency}
-                      />
-                    ) : (
-                      <div className="text-center text-muted-foreground">
-                        No revenue leakage data available for this analysis.
-                      </div>
-                    );
-                  })()}
-                </CardContent>
-              </Card>
+            {/* Enhanced Revenue Charts */}
+            <RevenueCharts
+              data={calculatorData}
+              calculations={calculations}
+              formatCurrency={formatCurrency}
+              confidenceFactors={confidenceFactors}
+            />
 
-              {/* Recovery Comparison Chart */}
-              <Card className="h-fit">
-                <CardHeader>
-                  <CardTitle className="text-lg">Recovery Potential Comparison</CardTitle>
-                  <CardDescription className="text-sm">
-                    Compare current losses with different recovery scenarios
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="h-[400px] flex flex-col justify-center">
-                  <RecoveryComparisonChart
-                    leakageData={leakageBreakdown}
-                    formatCurrency={formatCurrency}
-                    confidenceFactors={confidenceFactors}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Detailed Revenue Leakage
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {leakageBreakdown.map((item, index) => {
-                    const Icon = item.icon;
-                    
-                    return (
-                      <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-4">
-                          <div className="p-3 rounded-lg bg-muted">
-                            <Icon className={`h-5 w-5 ${item.color}`} />
-                          </div>
-                          <div>
-                            <h3 className="text-h3 font-semibold">{item.title}</h3>
-                            <p className="text-body text-muted-foreground">{item.description}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-h3 font-bold">{formatCurrency(item.amount)}</div>
-                          <div className="text-small text-muted-foreground">{item.percentage.toFixed(1)}% of total</div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Detailed Breakdown */}
+            <DetailedBreakdown
+              data={calculatorData}
+              calculations={calculations}
+              formatCurrency={formatCurrency}
+            />
           </div>
         )}
 
