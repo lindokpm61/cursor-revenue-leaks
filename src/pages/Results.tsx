@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -27,6 +27,9 @@ import { useNavigate } from "react-router-dom";
 import { PriorityActions } from "@/components/calculator/results/PriorityActions";
 import { ImplementationTimeline } from "@/components/calculator/results/ImplementationTimeline";
 import { IndustryBenchmarking } from "@/components/calculator/results/IndustryBenchmarking";
+import { HeroRevenueChart } from "@/components/results/HeroRevenueChart";
+import { LeakageBreakdownChart } from "@/components/results/LeakageBreakdownChart";
+import { RecoveryComparisonChart } from "@/components/results/RecoveryComparisonChart";
 import { validateCalculationResults } from "@/lib/calculator/validationHelpers";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -150,29 +153,37 @@ const Results = () => {
 
   const leakageBreakdown = [
     {
+      category: "leadResponseLoss",
       title: "Lead Response Loss",
       amount: submission.lead_response_loss || 0,
+      percentage: totalLeak > 0 ? ((submission.lead_response_loss || 0) / totalLeak) * 100 : 0,
       icon: Users,
       description: "Lost revenue from slow lead response times",
       color: "text-revenue-warning"
     },
     {
+      category: "failedPaymentLoss",
       title: "Failed Payment Loss", 
       amount: submission.failed_payment_loss || 0,
+      percentage: totalLeak > 0 ? ((submission.failed_payment_loss || 0) / totalLeak) * 100 : 0,
       icon: CreditCard,
       description: "Revenue lost due to payment failures",
       color: "text-revenue-danger"
     },
     {
+      category: "selfServeGap",
       title: "Self-Serve Gap",
       amount: submission.selfserve_gap_loss || 0,
+      percentage: totalLeak > 0 ? ((submission.selfserve_gap_loss || 0) / totalLeak) * 100 : 0,
       icon: Target,
       description: "Missed opportunities in self-service conversion",
       color: "text-revenue-primary"
     },
     {
+      category: "processInefficiency",
       title: "Process Inefficiency",
       amount: submission.process_inefficiency_loss || 0,
+      percentage: totalLeak > 0 ? ((submission.process_inefficiency_loss || 0) / totalLeak) * 100 : 0,
       icon: Settings,
       description: "Losses from manual processes and inefficiencies",
       color: "text-muted-foreground"
@@ -260,15 +271,21 @@ const Results = () => {
                   </div>
                 </div>
 
-                <div className="pt-4">
-                  <Button size="lg" className="mr-4" onClick={handleGetActionPlan}>
-                    <Target className="h-5 w-5 mr-2" />
-                    Get Action Plan
-                  </Button>
-                  <Button variant="outline" size="lg" onClick={handleQuickWins}>
-                    <Zap className="h-5 w-5 mr-2" />
-                    Quick Wins
-                  </Button>
+                {/* Hero Revenue Chart */}
+                <div className="mb-8">
+                  <HeroRevenueChart
+                    secureRevenue={submission.current_arr ? submission.current_arr - totalLeak : 0}
+                    revenueAtRisk={totalLeak}
+                    recoveryPotential={recovery70}
+                    formatCurrency={formatCurrency}
+                  />
+                </div>
+
+                <div className="text-center mb-8">
+                  <h3 className="text-xl font-semibold mb-4">Revenue Recovery Potential</h3>
+                  <p className="text-muted-foreground max-w-2xl mx-auto">
+                    Based on our analysis, here's what you could recover by optimizing your revenue operations
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -341,18 +358,49 @@ const Results = () => {
 
         {activeSection === 'breakdown' && (
           <div className="space-y-6">
+            {/* Leakage Breakdown Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue Leakage by Category</CardTitle>
+                <CardDescription>
+                  Breakdown of revenue losses across different operational areas
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <LeakageBreakdownChart
+                  leakageData={leakageBreakdown}
+                  formatCurrency={formatCurrency}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Recovery Comparison Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Recovery Potential Comparison</CardTitle>
+                <CardDescription>
+                  Compare current losses with different recovery scenarios
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <RecoveryComparisonChart
+                  leakageData={leakageBreakdown}
+                  formatCurrency={formatCurrency}
+                />
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5" />
-                  Revenue Leakage Breakdown
+                  Detailed Revenue Leakage
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
                   {leakageBreakdown.map((item, index) => {
                     const Icon = item.icon;
-                    const percentage = totalLeak > 0 ? (item.amount / totalLeak) * 100 : 0;
                     
                     return (
                       <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
@@ -367,7 +415,7 @@ const Results = () => {
                         </div>
                         <div className="text-right">
                           <div className="text-h3 font-bold">{formatCurrency(item.amount)}</div>
-                          <div className="text-small text-muted-foreground">{percentage.toFixed(1)}% of total</div>
+                          <div className="text-small text-muted-foreground">{item.percentage.toFixed(1)}% of total</div>
                         </div>
                       </div>
                     );
