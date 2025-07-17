@@ -114,7 +114,7 @@ const Results = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Calculator className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading your results...</p>
+          <p className="text-body text-muted-foreground">Loading your results...</p>
         </div>
       </div>
     );
@@ -126,8 +126,8 @@ const Results = () => {
         <Card className="max-w-md mx-auto text-center">
           <CardContent className="p-8">
             <AlertTriangle className="h-12 w-12 text-revenue-warning mx-auto mb-4" />
-            <h2 className="text-h2 mb-2">Results Not Found</h2>
-            <p className="text-muted-foreground mb-6">
+            <h2 className="text-h1 mb-2">Results Not Found</h2>
+            <p className="text-body text-muted-foreground mb-6">
               The requested results could not be found or you don't have access to them.
             </p>
             <Link to="/dashboard">
@@ -205,8 +205,8 @@ const Results = () => {
                   <Calculator className="h-5 w-5" />
                 </div>
                 <div>
-                  <h1 className="text-h3 font-semibold">{submission.company_name}</h1>
-                  <p className="text-small text-muted-foreground">Revenue Analysis Results</p>
+                  <h1 className="text-h2 font-semibold">{submission.company_name}</h1>
+                  <p className="text-body text-muted-foreground">Revenue Analysis Results</p>
                 </div>
               </div>
             </div>
@@ -361,8 +361,8 @@ const Results = () => {
                             <Icon className={`h-5 w-5 ${item.color}`} />
                           </div>
                           <div>
-                            <h3 className="font-semibold">{item.title}</h3>
-                            <p className="text-small text-muted-foreground">{item.description}</p>
+                            <h3 className="text-h3 font-semibold">{item.title}</h3>
+                            <p className="text-body text-muted-foreground">{item.description}</p>
                           </div>
                         </div>
                         <div className="text-right">
