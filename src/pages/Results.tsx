@@ -57,6 +57,107 @@ const Results = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
+  // Convert submission data to CalculatorData format for fresh calculations (moved before early returns)
+  const calculatorData: CalculatorData = useMemo(() => {
+    if (!submission) return {} as CalculatorData;
+    
+    return {
+      companyInfo: {
+        companyName: submission.company_name,
+        email: submission.contact_email,
+        phone: submission.phone || '',
+        industry: submission.industry || 'Software & Technology',
+        currentARR: submission.current_arr || 0
+      },
+      leadGeneration: {
+        monthlyLeads: submission.monthly_leads || 0,
+        averageDealValue: submission.average_deal_value || 0,
+        leadResponseTimeHours: submission.lead_response_time || 24
+      },
+      selfServeMetrics: {
+        monthlyFreeSignups: submission.monthly_free_signups || 0,
+        freeToPaidConversionRate: submission.free_to_paid_conversion || 0,
+        monthlyMRR: submission.monthly_mrr || 0
+      },
+      operationsData: {
+        failedPaymentRate: submission.failed_payment_rate || 0,
+        manualHoursPerWeek: submission.manual_hours || 0,
+        hourlyRate: submission.hourly_rate || 0
+      }
+    };
+  }, [submission]);
+
+  // Calculate fresh, realistic values using the corrected logic (moved before early returns)
+  const calculations: Calculations = useMemo(() => {
+    if (!submission) return {} as Calculations;
+
+    const safeNumber = (value: any): number => {
+      const num = Number(value);
+      return isNaN(num) ? 0 : num;
+    };
+
+    // Extract validated data
+    const monthlyLeads = safeNumber(calculatorData.leadGeneration?.monthlyLeads);
+    const averageDealValue = safeNumber(calculatorData.leadGeneration?.averageDealValue);
+    const leadResponseTimeHours = safeNumber(calculatorData.leadGeneration?.leadResponseTimeHours);
+    const monthlyFreeSignups = safeNumber(calculatorData.selfServeMetrics?.monthlyFreeSignups);
+    const freeToPaidConversionRate = safeNumber(calculatorData.selfServeMetrics?.freeToPaidConversionRate);
+    const monthlyMRR = safeNumber(calculatorData.selfServeMetrics?.monthlyMRR);
+    const failedPaymentRate = safeNumber(calculatorData.operationsData?.failedPaymentRate);
+    const manualHoursPerWeek = safeNumber(calculatorData.operationsData?.manualHoursPerWeek);
+    const hourlyRate = safeNumber(calculatorData.operationsData?.hourlyRate);
+    const currentARR = safeNumber(calculatorData.companyInfo?.currentARR);
+    const industry = calculatorData.companyInfo?.industry || 'other';
+
+    // Determine recovery system type
+    const determineRecoverySystemType = (arr: number, mrr: number): keyof typeof RECOVERY_SYSTEMS => {
+      if (arr > 10000000 || mrr > 500000) return 'best-in-class';
+      if (arr > 1000000 || mrr > 50000) return 'advanced';
+      return 'basic';
+    };
+
+    // Calculate fresh values with realistic bounds
+    const responseImpact = calculateLeadResponseImpact(leadResponseTimeHours, averageDealValue);
+    const rawLeadResponseLoss = monthlyLeads * averageDealValue * (1 - responseImpact) * 12;
+    const leadResponseLoss = Math.min(rawLeadResponseLoss, currentARR * 0.08);
+
+    const recoverySystemType = determineRecoverySystemType(currentARR, monthlyMRR);
+    const failedPaymentLoss = calculateFailedPaymentLoss(monthlyMRR, failedPaymentRate, recoverySystemType);
+
+    const rawSelfServeGap = calculateSelfServeGap(
+      monthlyFreeSignups,
+      freeToPaidConversionRate,
+      monthlyMRR,
+      industry
+    );
+    const selfServeGap = Math.min(rawSelfServeGap, currentARR * 0.12);
+
+    const rawProcessLoss = calculateProcessInefficiency(manualHoursPerWeek, hourlyRate);
+    const processLoss = Math.min(rawProcessLoss, currentARR * 0.05);
+
+    // Total calculations with realistic bounds
+    const rawTotalLeakage = leadResponseLoss + failedPaymentLoss + selfServeGap + processLoss;
+    const totalLeakage = Math.min(rawTotalLeakage, currentARR * 0.20);
+    
+    // Recovery potential with realistic bounds
+    const potentialRecovery70 = Math.min(totalLeakage * 0.7, currentARR * 0.14);
+    const potentialRecovery85 = Math.min(totalLeakage * 0.85, currentARR * 0.17);
+
+    return {
+      leadResponseLoss: isFinite(leadResponseLoss) ? leadResponseLoss : 0,
+      failedPaymentLoss: isFinite(failedPaymentLoss) ? failedPaymentLoss : 0,
+      selfServeGap: isFinite(selfServeGap) ? selfServeGap : 0,
+      processLoss: isFinite(processLoss) ? processLoss : 0,
+      totalLeakage: isFinite(totalLeakage) ? totalLeakage : 0,
+      potentialRecovery70: isFinite(potentialRecovery70) ? potentialRecovery70 : 0,
+      potentialRecovery85: isFinite(potentialRecovery85) ? potentialRecovery85 : 0,
+      // Legacy property names for backward compatibility
+      totalLeak: isFinite(totalLeakage) ? totalLeakage : 0,
+      recoveryPotential70: isFinite(potentialRecovery70) ? potentialRecovery70 : 0,
+      recoveryPotential85: isFinite(potentialRecovery85) ? potentialRecovery85 : 0,
+    };
+  }, [calculatorData, submission]);
+
   useEffect(() => {
     if (id) {
       loadSubmission(id);
@@ -171,101 +272,6 @@ const Results = () => {
     changeManagementCapability: submission.current_arr && submission.current_arr > 5000000 ? 'high' : 'medium',
     resourceAvailable: true
   };
-
-  // Convert submission data to CalculatorData format for fresh calculations
-  const calculatorData: CalculatorData = {
-    companyInfo: {
-      companyName: submission.company_name,
-      email: submission.contact_email,
-      phone: submission.phone || '',
-      industry: submission.industry || 'Software & Technology',
-      currentARR: submission.current_arr || 0
-    },
-    leadGeneration: {
-      monthlyLeads: submission.monthly_leads || 0,
-      averageDealValue: submission.average_deal_value || 0,
-      leadResponseTimeHours: submission.lead_response_time || 24
-    },
-    selfServeMetrics: {
-      monthlyFreeSignups: submission.monthly_free_signups || 0,
-      freeToPaidConversionRate: submission.free_to_paid_conversion || 0,
-      monthlyMRR: submission.monthly_mrr || 0
-    },
-    operationsData: {
-      failedPaymentRate: submission.failed_payment_rate || 0,
-      manualHoursPerWeek: submission.manual_hours || 0,
-      hourlyRate: submission.hourly_rate || 0
-    }
-  };
-
-  // Calculate fresh, realistic values using the corrected logic (same as useCalculatorData hook)
-  const calculations: Calculations = useMemo(() => {
-    const safeNumber = (value: any): number => {
-      const num = Number(value);
-      return isNaN(num) ? 0 : num;
-    };
-
-    // Extract validated data
-    const monthlyLeads = safeNumber(calculatorData.leadGeneration?.monthlyLeads);
-    const averageDealValue = safeNumber(calculatorData.leadGeneration?.averageDealValue);
-    const leadResponseTimeHours = safeNumber(calculatorData.leadGeneration?.leadResponseTimeHours);
-    const monthlyFreeSignups = safeNumber(calculatorData.selfServeMetrics?.monthlyFreeSignups);
-    const freeToPaidConversionRate = safeNumber(calculatorData.selfServeMetrics?.freeToPaidConversionRate);
-    const monthlyMRR = safeNumber(calculatorData.selfServeMetrics?.monthlyMRR);
-    const failedPaymentRate = safeNumber(calculatorData.operationsData?.failedPaymentRate);
-    const manualHoursPerWeek = safeNumber(calculatorData.operationsData?.manualHoursPerWeek);
-    const hourlyRate = safeNumber(calculatorData.operationsData?.hourlyRate);
-    const currentARR = safeNumber(calculatorData.companyInfo?.currentARR);
-    const industry = calculatorData.companyInfo?.industry || 'other';
-
-    // Determine recovery system type
-    const determineRecoverySystemType = (arr: number, mrr: number): keyof typeof RECOVERY_SYSTEMS => {
-      if (arr > 10000000 || mrr > 500000) return 'best-in-class';
-      if (arr > 1000000 || mrr > 50000) return 'advanced';
-      return 'basic';
-    };
-
-    // Calculate fresh values with realistic bounds
-    const responseImpact = calculateLeadResponseImpact(leadResponseTimeHours, averageDealValue);
-    const rawLeadResponseLoss = monthlyLeads * averageDealValue * (1 - responseImpact) * 12;
-    const leadResponseLoss = Math.min(rawLeadResponseLoss, currentARR * 0.08);
-
-    const recoverySystemType = determineRecoverySystemType(currentARR, monthlyMRR);
-    const failedPaymentLoss = calculateFailedPaymentLoss(monthlyMRR, failedPaymentRate, recoverySystemType);
-
-    const rawSelfServeGap = calculateSelfServeGap(
-      monthlyFreeSignups,
-      freeToPaidConversionRate,
-      monthlyMRR,
-      industry
-    );
-    const selfServeGap = Math.min(rawSelfServeGap, currentARR * 0.12);
-
-    const rawProcessLoss = calculateProcessInefficiency(manualHoursPerWeek, hourlyRate);
-    const processLoss = Math.min(rawProcessLoss, currentARR * 0.05);
-
-    // Total calculations with realistic bounds
-    const rawTotalLeakage = leadResponseLoss + failedPaymentLoss + selfServeGap + processLoss;
-    const totalLeakage = Math.min(rawTotalLeakage, currentARR * 0.20);
-    
-    // Recovery potential with realistic bounds
-    const potentialRecovery70 = Math.min(totalLeakage * 0.7, currentARR * 0.14);
-    const potentialRecovery85 = Math.min(totalLeakage * 0.85, currentARR * 0.17);
-
-    return {
-      leadResponseLoss: isFinite(leadResponseLoss) ? leadResponseLoss : 0,
-      failedPaymentLoss: isFinite(failedPaymentLoss) ? failedPaymentLoss : 0,
-      selfServeGap: isFinite(selfServeGap) ? selfServeGap : 0,
-      processLoss: isFinite(processLoss) ? processLoss : 0,
-      totalLeakage: isFinite(totalLeakage) ? totalLeakage : 0,
-      potentialRecovery70: isFinite(potentialRecovery70) ? potentialRecovery70 : 0,
-      potentialRecovery85: isFinite(potentialRecovery85) ? potentialRecovery85 : 0,
-      // Legacy property names for backward compatibility
-      totalLeak: isFinite(totalLeakage) ? totalLeakage : 0,
-      recoveryPotential70: isFinite(potentialRecovery70) ? potentialRecovery70 : 0,
-      recoveryPotential85: isFinite(potentialRecovery85) ? potentialRecovery85 : 0,
-    };
-  }, [calculatorData]);
 
   // Use fresh calculations instead of stored (incorrect) values
   const totalLeak = calculations.totalLeakage;
