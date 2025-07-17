@@ -375,55 +375,58 @@ const Results = () => {
 
         {activeSection === 'breakdown' && (
           <div className="space-y-6">
-            {/* Leakage Breakdown Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Revenue Leakage by Category</CardTitle>
-                <CardDescription>
-                  Breakdown of revenue losses across different operational areas
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                    {(() => {
-                      const chartData = leakageBreakdown
-                        .filter(item => item.amount > 0) // Only show items with actual losses
-                        .map(item => ({
-                          category: item.title,
-                          amount: item.amount,
-                          percentage: item.percentage
-                        }));
-                      
-                      console.log('Leakage chart data:', chartData);
-                      
-                      return chartData.length > 0 ? (
-                        <LeakageBreakdownChart 
-                          leakageData={chartData}
-                          formatCurrency={formatCurrency}
-                        />
-                      ) : (
-                        <div className="text-center text-muted-foreground py-8">
-                          No revenue leakage data available for this analysis.
-                        </div>
-                      );
-                    })()}
-              </CardContent>
-            </Card>
+            {/* Side-by-Side Chart Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Leakage Breakdown Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Revenue Leakage by Category</CardTitle>
+                  <CardDescription>
+                    Breakdown of revenue losses across different operational areas
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                      {(() => {
+                        const chartData = leakageBreakdown
+                          .filter(item => item.amount > 0) // Only show items with actual losses
+                          .map(item => ({
+                            category: item.title,
+                            amount: item.amount,
+                            percentage: item.percentage
+                          }));
+                        
+                        console.log('Leakage chart data:', chartData);
+                        
+                        return chartData.length > 0 ? (
+                          <LeakageBreakdownChart 
+                            leakageData={chartData}
+                            formatCurrency={formatCurrency}
+                          />
+                        ) : (
+                          <div className="text-center text-muted-foreground py-8">
+                            No revenue leakage data available for this analysis.
+                          </div>
+                        );
+                      })()}
+                </CardContent>
+              </Card>
 
-            {/* Recovery Comparison Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Recovery Potential Comparison</CardTitle>
-                <CardDescription>
-                  Compare current losses with different recovery scenarios
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <RecoveryComparisonChart
-                  leakageData={leakageBreakdown}
-                  formatCurrency={formatCurrency}
-                />
-              </CardContent>
-            </Card>
+              {/* Recovery Comparison Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recovery Potential Comparison</CardTitle>
+                  <CardDescription>
+                    Compare current losses with different recovery scenarios
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <RecoveryComparisonChart
+                    leakageData={leakageBreakdown}
+                    formatCurrency={formatCurrency}
+                  />
+                </CardContent>
+              </Card>
+            </div>
 
             <Card>
               <CardHeader>
