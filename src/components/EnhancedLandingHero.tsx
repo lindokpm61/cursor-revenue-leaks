@@ -23,29 +23,29 @@ export const EnhancedLandingHero = ({ onStartCalculator }: EnhancedLandingHeroPr
   const [currentStat, setCurrentStat] = useState(0);
   const [animatedValue, setAnimatedValue] = useState(0);
 
-  const impactStats = [
-    { label: "Average Revenue Recovery", value: 847000, prefix: "$", suffix: "+", color: "text-revenue-success" },
-    { label: "Companies Analyzed", value: 1247, prefix: "", suffix: "+", color: "text-primary" },
-    { label: "Avg. Leak Percentage Found", value: 23, prefix: "", suffix: "%", color: "text-revenue-warning" },
-    { label: "Implementation Success Rate", value: 94, prefix: "", suffix: "%", color: "text-revenue-success" }
+  const calculatorCapabilities = [
+    { label: "Lead Response Analysis", value: 4, prefix: "", suffix: " leak areas", color: "text-primary" },
+    { label: "Industry Benchmark Data", value: 15, prefix: "", suffix: "% avg leak", color: "text-revenue-warning" },
+    { label: "Funnel Analysis Depth", value: 100, prefix: "", suffix: "% coverage", color: "text-revenue-success" },
+    { label: "Action Items Generated", value: 12, prefix: "", suffix: "+ insights", color: "text-revenue-primary" }
   ];
 
-  const socialProof = [
-    { company: "TechCorp", logo: "🚀", result: "Found $1.2M in revenue leaks" },
-    { company: "SaaS Solutions", logo: "💡", result: "Improved conversion by 34%" },
-    { company: "DataFlow", logo: "📊", result: "Recovered $890K annually" }
+  const industryBenchmarks = [
+    { category: "Lead Response", icon: "🎯", insight: "Industry avg: 23% leak rate" },
+    { category: "Payment Recovery", icon: "💳", insight: "Failed payments: 8-12%" },
+    { category: "Self-Serve Gap", icon: "🔧", insight: "Manual overhead: 15-25%" }
   ];
 
   // Animate counter
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentStat((prev) => (prev + 1) % impactStats.length);
+      setCurrentStat((prev) => (prev + 1) % calculatorCapabilities.length);
     }, 3000);
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    const targetValue = impactStats[currentStat].value;
+    const targetValue = calculatorCapabilities[currentStat].value;
     const duration = 1500;
     const steps = 60;
     const increment = targetValue / steps;
@@ -106,25 +106,25 @@ export const EnhancedLandingHero = ({ onStartCalculator }: EnhancedLandingHeroPr
                 to identify exactly where you're losing revenue — and how to fix it.
               </p>
 
-              {/* Value propositions */}
+              {/* Product capabilities */}
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border/50">
-                  <div className="p-2 bg-revenue-success/10 rounded-lg">
-                    <TrendingUp className="h-5 w-5 text-revenue-success" />
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Calculator className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <div className="font-semibold text-foreground">Average Recovery</div>
-                    <div className="text-small text-muted-foreground">$847K+ annually</div>
+                    <div className="font-semibold text-foreground">4 Analysis Areas</div>
+                    <div className="text-small text-muted-foreground">Complete funnel coverage</div>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border/50">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Target className="h-5 w-5 text-primary" />
+                  <div className="p-2 bg-revenue-success/10 rounded-lg">
+                    <Target className="h-5 w-5 text-revenue-success" />
                   </div>
                   <div>
-                    <div className="font-semibold text-foreground">Precision Analysis</div>
-                    <div className="text-small text-muted-foreground">Pinpoint leak sources</div>
+                    <div className="font-semibold text-foreground">Research-Backed</div>
+                    <div className="text-small text-muted-foreground">Industry benchmarks</div>
                   </div>
                 </div>
               </div>
@@ -153,15 +153,15 @@ export const EnhancedLandingHero = ({ onStartCalculator }: EnhancedLandingHeroPr
               </div>
             </div>
 
-            {/* Trust indicators */}
+            {/* Industry benchmarks */}
             <div className="border-t border-border/50 pt-6">
-              <p className="text-small text-muted-foreground mb-4">Trusted by growing SaaS companies:</p>
+              <p className="text-small text-muted-foreground mb-4">Based on industry research:</p>
               <div className="grid grid-cols-3 gap-4">
-                {socialProof.map((proof, index) => (
+                {industryBenchmarks.map((benchmark, index) => (
                   <div key={index} className="text-center p-3 rounded-lg bg-muted/30 border border-border/30">
-                    <div className="text-2xl mb-1">{proof.logo}</div>
-                    <div className="text-xs font-medium text-foreground">{proof.company}</div>
-                    <div className="text-xs text-muted-foreground mt-1">{proof.result}</div>
+                    <div className="text-2xl mb-1">{benchmark.icon}</div>
+                    <div className="text-xs font-medium text-foreground">{benchmark.category}</div>
+                    <div className="text-xs text-muted-foreground mt-1">{benchmark.insight}</div>
                   </div>
                 ))}
               </div>
@@ -180,17 +180,17 @@ export const EnhancedLandingHero = ({ onStartCalculator }: EnhancedLandingHeroPr
                   
                   <div>
                     <div className="text-small text-muted-foreground mb-2">
-                      {impactStats[currentStat].label}
+                      {calculatorCapabilities[currentStat].label}
                     </div>
-                    <div className={`text-4xl font-black ${impactStats[currentStat].color}`}>
-                      {impactStats[currentStat].prefix}
+                    <div className={`text-4xl font-black ${calculatorCapabilities[currentStat].color}`}>
+                      {calculatorCapabilities[currentStat].prefix}
                       {animatedValue.toLocaleString()}
-                      {impactStats[currentStat].suffix}
+                      {calculatorCapabilities[currentStat].suffix}
                     </div>
                   </div>
                   
                   <div className="flex justify-center gap-2 pt-4">
-                    {impactStats.map((_, index) => (
+                    {calculatorCapabilities.map((_, index) => (
                       <div
                         key={index}
                         className={`w-2 h-2 rounded-full transition-colors ${
@@ -232,25 +232,25 @@ export const EnhancedLandingHero = ({ onStartCalculator }: EnhancedLandingHeroPr
               </CardContent>
             </Card>
 
-            {/* Social proof numbers */}
+            {/* Tool capabilities */}
             <div className="grid grid-cols-2 gap-4">
               <Card className="border-border/30">
                 <CardContent className="p-4 text-center">
                   <div className="flex items-center justify-center gap-2 mb-2">
-                    <Users className="h-5 w-5 text-primary" />
-                    <span className="text-h2 font-bold text-primary">1,247+</span>
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                    <span className="text-h2 font-bold text-primary">100%</span>
                   </div>
-                  <p className="text-small text-muted-foreground">Companies analyzed</p>
+                  <p className="text-small text-muted-foreground">Free analysis</p>
                 </CardContent>
               </Card>
               
               <Card className="border-border/30">
                 <CardContent className="p-4 text-center">
                   <div className="flex items-center justify-center gap-2 mb-2">
-                    <DollarSign className="h-5 w-5 text-revenue-success" />
-                    <span className="text-h2 font-bold text-revenue-success">$24M+</span>
+                    <Clock className="h-5 w-5 text-revenue-success" />
+                    <span className="text-h2 font-bold text-revenue-success">5min</span>
                   </div>
-                  <p className="text-small text-muted-foreground">Revenue recovered</p>
+                  <p className="text-small text-muted-foreground">Complete assessment</p>
                 </CardContent>
               </Card>
             </div>
