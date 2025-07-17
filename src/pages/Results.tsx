@@ -18,7 +18,8 @@ import {
   ArrowUp,
   CheckCircle,
   Zap,
-  DollarSign
+  DollarSign,
+  Calendar
 } from "lucide-react";
 import { submissionService, type Submission } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,6 +31,10 @@ import { IndustryBenchmarking } from "@/components/calculator/results/IndustryBe
 import { HeroRevenueChart } from "@/components/results/HeroRevenueChart";
 import { LeakagePieChart } from "@/components/results/LeakagePieChart";
 import { RecoveryComparisonChart } from "@/components/results/RecoveryComparisonChart";
+import { StrategicCTASection } from "@/components/results/StrategicCTASection";
+import { SectionCTA } from "@/components/results/SectionCTAs";
+import { FloatingCTABar } from "@/components/results/FloatingCTABar";
+import { EnhancedExportCTA } from "@/components/results/EnhancedExportCTA";
 import { validateCalculationResults } from "@/lib/calculator/validationHelpers";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -221,23 +226,14 @@ const Results = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
-              <Button variant="outline" size="sm">
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
-              </Button>
-            </div>
+            <EnhancedExportCTA />
           </div>
         </div>
       </header>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Section - Two Card Layout */}
-        <div className="mb-12">
+        <div className="mb-8">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             {/* Main Hero Card */}
             <Card className="lg:col-span-3 bg-gradient-to-r from-primary/5 to-revenue-primary/5 border-primary/20">
@@ -284,6 +280,10 @@ const Results = () => {
                       <Zap className="h-4 w-4 mr-2" />
                       Quick Wins
                     </Button>
+                    <Button variant="gradient" className="flex-1">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Book Expert Call
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -307,6 +307,16 @@ const Results = () => {
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        {/* Strategic CTA Section */}
+        <div className="mb-8">
+          <StrategicCTASection 
+            totalLeak={totalLeak}
+            recovery70={recovery70}
+            leadScore={leadScore}
+            formatCurrency={formatCurrency}
+          />
         </div>
 
         {/* Navigation Tabs */}
@@ -403,6 +413,9 @@ const Results = () => {
               </Card>
             </div>
 
+            {/* Section CTA */}
+            <SectionCTA type="breakdown" totalLeak={totalLeak} formatCurrency={formatCurrency} />
+
             {/* Charts Layout - Equal Height */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* Leakage Breakdown Chart */}
@@ -491,35 +504,45 @@ const Results = () => {
         )}
 
         {activeSection === 'benchmarking' && (
-          <IndustryBenchmarking 
-            submission={submission} 
-            formatCurrency={formatCurrency}
-          />
+          <div className="space-y-8">
+            <IndustryBenchmarking 
+              submission={submission}
+              formatCurrency={formatCurrency}
+            />
+            <SectionCTA type="benchmarking" totalLeak={totalLeak} formatCurrency={formatCurrency} />
+          </div>
         )}
 
         {activeSection === 'actions' && (
-          <div id="actions-section">
+          <div className="space-y-8" id="actions-section">
             <PriorityActions 
-              submission={submission} 
+              submission={submission}
               formatCurrency={formatCurrency}
             />
+            <SectionCTA type="actions" totalLeak={totalLeak} formatCurrency={formatCurrency} />
           </div>
         )}
 
         {activeSection === 'timeline' && (
-          <ImplementationTimeline 
-            submission={submission} 
-            formatCurrency={formatCurrency}
-            validatedValues={{
-              totalLeak,
-              leadResponseLoss: submission.lead_response_loss || 0,
-              selfServeLoss: submission.selfserve_gap_loss || 0,
-              recoveryPotential70: recovery70,
-              recoveryPotential85: recovery85
-            }}
-          />
+          <div className="space-y-8">
+            <ImplementationTimeline 
+              submission={submission}
+              formatCurrency={formatCurrency}
+              validatedValues={{
+                totalLeak,
+                leadResponseLoss: submission.lead_response_loss || 0,
+                selfServeLoss: submission.selfserve_gap_loss || 0,
+                recoveryPotential70: recovery70,
+                recoveryPotential85: recovery85
+              }}
+            />
+            <SectionCTA type="timeline" totalLeak={totalLeak} formatCurrency={formatCurrency} />
+          </div>
         )}
       </div>
+
+      {/* Floating CTA Bar */}
+      <FloatingCTABar totalLeak={totalLeak} formatCurrency={formatCurrency} />
     </div>
   );
 };
