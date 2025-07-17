@@ -14,7 +14,7 @@ export const LeakageBreakdownChart = ({ leakageData, formatCurrency }: LeakageBr
   const chartConfig = {
     amount: {
       label: "Revenue Loss",
-      color: "hsl(var(--revenue-warning))",
+      color: "#f97316",
     },
   };
 
@@ -25,6 +25,16 @@ export const LeakageBreakdownChart = ({ leakageData, formatCurrency }: LeakageBr
       displayName: item.category
     }));
 
+  console.log('Chart data for rendering:', chartData);
+
+  if (!chartData || chartData.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+        No data available
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
       <ChartContainer config={chartConfig} className="h-[300px]">
@@ -32,7 +42,7 @@ export const LeakageBreakdownChart = ({ leakageData, formatCurrency }: LeakageBr
           <BarChart
             data={chartData}
             layout="horizontal"
-            margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
+            margin={{ top: 20, right: 30, left: 120, bottom: 5 }}
           >
             <XAxis 
               type="number" 
@@ -43,11 +53,11 @@ export const LeakageBreakdownChart = ({ leakageData, formatCurrency }: LeakageBr
               type="category" 
               dataKey="displayName"
               fontSize={12}
-              width={90}
+              width={110}
             />
             <Bar 
               dataKey="amount" 
-              fill="hsl(var(--revenue-warning))"
+              fill="#f97316"
               radius={[0, 4, 4, 0]}
             />
             <ChartTooltip
