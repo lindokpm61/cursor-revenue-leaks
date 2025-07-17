@@ -447,7 +447,7 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
       title: `${phase.title} Complete`,
       description: phase.description,
       icon: index === 0 ? CheckCircle : index === 1 ? Target : TrendingUp,
-      progress: ((index + 1) / realisticTimeline.length) * 100
+      progress: Math.round(((index + 1) / realisticTimeline.length) * 100)
     })) :
     // Fallback milestones
     [
