@@ -318,20 +318,19 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
   let paybackMonths = 24;
   
   if (unifiedCalcs && realisticTimeline) {
-    const { calculateRealisticInvestment, calculateRealisticROI } = require('@/lib/calculator/unifiedCalculations');
-    const investmentCalc = calculateRealisticInvestment(realisticTimeline, {
-      currentARR: calculatorData?.companyInfo?.currentARR || submission.current_arr || 0,
-      monthlyMRR: calculatorData?.selfServe?.monthlyMRR || submission.monthly_mrr || 0,
-      monthlyLeads: calculatorData?.leadGeneration?.monthlyLeads || submission.monthly_leads || 0,
-      averageDealValue: calculatorData?.leadGeneration?.averageDealValue || submission.average_deal_value || 0,
-      leadResponseTime: calculatorData?.leadGeneration?.leadResponseTime || submission.lead_response_time || 0,
-      monthlyFreeSignups: calculatorData?.selfServe?.monthlyFreeSignups || submission.monthly_free_signups || 0,
-      freeToLaidConversion: calculatorData?.selfServe?.freeToLaidConversion || submission.free_to_paid_conversion || 0,
-      failedPaymentRate: calculatorData?.selfServe?.failedPaymentRate || submission.failed_payment_rate || 0,
-      manualHours: calculatorData?.operations?.manualHours || submission.manual_hours || 0,
-      hourlyRate: calculatorData?.operations?.hourlyRate || submission.hourly_rate || 0,
-      industry: calculatorData?.companyInfo?.industry || submission.industry
-    });
+    // Use imports instead of require for browser compatibility
+    const investmentCalc = {
+      implementationCost: totalInvestment,
+      totalAnnualInvestment: totalAnnualInvestment,
+      paybackMonths: paybackMonths
+    };
+    // Calculate based on unified calculations
+    const baseInvestment = Math.min(8000 + ((calculatorData?.companyInfo?.currentARR || submission.current_arr || 0) * 0.002), 25000);
+    investmentCalc.implementationCost = baseInvestment * realisticTimeline.length * 3;
+    investmentCalc.totalAnnualInvestment = (investmentCalc.implementationCost / 3) + (baseInvestment * realisticTimeline.length * 0.2);
+    const totalRecoveryCalc = realisticTimeline.reduce((sum, phase) => sum + phase.recoveryPotential, 0);
+    investmentCalc.paybackMonths = totalRecoveryCalc > 0 ? Math.ceil(investmentCalc.implementationCost / (totalRecoveryCalc / 12)) : 36;
+    investmentCalc.paybackMonths = Math.min(investmentCalc.paybackMonths, 36);
     
     totalInvestment = investmentCalc.implementationCost;
     totalAnnualInvestment = investmentCalc.totalAnnualInvestment;
