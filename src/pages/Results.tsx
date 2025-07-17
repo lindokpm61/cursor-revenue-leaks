@@ -243,20 +243,20 @@ const Results = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
                   <div className="p-6 rounded-xl bg-background/50 border">
-                    <div className="text-h2 text-revenue-success font-bold mb-2">
-                      {formatCurrency(recovery70)}
-                    </div>
-                    <div className="text-small text-muted-foreground">
-                      Conservative Recovery (70%)
-                    </div>
+                    <div className="text-2xl md:text-3xl lg:text-4xl text-revenue-success font-bold mb-2">
+                       {formatCurrency(recovery70)}
+                     </div>
+                     <div className="text-sm font-semibold text-muted-foreground">
+                       Conservative Recovery (70%)
+                     </div>
                   </div>
                   <div className="p-6 rounded-xl bg-background/50 border">
-                    <div className="text-h2 text-revenue-primary font-bold mb-2">
-                      {formatCurrency(recovery85)}
-                    </div>
-                    <div className="text-small text-muted-foreground">
-                      Optimistic Recovery (85%)
-                    </div>
+                    <div className="text-2xl md:text-3xl lg:text-4xl text-revenue-primary font-bold mb-2">
+                       {formatCurrency(recovery85)}
+                     </div>
+                     <div className="text-sm font-semibold text-muted-foreground">
+                       Optimistic Recovery (85%)
+                     </div>
                   </div>
                 </div>
 
@@ -310,28 +310,28 @@ const Results = () => {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className="text-center p-4">
-                    <div className="text-h2 font-bold text-foreground mb-2">
-                      {formatCurrency(submission.current_arr || 0)}
-                    </div>
-                    <div className="text-small text-muted-foreground">Current ARR</div>
+                     <div className="text-xl md:text-2xl font-bold text-foreground mb-2">
+                       {formatCurrency(submission.current_arr || 0)}
+                     </div>
+                     <div className="text-sm text-muted-foreground">Current ARR</div>
                   </div>
                   <div className="text-center p-4">
-                    <div className="text-h2 font-bold text-revenue-warning mb-2">
-                      {((totalLeak / (submission.current_arr || 1)) * 100).toFixed(1)}%
-                    </div>
-                    <div className="text-small text-muted-foreground">Revenue at Risk</div>
+                     <div className="text-xl md:text-2xl font-bold text-revenue-warning mb-2">
+                       {((totalLeak / (submission.current_arr || 1)) * 100).toFixed(1)}%
+                     </div>
+                     <div className="text-sm text-muted-foreground">Revenue at Risk</div>
                   </div>
                   <div className="text-center p-4">
-                    <div className="text-h2 font-bold text-revenue-success mb-2">
-                      {submission.monthly_leads || 0}
-                    </div>
-                    <div className="text-small text-muted-foreground">Monthly Leads</div>
+                     <div className="text-xl md:text-2xl font-bold text-revenue-success mb-2">
+                       {submission.monthly_leads || 0}
+                     </div>
+                     <div className="text-sm text-muted-foreground">Monthly Leads</div>
                   </div>
                   <div className="text-center p-4">
-                    <div className="text-h2 font-bold text-primary mb-2">
-                      {leadScore}/100
-                    </div>
-                    <div className="text-small text-muted-foreground">Lead Score</div>
+                     <div className="text-xl md:text-2xl font-bold text-primary mb-2">
+                       {leadScore}/100
+                     </div>
+                     <div className="text-sm text-muted-foreground">Lead Score</div>
                   </div>
                 </div>
               </CardContent>
