@@ -744,243 +744,282 @@ const ActionPlan = () => {
   console.log('ActionPlan component rendering:', { submission, priorityActions, roi, calculations });
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
-      {/* Streamlined Navigation */}
-      <nav className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14">
-            <div className="flex items-center gap-4">
-              <Link to={`/results/${submission.id}`}>
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Results
-                </Button>
-              </Link>
-              <div className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                <span className="font-semibold">{submission.company_name} Action Plan</span>
-                <Badge variant="outline" className="text-xs">
-                  {new Date().toLocaleDateString()}
-                </Badge>
-              </div>
-            </div>
-            <Button variant="outline" size="sm" onClick={handleExportPDF}>
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/50 to-accent/20">
+      {/* Enhanced Hero Section */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-primary/95 via-primary to-primary-dark">
+        <div className="absolute inset-0 bg-gradient-mesh opacity-30"></div>
+        <div className="absolute inset-0 bg-gradient-radial from-white/10 via-transparent to-transparent"></div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Navigation */}
+          <div className="flex items-center justify-between mb-8">
+            <Link to={`/results/${submission.id}`}>
+              <Button variant="ghost" size="sm" className="text-white/90 hover:text-white hover:bg-white/10">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Results
+              </Button>
+            </Link>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleExportPDF}
+              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+            >
               <Download className="h-4 w-4 mr-2" />
               Export PDF
             </Button>
           </div>
-        </div>
-      </nav>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Two-Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar - Key Metrics & Progress */}
-          <div className="lg:col-span-1 space-y-4">
-            {/* Progress Card */}
-            <Card className="sticky top-20">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Activity className="h-4 w-4" />
-                  Implementation Progress
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>Progress</span>
-                    <span className="font-medium">{currentProgress}%</span>
-                  </div>
-                  <Progress value={currentProgress} className="h-2" />
-                  <p className="text-xs text-muted-foreground mt-2">{progressMessage}</p>
+          {/* Hero Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+            <div className="lg:col-span-2">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-white/10 rounded-lg backdrop-blur-sm">
+                  <Target className="h-6 w-6 text-white" />
                 </div>
-                
-                <div className="grid grid-cols-1 gap-3">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-revenue-danger">
-                      {formatCurrency(calculations.total_leak)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Revenue Leak</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-revenue-success">
-                      {formatCurrency(calculations.recovery_potential_70)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Recovery Potential</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-primary">
-                      {roi}%
-                    </p>
-                    <p className="text-xs text-muted-foreground">Implementation ROI</p>
+                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                  {new Date().toLocaleDateString()}
+                </Badge>
+              </div>
+              
+              <h1 className="text-h1 font-bold text-white mb-4">
+                {submission.company_name} Action Plan
+              </h1>
+              
+              <p className="text-lg text-white/80 mb-6 max-w-2xl">
+                Your personalized implementation roadmap to recover {formatCurrency(calculations.recovery_potential_70)} 
+                in annual revenue through strategic optimizations.
+              </p>
+
+              {/* Progress Section */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-h3 font-semibold text-white">Implementation Progress</h3>
+                  <span className="text-2xl font-bold text-white">{currentProgress}%</span>
+                </div>
+                <Progress value={currentProgress} className="h-3 mb-3 bg-white/20" />
+                <p className="text-sm text-white/80">{progressMessage}</p>
+              </div>
+            </div>
+
+            {/* Key Metrics Dashboard */}
+            <div className="grid grid-cols-1 gap-4">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
+                <div className="flex items-center justify-center mb-3">
+                  <div className="p-2 bg-revenue-danger/20 rounded-lg">
+                    <TrendingDown className="h-6 w-6 text-white" />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                <p className="text-3xl font-bold text-white mb-1">
+                  {formatCurrency(calculations.total_leak)}
+                </p>
+                <p className="text-sm text-white/70">Annual Revenue Leak</p>
+              </div>
 
-          {/* Main Content Area */}
-          <div className="lg:col-span-3 space-y-6">
-            <ProgressEncouragement />
-
-              <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="actions">Actions ({priorityActions.length})</TabsTrigger>
-                  <TabsTrigger value="timeline">Timeline</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="overview" className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4" />
-                          Revenue Impact Breakdown
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm">Lead Response Loss</span>
-                            <span className="font-medium text-revenue-danger">
-                              {formatCurrency(calculations.leadResponseLoss)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm">Self-Serve Gap</span>
-                            <span className="font-medium text-revenue-danger">
-                              {formatCurrency(calculations.selfServeGap)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm">Process Inefficiency</span>
-                            <span className="font-medium text-revenue-danger">
-                              {formatCurrency(calculations.processLoss)}
-                            </span>
-                          </div>
-                          <div className="border-t pt-2">
-                            <div className="flex justify-between items-center font-semibold">
-                              <span>Total Annual Leak</span>
-                              <span className="text-revenue-danger">
-                                {formatCurrency(calculations.total_leak)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <Target className="h-4 w-4" />
-                          Quick Actions
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {priorityActions.slice(0, 3).map((action) => (
-                            <div key={action.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
-                              <Checkbox
-                                id={action.id}
-                                checked={checkedActions.includes(action.id)}
-                                onCheckedChange={(checked) => handleActionToggle(action.id, checked as boolean)}
-                              />
-                              <div className="flex-1 min-w-0">
-                                <span className="text-sm font-medium truncate">{action.title}</span>
-                              </div>
-                              <Badge variant="outline" className="text-xs shrink-0">
-                                {action.timeframe}
-                              </Badge>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
+                <div className="flex items-center justify-center mb-3">
+                  <div className="p-2 bg-revenue-success/20 rounded-lg">
+                    <TrendingUp className="h-6 w-6 text-white" />
                   </div>
-                </TabsContent>
+                </div>
+                <p className="text-3xl font-bold text-white mb-1">
+                  {formatCurrency(calculations.recovery_potential_70)}
+                </p>
+                <p className="text-sm text-white/70">Recovery Potential</p>
+              </div>
 
-                <TabsContent value="actions" className="space-y-6">
-                  <PriorityActions 
-                    submission={submission}
-                    formatCurrency={formatCurrency}
-                    calculatorData={{
-                      companyInfo: {
-                        currentARR: submission.current_arr || 0,
-                        industry: submission.industry
-                      },
-                      leadGeneration: {
-                        monthlyLeads: submission.monthly_leads || 0,
-                        averageDealValue: submission.average_deal_value || 0,
-                        leadResponseTime: submission.lead_response_time || 0
-                      },
-                      selfServe: {
-                        monthlyFreeSignups: submission.monthly_free_signups || 0,
-                        freeToLaidConversion: submission.free_to_paid_conversion || 0,
-                        monthlyMRR: submission.monthly_mrr || 0,
-                        failedPaymentRate: submission.failed_payment_rate || 0
-                      },
-                      operations: {
-                        manualHours: submission.manual_hours || 0,
-                        hourlyRate: submission.hourly_rate || 0
-                      }
-                    }}
-                  />
-                </TabsContent>
-
-                <TabsContent value="timeline" className="space-y-6">
-                  <ImplementationTimeline 
-                    submission={submission}
-                    formatCurrency={formatCurrency}
-                    validatedValues={{
-                      totalLeak: calculations.total_leak,
-                      leadResponseLoss: calculations.leadResponseLoss,
-                      selfServeLoss: calculations.selfServeGap,
-                      recoveryPotential70: calculations.recovery_potential_70,
-                      recoveryPotential85: calculations.recovery_potential_70 * 1.2
-                    }}
-                    calculatorData={{
-                      companyInfo: {
-                        currentARR: submission.current_arr || 0,
-                        industry: submission.industry
-                      },
-                      leadGeneration: {
-                        monthlyLeads: submission.monthly_leads || 0,
-                        averageDealValue: submission.average_deal_value || 0,
-                        leadResponseTime: submission.lead_response_time || 0
-                      },
-                      selfServe: {
-                        monthlyFreeSignups: submission.monthly_free_signups || 0,
-                        freeToLaidConversion: submission.free_to_paid_conversion || 0,
-                        monthlyMRR: submission.monthly_mrr || 0,
-                        failedPaymentRate: submission.failed_payment_rate || 0
-                      },
-                      operations: {
-                        manualHours: submission.manual_hours || 0,
-                        hourlyRate: submission.hourly_rate || 0
-                      }
-                    }}
-                  />
-                </TabsContent>
-              </Tabs>
-
-              {/* Contextual CTAs based on progress */}
-              <div className="mt-8">
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Next Steps</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {renderContextualCTAs()}
-                  </CardContent>
-                </Card>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
+                <div className="flex items-center justify-center mb-3">
+                  <div className="p-2 bg-accent/20 rounded-lg">
+                    <Rocket className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-white mb-1">{roi}%</p>
+                <p className="text-sm text-white/70">Implementation ROI</p>
               </div>
             </div>
           </div>
         </div>
       </div>
-    );
-  };
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <ProgressEncouragement />
+
+        <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="actions" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+              Actions ({priorityActions.length})
+            </TabsTrigger>
+            <TabsTrigger value="timeline" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+              Timeline
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6 mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="bg-gradient-to-br from-white via-white/90 to-muted/30 shadow-lg border-0">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-h3 flex items-center gap-3">
+                    <div className="p-2 bg-revenue-danger/10 rounded-lg">
+                      <TrendingDown className="h-5 w-5 text-revenue-danger" />
+                    </div>
+                    Revenue Impact Breakdown
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                      <span className="text-body font-medium">Lead Response Loss</span>
+                      <span className="text-h4 font-bold text-revenue-danger">
+                        {formatCurrency(calculations.leadResponseLoss)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                      <span className="text-body font-medium">Self-Serve Gap</span>
+                      <span className="text-h4 font-bold text-revenue-danger">
+                        {formatCurrency(calculations.selfServeGap)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                      <span className="text-body font-medium">Process Inefficiency</span>
+                      <span className="text-h4 font-bold text-revenue-danger">
+                        {formatCurrency(calculations.processLoss)}
+                      </span>
+                    </div>
+                    <div className="border-t-2 border-gradient-primary pt-4">
+                      <div className="flex justify-between items-center p-4 bg-gradient-to-r from-revenue-danger/10 to-revenue-danger/5 rounded-lg">
+                        <span className="text-h4 font-bold">Total Annual Leak</span>
+                        <span className="text-h3 font-bold text-revenue-danger">
+                          {formatCurrency(calculations.total_leak)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-white via-white/90 to-primary/5 shadow-lg border-0">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-h3 flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Target className="h-5 w-5 text-primary" />
+                    </div>
+                    Quick Actions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {priorityActions.slice(0, 3).map((action) => (
+                      <div key={action.id} className="flex items-center gap-4 p-4 rounded-lg bg-gradient-to-r from-muted/50 to-muted/30 hover:from-primary/5 hover:to-primary/10 transition-all duration-200">
+                        <Checkbox
+                          id={action.id}
+                          checked={checkedActions.includes(action.id)}
+                          onCheckedChange={(checked) => handleActionToggle(action.id, checked as boolean)}
+                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <span className="text-body font-semibold">{action.title}</span>
+                        </div>
+                        <Badge variant="outline" className="bg-white/80 border-primary/30 text-primary font-medium">
+                          {action.timeframe}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="actions" className="space-y-6 mt-6">
+            <PriorityActions 
+              submission={submission}
+              formatCurrency={formatCurrency}
+              calculatorData={{
+                companyInfo: {
+                  currentARR: submission.current_arr || 0,
+                  industry: submission.industry
+                },
+                leadGeneration: {
+                  monthlyLeads: submission.monthly_leads || 0,
+                  averageDealValue: submission.average_deal_value || 0,
+                  leadResponseTime: submission.lead_response_time || 0
+                },
+                selfServe: {
+                  monthlyFreeSignups: submission.monthly_free_signups || 0,
+                  freeToLaidConversion: submission.free_to_paid_conversion || 0,
+                  monthlyMRR: submission.monthly_mrr || 0,
+                  failedPaymentRate: submission.failed_payment_rate || 0
+                },
+                operations: {
+                  manualHours: submission.manual_hours || 0,
+                  hourlyRate: submission.hourly_rate || 0
+                }
+              }}
+            />
+          </TabsContent>
+
+          <TabsContent value="timeline" className="space-y-6 mt-6">
+            <ImplementationTimeline 
+              submission={submission}
+              formatCurrency={formatCurrency}
+              validatedValues={{
+                totalLeak: calculations.total_leak,
+                leadResponseLoss: calculations.leadResponseLoss,
+                selfServeLoss: calculations.selfServeGap,
+                recoveryPotential70: calculations.recovery_potential_70,
+                recoveryPotential85: calculations.recovery_potential_70 * 1.2
+              }}
+              calculatorData={{
+                companyInfo: {
+                  currentARR: submission.current_arr || 0,
+                  industry: submission.industry
+                },
+                leadGeneration: {
+                  monthlyLeads: submission.monthly_leads || 0,
+                  averageDealValue: submission.average_deal_value || 0,
+                  leadResponseTime: submission.lead_response_time || 0
+                },
+                selfServe: {
+                  monthlyFreeSignups: submission.monthly_free_signups || 0,
+                  freeToLaidConversion: submission.free_to_paid_conversion || 0,
+                  monthlyMRR: submission.monthly_mrr || 0,
+                  failedPaymentRate: submission.failed_payment_rate || 0
+                },
+                operations: {
+                  manualHours: submission.manual_hours || 0,
+                  hourlyRate: submission.hourly_rate || 0
+                }
+              }}
+            />
+          </TabsContent>
+        </Tabs>
+
+        {/* Enhanced Strategic CTA Section */}
+        <div className="mt-12">
+          <Card className="bg-gradient-to-br from-primary/5 via-white to-accent/10 shadow-xl border border-primary/20">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-h2 flex items-center gap-3">
+                <div className="p-3 bg-gradient-to-br from-primary to-primary-dark rounded-xl shadow-lg">
+                  <Rocket className="h-6 w-6 text-white" />
+                </div>
+                Ready to Implement?
+              </CardTitle>
+              <p className="text-body text-muted-foreground">
+                Take the next step in your revenue recovery journey with expert guidance and proven strategies.
+              </p>
+            </CardHeader>
+            <CardContent>
+              {renderContextualCTAs()}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default ActionPlan;
