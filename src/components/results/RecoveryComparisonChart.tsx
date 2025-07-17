@@ -36,7 +36,7 @@ export const RecoveryComparisonChart = ({ leakageData, formatCurrency }: Recover
 
   return (
     <div className="w-full">
-      <ChartContainer config={chartConfig} className="h-[400px]">
+      <ChartContainer config={chartConfig} className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
