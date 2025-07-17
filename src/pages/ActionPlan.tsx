@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { StrategicCTASection } from "@/components/results/StrategicCTASection";
+import { FloatingCTABar } from "@/components/results/FloatingCTABar";
 import { 
   Calculator, 
   ArrowLeft, 
@@ -13,7 +15,7 @@ import {
   Target,
   Clock,
   CheckCircle,
-  Download,
+  FileDown,
   Calendar,
   Users,
   Zap,
@@ -36,7 +38,7 @@ import {
   Copy,
   BarChart3,
   Activity,
-  
+  CheckSquare
 } from "lucide-react";
 import { submissionService, type Submission } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
@@ -721,6 +723,8 @@ const ActionPlan = () => {
   }
 
   const priorityActions = getPriorityActions(submission);
+  const actionsChecked = checkedActions.length;
+  const completionPercentage = Math.round((actionsChecked / priorityActions.length) * 100);
   const roi = calculateROI(submission);
   const calculations = getEnhancedCalculations(submission);
 
@@ -744,125 +748,104 @@ const ActionPlan = () => {
   console.log('ActionPlan component rendering:', { submission, priorityActions, roi, calculations });
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/50 to-accent/20">
-      {/* Enhanced Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-primary/95 via-primary to-primary-dark">
-        <div className="absolute inset-0 bg-gradient-mesh opacity-30"></div>
-        <div className="absolute inset-0 bg-gradient-radial from-white/10 via-transparent to-transparent"></div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Navigation */}
-          <div className="flex items-center justify-between mb-8">
-            <Link to={`/results/${submission.id}`}>
-              <Button variant="ghost" size="sm" className="text-white/90 hover:text-white hover:bg-white/10">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Results
-              </Button>
-            </Link>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleExportPDF}
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Export PDF
-            </Button>
-          </div>
+    <div className="min-h-screen bg-background">
+        {/* Compact Hero Section */}
+        <div className="border-b bg-background">
+          <div className="container mx-auto px-4 py-8">
+            <div className="max-w-6xl mx-auto">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Link to={`/results/${submission.id}`}>
+                      <Button variant="ghost" size="sm">
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Back to Results
+                      </Button>
+                    </Link>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
+                      <Target className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h1 className="text-h1 font-bold">Action Plan</h1>
+                      <p className="text-sm text-muted-foreground">{submission?.company_name}</p>
+                    </div>
+                  </div>
+                  
+                  <p className="text-muted-foreground mb-4">
+                    Your personalized roadmap to recover{" "}
+                    <span className="font-semibold text-revenue-success">
+                      {formatCurrency(submission?.total_leak || 0)}
+                    </span>{" "}
+                    in annual revenue leakage.
+                  </p>
 
-          {/* Hero Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-            <div className="lg:col-span-2">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-white/10 rounded-lg backdrop-blur-sm">
-                  <Target className="h-6 w-6 text-white" />
-                </div>
-                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                  {new Date().toLocaleDateString()}
-                </Badge>
-              </div>
-              
-              <h1 className="text-h1 font-bold text-white mb-4">
-                {submission.company_name} Action Plan
-              </h1>
-              
-              <p className="text-lg text-white/80 mb-6 max-w-2xl">
-                Your personalized implementation roadmap to recover {formatCurrency(calculations.recovery_potential_70)} 
-                in annual revenue through strategic optimizations.
-              </p>
-
-              {/* Progress Section */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-h3 font-semibold text-white">Implementation Progress</h3>
-                  <span className="text-2xl font-bold text-white">{currentProgress}%</span>
-                </div>
-                <Progress value={currentProgress} className="h-3 mb-3 bg-white/20" />
-                <p className="text-sm text-white/80">{progressMessage}</p>
-              </div>
-            </div>
-
-            {/* Key Metrics Dashboard */}
-            <div className="grid grid-cols-1 gap-4">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
-                <div className="flex items-center justify-center mb-3">
-                  <div className="p-2 bg-revenue-danger/20 rounded-lg">
-                    <TrendingDown className="h-6 w-6 text-white" />
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-revenue-success" />
+                      <span className="text-sm">
+                        <span className="font-semibold">{Math.round(calculateROI(submission) || 0)}%</span> ROI
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      <span className="text-sm">3-6 month timeline</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckSquare className="h-4 w-4 text-secondary" />
+                      <span className="text-sm">
+                        {actionsChecked}/{priorityActions.length} actions completed
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <p className="text-3xl font-bold text-white mb-1">
-                  {formatCurrency(calculations.total_leak)}
-                </p>
-                <p className="text-sm text-white/70">Annual Revenue Leak</p>
-              </div>
 
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
-                <div className="flex items-center justify-center mb-3">
-                  <div className="p-2 bg-revenue-success/20 rounded-lg">
-                    <TrendingUp className="h-6 w-6 text-white" />
-                  </div>
+                <div className="flex items-center gap-4">
+                  <Card className="p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-foreground mb-1">
+                        {Math.round(completionPercentage)}%
+                      </div>
+                      <div className="text-xs text-muted-foreground">Complete</div>
+                    </div>
+                  </Card>
+                  
+                  <Button 
+                    onClick={handleExportPDF}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    <FileDown className="h-4 w-4 mr-2" />
+                    Export PDF
+                  </Button>
                 </div>
-                <p className="text-3xl font-bold text-white mb-1">
-                  {formatCurrency(calculations.recovery_potential_70)}
-                </p>
-                <p className="text-sm text-white/70">Recovery Potential</p>
-              </div>
-
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
-                <div className="flex items-center justify-center mb-3">
-                  <div className="p-2 bg-accent/20 rounded-lg">
-                    <Rocket className="h-6 w-6 text-white" />
-                  </div>
-                </div>
-                <p className="text-3xl font-bold text-white mb-1">{roi}%</p>
-                <p className="text-sm text-white/70">Implementation ROI</p>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <ProgressEncouragement />
 
         <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">
               Overview
             </TabsTrigger>
-            <TabsTrigger value="actions" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+            <TabsTrigger value="actions">
               Actions ({priorityActions.length})
             </TabsTrigger>
-            <TabsTrigger value="timeline" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+            <TabsTrigger value="timeline">
               Timeline
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6 mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-gradient-to-br from-white via-white/90 to-muted/30 shadow-lg border-0">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-h3 flex items-center gap-3">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
                     <div className="p-2 bg-revenue-danger/10 rounded-lg">
                       <TrendingDown className="h-5 w-5 text-revenue-danger" />
                     </div>
@@ -871,28 +854,28 @@ const ActionPlan = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                      <span className="text-body font-medium">Lead Response Loss</span>
-                      <span className="text-h4 font-bold text-revenue-danger">
+                    <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                      <span className="font-medium">Lead Response Loss</span>
+                      <span className="font-bold text-revenue-danger">
                         {formatCurrency(calculations.leadResponseLoss)}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                      <span className="text-body font-medium">Self-Serve Gap</span>
-                      <span className="text-h4 font-bold text-revenue-danger">
+                    <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                      <span className="font-medium">Self-Serve Gap</span>
+                      <span className="font-bold text-revenue-danger">
                         {formatCurrency(calculations.selfServeGap)}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                      <span className="text-body font-medium">Process Inefficiency</span>
-                      <span className="text-h4 font-bold text-revenue-danger">
+                    <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                      <span className="font-medium">Process Inefficiency</span>
+                      <span className="font-bold text-revenue-danger">
                         {formatCurrency(calculations.processLoss)}
                       </span>
                     </div>
-                    <div className="border-t-2 border-gradient-primary pt-4">
-                      <div className="flex justify-between items-center p-4 bg-gradient-to-r from-revenue-danger/10 to-revenue-danger/5 rounded-lg">
-                        <span className="text-h4 font-bold">Total Annual Leak</span>
-                        <span className="text-h3 font-bold text-revenue-danger">
+                    <div className="border-t pt-4">
+                      <div className="flex justify-between items-center p-4 bg-revenue-danger/10 rounded-lg">
+                        <span className="font-bold">Total Annual Leak</span>
+                        <span className="text-lg font-bold text-revenue-danger">
                           {formatCurrency(calculations.total_leak)}
                         </span>
                       </div>
@@ -901,9 +884,9 @@ const ActionPlan = () => {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-white via-white/90 to-primary/5 shadow-lg border-0">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-h3 flex items-center gap-3">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
                     <div className="p-2 bg-primary/10 rounded-lg">
                       <Target className="h-5 w-5 text-primary" />
                     </div>
@@ -913,17 +896,16 @@ const ActionPlan = () => {
                 <CardContent>
                   <div className="space-y-3">
                     {priorityActions.slice(0, 3).map((action) => (
-                      <div key={action.id} className="flex items-center gap-4 p-4 rounded-lg bg-gradient-to-r from-muted/50 to-muted/30 hover:from-primary/5 hover:to-primary/10 transition-all duration-200">
+                      <div key={action.id} className="flex items-center gap-4 p-4 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
                         <Checkbox
                           id={action.id}
                           checked={checkedActions.includes(action.id)}
                           onCheckedChange={(checked) => handleActionToggle(action.id, checked as boolean)}
-                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
                         <div className="flex-1 min-w-0">
-                          <span className="text-body font-semibold">{action.title}</span>
+                          <span className="font-semibold">{action.title}</span>
                         </div>
-                        <Badge variant="outline" className="bg-white/80 border-primary/30 text-primary font-medium">
+                        <Badge variant="outline" className="text-primary">
                           {action.timeframe}
                         </Badge>
                       </div>
@@ -998,25 +980,23 @@ const ActionPlan = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Enhanced Strategic CTA Section */}
-        <div className="mt-12">
-          <Card className="bg-gradient-to-br from-primary/5 via-white to-accent/10 shadow-xl border border-primary/20">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-h2 flex items-center gap-3">
-                <div className="p-3 bg-gradient-to-br from-primary to-primary-dark rounded-xl shadow-lg">
-                  <Rocket className="h-6 w-6 text-white" />
-                </div>
-                Ready to Implement?
-              </CardTitle>
-              <p className="text-body text-muted-foreground">
-                Take the next step in your revenue recovery journey with expert guidance and proven strategies.
-              </p>
-            </CardHeader>
-            <CardContent>
-              {renderContextualCTAs()}
-            </CardContent>
-          </Card>
-        </div>
+        {/* Strategic CTA Section */}
+        {submission && (
+          <StrategicCTASection
+            totalLeak={submission.total_leak || 0}
+            recovery70={submission.recovery_potential_70 || 0}
+            leadScore={submission.lead_score || 0}
+            formatCurrency={formatCurrency}
+          />
+        )}
+
+        {/* Floating CTA Bar */}
+        {submission && (
+          <FloatingCTABar
+            totalLeak={submission.total_leak || 0}
+            formatCurrency={formatCurrency}
+          />
+        )}
       </div>
     </div>
   );
