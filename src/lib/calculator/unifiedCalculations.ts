@@ -1,12 +1,16 @@
 // Unified calculation engine for Action Plan system
 // This serves as the single source of truth for all calculations
 
-import {
+import { 
   calculateLeadResponseImpact,
+  calculateFailedPaymentLoss,
   calculateSelfServeGap,
   calculateProcessInefficiency,
-  calculateFailedPaymentLoss,
-  INDUSTRY_BENCHMARKS
+  calculateEnhancedLeadScore,
+  calculateRealisticRecoveryPotential,
+  calculateRecoveryRanges,
+  INDUSTRY_BENCHMARKS,
+  type ConfidenceFactors 
 } from './enhancedCalculations';
 
 export interface UnifiedCalculationInputs {
@@ -24,196 +28,182 @@ export interface UnifiedCalculationInputs {
 }
 
 export interface UnifiedCalculationResults {
-  // Core losses (bounded and validated)
+  // Core losses (already calculated)
   leadResponseLoss: number;
   selfServeGapLoss: number;
   processInefficiencyLoss: number;
   failedPaymentLoss: number;
-  totalLeak: number;
+  totalLoss: number;
   
-  // Recovery potential (realistic bounds)
-  conservativeRecovery: number; // 50-60% of losses
-  optimisticRecovery: number;   // 70-80% of losses
+  // Enhanced recovery potentials with realistic factors
+  recovery70Percent: number; // Conservative scenario
+  recovery85Percent: number; // Optimistic scenario
+  recoveryBestCase: number;   // Best case scenario
   
-  // Action-specific recovery (prevents double counting)
-  actionRecoveryPotential: {
+  actionSpecificRecovery: {
     leadResponse: number;
-    selfServeOptimization: number;
+    selfServe: number;
     processAutomation: number;
     paymentRecovery: number;
   };
   
-  // Validation metadata
-  confidence: 'high' | 'medium' | 'low';
-  bounds: {
-    maxTotalLeak: number;
-    maxRecovery: number;
-    warningFlags: string[];
+  // Implementation factors and risks
+  implementationFactors: Record<string, number>;
+  riskAdjustments: Record<string, number>;
+  
+  // Confidence and validation
+  confidenceLevel: 'high' | 'medium' | 'low';
+  confidenceBounds: {
+    lower: number;
+    upper: number;
+  };
+  
+  // Recovery timeline and constraints
+  recoveryTimeline: {
+    year1: number;
+    year2: number;
+    year3: number;
   };
 }
 
+// Main calculation function with enhanced recovery matrix and realistic factors
 export const calculateUnifiedResults = (inputs: UnifiedCalculationInputs): UnifiedCalculationResults => {
-  // Input validation and sanitization
+  // Input sanitization and validation
   const sanitizedInputs = {
+    ...inputs,
     currentARR: Math.max(0, inputs.currentARR || 0),
-    monthlyMRR: Math.max(0, inputs.monthlyMRR || 0),
     monthlyLeads: Math.max(0, inputs.monthlyLeads || 0),
-    averageDealValue: Math.max(0, inputs.averageDealValue || 0),
-    leadResponseTime: Math.max(0, inputs.leadResponseTime || 0),
+    leadResponseTimeHours: Math.max(0.1, Math.min(168, inputs.leadResponseTime || 24)),
+    averageDealValue: Math.max(100, inputs.averageDealValue || 5000),
     monthlyFreeSignups: Math.max(0, inputs.monthlyFreeSignups || 0),
-    freeToLaidConversion: Math.max(0, Math.min(100, inputs.freeToLaidConversion || 0)),
-    failedPaymentRate: Math.max(0, Math.min(50, inputs.failedPaymentRate || 0)),
-    manualHours: Math.max(0, Math.min(80, inputs.manualHours || 0)),
-    hourlyRate: Math.max(0, Math.min(500, inputs.hourlyRate || 0)),
-    industry: inputs.industry || 'other'
+    currentConversionRate: Math.max(0, Math.min(25, inputs.freeToLaidConversion || 2)),
+    monthlyMRR: Math.max(0, inputs.monthlyMRR || 0),
+    failedPaymentRate: Math.max(0, Math.min(30, inputs.failedPaymentRate || 5)),
+    manualHoursPerWeek: Math.max(0, Math.min(80, inputs.manualHours || 10)),
+    hourlyRate: Math.max(25, Math.min(500, inputs.hourlyRate || 75))
   };
 
-  const warnings: string[] = [];
+  // Calculate core losses with progressive caps based on company size
+  const getCapMultiplier = (arr: number) => {
+    if (arr > 10000000) return 1.0;    // Enterprise - full caps
+    if (arr > 5000000) return 0.85;    // Large - 85% of caps
+    if (arr > 1000000) return 0.70;    // Medium - 70% of caps
+    return 0.50;                       // Small - 50% of caps
+  };
   
-  // Calculate individual losses with realistic bounds
-  let leadResponseLoss = 0;
-  if (sanitizedInputs.leadResponseTime > 1 && sanitizedInputs.averageDealValue > 0 && sanitizedInputs.monthlyLeads > 0) {
-    const currentEffectiveness = calculateLeadResponseImpact(sanitizedInputs.leadResponseTime, sanitizedInputs.averageDealValue);
-    const targetEffectiveness = calculateLeadResponseImpact(1, sanitizedInputs.averageDealValue);
-    
-    // Calculate annual lead value with conservative conversion rate
-    const conversionRate = sanitizedInputs.freeToLaidConversion > 0 ? sanitizedInputs.freeToLaidConversion / 100 : 0.03;
-    const annualLeadValue = sanitizedInputs.monthlyLeads * sanitizedInputs.averageDealValue * conversionRate * 12;
-    
-    // Calculate potential recovery from lead response improvement
-    const currentLoss = annualLeadValue * (1 - currentEffectiveness);
-    const targetLoss = annualLeadValue * (1 - targetEffectiveness);
-    leadResponseLoss = Math.max(0, currentLoss - targetLoss);
-    
-    // Cap at 15% of ARR (more conservative)
-    const maxLeadResponseLoss = sanitizedInputs.currentARR * 0.15;
-    if (leadResponseLoss > maxLeadResponseLoss) {
-      leadResponseLoss = maxLeadResponseLoss;
-      warnings.push('Lead response loss capped at 15% of ARR');
-    }
-  }
+  const capMultiplier = getCapMultiplier(sanitizedInputs.currentARR);
 
-  // Self-serve gap calculation with conservative bounds
-  let selfServeGapLoss = 0;
-  if (sanitizedInputs.monthlyFreeSignups > 0 && sanitizedInputs.monthlyMRR > 0) {
-    selfServeGapLoss = calculateSelfServeGap(
+  const leadResponseLoss = Math.min(
+    calculateLeadResponseImpact(sanitizedInputs.leadResponseTimeHours, sanitizedInputs.averageDealValue) 
+    * sanitizedInputs.monthlyLeads 
+    * sanitizedInputs.averageDealValue 
+    * 12 
+    * (1 - calculateLeadResponseImpact(sanitizedInputs.leadResponseTimeHours, sanitizedInputs.averageDealValue)),
+    sanitizedInputs.currentARR * 0.12 * capMultiplier // Progressive cap
+  );
+
+  const failedPaymentLoss = Math.min(
+    calculateFailedPaymentLoss(sanitizedInputs.monthlyMRR, sanitizedInputs.failedPaymentRate),
+    sanitizedInputs.currentARR * 0.10 * capMultiplier
+  );
+
+  const selfServeGapLoss = Math.min(
+    calculateSelfServeGap(
       sanitizedInputs.monthlyFreeSignups,
-      sanitizedInputs.freeToLaidConversion,
+      sanitizedInputs.currentConversionRate,
       sanitizedInputs.monthlyMRR,
       sanitizedInputs.industry
-    );
-    
-    // Cap at 20% of ARR (more conservative)
-    const maxSelfServeLoss = sanitizedInputs.currentARR * 0.2;
-    if (selfServeGapLoss > maxSelfServeLoss) {
-      selfServeGapLoss = maxSelfServeLoss;
-      warnings.push('Self-serve gap loss capped at 20% of ARR');
-    }
-  }
+    ),
+    sanitizedInputs.currentARR * 0.20 * capMultiplier
+  );
 
-  // Process inefficiency calculation
-  let processInefficiencyLoss = 0;
-  if (sanitizedInputs.manualHours > 0 && sanitizedInputs.hourlyRate > 0) {
-    processInefficiencyLoss = calculateProcessInefficiency(
-      sanitizedInputs.manualHours,
-      sanitizedInputs.hourlyRate,
-      0.6 // Reduced to 60% automation potential (more realistic)
-    );
-    
-    // Cap at 10% of ARR (more conservative)
-    const maxProcessLoss = sanitizedInputs.currentARR * 0.1;
-    if (processInefficiencyLoss > maxProcessLoss) {
-      processInefficiencyLoss = maxProcessLoss;
-      warnings.push('Process inefficiency loss capped at 10% of ARR');
-    }
-  }
+  const processInefficiencyLoss = Math.min(
+    calculateProcessInefficiency(
+      sanitizedInputs.manualHoursPerWeek,
+      sanitizedInputs.hourlyRate
+    ),
+    sanitizedInputs.currentARR * 0.06 * capMultiplier
+  );
 
-  // Failed payment loss calculation
-  let failedPaymentLoss = 0;
-  if (sanitizedInputs.failedPaymentRate > 0 && sanitizedInputs.monthlyMRR > 0) {
-    failedPaymentLoss = calculateFailedPaymentLoss(
-      sanitizedInputs.monthlyMRR,
-      sanitizedInputs.failedPaymentRate / 100,
-      'basic'
-    );
-    
-    // Cap at 8% of ARR (more conservative)
-    const maxPaymentLoss = sanitizedInputs.currentARR * 0.08;
-    if (failedPaymentLoss > maxPaymentLoss) {
-      failedPaymentLoss = maxPaymentLoss;
-      warnings.push('Failed payment loss capped at 8% of ARR');
-    }
-  }
+  const totalLoss = leadResponseLoss + failedPaymentLoss + selfServeGapLoss + processInefficiencyLoss;
 
-  // Calculate total leak with realistic ceiling
-  const rawTotalLeak = leadResponseLoss + selfServeGapLoss + processInefficiencyLoss + failedPaymentLoss;
-  const maxTotalLeak = sanitizedInputs.currentARR * 0.45; // Maximum 45% of ARR (more realistic)
-  const totalLeak = Math.min(rawTotalLeak, maxTotalLeak);
-  
-  if (rawTotalLeak > maxTotalLeak) {
-    warnings.push('Total leak capped at 45% of ARR');
-  }
-
-  // Calculate realistic recovery potentials with confidence adjustment
-  const confidenceMultiplier = sanitizedInputs.currentARR > 1000000 ? 1.0 : 
-                              sanitizedInputs.currentARR > 500000 ? 0.9 : 
-                              sanitizedInputs.currentARR > 100000 ? 0.8 : 0.7;
-                              
-  const baseRecoveryRate = 0.5 * confidenceMultiplier; // Conservative base rate with confidence adjustment
-  const optimisticRecoveryRate = 0.65 * confidenceMultiplier; // Optimistic but realistic rate
-  
-  // Conservative recovery: 50% of total leak (adjusted by confidence), capped at 25% of ARR
-  const conservativeRecovery = Math.min(totalLeak * baseRecoveryRate, sanitizedInputs.currentARR * 0.25);
-  
-  // Optimistic recovery: 65% of total leak (adjusted by confidence), capped at 30% of ARR
-  const optimisticRecovery = Math.min(totalLeak * optimisticRecoveryRate, sanitizedInputs.currentARR * 0.3);
-
-  // Action-specific recovery potential (prevents double counting, more conservative)
-  const actionRecoveryPotential = {
-    leadResponse: Math.min(leadResponseLoss * 0.5, sanitizedInputs.currentARR * 0.08) * confidenceMultiplier,
-    selfServeOptimization: Math.min(selfServeGapLoss * 0.4, sanitizedInputs.currentARR * 0.1) * confidenceMultiplier,
-    processAutomation: Math.min(processInefficiencyLoss * 0.6, sanitizedInputs.currentARR * 0.06) * confidenceMultiplier,
-    paymentRecovery: Math.min(failedPaymentLoss * 0.7, sanitizedInputs.currentARR * 0.04) * confidenceMultiplier
+  // Determine confidence factors based on inputs and company characteristics
+  const confidenceFactors: ConfidenceFactors = {
+    companySize: sanitizedInputs.currentARR > 10000000 ? 'enterprise' : 
+                 sanitizedInputs.currentARR > 1000000 ? 'scaleup' : 'startup',
+    currentMaturity: sanitizedInputs.currentARR > 5000000 ? 'advanced' :
+                     sanitizedInputs.currentARR > 1000000 ? 'intermediate' : 'basic',
+    resourceAvailable: sanitizedInputs.currentARR > 2000000,
+    changeManagementCapability: sanitizedInputs.currentARR > 5000000 ? 'high' :
+                                sanitizedInputs.currentARR > 1000000 ? 'medium' : 'low'
   };
 
-  // Enhanced confidence calculation
-  let confidence: 'high' | 'medium' | 'low' = 'high';
-  
-  if (sanitizedInputs.currentARR < 500000) confidence = 'low';
-  else if (sanitizedInputs.currentARR < 1000000) confidence = 'medium';
-  
-  if (sanitizedInputs.monthlyLeads < 50 || sanitizedInputs.monthlyFreeSignups < 100) {
-    confidence = confidence === 'high' ? 'medium' : 'low';
-  }
-  
-  if (totalLeak > sanitizedInputs.currentARR * 0.3) {
-    confidence = 'low';
-  }
-  
-  // Add realistic validation flags
-  if (optimisticRecovery > sanitizedInputs.currentARR * 0.25) {
-    warnings.push('Recovery potential may require significant operational changes');
-  }
-  
-  if (totalLeak < sanitizedInputs.currentARR * 0.05) {
-    warnings.push('Total leak may be underestimated for business size');
-  }
-  
+  // Calculate realistic recovery potential using new matrix approach
+  const losses = {
+    leadResponse: leadResponseLoss,
+    selfServe: selfServeGapLoss,
+    processAutomation: processInefficiencyLoss,
+    paymentRecovery: failedPaymentLoss
+  };
+
+  const recoveryRanges = calculateRecoveryRanges(losses, confidenceFactors);
+
+  // Determine confidence level based on multiple factors
+  const riskFactorCount = [
+    totalLoss > sanitizedInputs.currentARR * 0.3, // High loss ratio
+    sanitizedInputs.currentARR < 1000000,         // Small company
+    selfServeGapLoss > totalLoss * 0.4,          // Heavy dependence on self-serve
+    processInefficiencyLoss > totalLoss * 0.3    // High process inefficiency
+  ].filter(Boolean).length;
+
+  const confidenceLevel: 'high' | 'medium' | 'low' = 
+    riskFactorCount === 0 ? 'high' :
+    riskFactorCount <= 2 ? 'medium' : 'low';
+
+  // Apply progressive confidence multipliers
+  const confidenceMultiplier = {
+    'high': 0.95,
+    'medium': 0.85,
+    'low': 0.70
+  }[confidenceLevel];
+
+  const recovery70Percent = recoveryRanges.conservative.totalRecovery * confidenceMultiplier;
+  const recovery85Percent = recoveryRanges.optimistic.totalRecovery * confidenceMultiplier;
+  const recoveryBestCase = recoveryRanges.bestCase.totalRecovery * confidenceMultiplier;
+
+  // Calculate confidence bounds with realistic spreads
+  const confidenceBounds = {
+    lower: recovery70Percent * 0.75, // 25% lower bound
+    upper: recoveryBestCase * 1.15   // 15% upper bound
+  };
+
+  // Calculate recovery timeline with realistic ramp-up
+  const recoveryTimeline = {
+    year1: recovery70Percent * 0.25, // 25% in year 1 (more realistic)
+    year2: recovery70Percent * 0.70, // 70% by year 2
+    year3: recovery70Percent * 1.00  // 100% by year 3
+  };
+
   return {
     leadResponseLoss,
     selfServeGapLoss,
     processInefficiencyLoss,
     failedPaymentLoss,
-    totalLeak,
-    conservativeRecovery,
-    optimisticRecovery,
-    actionRecoveryPotential,
-    confidence,
-    bounds: {
-      maxTotalLeak,
-      maxRecovery: optimisticRecovery,
-      warningFlags: warnings
-    }
+    totalLoss,
+    recovery70Percent,
+    recovery85Percent,
+    recoveryBestCase,
+    actionSpecificRecovery: {
+      leadResponse: (recoveryRanges.conservative.categoryRecovery.leadResponse || 0) * confidenceMultiplier,
+      selfServe: (recoveryRanges.conservative.categoryRecovery.selfServe || 0) * confidenceMultiplier,
+      processAutomation: (recoveryRanges.conservative.categoryRecovery.processAutomation || 0) * confidenceMultiplier,
+      paymentRecovery: (recoveryRanges.conservative.categoryRecovery.paymentRecovery || 0) * confidenceMultiplier
+    },
+    implementationFactors: recoveryRanges.conservative.implementationFactors,
+    riskAdjustments: recoveryRanges.conservative.riskAdjustments,
+    confidenceLevel,
+    confidenceBounds,
+    recoveryTimeline
   };
 };
 

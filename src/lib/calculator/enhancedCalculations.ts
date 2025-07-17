@@ -1,4 +1,4 @@
-// Enhanced revenue leak calculations based on 2025 B2B SaaS validation report
+// Enhanced revenue leak calculations with realistic recovery potential matrix
 
 export interface DealSizeTier {
   name: string;
@@ -17,6 +17,22 @@ export interface RecoverySystemType {
   name: string;
   recoveryRate: number;
   retrySuccessRate: number;
+}
+
+export interface RecoveryMatrix {
+  category: string;
+  baseRecoveryRate: number;
+  implementationDifficulty: 'low' | 'medium' | 'high';
+  timeToValue: number; // months
+  dependencies: string[];
+  riskFactors: string[];
+}
+
+export interface ConfidenceFactors {
+  companySize: 'startup' | 'scaleup' | 'enterprise';
+  currentMaturity: 'basic' | 'intermediate' | 'advanced';
+  resourceAvailable: boolean;
+  changeManagementCapability: 'low' | 'medium' | 'high';
 }
 
 // Deal size tiers for lead response optimization
@@ -45,6 +61,63 @@ export const RECOVERY_SYSTEMS: Record<string, RecoverySystemType> = {
   'basic': { name: 'Basic System', recoveryRate: 0.35, retrySuccessRate: 0.20 },
   'advanced': { name: 'Advanced System', recoveryRate: 0.70, retrySuccessRate: 0.35 },
   'best-in-class': { name: 'Best-in-Class System', recoveryRate: 0.85, retrySuccessRate: 0.50 }
+};
+
+// Realistic recovery potential matrix by category
+export const RECOVERY_MATRIX: Record<string, RecoveryMatrix> = {
+  'leadResponse': {
+    category: 'Lead Response',
+    baseRecoveryRate: 0.55, // 55% base recovery - easier to implement
+    implementationDifficulty: 'low',
+    timeToValue: 2, // 2 months
+    dependencies: ['CRM implementation', 'Lead routing automation'],
+    riskFactors: ['Team adoption', 'Process complexity']
+  },
+  'selfServe': {
+    category: 'Self-Serve Optimization',
+    baseRecoveryRate: 0.35, // 35% base recovery - requires significant UX changes
+    implementationDifficulty: 'high',
+    timeToValue: 6, // 6 months
+    dependencies: ['Product development', 'UX redesign', 'A/B testing infrastructure'],
+    riskFactors: ['Product-market fit', 'User adoption', 'Technical complexity']
+  },
+  'processAutomation': {
+    category: 'Process Automation',
+    baseRecoveryRate: 0.60, // 60% base recovery - depends on automation complexity
+    implementationDifficulty: 'medium',
+    timeToValue: 4, // 4 months
+    dependencies: ['Workflow mapping', 'Tool integration', 'Training'],
+    riskFactors: ['Change management', 'System integration', 'User training']
+  },
+  'paymentRecovery': {
+    category: 'Payment Recovery',
+    baseRecoveryRate: 0.70, // 70% base recovery - technical solution with measurable results
+    implementationDifficulty: 'low',
+    timeToValue: 1, // 1 month
+    dependencies: ['Payment processor integration', 'Retry logic'],
+    riskFactors: ['Customer experience', 'Integration complexity']
+  }
+};
+
+// Implementation reality factors (ramp-up curves)
+export const IMPLEMENTATION_CURVES = {
+  year1: 0.30, // 30% of potential achieved in year 1
+  year2: 0.75, // 75% of potential achieved in year 2  
+  year3: 1.00  // 100% of potential achieved in year 3
+};
+
+// Company size impact on recovery capability
+export const COMPANY_SIZE_MULTIPLIERS = {
+  startup: 0.75,    // 75% - limited resources, faster decision making
+  scaleup: 0.90,    // 90% - good balance of resources and agility
+  enterprise: 1.00  // 100% - full resources, slower implementation
+};
+
+// Change management capability impact
+export const CHANGE_MANAGEMENT_MULTIPLIERS = {
+  low: 0.70,    // 70% - poor change management reduces success
+  medium: 0.85, // 85% - adequate change management
+  high: 1.00    // 100% - excellent change management
 };
 
 // Enhanced lead response time impact calculation (realistic decay model with bounds)
@@ -203,6 +276,123 @@ export const calculateEnhancedLeadScore = (data: {
   return Math.min(score, 100);
 };
 
+// Calculate realistic recovery potential with implementation factors
+export const calculateRealisticRecoveryPotential = (
+  losses: {
+    leadResponse: number;
+    selfServe: number;
+    processAutomation: number;
+    paymentRecovery: number;
+  },
+  confidenceFactors: ConfidenceFactors,
+  scenario: 'conservative' | 'optimistic' = 'conservative'
+): {
+  totalRecovery: number;
+  categoryRecovery: Record<string, number>;
+  implementationFactors: Record<string, number>;
+  riskAdjustments: Record<string, number>;
+} => {
+  const scenarioMultiplier = scenario === 'conservative' ? 0.85 : 1.0;
+  const sizeMultiplier = COMPANY_SIZE_MULTIPLIERS[confidenceFactors.companySize];
+  const changeMultiplier = CHANGE_MANAGEMENT_MULTIPLIERS[confidenceFactors.changeManagementCapability];
+  
+  // Apply diminishing returns for multiple simultaneous initiatives
+  const simultaneousInitiativesPenalty = 0.90; // 10% reduction for overlap
+  
+  const categoryRecovery: Record<string, number> = {};
+  const implementationFactors: Record<string, number> = {};
+  const riskAdjustments: Record<string, number> = {};
+  
+  // Calculate category-specific recovery with realistic factors
+  Object.entries(losses).forEach(([category, loss]) => {
+    const matrix = RECOVERY_MATRIX[category];
+    if (!matrix || loss === 0) {
+      categoryRecovery[category] = 0;
+      implementationFactors[category] = 0;
+      riskAdjustments[category] = 0;
+      return;
+    }
+    
+    // Base recovery rate from matrix
+    let recoveryRate = matrix.baseRecoveryRate;
+    
+    // Apply confidence adjustments
+    recoveryRate *= sizeMultiplier;
+    recoveryRate *= changeMultiplier;
+    recoveryRate *= scenarioMultiplier;
+    
+    // Apply implementation difficulty penalty
+    const difficultyPenalty = {
+      'low': 1.0,
+      'medium': 0.90,
+      'high': 0.75
+    }[matrix.implementationDifficulty];
+    recoveryRate *= difficultyPenalty;
+    
+    // Apply resource availability factor
+    if (!confidenceFactors.resourceAvailable) {
+      recoveryRate *= 0.80; // 20% penalty for limited resources
+    }
+    
+    // Apply maturity factor
+    const maturityMultiplier = {
+      'basic': 0.75,
+      'intermediate': 0.90,
+      'advanced': 1.00
+    }[confidenceFactors.currentMaturity];
+    recoveryRate *= maturityMultiplier;
+    
+    // Apply simultaneous initiatives penalty
+    recoveryRate *= simultaneousInitiativesPenalty;
+    
+    // Cap recovery rate at realistic maximums
+    const maxRecoveryRate = scenario === 'conservative' ? 0.65 : 0.80;
+    recoveryRate = Math.min(recoveryRate, maxRecoveryRate);
+    
+    categoryRecovery[category] = loss * recoveryRate;
+    implementationFactors[category] = recoveryRate;
+    riskAdjustments[category] = 1 - recoveryRate;
+  });
+  
+  const totalRecovery = Object.values(categoryRecovery).reduce((sum, recovery) => sum + recovery, 0);
+  
+  return {
+    totalRecovery,
+    categoryRecovery,
+    implementationFactors,
+    riskAdjustments
+  };
+};
+
+// Calculate recovery ranges for better user understanding
+export const calculateRecoveryRanges = (
+  losses: {
+    leadResponse: number;
+    selfServe: number;
+    processAutomation: number;
+    paymentRecovery: number;
+  },
+  confidenceFactors: ConfidenceFactors
+): {
+  conservative: ReturnType<typeof calculateRealisticRecoveryPotential>;
+  optimistic: ReturnType<typeof calculateRealisticRecoveryPotential>;
+  bestCase: ReturnType<typeof calculateRealisticRecoveryPotential>;
+} => {
+  const conservative = calculateRealisticRecoveryPotential(losses, confidenceFactors, 'conservative');
+  const optimistic = calculateRealisticRecoveryPotential(losses, confidenceFactors, 'optimistic');
+  
+  // Best case scenario with ideal conditions
+  const idealFactors: ConfidenceFactors = {
+    ...confidenceFactors,
+    resourceAvailable: true,
+    changeManagementCapability: 'high',
+    currentMaturity: 'advanced'
+  };
+  const bestCase = calculateRealisticRecoveryPotential(losses, idealFactors, 'optimistic');
+  
+  return { conservative, optimistic, bestCase };
+};
+
 // Validation functions for recovery potential assumptions
 export const validateRecoveryAssumptions = (data: {
   currentARR: number;
@@ -215,7 +405,7 @@ export const validateRecoveryAssumptions = (data: {
   let canAchieve70 = true;
   let canAchieve85 = true;
   
-  // 70% recovery validation
+  // Conservative recovery validation (realistic 50-60% range)
   if (data.grossRetention && data.grossRetention < 80) {
     canAchieve70 = false;
     reasons.push('Gross retention below 80% threshold');
@@ -231,7 +421,7 @@ export const validateRecoveryAssumptions = (data: {
     reasons.push('RevOps processes not implemented');
   }
   
-  // 85% recovery validation (more stringent)
+  // Optimistic recovery validation (realistic 60-70% range)
   if (data.netRetention && data.netRetention < 100) {
     canAchieve85 = false;
     reasons.push('Net retention below 100% threshold');

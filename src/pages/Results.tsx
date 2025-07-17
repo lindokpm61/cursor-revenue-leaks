@@ -258,7 +258,10 @@ const Results = () => {
                         {formatCurrency(recovery70)}
                       </div>
                       <div className="text-sm font-medium text-muted-foreground">
-                        Conservative Recovery (70%)
+                        Conservative Recovery (40-60%)
+                      </div>
+                      <div className="text-xs text-muted-foreground/70 mt-1">
+                        Based on category-specific potential
                       </div>
                     </div>
                     <div className="p-4 rounded-xl bg-background/50 border">
@@ -266,7 +269,10 @@ const Results = () => {
                         {formatCurrency(recovery85)}
                       </div>
                       <div className="text-sm font-medium text-muted-foreground">
-                        Optimistic Recovery (85%)
+                        Optimistic Recovery (55-75%)
+                      </div>
+                      <div className="text-xs text-muted-foreground/70 mt-1">
+                        With optimal execution and resources
                       </div>
                     </div>
                   </div>
@@ -401,6 +407,7 @@ const Results = () => {
                     {formatCurrency(recovery70)}
                   </div>
                   <p className="text-sm text-muted-foreground">Conservative Recovery</p>
+                  <p className="text-xs text-muted-foreground/70">Category-specific rates applied</p>
                 </CardContent>
               </Card>
               <Card className="text-center">
@@ -409,6 +416,7 @@ const Results = () => {
                     {formatCurrency(recovery85)}
                   </div>
                   <p className="text-sm text-muted-foreground">Optimistic Recovery</p>
+                  <p className="text-xs text-muted-foreground/70">With strong execution capability</p>
                 </CardContent>
               </Card>
             </div>

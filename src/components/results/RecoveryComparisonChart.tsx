@@ -16,23 +16,35 @@ export const RecoveryComparisonChart = ({ leakageData, formatCurrency }: Recover
       color: "hsl(var(--revenue-warning))",
     },
     conservative: {
-      label: "70% Recovery",
+      label: "Conservative Recovery",
       color: "hsl(var(--revenue-success))",
     },
     optimistic: {
-      label: "85% Recovery", 
+      label: "Optimistic Recovery", 
       color: "hsl(var(--revenue-primary))",
     },
   };
 
-  const chartData = leakageData
-    .filter(item => item.category !== "failedPaymentLoss") // Exclude failed payment loss
-    .map(item => ({
-      category: item.category.replace(/([A-Z])/g, ' $1').trim(),
+  // Apply realistic category-specific recovery rates instead of blanket percentages
+  const categoryRecoveryRates = {
+    'Lead Response Loss': { conservative: 0.45, optimistic: 0.60 },
+    'Failed Payment Loss': { conservative: 0.65, optimistic: 0.75 },
+    'Self-Serve Gap': { conservative: 0.25, optimistic: 0.40 },
+    'Process Inefficiency': { conservative: 0.50, optimistic: 0.65 }
+  };
+
+  const chartData = leakageData.map((item) => {
+    const categoryName = item.category.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    const rates = categoryRecoveryRates[categoryName as keyof typeof categoryRecoveryRates] || 
+                  { conservative: 0.40, optimistic: 0.55 }; // Default rates
+    
+    return {
+      category: categoryName,
       currentLoss: item.amount,
-      conservative: item.amount * 0.7,
-      optimistic: item.amount * 0.85,
-    }));
+      conservative: Math.round(item.amount * rates.conservative),
+      optimistic: Math.round(item.amount * rates.optimistic),
+    };
+  });
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -67,13 +79,13 @@ export const RecoveryComparisonChart = ({ leakageData, formatCurrency }: Recover
               <Bar 
                 dataKey="conservative" 
                 fill="hsl(var(--revenue-success))"
-                name="70% Recovery"
+                name="Conservative Recovery"
                 radius={[3, 3, 0, 0]}
               />
               <Bar 
                 dataKey="optimistic" 
                 fill="hsl(var(--revenue-primary))"
-                name="85% Recovery"
+                name="Optimistic Recovery"
                 radius={[3, 3, 0, 0]}
               />
               <ChartTooltip
@@ -94,11 +106,11 @@ export const RecoveryComparisonChart = ({ leakageData, formatCurrency }: Recover
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-sm bg-revenue-success"></div>
-          <span>70% Recovery</span>
+          <span>Conservative Recovery</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-sm bg-revenue-primary"></div>
-          <span>85% Recovery</span>
+          <span>Optimistic Recovery</span>
         </div>
       </div>
     </div>
