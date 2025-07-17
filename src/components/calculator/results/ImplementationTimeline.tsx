@@ -339,15 +339,15 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
   }
   
   // Calculate total recovery appropriately based on phase type
-  const totalRecovery = unifiedCalcs ? unifiedCalcs.optimisticRecovery : 
+  const totalRecovery = unifiedCalcs ? unifiedCalcs.recovery85Percent : 
     (legacyPhases.length > 0 ? legacyPhases[legacyPhases.length - 1].cumulativeRecovery : 0);
   
-  const totalLeak = unifiedCalcs ? unifiedCalcs.totalLeak : (validatedValues ? validatedValues.totalLeak : (submission.total_leak || 1));
+  const totalLeak = unifiedCalcs ? unifiedCalcs.totalLoss : (validatedValues ? validatedValues.totalLeak : (submission.total_leak || 1));
   const currentARR = submission.current_arr || 0;
   
   // More conservative recovery percentage calculation
-  const maxRecoveryPercentage = unifiedCalcs?.confidence === 'high' ? 65 : 
-                                unifiedCalcs?.confidence === 'medium' ? 50 : 40;
+  const maxRecoveryPercentage = unifiedCalcs?.confidenceLevel === 'high' ? 65 : 
+                                unifiedCalcs?.confidenceLevel === 'medium' ? 50 : 40;
   const recoveryPercentage = Math.min((totalRecovery / Math.max(totalLeak, 1)) * 100, maxRecoveryPercentage);
   
   const confidenceLevel = getCalculationConfidenceLevel({
@@ -490,7 +490,7 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
                     `${realisticTimeline.length}-phase revenue recovery plan with ${Math.round(recoveryPercentage)}% leak recovery potential` :
                     `Month-by-month revenue recovery plan with ${Math.round(recoveryPercentage)}% leak recovery potential`
                   }
-                  {unifiedCalcs?.confidence === 'low' && (
+                  {unifiedCalcs?.confidenceLevel === 'low' && (
                     <span className="text-revenue-warning"> • Low confidence estimates</span>
                   )}
                 </p>
@@ -506,7 +506,7 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
           <CollapsibleContent>
             <CardContent className="space-y-8 pt-6">
               {/* Recovery Summary */}
-              {unifiedCalcs?.confidence === 'low' && (
+              {unifiedCalcs?.confidenceLevel === 'low' && (
                 <div className="flex items-center gap-2 p-3 bg-revenue-warning/10 border border-revenue-warning/20 rounded-lg mb-4">
                   <AlertTriangle className="h-4 w-4 text-revenue-warning" />
                   <p className="text-sm text-muted-foreground">
@@ -525,7 +525,7 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
                   </div>
                   <div className="text-sm text-muted-foreground mt-1">
                     {Math.round(recoveryPercentage)}% of revenue leak
-                    {unifiedCalcs?.confidence === 'low' && (
+                    {unifiedCalcs?.confidenceLevel === 'low' && (
                       <span className="text-revenue-warning"> • Low confidence</span>
                     )}
                   </div>

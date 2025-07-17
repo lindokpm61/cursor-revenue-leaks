@@ -313,13 +313,13 @@ export const generateRealisticTimeline = (
   inputs: UnifiedCalculationInputs
 ): TimelinePhase[] => {
   const phases: TimelinePhase[] = [];
-  const { actionRecoveryPotential } = calculations;
+  const { actionSpecificRecovery } = calculations;
   
   // Stricter thresholds - only include phases with meaningful impact
   const arrThreshold = inputs.currentARR * 0.02; // 2% of ARR minimum
   
   // Phase 1: Lead Response (Months 1-3) - Always start here if viable
-  if (actionRecoveryPotential.leadResponse > arrThreshold) {
+  if (actionSpecificRecovery.leadResponse > arrThreshold) {
     phases.push({
       id: 'lead-response',
       title: 'Lead Response Optimization',
@@ -327,7 +327,7 @@ export const generateRealisticTimeline = (
       startMonth: 1,
       endMonth: 3,
       difficulty: 'easy',
-      recoveryPotential: actionRecoveryPotential.leadResponse,
+      recoveryPotential: actionSpecificRecovery.leadResponse,
       prerequisites: [],
       actions: [
         { title: 'Audit current response processes', weeks: 2, owner: 'Sales Ops' },
@@ -341,7 +341,7 @@ export const generateRealisticTimeline = (
   }
 
   // Phase 2: Payment Recovery (Months 2-5) - Can run parallel with Phase 1
-  if (actionRecoveryPotential.paymentRecovery > inputs.currentARR * 0.01) {
+  if (actionSpecificRecovery.paymentRecovery > inputs.currentARR * 0.01) {
     phases.push({
       id: 'payment-recovery',
       title: 'Payment Recovery System',
@@ -349,7 +349,7 @@ export const generateRealisticTimeline = (
       startMonth: 2,
       endMonth: 5,
       difficulty: 'medium',
-      recoveryPotential: actionRecoveryPotential.paymentRecovery,
+      recoveryPotential: actionSpecificRecovery.paymentRecovery,
       prerequisites: [],
       actions: [
         { title: 'Analyze payment failure patterns', weeks: 2, owner: 'Finance' },
@@ -363,7 +363,7 @@ export const generateRealisticTimeline = (
   }
 
   // Phase 3: Self-Serve Optimization (Months 4-8) - Depends on lead data
-  if (actionRecoveryPotential.selfServeOptimization > arrThreshold) {
+  if (actionSpecificRecovery.selfServe > arrThreshold) {
     phases.push({
       id: 'self-serve-optimization',
       title: 'Self-Serve Conversion Optimization',
@@ -371,7 +371,7 @@ export const generateRealisticTimeline = (
       startMonth: 4,
       endMonth: 8,
       difficulty: 'medium',
-      recoveryPotential: actionRecoveryPotential.selfServeOptimization,
+      recoveryPotential: actionSpecificRecovery.selfServe,
       prerequisites: ['lead-response'], // Need better lead data first
       actions: [
         { title: 'Deep-dive conversion funnel analysis', weeks: 4, owner: 'Product Analytics' },
@@ -385,7 +385,7 @@ export const generateRealisticTimeline = (
   }
 
   // Phase 4: Process Automation (Months 6-12) - Most complex, requires stable foundation
-  if (actionRecoveryPotential.processAutomation > inputs.currentARR * 0.015) {
+  if (actionSpecificRecovery.processAutomation > inputs.currentARR * 0.015) {
     phases.push({
       id: 'process-automation',
       title: 'Process Automation Initiative',
@@ -393,7 +393,7 @@ export const generateRealisticTimeline = (
       startMonth: 6,
       endMonth: 12,
       difficulty: 'hard',
-      recoveryPotential: actionRecoveryPotential.processAutomation,
+      recoveryPotential: actionSpecificRecovery.processAutomation,
       prerequisites: ['payment-recovery'], // Need stable operational foundation
       actions: [
         { title: 'Comprehensive process audit', weeks: 4, owner: 'Operations' },
