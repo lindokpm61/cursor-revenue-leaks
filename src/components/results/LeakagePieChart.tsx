@@ -68,15 +68,15 @@ export const LeakagePieChart = ({ leakageData, formatCurrency }: LeakagePieChart
   };
 
   return (
-    <div className="w-full h-[300px]">
+    <div className="w-full h-[350px]">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
             data={chartData}
             cx="50%"
-            cy="40%"
-            outerRadius={70}
-            innerRadius={25}
+            cy="50%"
+            outerRadius={80}
+            innerRadius={30}
             paddingAngle={2}
             dataKey="value"
           >
