@@ -19,7 +19,7 @@ import {
   ChevronDown
 } from "lucide-react";
 import { type Submission } from "@/lib/supabase";
-import { INDUSTRY_BENCHMARKS } from '@/lib/calculator/enhancedCalculations';
+import { industryDefaults, IndustryBenchmarks } from '@/lib/industryDefaults';
 import { getCalculationConfidenceLevel } from '@/lib/calculator/validationHelpers';
 
 interface IndustryBenchmarkingProps {
@@ -47,9 +47,26 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
   const [isContentOpen, setIsContentOpen] = useState(variant === 'detailed' ? true : false);
 
   const calculateBenchmarks = (): BenchmarkMetric[] => {
-    // Map submission industry to benchmark keys with fallback
-    const industryKey = submission.industry?.toLowerCase().replace(/[^a-z0-9]/g, '-') as keyof typeof INDUSTRY_BENCHMARKS;
-    const industryData = INDUSTRY_BENCHMARKS[industryKey] || INDUSTRY_BENCHMARKS['saas-software'] || INDUSTRY_BENCHMARKS.other;
+    // Map submission industry to benchmark keys with robust fallback
+    // Strip special characters and normalize industry name
+    const normalizedIndustry = (submission.industry || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-');
+    
+    // Create array of possible matches to handle partial matches
+    const industryKeys = Object.keys(industryDefaults);
+    const exactMatch = industryKeys.find(key => key === normalizedIndustry);
+    const partialMatch = !exactMatch ? 
+      industryKeys.find(key => normalizedIndustry.includes(key) || key.includes(normalizedIndustry)) : 
+      null;
+      
+    // Use exact match, partial match, or appropriate fallback
+    const industryKey = (exactMatch || partialMatch || 
+      (normalizedIndustry.includes('saas') ? 'saas-software' : 'other')) as keyof typeof industryDefaults;
+      
+    const industryData = industryDefaults[industryKey];
     
     // Calculate confidence level for validation warnings
     const confidenceLevel = getCalculationConfidenceLevel({
@@ -69,8 +86,8 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
         title: 'Lead Response Time',
         userValue: submission.lead_response_time || 0,
         industryMin: optimalResponseTime,
-        industryMax: 4,
-        industryAvg: 2.5,
+        industryMax: industryData.leadResponseTimeHours * 2,
+        industryAvg: industryData.leadResponseTimeHours,
         unit: 'hours',
         icon: Clock,
         higherIsBetter: false,
@@ -82,9 +99,9 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
         id: 'conversion-rate',
         title: 'Self-Serve Conversion Rate',
         userValue: submission.free_to_paid_conversion || 0,
-        industryMin: industryData.conversionRate * 0.7,
-        industryMax: industryData.conversionRate * 1.5,
-        industryAvg: industryData.conversionRate,
+        industryMin: industryData.freeToPaidConversionRate * 0.7,
+        industryMax: industryData.freeToPaidConversionRate * 1.5,
+        industryAvg: industryData.freeToPaidConversionRate,
         unit: '%',
         icon: Target,
         higherIsBetter: true,
@@ -96,9 +113,9 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
         id: 'payment-failure',
         title: 'Failed Payment Rate',
         userValue: submission.failed_payment_rate || 0,
-        industryMin: 0.5,
-        industryMax: 4,
-        industryAvg: 2.2,
+        industryMin: industryData.failedPaymentRate * 0.5,
+        industryMax: industryData.failedPaymentRate * 1.8,
+        industryAvg: industryData.failedPaymentRate,
         unit: '%',
         icon: CreditCard,
         higherIsBetter: false,
@@ -110,9 +127,9 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
         id: 'process-efficiency',
         title: 'Manual Hours per Week',
         userValue: submission.manual_hours || 0,
-        industryMin: 5,
-        industryMax: 25,
-        industryAvg: 15,
+        industryMin: industryData.manualHours * 0.5,
+        industryMax: industryData.manualHours * 1.8,
+        industryAvg: industryData.manualHours,
         unit: 'hours',
         icon: Settings,
         higherIsBetter: false,
@@ -122,23 +139,42 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
       }
     ];
 
-    // Calculate performance and gaps
+  // Calculate performance and gaps
     metrics.forEach(metric => {
       if (metric.higherIsBetter) {
-        if (metric.userValue >= metric.industryMax) metric.performance = 'leading';
-        else if (metric.userValue >= metric.industryAvg) metric.performance = 'above';
-        else if (metric.userValue >= metric.industryMin) metric.performance = 'average';
-        else metric.performance = 'below';
+        if (metric.userValue >= metric.industryMax) {
+          metric.performance = 'leading';
+          metric.gapPercentage = ((metric.userValue - metric.industryAvg) / metric.industryAvg) * 100;
+        } else if (metric.userValue >= metric.industryAvg) {
+          metric.performance = 'above';
+          metric.gapPercentage = ((metric.userValue - metric.industryAvg) / metric.industryAvg) * 100;
+        } else if (metric.userValue >= metric.industryMin) {
+          metric.performance = 'average';
+          metric.gapPercentage = ((metric.userValue - metric.industryAvg) / metric.industryAvg) * 100;
+        } else {
+          metric.performance = 'below';
+          metric.gapPercentage = ((metric.userValue - metric.industryAvg) / metric.industryAvg) * 100;
+        }
         
-        metric.gapPercentage = ((metric.userValue - metric.industryAvg) / metric.industryAvg) * 100;
+        // For metrics where higher is better, opportunity is the gap to reach average
         metric.opportunityScore = Math.max(0, metric.industryAvg - metric.userValue);
       } else {
-        if (metric.userValue <= metric.industryMin) metric.performance = 'leading';
-        else if (metric.userValue <= metric.industryAvg) metric.performance = 'above';
-        else if (metric.userValue <= metric.industryMax) metric.performance = 'average';
-        else metric.performance = 'below';
+        // For metrics where lower is better (like response time)
+        if (metric.userValue <= metric.industryMin) {
+          metric.performance = 'leading';
+          metric.gapPercentage = ((metric.industryAvg - metric.userValue) / metric.industryAvg) * 100;
+        } else if (metric.userValue <= metric.industryAvg) {
+          metric.performance = 'above';
+          metric.gapPercentage = ((metric.industryAvg - metric.userValue) / metric.industryAvg) * 100;
+        } else if (metric.userValue <= metric.industryMax) {
+          metric.performance = 'average';
+          metric.gapPercentage = ((metric.userValue - metric.industryAvg) / metric.industryAvg) * 100;
+        } else {
+          metric.performance = 'below';
+          metric.gapPercentage = ((metric.userValue - metric.industryAvg) / metric.industryAvg) * 100;
+        }
         
-        metric.gapPercentage = ((metric.industryAvg - metric.userValue) / metric.industryAvg) * 100;
+        // For metrics where lower is better, opportunity is how much above average
         metric.opportunityScore = Math.max(0, metric.userValue - metric.industryAvg);
       }
     });
@@ -189,29 +225,37 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
 
   const getContextualMessage = (metric: BenchmarkMetric): string => {
     const gapText = Math.abs(metric.gapPercentage).toFixed(0);
+    const confidenceNote = confidenceLevel.level === 'low' ? ' (low confidence)' : '';
     
     switch (metric.id) {
       case 'lead-response':
         if (metric.performance === 'below') {
-          return `Your lead response is ${metric.userValue > metric.industryAvg ? Math.round(metric.userValue / metric.industryAvg) : 1}x slower than industry average - biggest opportunity!`;
+          const timesFactor = metric.userValue > metric.industryAvg ? 
+            Math.round(metric.userValue / metric.industryAvg) : 1;
+          return `Your lead response is ${timesFactor}x slower than industry average${confidenceNote} - major revenue opportunity`;
         }
         return `Excellent lead response time - you're ${gapText}% faster than average!`;
       
       case 'conversion-rate':
         if (metric.performance === 'below') {
-          return `Your conversion rate has ${Math.round((metric.industryAvg - metric.userValue) / metric.userValue * 100)}% improvement potential`;
+          // More accurate percentage calculation that handles zero values
+          const improvementPercent = metric.userValue > 0 ?
+            Math.round((metric.industryAvg - metric.userValue) / Math.max(0.1, metric.userValue) * 100) :
+            Math.round(metric.industryAvg * 100);
+          return `Your conversion rate has ${improvementPercent}% improvement potential${confidenceNote}`;
         }
         return `Strong conversion performance - ${gapText}% above industry standard!`;
       
       case 'payment-failure':
         if (metric.performance === 'above' || metric.performance === 'leading') {
-          return `You're already above average in payment processing - ${gapText}% better than industry standard`;
+          return `You're already above average in payment processing - ${gapText}% better than typical${confidenceNote}`;
         }
-        return `Payment failures are ${gapText}% above industry average - optimization needed`;
+        return `Payment failures are ${Math.abs(metric.gapPercentage).toFixed(0)}% higher than industry average${confidenceNote}`;
       
       case 'process-efficiency':
         if (metric.performance === 'below') {
-          return `High manual workload - ${metric.userValue - metric.industryAvg} more hours than industry average`;
+          const hoursDiff = Math.round(metric.userValue - metric.industryAvg);
+          return `High manual workload - ${hoursDiff} more hours than industry average${confidenceNote}`;
         }
         return `Efficient operations - ${gapText}% better than industry standard!`;
       
@@ -369,6 +413,28 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
                   })}
                 </div>
               </div>
+
+              {/* Confidence Level Information */}
+              {confidenceLevel.level !== 'high' && (
+                <div className="mb-6 p-4 border border-revenue-warning/30 bg-revenue-warning/5 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="h-5 w-5 text-revenue-warning" />
+                    <h4 className="font-medium text-revenue-warning">Calculation Confidence: {confidenceLevel.level.charAt(0).toUpperCase() + confidenceLevel.level.slice(1)}</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    The benchmarking accuracy is {confidenceLevel.level === 'low' ? 'limited' : 'moderate'} based on your provided data. 
+                    To improve accuracy, consider:
+                  </p>
+                  <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                    {confidenceLevel.factors.map((factor, index) => (
+                      <li key={index} className="flex items-center gap-1">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-revenue-warning/70"></span>
+                        {factor}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Industry Context */}
               <Card className="border-primary/20 bg-gradient-to-r from-background to-primary/5">
