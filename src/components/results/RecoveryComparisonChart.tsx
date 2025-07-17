@@ -36,11 +36,13 @@ export const RecoveryComparisonChart = ({ leakageData, formatCurrency }: Recover
 
   return (
     <div className="w-full">
-      <ChartContainer config={chartConfig} className="h-[400px]">
+      <ChartContainer config={chartConfig} className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+            margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+            maxBarSize={45}
+            barCategoryGap="20%"
           >
             <XAxis 
               dataKey="category"
