@@ -23,6 +23,7 @@ import {
 import { submissionService, type Submission } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import { PriorityActions } from "@/components/calculator/results/PriorityActions";
 import { ImplementationTimeline } from "@/components/calculator/results/ImplementationTimeline";
 import { IndustryBenchmarking } from "@/components/calculator/results/IndustryBenchmarking";
@@ -37,6 +38,7 @@ const Results = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (id) {
@@ -84,6 +86,27 @@ const Results = () => {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(amount);
+  };
+
+  const handleGetActionPlan = () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to access your action plan.",
+        variant: "destructive",
+      });
+      return;
+    }
+    navigate(`/action-plan/${submission?.id}`);
+  };
+
+  const handleQuickWins = () => {
+    setActiveSection('actions');
+    // Scroll to actions section
+    const element = document.getElementById('actions-section');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   if (loading) {
@@ -238,11 +261,11 @@ const Results = () => {
                 </div>
 
                 <div className="pt-4">
-                  <Button size="lg" className="mr-4">
+                  <Button size="lg" className="mr-4" onClick={handleGetActionPlan}>
                     <Target className="h-5 w-5 mr-2" />
                     Get Action Plan
                   </Button>
-                  <Button variant="outline" size="lg">
+                  <Button variant="outline" size="lg" onClick={handleQuickWins}>
                     <Zap className="h-5 w-5 mr-2" />
                     Quick Wins
                   </Button>
@@ -363,10 +386,12 @@ const Results = () => {
         )}
 
         {activeSection === 'actions' && (
-          <PriorityActions 
-            submission={submission} 
-            formatCurrency={formatCurrency}
-          />
+          <div id="actions-section">
+            <PriorityActions 
+              submission={submission} 
+              formatCurrency={formatCurrency}
+            />
+          </div>
         )}
 
         {activeSection === 'timeline' && (
