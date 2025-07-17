@@ -68,26 +68,33 @@ export const LeakagePieChart = ({ leakageData, formatCurrency }: LeakagePieChart
   };
 
   return (
-    <div className="w-full h-[300px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={chartData}
-            cx="50%"
-            cy="40%"
-            outerRadius={70}
-            innerRadius={25}
-            paddingAngle={2}
-            dataKey="value"
-          >
-            {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Pie>
-          <Tooltip content={<CustomTooltip />} />
-          <Legend content={<CustomLegend />} />
-        </PieChart>
-      </ResponsiveContainer>
+    <div className="w-full h-full flex flex-col">
+      <div className="flex-1">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={chartData}
+              cx="50%"
+              cy="45%"
+              outerRadius={80}
+              innerRadius={30}
+              paddingAngle={3}
+              dataKey="value"
+            >
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomTooltip />} />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="mt-4">
+        <CustomLegend payload={chartData.map((item, index) => ({ 
+          value: item.name, 
+          color: item.color 
+        }))} />
+      </div>
     </div>
   );
 };

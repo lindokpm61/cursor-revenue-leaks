@@ -374,52 +374,78 @@ const Results = () => {
         )}
 
         {activeSection === 'breakdown' && (
-          <div className="space-y-6">
-            {/* Side-by-Side Chart Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-8">
+            {/* Key Metrics Summary Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="text-center">
+                <CardContent className="pt-6">
+                  <div className="text-3xl font-bold text-revenue-warning mb-2">
+                    {formatCurrency(totalLeak)}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Total Revenue at Risk</p>
+                </CardContent>
+              </Card>
+              <Card className="text-center">
+                <CardContent className="pt-6">
+                  <div className="text-3xl font-bold text-revenue-success mb-2">
+                    {formatCurrency(recovery70)}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Conservative Recovery</p>
+                </CardContent>
+              </Card>
+              <Card className="text-center">
+                <CardContent className="pt-6">
+                  <div className="text-3xl font-bold text-revenue-primary mb-2">
+                    {formatCurrency(recovery85)}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Optimistic Recovery</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Charts Layout - Equal Height */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* Leakage Breakdown Chart */}
-              <Card>
+              <Card className="h-fit">
                 <CardHeader>
-                  <CardTitle>Revenue Leakage by Category</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-lg">Revenue Leakage by Category</CardTitle>
+                  <CardDescription className="text-sm">
                     Breakdown of revenue losses across different operational areas
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                      {(() => {
-                        const chartData = leakageBreakdown
-                          .filter(item => item.amount > 0) // Only show items with actual losses
-                          .map(item => ({
-                            category: item.title,
-                            amount: item.amount,
-                            percentage: item.percentage
-                          }));
-                        
-                        console.log('Leakage chart data:', chartData);
-                        
-                        return chartData.length > 0 ? (
-                          <LeakagePieChart 
-                            leakageData={chartData}
-                            formatCurrency={formatCurrency}
-                          />
-                        ) : (
-                          <div className="text-center text-muted-foreground py-8">
-                            No revenue leakage data available for this analysis.
-                          </div>
-                        );
-                      })()}
+                <CardContent className="h-[400px] flex items-center justify-center">
+                  {(() => {
+                    const chartData = leakageBreakdown
+                      .filter(item => item.amount > 0)
+                      .map(item => ({
+                        category: item.title,
+                        amount: item.amount,
+                        percentage: item.percentage
+                      }));
+                    
+                    return chartData.length > 0 ? (
+                      <LeakagePieChart 
+                        leakageData={chartData}
+                        formatCurrency={formatCurrency}
+                      />
+                    ) : (
+                      <div className="text-center text-muted-foreground">
+                        No revenue leakage data available for this analysis.
+                      </div>
+                    );
+                  })()}
                 </CardContent>
               </Card>
 
               {/* Recovery Comparison Chart */}
-              <Card>
+              <Card className="h-fit">
                 <CardHeader>
-                  <CardTitle>Recovery Potential Comparison</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-lg">Recovery Potential Comparison</CardTitle>
+                  <CardDescription className="text-sm">
                     Compare current losses with different recovery scenarios
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="h-[400px] flex flex-col justify-center">
                   <RecoveryComparisonChart
                     leakageData={leakageBreakdown}
                     formatCurrency={formatCurrency}
