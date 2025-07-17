@@ -205,8 +205,8 @@ const Results = () => {
                   <Calculator className="h-5 w-5" />
                 </div>
                 <div>
-                  <h1 className="text-h2 font-semibold">{submission.company_name}</h1>
-                  <p className="text-body text-muted-foreground">Revenue Analysis Results</p>
+                  <h1 className="text-lg md:text-xl font-semibold">{submission.company_name}</h1>
+                  <p className="text-sm md:text-base text-muted-foreground">Revenue Analysis Results</p>
                 </div>
               </div>
             </div>
@@ -231,12 +231,12 @@ const Results = () => {
             <CardContent className="p-8">
               <div className="text-center space-y-6">
                 <div>
-                  <h2 className="text-hero font-bold mb-4">Revenue Recovery Opportunity</h2>
-                  <div className="text-h1 text-revenue-warning font-bold flex items-center justify-center gap-3">
+                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">Revenue Recovery Opportunity</h2>
+                  <div className="text-2xl md:text-3xl lg:text-4xl text-revenue-warning font-bold flex items-center justify-center gap-3">
                     <ArrowUp className="h-8 w-8" />
                     {formatCurrency(totalLeak)}
                   </div>
-                  <p className="text-body text-muted-foreground mt-2">
+                  <p className="text-lg md:text-xl text-muted-foreground mt-2">
                     Annual revenue opportunity identified
                   </p>
                 </div>
