@@ -11,10 +11,10 @@ interface LeakagePieChartProps {
 
 const COLORS = [
   'hsl(var(--destructive))',
-  'hsl(var(--warning))',
+  'hsl(var(--revenue-warning))', 
   'hsl(var(--primary))',
   'hsl(var(--accent))',
-  'hsl(var(--muted-foreground))',
+  'hsl(var(--revenue-success))',
 ];
 
 export const LeakagePieChart = ({ leakageData, formatCurrency }: LeakagePieChartProps) => {
