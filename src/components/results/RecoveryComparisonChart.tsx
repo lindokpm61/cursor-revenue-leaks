@@ -25,12 +25,14 @@ export const RecoveryComparisonChart = ({ leakageData, formatCurrency }: Recover
     },
   };
 
-  const chartData = leakageData.map(item => ({
-    category: item.category.replace(/([A-Z])/g, ' $1').trim(),
-    currentLoss: item.amount,
-    conservative: item.amount * 0.7,
-    optimistic: item.amount * 0.85,
-  }));
+  const chartData = leakageData
+    .filter(item => item.category !== "Failed Payment Loss") // Exclude failed payment loss
+    .map(item => ({
+      category: item.category.replace(/([A-Z])/g, ' $1').trim(),
+      currentLoss: item.amount,
+      conservative: item.amount * 0.7,
+      optimistic: item.amount * 0.85,
+    }));
 
   return (
     <div className="w-full">
