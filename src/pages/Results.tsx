@@ -28,7 +28,7 @@ import { PriorityActions } from "@/components/calculator/results/PriorityActions
 import { ImplementationTimeline } from "@/components/calculator/results/ImplementationTimeline";
 import { IndustryBenchmarking } from "@/components/calculator/results/IndustryBenchmarking";
 import { HeroRevenueChart } from "@/components/results/HeroRevenueChart";
-import { LeakageBreakdownChart } from "@/components/results/LeakageBreakdownChart";
+import { LeakagePieChart } from "@/components/results/LeakagePieChart";
 import { RecoveryComparisonChart } from "@/components/results/RecoveryComparisonChart";
 import { validateCalculationResults } from "@/lib/calculator/validationHelpers";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -398,7 +398,7 @@ const Results = () => {
                         console.log('Leakage chart data:', chartData);
                         
                         return chartData.length > 0 ? (
-                          <LeakageBreakdownChart 
+                          <LeakagePieChart 
                             leakageData={chartData}
                             formatCurrency={formatCurrency}
                           />
