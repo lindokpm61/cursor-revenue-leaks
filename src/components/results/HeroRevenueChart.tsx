@@ -51,16 +51,16 @@ export const HeroRevenueChart = ({
   };
 
   return (
-    <div className="w-full">
-      <ChartContainer config={chartConfig} className="h-[320px]">
+    <div className="w-full flex flex-col items-center">
+      <ChartContainer config={chartConfig} className="h-[280px] w-full flex items-center justify-center">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={60}
-              outerRadius={100}
+              innerRadius={50}
+              outerRadius={90}
               paddingAngle={2}
               dataKey="value"
             >
@@ -80,16 +80,16 @@ export const HeroRevenueChart = ({
         </ResponsiveContainer>
       </ChartContainer>
       
-      <div className="flex justify-center mt-4 space-x-6 text-sm">
-        <div className="flex items-center space-x-2">
+      <div className="flex justify-center gap-6 text-sm mt-2">
+        <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-revenue-success"></div>
           <span>Secure</span>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-revenue-warning"></div>
           <span>At Risk</span>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-revenue-primary"></div>
           <span>Recovery</span>
         </div>
