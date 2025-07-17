@@ -171,7 +171,7 @@ export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFa
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={320}>
               <BarChart data={performanceZoneData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="category" />
@@ -196,7 +196,7 @@ export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFa
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={320}>
               <PieChart>
                 <Pie
                   data={recoveryOpportunityData}
@@ -238,7 +238,7 @@ export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFa
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height={320}>
             <BarChart data={recoveryData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="category" />

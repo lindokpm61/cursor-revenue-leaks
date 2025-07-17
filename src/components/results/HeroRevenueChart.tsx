@@ -51,8 +51,8 @@ export const HeroRevenueChart = ({
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <ChartContainer config={chartConfig} className="h-[300px]">
+    <div className="w-full">
+      <ChartContainer config={chartConfig} className="h-[320px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
