@@ -371,12 +371,12 @@ const Results = () => {
                      </div>
                      <div className="text-sm text-muted-foreground">Monthly Leads</div>
                   </div>
-                  <div className="text-center p-4">
+                   <div className="text-center p-4">
                      <div className="text-xl md:text-2xl font-bold text-primary mb-2">
-                       {leadScore}/100
+                       {formatCurrency(submission.average_deal_value || 0)}
                      </div>
-                     <div className="text-sm text-muted-foreground">Lead Score</div>
-                  </div>
+                     <div className="text-sm text-muted-foreground">Average Deal Value</div>
+                   </div>
                 </div>
               </CardContent>
             </Card>
