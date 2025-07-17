@@ -365,35 +365,126 @@ const Results = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5" />
-                  Analysis Overview
+                  Strategic Performance Overview
                 </CardTitle>
+                <CardDescription>
+                  Your competitive position and strategic advantage opportunity
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className="text-center p-4">
-                     <div className="text-xl md:text-2xl font-bold text-foreground mb-2">
-                       {formatCurrency(submission.current_arr || 0)}
-                     </div>
-                     <div className="text-sm text-muted-foreground">Current ARR</div>
+                <div className="space-y-8">
+                  {/* Performance Zone Indicator */}
+                  <div className="bg-gradient-to-r from-revenue-danger/10 via-revenue-warning/10 to-revenue-success/10 p-6 rounded-xl border">
+                    <div className="text-center mb-4">
+                      <h3 className="text-lg font-semibold mb-2">Performance Zone Analysis</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Position relative to industry averages and best-in-class targets
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="text-center p-4 bg-revenue-danger/10 rounded-lg border border-revenue-danger/20">
+                        <div className="text-xl font-bold text-revenue-danger mb-1">
+                          {formatCurrency(totalLeak)}
+                        </div>
+                        <div className="text-sm font-medium text-revenue-danger">
+                          Below Industry Average
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Current revenue at risk
+                        </div>
+                      </div>
+                      <div className="text-center p-4 bg-revenue-warning/10 rounded-lg border border-revenue-warning/20">
+                        <div className="text-xl font-bold text-revenue-warning mb-1">
+                          {formatCurrency(recovery70)}
+                        </div>
+                        <div className="text-sm font-medium text-revenue-warning">
+                          Industry Average Target
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Conservative recovery to industry norms
+                        </div>
+                      </div>
+                      <div className="text-center p-4 bg-revenue-success/10 rounded-lg border border-revenue-success/20">
+                        <div className="text-xl font-bold text-revenue-success mb-1">
+                          {formatCurrency(recovery85)}
+                        </div>
+                        <div className="text-sm font-medium text-revenue-success">
+                          Best-in-Class Opportunity
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Strategic advantage through superior performance
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-center p-4">
-                     <div className="text-xl md:text-2xl font-bold text-revenue-warning mb-2">
-                       {((totalLeak / (submission.current_arr || 1)) * 100).toFixed(1)}%
-                     </div>
-                     <div className="text-sm text-muted-foreground">Revenue at Risk</div>
+
+                  {/* Competitive Positioning Metrics */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="text-center p-4 border rounded-lg">
+                      <div className="text-xl md:text-2xl font-bold text-foreground mb-2">
+                        {formatCurrency(submission.current_arr || 0)}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Current ARR</div>
+                      <div className="text-xs text-revenue-warning mt-1">
+                        {((totalLeak / (submission.current_arr || 1)) * 100).toFixed(1)}% at risk
+                      </div>
+                    </div>
+                    <div className="text-center p-4 border rounded-lg">
+                      <div className="text-xl md:text-2xl font-bold text-revenue-primary mb-2">
+                        {Math.round((recovery85 / Math.max(totalLeak, 1)) * 100)}%
+                      </div>
+                      <div className="text-sm text-muted-foreground">Strategic Advantage Potential</div>
+                      <div className="text-xs text-revenue-success mt-1">
+                        Best-in-class recovery rate
+                      </div>
+                    </div>
+                    <div className="text-center p-4 border rounded-lg">
+                      <div className="text-xl md:text-2xl font-bold text-revenue-success mb-2">
+                        {submission.monthly_leads || 0}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Monthly Leads</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Lead response optimization target: 1.5h
+                      </div>
+                    </div>
+                    <div className="text-center p-4 border rounded-lg">
+                      <div className="text-xl md:text-2xl font-bold text-primary mb-2">
+                        {formatCurrency(submission.average_deal_value || 0)}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Average Deal Value</div>
+                      <div className="text-xs text-revenue-primary mt-1">
+                        Conversion rate upside: +50-100%
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-center p-4">
-                     <div className="text-xl md:text-2xl font-bold text-revenue-success mb-2">
-                       {submission.monthly_leads || 0}
-                     </div>
-                     <div className="text-sm text-muted-foreground">Monthly Leads</div>
+
+                  {/* Strategic Urgency Alert */}
+                  <div className="bg-gradient-to-r from-revenue-primary/10 to-revenue-success/10 p-6 rounded-xl border border-revenue-primary/20">
+                    <div className="flex items-start gap-4">
+                      <div className="p-2 rounded-lg bg-revenue-primary text-primary-foreground">
+                        <Target className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-revenue-primary mb-2">
+                          Strategic Competitive Opportunity
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Your analysis shows significant potential to not just reach industry averages, but to establish 
+                          market-leading performance that creates sustainable competitive advantage.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <div className="font-medium text-foreground">Time to Competitive Advantage:</div>
+                            <div className="text-revenue-primary">6-12 months with aggressive execution</div>
+                          </div>
+                          <div>
+                            <div className="font-medium text-foreground">Market Position Opportunity:</div>
+                            <div className="text-revenue-primary">Top 15% performance tier achievable</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                   <div className="text-center p-4">
-                     <div className="text-xl md:text-2xl font-bold text-primary mb-2">
-                       {formatCurrency(submission.average_deal_value || 0)}
-                     </div>
-                     <div className="text-sm text-muted-foreground">Average Deal Value</div>
-                   </div>
                 </div>
               </CardContent>
             </Card>

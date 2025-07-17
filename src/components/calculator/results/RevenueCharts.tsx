@@ -1,8 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, DollarSign, Zap } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { AlertTriangle, DollarSign, Zap, Target, TrendingUp } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Line, LineChart } from "recharts";
 import { CalculatorData, Calculations } from "../useCalculatorData";
 import { calculateRecoveryRanges, type ConfidenceFactors } from "@/lib/calculator/enhancedCalculations";
+import { getBenchmark, bestInClassTargets, industryDefaults } from '@/lib/industryDefaults';
 
 interface RevenueChartsProps {
   data: CalculatorData;
@@ -22,6 +23,11 @@ export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFa
 
   const factors = confidenceFactors || defaultConfidenceFactors;
   
+  // Get industry and best-in-class benchmarks
+  const industry = data.companyInfo?.industry || 'saas-software';
+  const industryBenchmark = industryDefaults[industry] || industryDefaults['saas-software'];
+  const bestInClass = bestInClassTargets[industry] || bestInClassTargets['saas-software'];
+
   // Calculate realistic recovery potential using enhanced calculations
   const losses = {
     leadResponse: calculations.leadResponseLoss,
@@ -31,6 +37,10 @@ export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFa
   };
 
   const recoveryRanges = calculateRecoveryRanges(losses, factors);
+
+  // Calculate best-in-class recovery potential (more aggressive than industry average)
+  const bestInClassRecoveryMultiplier = 1.4; // 40% higher than conservative estimates
+  const bestInClassTotalRecovery = recoveryRanges.conservative.totalRecovery * bestInClassRecoveryMultiplier;
 
   const leakageData = [
     {
@@ -83,17 +93,50 @@ export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFa
     },
   ];
 
-  // Fix: Show "Current ARR vs Recovery Opportunity" instead of misleading total vs leaked
-  const totalVsRecoveryData = [
+  // Three-tier recovery opportunity visualization
+  const recoveryOpportunityData = [
     {
       name: 'Current ARR',
       value: data.companyInfo.currentARR,
-      color: 'hsl(var(--revenue-success))',
+      color: 'hsl(var(--muted-foreground))',
     },
     {
-      name: 'Recovery Opportunity',
+      name: 'Industry Average Recovery',
       value: recoveryRanges.conservative.totalRecovery,
-      color: 'hsl(var(--revenue-primary))',
+      color: 'hsl(var(--revenue-warning))',
+    },
+    {
+      name: 'Best-in-Class Recovery',
+      value: bestInClassTotalRecovery,
+      color: 'hsl(var(--revenue-success))',
+    },
+  ];
+
+  // Performance zone chart data
+  const performanceZoneData = [
+    {
+      category: 'Lead Response',
+      current: calculations.leadResponseLoss,
+      industryAvg: calculations.leadResponseLoss * 0.6, // Industry average performance
+      bestInClass: calculations.leadResponseLoss * 0.85, // Best-in-class recovery
+    },
+    {
+      category: 'Self-Serve',
+      current: calculations.selfServeGap,
+      industryAvg: calculations.selfServeGap * 0.5,
+      bestInClass: calculations.selfServeGap * 0.8,
+    },
+    {
+      category: 'Process Automation',
+      current: calculations.processLoss,
+      industryAvg: calculations.processLoss * 0.7,
+      bestInClass: calculations.processLoss * 0.85,
+    },
+    {
+      category: 'Payment Recovery',
+      current: calculations.failedPaymentLoss,
+      industryAvg: calculations.failedPaymentLoss * 0.4,
+      bestInClass: calculations.failedPaymentLoss * 0.65,
     },
   ];
 
@@ -101,26 +144,42 @@ export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFa
 
   return (
     <>
+      {/* Strategic Context Header */}
+      <div className="mb-8">
+        <div className="bg-gradient-to-r from-revenue-primary/10 to-revenue-success/10 p-6 rounded-xl border border-revenue-primary/20">
+          <div className="text-center">
+            <h3 className="text-xl font-semibold text-revenue-primary mb-2">
+              Strategic Revenue Recovery Analysis
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Three-tier visualization showing progression from current state → industry average → best-in-class performance
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-revenue-warning" />
-              Revenue Leakage by Source
+              <TrendingUp className="h-5 w-5 text-revenue-primary" />
+              Performance Zone Analysis
             </CardTitle>
             <CardDescription>
-              Annual revenue loss breakdown
+              Current vs Industry Average vs Best-in-Class recovery potential
             </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={leakageData}>
+              <BarChart data={performanceZoneData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
+                <XAxis dataKey="category" />
                 <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
                 <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                <Bar dataKey="value" fill="hsl(var(--destructive))" />
+                <Bar dataKey="current" fill="hsl(var(--revenue-danger))" name="Current Loss" />
+                <Bar dataKey="industryAvg" fill="hsl(var(--revenue-warning))" name="Industry Avg Recovery" />
+                <Bar dataKey="bestInClass" fill="hsl(var(--revenue-success))" name="Best-in-Class Recovery" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -129,18 +188,18 @@ export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFa
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-revenue-success" />
-              Current ARR vs Recovery Opportunity
+              <Target className="h-5 w-5 text-revenue-success" />
+              Strategic Advantage Opportunity
             </CardTitle>
             <CardDescription>
-              Current annual recurring revenue vs potential recovery
+              Revenue growth through best-in-class performance
             </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={totalVsRecoveryData}
+                  data={recoveryOpportunityData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -149,40 +208,77 @@ export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFa
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {totalVsRecoveryData.map((entry, index) => (
+                  {recoveryOpportunityData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(value) => formatCurrency(Number(value))} />
               </PieChart>
             </ResponsiveContainer>
+            <div className="mt-4 text-center">
+              <div className="text-sm text-muted-foreground">
+                Best-in-class performance creates <span className="font-semibold text-revenue-primary">
+                {Math.round(((bestInClassTotalRecovery - recoveryRanges.conservative.totalRecovery) / recoveryRanges.conservative.totalRecovery) * 100)}% additional upside
+                </span> beyond industry averages
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recovery Potential */}
+      {/* Strategic Recovery Analysis */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-revenue-success" />
-            Recovery Potential by Category
+            Strategic Recovery Roadmap
           </CardTitle>
-            <CardDescription>
-              Realistic recovery potential based on implementation factors
-            </CardDescription>
+          <CardDescription>
+            Aggressive improvement targets for competitive advantage
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={recoveryData}>
+            <BarChart data={recoveryData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="category" />
               <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
-              <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-              <Bar dataKey="current" fill="hsl(var(--destructive))" name="Current Loss" />
-              <Bar dataKey="conservative" fill="hsl(var(--revenue-warning))" name="Conservative Recovery" />
-              <Bar dataKey="optimistic" fill="hsl(var(--revenue-success))" name="Optimistic Recovery" />
+              <Tooltip 
+                formatter={(value, name) => [
+                  formatCurrency(Number(value)), 
+                  name === 'current' ? 'Current Loss' :
+                  name === 'conservative' ? 'Industry Average Recovery' :
+                  'Best-in-Class Recovery'
+                ]} 
+              />
+              <Bar dataKey="current" fill="hsl(var(--revenue-danger))" name="Current Loss" />
+              <Bar dataKey="conservative" fill="hsl(var(--revenue-warning))" name="Industry Avg Recovery" />
+              <Bar dataKey="optimistic" fill="hsl(var(--revenue-success))" name="Best-in-Class Recovery" />
             </BarChart>
           </ResponsiveContainer>
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+            <div className="p-4 bg-revenue-danger/10 rounded-lg border border-revenue-danger/20">
+              <div className="text-sm font-medium text-revenue-danger mb-1">Current State</div>
+              <div className="text-lg font-bold text-revenue-danger">
+                {formatCurrency(Object.values(losses).reduce((sum, loss) => sum + loss, 0))}
+              </div>
+              <div className="text-xs text-muted-foreground">Annual revenue at risk</div>
+            </div>
+            <div className="p-4 bg-revenue-warning/10 rounded-lg border border-revenue-warning/20">
+              <div className="text-sm font-medium text-revenue-warning mb-1">Industry Average</div>
+              <div className="text-lg font-bold text-revenue-warning">
+                {formatCurrency(recoveryRanges.conservative.totalRecovery)}
+              </div>
+              <div className="text-xs text-muted-foreground">Conservative recovery target</div>
+            </div>
+            <div className="p-4 bg-revenue-success/10 rounded-lg border border-revenue-success/20">
+              <div className="text-sm font-medium text-revenue-success mb-1">Best-in-Class</div>
+              <div className="text-lg font-bold text-revenue-success">
+                {formatCurrency(bestInClassTotalRecovery)}
+              </div>
+              <div className="text-xs text-muted-foreground">Strategic advantage target</div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </>

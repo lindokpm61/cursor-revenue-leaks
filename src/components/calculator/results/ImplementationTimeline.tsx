@@ -103,9 +103,9 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
     if (leadResponseLoss > threshold) {
       potentialPhases.push({
         type: 'lead_response',
-        title: "Lead Response Optimization",
-        description: "Response automation and lead capture improvements with 3-month ramp-up",
-        recovery: Math.min(leadResponseLoss * 0.45, Math.min(currentARR * 0.12, totalLeak * 0.25)), // More conservative
+        title: "Lead Response Strategic Excellence",
+        description: "Best-in-class response automation for competitive advantage (sub-1h response target)",
+        recovery: Math.min(leadResponseLoss * 0.65, Math.min(currentARR * 0.18, totalLeak * 0.35)), // More aggressive for best-in-class
         difficulty: "Easy" as const,
         months: "Month 1-3",
         rampUpMonths: 2, // No immediate recovery
@@ -124,9 +124,9 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
     if (selfServeLoss > threshold) {
       potentialPhases.push({
         type: 'self_serve',
-        title: "Self-Serve Optimization",
-        description: "Conversion rate improvements and onboarding optimization over 4 months",
-        recovery: Math.min(selfServeLoss * 0.35, Math.min(currentARR * 0.15, totalLeak * 0.30)), // More conservative
+        title: "Self-Serve Market Leadership",
+        description: "Best-in-class conversion optimization for market dominance (4.5%+ conversion target)",
+        recovery: Math.min(selfServeLoss * 0.55, Math.min(currentARR * 0.22, totalLeak * 0.40)), // More aggressive for best-in-class
         difficulty: "Medium" as const,
         months: "Month 4-7",
         rampUpMonths: 2,
@@ -146,9 +146,9 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
     if (processLoss > threshold) {
       potentialPhases.push({
         type: 'process_automation',
-        title: "Process Automation",
-        description: "Advanced automation and manual process elimination over 6 months",
-        recovery: Math.min(processLoss * 0.50, Math.min(currentARR * 0.18, totalLeak * 0.25)), // More conservative
+        title: "Operational Excellence",
+        description: "Industry-leading automation (85% automation rate) for cost leadership advantage",
+        recovery: Math.min(processLoss * 0.70, Math.min(currentARR * 0.25, totalLeak * 0.35)), // More aggressive for best-in-class
         difficulty: "Medium-Hard" as const,
         months: "Month 6-11",
         rampUpMonths: 3, // Longer ramp-up for complex changes
@@ -169,9 +169,9 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
     if (paymentLoss > threshold) {
       potentialPhases.push({
         type: 'payment_recovery',
-        title: "Payment Recovery System", 
-        description: "Payment failure reduction and retry logic optimization",
-        recovery: Math.min(paymentLoss * 0.35, Math.min(currentARR * 0.06, totalLeak * 0.15)), // More conservative
+        title: "Payment Excellence System", 
+        description: "Best-in-class payment infrastructure for minimal failure rates (sub-1.5% target)",
+        recovery: Math.min(paymentLoss * 0.55, Math.min(currentARR * 0.10, totalLeak * 0.25)), // More aggressive for best-in-class
         difficulty: "Medium" as const,
         months: "Month 3-5",
         rampUpMonths: 1,
@@ -188,8 +188,8 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
     // Sort by recovery potential and impact, but respect dependencies
     potentialPhases.sort((a, b) => b.recovery - a.recovery);
     
-    // Ensure we don't exceed 60% of total leak in total recovery
-    const maxTotalRecovery = Math.min(totalLeak * 0.60, currentARR * 0.30);
+    // Ensure we don't exceed 75% of total leak in total recovery (more aggressive for best-in-class)
+    const maxTotalRecovery = Math.min(totalLeak * 0.75, currentARR * 0.40);
     let runningTotal = 0;
     const selectedPhases = [];
     
@@ -233,9 +233,9 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
       phases.push({
         phase: "1",
         months: "Month 1-9",
-        title: "Incremental Optimization",
-        description: "Conservative improvements across key business areas with gradual implementation",
-        recovery: conservativeRecovery,
+        title: "Strategic Performance Enhancement",
+        description: "Targeted improvements toward best-in-class benchmarks with systematic implementation",
+        recovery: conservativeRecovery * 1.3, // More aggressive baseline
         difficulty: "Easy",
         actions: [
           "Audit current processes",

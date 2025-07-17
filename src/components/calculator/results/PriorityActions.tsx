@@ -71,27 +71,30 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
       switch (action.id) {
         case 'lead-response':
           currentMetric = `${submission.lead_response_time || 0}h response time`;
-          targetMetric = '1.5h response time';
-          currentProgress = Math.max(0, Math.min(100, 100 - ((submission.lead_response_time || 0) - 1.5) * 20));
-          targetProgress = 85;
-          break;
-        case 'selfserve-optimization':
-          currentMetric = `${submission.free_to_paid_conversion || 0}% conversion rate`;
-          targetMetric = `${Math.min(4.2, (submission.free_to_paid_conversion || 0) + 2.0).toFixed(1)}% conversion rate`;
-          currentProgress = ((submission.free_to_paid_conversion || 0) / Math.min(4.2, (submission.free_to_paid_conversion || 0) + 2.0)) * 100;
+          targetMetric = '1h response time (best-in-class)';
+          currentProgress = Math.max(0, Math.min(100, 100 - ((submission.lead_response_time || 0) - 1.0) * 25));
           targetProgress = 90;
           break;
+        case 'selfserve-optimization':
+          const bestInClassConversion = Math.max(4.5, (submission.free_to_paid_conversion || 0) * 1.8);
+          currentMetric = `${submission.free_to_paid_conversion || 0}% conversion rate`;
+          targetMetric = `${bestInClassConversion.toFixed(1)}% conversion rate (best-in-class)`;
+          currentProgress = ((submission.free_to_paid_conversion || 0) / bestInClassConversion) * 100;
+          targetProgress = 95;
+          break;
         case 'process-automation':
+          const bestInClassManual = Math.round((submission.manual_hours || 0) * 0.15); // 85% automation
           currentMetric = `${submission.manual_hours || 0}h/week manual work`;
-          targetMetric = `${Math.round((submission.manual_hours || 0) * 0.55)}h/week manual work`;
+          targetMetric = `${bestInClassManual}h/week manual work (85% automated)`;
           currentProgress = Math.max(0, 100 - (((submission.manual_hours || 0) / 40) * 100));
-          targetProgress = 75;
+          targetProgress = 85;
           break;
         case 'payment-recovery':
+          const bestInClassFailure = Math.max(1.2, (submission.failed_payment_rate || 0) * 0.3); // 70% reduction
           currentMetric = `${submission.failed_payment_rate || 0}% failure rate`;
-          targetMetric = `${Math.max(1.8, (submission.failed_payment_rate || 0) - 1.5).toFixed(1)}% failure rate`;
-          currentProgress = Math.max(0, 100 - (((submission.failed_payment_rate || 0) - 1.5) * 8));
-          targetProgress = 80;
+          targetMetric = `${bestInClassFailure.toFixed(1)}% failure rate (best-in-class)`;
+          currentProgress = Math.max(0, 100 - (((submission.failed_payment_rate || 0) - 1.2) * 10));
+          targetProgress = 88;
           break;
       }
 
@@ -198,9 +201,9 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
                 <TrendingUp className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-                <CardTitle className="text-2xl">Priority Actions</CardTitle>
+                <CardTitle className="text-2xl">Strategic Priority Actions</CardTitle>
                 <p className="text-muted-foreground mt-1">
-                  Ranked revenue recovery opportunities by impact and implementation difficulty
+                  Aggressive improvement targets for competitive advantage and market leadership
                 </p>
               </div>
             </div>
@@ -226,7 +229,7 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
                   <div className="flex items-center gap-2 mb-4">
                     <AlertTriangle className="h-5 w-5 text-revenue-danger" />
                     <h3 className="text-lg font-semibold text-revenue-danger">
-                      🚨 URGENT PRIORITY (High Impact, Quick Wins)
+                      🚨 URGENT PRIORITY (Strategic Advantage Opportunities)
                     </h3>
                   </div>
                   <div className="space-y-4">
@@ -305,7 +308,7 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
                   <div className="flex items-center gap-2 mb-4">
                     <TrendingUp className="h-5 w-5 text-revenue-warning" />
                     <h3 className="text-lg font-semibold text-revenue-warning">
-                      📈 MEDIUM PRIORITY (Medium Impact)
+                      📈 MEDIUM PRIORITY (Competitive Positioning)
                     </h3>
                   </div>
                   <div className="space-y-4">
