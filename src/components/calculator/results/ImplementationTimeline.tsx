@@ -249,19 +249,51 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
       });
     }
 
-    // Calculate more realistic investment and ROI
-    const baseInvestment = Math.min(25000 + (currentARR * 0.015), 150000);
-    const complexityMultiplier = phases.some(p => p.difficulty === 'Medium-Hard') ? 1.5 : 1.2;
-    const totalInvestment = baseInvestment * complexityMultiplier;
+    // Calculate realistic investment and ROI using improved calculations
+    let totalInvestment = 0;
+    let totalAnnualInvestment = 0;
+    let paybackMonths = 24;
+    
+    if (phases.length > 0) {
+      // Activity-based investment calculation
+      let implementationCost = 0;
+      let ongoingCost = 0;
+      
+      phases.forEach(phase => {
+        const complexity = phase.difficulty === 'Easy' ? 1 : 
+                          phase.difficulty === 'Medium' ? 1.5 : 2;
+        const basePhaseTime = 3; // months
+        const costPerMonth = Math.min(8000 + (currentARR * 0.002), 25000);
+        
+        implementationCost += costPerMonth * basePhaseTime * complexity;
+        ongoingCost += costPerMonth * 0.2 * complexity; // 20% ongoing
+      });
+      
+      totalInvestment = implementationCost;
+      totalAnnualInvestment = (implementationCost / 3) + ongoingCost; // Amortize over 3 years
+      
+      // Calculate payback period
+      const totalRecovery = phases.reduce((sum, phase) => sum + phase.recovery, 0);
+      paybackMonths = totalRecovery > 0 ? Math.ceil(totalInvestment / (totalRecovery / 12)) : 36;
+      paybackMonths = Math.min(paybackMonths, 36); // Cap at 3 years
+    }
 
-    // Calculate cumulative recovery with realistic ROI
+    // Calculate cumulative recovery with proper ROI calculations
     let cumulative = 0;
     phases.forEach((phase, index) => {
       cumulative += phase.recovery;
       phase.cumulativeRecovery = cumulative;
-      // Account for ongoing investment and implementation costs
-      const netBenefit = cumulative - totalInvestment;
-      phase.roiPercentage = totalInvestment > 0 ? (netBenefit / totalInvestment) * 100 : 0;
+      
+      // Calculate proper annual ROI: ((Annual Recovery - Annual Investment) / Annual Investment) * 100
+      if (totalAnnualInvestment > 0) {
+        const annualROI = ((cumulative - totalAnnualInvestment) / totalAnnualInvestment) * 100;
+        // Apply confidence reduction and cap at realistic levels
+        const confidenceMultiplier = currentARR > 1000000 ? 1.0 : 
+                                    currentARR > 500000 ? 0.85 : 0.7;
+        phase.roiPercentage = Math.min(Math.max(annualROI * confidenceMultiplier, -100), 200);
+      } else {
+        phase.roiPercentage = 0;
+      }
     });
 
     return phases;
@@ -280,6 +312,32 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
   const legacyPhases = calculateTimelinePhases();
   const phases = realisticTimeline || legacyPhases;
   
+  // Calculate investment and ROI using unified calculations
+  let totalInvestment = 0;
+  let totalAnnualInvestment = 0;
+  let paybackMonths = 24;
+  
+  if (unifiedCalcs && realisticTimeline) {
+    const { calculateRealisticInvestment, calculateRealisticROI } = require('@/lib/calculator/unifiedCalculations');
+    const investmentCalc = calculateRealisticInvestment(realisticTimeline, {
+      currentARR: calculatorData?.companyInfo?.currentARR || submission.current_arr || 0,
+      monthlyMRR: calculatorData?.selfServe?.monthlyMRR || submission.monthly_mrr || 0,
+      monthlyLeads: calculatorData?.leadGeneration?.monthlyLeads || submission.monthly_leads || 0,
+      averageDealValue: calculatorData?.leadGeneration?.averageDealValue || submission.average_deal_value || 0,
+      leadResponseTime: calculatorData?.leadGeneration?.leadResponseTime || submission.lead_response_time || 0,
+      monthlyFreeSignups: calculatorData?.selfServe?.monthlyFreeSignups || submission.monthly_free_signups || 0,
+      freeToLaidConversion: calculatorData?.selfServe?.freeToLaidConversion || submission.free_to_paid_conversion || 0,
+      failedPaymentRate: calculatorData?.selfServe?.failedPaymentRate || submission.failed_payment_rate || 0,
+      manualHours: calculatorData?.operations?.manualHours || submission.manual_hours || 0,
+      hourlyRate: calculatorData?.operations?.hourlyRate || submission.hourly_rate || 0,
+      industry: calculatorData?.companyInfo?.industry || submission.industry
+    });
+    
+    totalInvestment = investmentCalc.implementationCost;
+    totalAnnualInvestment = investmentCalc.totalAnnualInvestment;
+    paybackMonths = investmentCalc.paybackMonths;
+  }
+  
   // Calculate total recovery appropriately based on phase type
   const totalRecovery = unifiedCalcs ? unifiedCalcs.optimisticRecovery : 
     (legacyPhases.length > 0 ? legacyPhases[legacyPhases.length - 1].cumulativeRecovery : 0);
@@ -287,9 +345,9 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
   const totalLeak = unifiedCalcs ? unifiedCalcs.totalLeak : (validatedValues ? validatedValues.totalLeak : (submission.total_leak || 1));
   const currentARR = submission.current_arr || 0;
   
-  // Use more realistic recovery percentage calculation
-  const maxRecoveryPercentage = unifiedCalcs?.confidence === 'high' ? 75 : 
-                                unifiedCalcs?.confidence === 'medium' ? 60 : 50;
+  // More conservative recovery percentage calculation
+  const maxRecoveryPercentage = unifiedCalcs?.confidence === 'high' ? 65 : 
+                                unifiedCalcs?.confidence === 'medium' ? 50 : 40;
   const recoveryPercentage = Math.min((totalRecovery / Math.max(totalLeak, 1)) * 100, maxRecoveryPercentage);
   
   const confidenceLevel = getCalculationConfidenceLevel({
@@ -299,62 +357,85 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
     totalLeak: submission.total_leak || 0
   });
 
-  // Chart data with realistic ramp-up (no immediate recovery)
+  // Chart data with realistic ramp-up and proper recovery distribution
   const chartData = realisticTimeline ? 
-    // Generate chart data from realistic timeline
-    realisticTimeline.reduce((acc, phase, index) => {
-      const monthsInPhase = phase.endMonth - phase.startMonth + 1;
-      const recoveryPerMonth = phase.recoveryPotential / monthsInPhase;
-      
-      for (let month = phase.startMonth; month <= phase.endMonth; month++) {
-        const cumulativeRecovery = realisticTimeline
-          .filter(p => p.endMonth < month)
-          .reduce((sum, p) => sum + p.recoveryPotential, 0) + 
-          (month - phase.startMonth + 1) * recoveryPerMonth;
-          
-        acc.push({
-          month: `Month ${month}`,
-          recovery: recoveryPerMonth,
-          cumulative: cumulativeRecovery
-        });
-      }
-      return acc;
-    }, [] as any[]) :
-    // Realistic chart data for legacy timeline phases with proper ramp-up
+    // Generate chart data from realistic timeline with proper ramp-up curves
     (() => {
       const data = [{ month: 'Current', recovery: 0, cumulative: 0 }];
       let cumulativeTotal = 0;
       
-      legacyPhases.forEach((phase, phaseIndex) => {
-        // Each phase gets proper ramp-up period (no immediate recovery)
-        const phaseStart = phaseIndex * 3 + 1; // Phases start at month 1, 4, 7
-        const rampUpMonths = phaseIndex === 0 ? 2 : phaseIndex === 1 ? 2 : 3; // Ramp-up periods
-        const activeMonths = 3 - rampUpMonths; // Active recovery months
+      // Generate 12 months of data
+      for (let month = 1; month <= 12; month++) {
+        let monthlyRecovery = 0;
         
-        // Ramp-up months (minimal recovery)
-        for (let i = 0; i < rampUpMonths; i++) {
-          const month = phaseStart + i;
-          const rampUpRecovery = phase.recovery * 0.1; // Only 10% during ramp-up
-          cumulativeTotal += rampUpRecovery;
-          data.push({
-            month: `Month ${month}`,
-            recovery: rampUpRecovery,
-            cumulative: cumulativeTotal
-          });
-        }
+        realisticTimeline.forEach(phase => {
+          if (month >= phase.startMonth && month <= phase.endMonth) {
+            const phaseProgress = (month - phase.startMonth + 1) / (phase.endMonth - phase.startMonth + 1);
+            const totalPhaseMonths = phase.endMonth - phase.startMonth + 1;
+            
+            // Realistic ramp-up curve: slower start, faster middle, stabilizing end
+            let monthlyContribution: number;
+            if (phaseProgress <= 0.3) {
+              // Ramp-up period: 20% of recovery in first 30% of timeline
+              monthlyContribution = (phase.recoveryPotential * 0.2) / (totalPhaseMonths * 0.3);
+            } else if (phaseProgress <= 0.8) {
+              // Active period: 70% of recovery in middle 50% of timeline
+              monthlyContribution = (phase.recoveryPotential * 0.7) / (totalPhaseMonths * 0.5);
+            } else {
+              // Stabilization: 10% of recovery in final 20% of timeline
+              monthlyContribution = (phase.recoveryPotential * 0.1) / (totalPhaseMonths * 0.2);
+            }
+            
+            monthlyRecovery += monthlyContribution;
+          }
+        });
         
-        // Active recovery months
-        for (let i = 0; i < activeMonths; i++) {
-          const month = phaseStart + rampUpMonths + i;
-          const monthlyRecovery = (phase.recovery * 0.9) / activeMonths; // 90% over active months
-          cumulativeTotal += monthlyRecovery;
-          data.push({
-            month: `Month ${month}`,
-            recovery: monthlyRecovery,
-            cumulative: cumulativeTotal
-          });
-        }
-      });
+        cumulativeTotal += monthlyRecovery;
+        data.push({
+          month: `Month ${month}`,
+          recovery: monthlyRecovery,
+          cumulative: cumulativeTotal
+        });
+      }
+      
+      return data;
+    })() :
+    // Improved chart data for legacy timeline phases
+    (() => {
+      const data = [{ month: 'Current', recovery: 0, cumulative: 0 }];
+      let cumulativeTotal = 0;
+      
+      // Generate 12 months with realistic distribution
+      for (let month = 1; month <= 12; month++) {
+        let monthlyRecovery = 0;
+        
+        legacyPhases.forEach((phase, phaseIndex) => {
+          const phaseStartMonth = phaseIndex * 4 + 1; // Phases start at month 1, 5, 9
+          const phaseEndMonth = phaseStartMonth + 3; // Each phase is 4 months
+          
+          if (month >= phaseStartMonth && month <= phaseEndMonth) {
+            const monthInPhase = month - phaseStartMonth + 1;
+            
+            // Realistic recovery curve within each phase
+            if (monthInPhase === 1) {
+              monthlyRecovery += phase.recovery * 0.05; // 5% in month 1 (setup)
+            } else if (monthInPhase === 2) {
+              monthlyRecovery += phase.recovery * 0.25; // 25% in month 2 (early results)
+            } else if (monthInPhase === 3) {
+              monthlyRecovery += phase.recovery * 0.45; // 45% in month 3 (full effect)
+            } else {
+              monthlyRecovery += phase.recovery * 0.25; // 25% in month 4 (optimization)
+            }
+          }
+        });
+        
+        cumulativeTotal += monthlyRecovery;
+        data.push({
+          month: `Month ${month}`,
+          recovery: monthlyRecovery,
+          cumulative: cumulativeTotal
+        });
+      }
       
       return data;
     })();
@@ -433,29 +514,64 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
                   </p>
                 </div>
               )}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gradient-to-r from-background to-primary/5 rounded-lg border">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-revenue-primary mb-1">
+              <div className="grid grid-cols-4 gap-4">
+                <div className="p-4 rounded-lg bg-gradient-to-r from-revenue-primary/5 to-revenue-primary/10 border border-revenue-primary/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="h-5 w-5 text-revenue-primary" />
+                    <span className="text-sm font-medium text-muted-foreground">Recovery Potential</span>
+                  </div>
+                  <div className="text-2xl font-bold text-foreground">
                     {formatCurrency(totalRecovery)}
                   </div>
-                  <p className="text-sm text-muted-foreground">Total 6-Month Recovery</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-revenue-success mb-1">
-                    {Math.round(recoveryPercentage)}%
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {Math.round(recoveryPercentage)}% of revenue leak
+                    {unifiedCalcs?.confidence === 'low' && (
+                      <span className="text-revenue-warning"> • Low confidence</span>
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground">Of Revenue Leak Recovered</p>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-revenue-warning mb-1">
-                    {unifiedCalcs ? 
-                      `${Math.round(((totalRecovery / Math.max(currentARR * 0.1, 50000)) - 1) * 100)}%` : // ROI calculation
-                      legacyPhases.length > 0 && legacyPhases[legacyPhases.length - 1].roiPercentage !== undefined ?
-                        `${legacyPhases[legacyPhases.length - 1].roiPercentage > 0 ? '+' : ''}${Math.round(legacyPhases[legacyPhases.length - 1].roiPercentage)}%` :
-                        'N/A'
-                    }
+                
+                <div className="p-4 rounded-lg bg-gradient-to-r from-revenue-secondary/5 to-revenue-secondary/10 border border-revenue-secondary/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target className="h-5 w-5 text-revenue-secondary" />
+                    <span className="text-sm font-medium text-muted-foreground">Timeline</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">{realisticTimeline ? `${realisticTimeline[realisticTimeline.length - 1]?.endMonth}-Month ROI` : '6-Month ROI'}</p>
+                  <div className="text-2xl font-bold text-foreground">
+                    {realisticTimeline ? `${Math.max(...realisticTimeline.map(p => p.endMonth))}` : '12'} months
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {realisticTimeline ? realisticTimeline.length : phases.length} implementation phases
+                  </div>
+                </div>
+                
+                <div className="p-4 rounded-lg bg-gradient-to-r from-revenue-warning/5 to-revenue-warning/10 border border-revenue-warning/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign className="h-5 w-5 text-revenue-warning" />
+                    <span className="text-sm font-medium text-muted-foreground">Investment</span>
+                  </div>
+                  <div className="text-2xl font-bold text-foreground">
+                    {formatCurrency(totalAnnualInvestment || totalInvestment / 3)}
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    Annual investment required
+                  </div>
+                </div>
+                
+                <div className="p-4 rounded-lg bg-gradient-to-r from-revenue-success/5 to-revenue-success/10 border border-revenue-success/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <BarChart3 className="h-5 w-5 text-revenue-success" />
+                    <span className="text-sm font-medium text-muted-foreground">Expected ROI</span>
+                  </div>
+                  <div className="text-2xl font-bold text-foreground">
+                    {phases.length > 0 ? 
+                      ('roiPercentage' in phases[phases.length - 1] ? 
+                        Math.round((phases[phases.length - 1] as TimelinePhase).roiPercentage) : 
+                        Math.round(((totalRecovery - totalAnnualInvestment) / Math.max(totalAnnualInvestment, 1)) * 100)
+                      ) : 0}%
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {paybackMonths} month payback period
+                  </div>
                 </div>
               </div>
 
