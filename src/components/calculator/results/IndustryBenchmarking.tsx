@@ -19,7 +19,7 @@ import {
   ChevronDown
 } from "lucide-react";
 import { type Submission } from "@/lib/supabase";
-import { industryDefaults, IndustryBenchmarks } from '@/lib/industryDefaults';
+import { industryDefaults, IndustryBenchmarks, bestInClassTargets, BestInClassBenchmarks } from '@/lib/industryDefaults';
 import { getCalculationConfidenceLevel } from '@/lib/calculator/validationHelpers';
 
 interface IndustryBenchmarkingProps {
@@ -32,15 +32,16 @@ interface BenchmarkMetric {
   id: string;
   title: string;
   userValue: number;
-  industryMin: number;
-  industryMax: number;
   industryAvg: number;
+  bestInClass: number;
   unit: string;
   icon: any;
   higherIsBetter: boolean;
-  performance: 'below' | 'average' | 'above' | 'leading';
-  gapPercentage: number;
-  opportunityScore: number;
+  performance: 'below-average' | 'average' | 'above-average' | 'best-in-class';
+  gapToAverage: number;
+  gapToBestInClass: number;
+  revenueOpportunity: number;
+  strategicAdvantage: boolean;
 }
 
 export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'standard' }: IndustryBenchmarkingProps) => {
@@ -48,134 +49,150 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
 
   const calculateBenchmarks = (): BenchmarkMetric[] => {
     // Map submission industry to benchmark keys with robust fallback
-    // Strip special characters and normalize industry name
     const normalizedIndustry = (submission.industry || '')
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .trim()
       .replace(/\s+/g, '-');
     
-    // Create array of possible matches to handle partial matches
     const industryKeys = Object.keys(industryDefaults);
     const exactMatch = industryKeys.find(key => key === normalizedIndustry);
     const partialMatch = !exactMatch ? 
       industryKeys.find(key => normalizedIndustry.includes(key) || key.includes(normalizedIndustry)) : 
       null;
       
-    // Use exact match, partial match, or appropriate fallback
     const industryKey = (exactMatch || partialMatch || 
       (normalizedIndustry.includes('saas') ? 'saas-software' : 'other')) as keyof typeof industryDefaults;
       
     const industryData = industryDefaults[industryKey];
+    const bestInClassData = bestInClassTargets[industryKey];
     
-    // Calculate confidence level for validation warnings
-    const confidenceLevel = getCalculationConfidenceLevel({
-      currentARR: submission.current_arr || 0,
-      monthlyLeads: submission.monthly_leads || 0,
-      monthlyFreeSignups: submission.monthly_free_signups || 0,
-      totalLeak: submission.total_leak || 0
-    });
-
-    // Get optimal lead response time based on deal size
-    const avgDealValue = submission.average_deal_value || 0;
-    const optimalResponseTime = avgDealValue > 50000 ? 1 : avgDealValue > 10000 ? 1.5 : 2;
+    // Calculate revenue impact multipliers based on submission data
+    const currentARR = submission.current_arr || 0;
+    const monthlyLeads = submission.monthly_leads || 0;
     
     const metrics: BenchmarkMetric[] = [
       {
         id: 'lead-response',
         title: 'Lead Response Time',
         userValue: submission.lead_response_time || 0,
-        industryMin: optimalResponseTime,
-        industryMax: industryData.leadResponseTimeHours * 2,
         industryAvg: industryData.leadResponseTimeHours,
+        bestInClass: bestInClassData.leadResponseTimeMinutes / 60, // Convert to hours
         unit: 'hours',
         icon: Clock,
         higherIsBetter: false,
-        performance: 'below',
-        gapPercentage: 0,
-        opportunityScore: 0
+        performance: 'below-average',
+        gapToAverage: 0,
+        gapToBestInClass: 0,
+        revenueOpportunity: 0,
+        strategicAdvantage: false
       },
       {
         id: 'conversion-rate',
         title: 'Self-Serve Conversion Rate',
         userValue: submission.free_to_paid_conversion || 0,
-        industryMin: industryData.freeToPaidConversionRate * 0.7,
-        industryMax: industryData.freeToPaidConversionRate * 1.5,
         industryAvg: industryData.freeToPaidConversionRate,
+        bestInClass: bestInClassData.freeToPaidConversionRateMax,
         unit: '%',
         icon: Target,
         higherIsBetter: true,
-        performance: 'below',
-        gapPercentage: 0,
-        opportunityScore: 0
+        performance: 'below-average',
+        gapToAverage: 0,
+        gapToBestInClass: 0,
+        revenueOpportunity: 0,
+        strategicAdvantage: false
       },
       {
         id: 'payment-failure',
         title: 'Failed Payment Rate',
         userValue: submission.failed_payment_rate || 0,
-        industryMin: industryData.failedPaymentRate * 0.5,
-        industryMax: industryData.failedPaymentRate * 1.8,
         industryAvg: industryData.failedPaymentRate,
+        bestInClass: bestInClassData.failedPaymentRateMin,
         unit: '%',
         icon: CreditCard,
         higherIsBetter: false,
-        performance: 'below',
-        gapPercentage: 0,
-        opportunityScore: 0
+        performance: 'below-average',
+        gapToAverage: 0,
+        gapToBestInClass: 0,
+        revenueOpportunity: 0,
+        strategicAdvantage: false
       },
       {
         id: 'process-efficiency',
         title: 'Manual Hours per Week',
         userValue: submission.manual_hours || 0,
-        industryMin: industryData.manualHours * 0.5,
-        industryMax: industryData.manualHours * 1.8,
         industryAvg: industryData.manualHours,
+        bestInClass: bestInClassData.manualHoursMin,
         unit: 'hours',
         icon: Settings,
         higherIsBetter: false,
-        performance: 'below',
-        gapPercentage: 0,
-        opportunityScore: 0
+        performance: 'below-average',
+        gapToAverage: 0,
+        gapToBestInClass: 0,
+        revenueOpportunity: 0,
+        strategicAdvantage: false
       }
     ];
 
-  // Calculate performance and gaps
+    // Calculate performance and strategic opportunities
     metrics.forEach(metric => {
       if (metric.higherIsBetter) {
-        if (metric.userValue >= metric.industryMax) {
-          metric.performance = 'leading';
-          metric.gapPercentage = ((metric.userValue - metric.industryAvg) / metric.industryAvg) * 100;
-        } else if (metric.userValue >= metric.industryAvg) {
-          metric.performance = 'above';
-          metric.gapPercentage = ((metric.userValue - metric.industryAvg) / metric.industryAvg) * 100;
-        } else if (metric.userValue >= metric.industryMin) {
+        // For metrics where higher is better
+        if (metric.userValue >= metric.bestInClass) {
+          metric.performance = 'best-in-class';
+          metric.strategicAdvantage = true;
+        } else if (metric.userValue >= metric.industryAvg * 1.2) {
+          metric.performance = 'above-average';
+          metric.strategicAdvantage = true;
+        } else if (metric.userValue >= metric.industryAvg * 0.8) {
           metric.performance = 'average';
-          metric.gapPercentage = ((metric.userValue - metric.industryAvg) / metric.industryAvg) * 100;
         } else {
-          metric.performance = 'below';
-          metric.gapPercentage = ((metric.userValue - metric.industryAvg) / metric.industryAvg) * 100;
+          metric.performance = 'below-average';
         }
         
-        // For metrics where higher is better, opportunity is the gap to reach average
-        metric.opportunityScore = Math.max(0, metric.industryAvg - metric.userValue);
+        metric.gapToAverage = metric.industryAvg - metric.userValue;
+        metric.gapToBestInClass = metric.bestInClass - metric.userValue;
+        
+        // Calculate exponential revenue opportunity based on conversion improvements
+        if (metric.id === 'conversion-rate') {
+          const monthlySignups = submission.monthly_free_signups || 0;
+          const avgDealValue = submission.average_deal_value || 0;
+          
+          // Revenue impact of reaching best-in-class conversion
+          const currentMonthlyRevenue = (monthlySignups * metric.userValue / 100) * avgDealValue;
+          const bestInClassMonthlyRevenue = (monthlySignups * metric.bestInClass / 100) * avgDealValue;
+          metric.revenueOpportunity = (bestInClassMonthlyRevenue - currentMonthlyRevenue) * 12; // Annual
+        }
       } else {
-        // For metrics where lower is better (like response time)
-        if (metric.userValue <= metric.industryMin) {
-          metric.performance = 'leading';
-          metric.gapPercentage = ((metric.industryAvg - metric.userValue) / metric.industryAvg) * 100;
-        } else if (metric.userValue <= metric.industryAvg) {
-          metric.performance = 'above';
-          metric.gapPercentage = ((metric.industryAvg - metric.userValue) / metric.industryAvg) * 100;
-        } else if (metric.userValue <= metric.industryMax) {
+        // For metrics where lower is better
+        if (metric.userValue <= metric.bestInClass) {
+          metric.performance = 'best-in-class';
+          metric.strategicAdvantage = true;
+        } else if (metric.userValue <= metric.industryAvg * 0.8) {
+          metric.performance = 'above-average';
+          metric.strategicAdvantage = true;
+        } else if (metric.userValue <= metric.industryAvg * 1.2) {
           metric.performance = 'average';
-          metric.gapPercentage = ((metric.userValue - metric.industryAvg) / metric.industryAvg) * 100;
         } else {
-          metric.performance = 'below';
-          metric.gapPercentage = ((metric.userValue - metric.industryAvg) / metric.industryAvg) * 100;
+          metric.performance = 'below-average';
         }
         
-        // For metrics where lower is better, opportunity is how much above average
-        metric.opportunityScore = Math.max(0, metric.userValue - metric.industryAvg);
+        metric.gapToAverage = metric.userValue - metric.industryAvg;
+        metric.gapToBestInClass = metric.userValue - metric.bestInClass;
+        
+        // Calculate revenue opportunity for time-sensitive metrics
+        if (metric.id === 'lead-response' && metric.userValue > metric.bestInClass) {
+          const monthlyLeads = submission.monthly_leads || 0;
+          const avgDealValue = submission.average_deal_value || 0;
+          const currentCloseRate = 0.15; // Assume 15% baseline close rate
+          
+          // Revenue impact of aggressive response time improvement
+          // Best-in-class response can increase close rates by 50-300%
+          const responseMultiplier = Math.min(3, metric.userValue / metric.bestInClass);
+          const improvedCloseRate = currentCloseRate * (1 + (responseMultiplier - 1) * 0.5);
+          const additionalDeals = monthlyLeads * (improvedCloseRate - currentCloseRate);
+          metric.revenueOpportunity = additionalDeals * avgDealValue * 12; // Annual
+        }
       }
     });
 
@@ -184,20 +201,20 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
 
   const getPerformanceIcon = (performance: string) => {
     switch (performance) {
-      case 'leading': return { icon: Trophy, color: 'text-revenue-primary', bg: 'bg-revenue-primary/10' };
-      case 'above': return { icon: CheckCircle, color: 'text-revenue-success', bg: 'bg-revenue-success/10' };
+      case 'best-in-class': return { icon: Trophy, color: 'text-revenue-primary', bg: 'bg-revenue-primary/10' };
+      case 'above-average': return { icon: CheckCircle, color: 'text-revenue-success', bg: 'bg-revenue-success/10' };
       case 'average': return { icon: Target, color: 'text-revenue-warning', bg: 'bg-revenue-warning/10' };
-      case 'below': return { icon: AlertTriangle, color: 'text-revenue-danger', bg: 'bg-revenue-danger/10' };
+      case 'below-average': return { icon: AlertTriangle, color: 'text-revenue-danger', bg: 'bg-revenue-danger/10' };
       default: return { icon: Target, color: 'text-muted-foreground', bg: 'bg-muted/10' };
     }
   };
 
   const getPerformanceLabel = (performance: string) => {
     switch (performance) {
-      case 'leading': return '🎯 Industry Leading';
-      case 'above': return '✅ Above Average';
+      case 'best-in-class': return '🏆 Best-in-Class';
+      case 'above-average': return '✅ Above Average';
       case 'average': return '📊 Industry Average';
-      case 'below': return '⚠️ Below Average';
+      case 'below-average': return '🚀 Massive Opportunity';
       default: return 'Unknown';
     }
   };
@@ -206,17 +223,20 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
     let progressValue: number;
     let progressColor: string;
 
+    // Calculate progress as percentage towards best-in-class
     if (metric.higherIsBetter) {
-      progressValue = Math.min((metric.userValue / metric.industryMax) * 100, 100);
+      progressValue = Math.min((metric.userValue / metric.bestInClass) * 100, 100);
     } else {
-      progressValue = Math.max(100 - ((metric.userValue / metric.industryMax) * 100), 0);
+      // For "lower is better" metrics, invert the scale
+      const maxValue = Math.max(metric.userValue, metric.industryAvg * 2);
+      progressValue = Math.max(100 - ((metric.userValue / maxValue) * 100), 0);
     }
 
     switch (metric.performance) {
-      case 'leading': progressColor = 'bg-revenue-primary'; break;
-      case 'above': progressColor = 'bg-revenue-success'; break;
+      case 'best-in-class': progressColor = 'bg-revenue-primary'; break;
+      case 'above-average': progressColor = 'bg-revenue-success'; break;
       case 'average': progressColor = 'bg-revenue-warning'; break;
-      case 'below': progressColor = 'bg-revenue-danger'; break;
+      case 'below-average': progressColor = 'bg-revenue-danger'; break;
       default: progressColor = 'bg-muted';
     }
 
@@ -224,40 +244,44 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
   };
 
   const getContextualMessage = (metric: BenchmarkMetric): string => {
-    const gapText = Math.abs(metric.gapPercentage).toFixed(0);
-    const confidenceNote = confidenceLevel.level === 'low' ? ' (low confidence)' : '';
+    const confidenceNote = confidenceLevel.level === 'low' ? ' (estimate)' : '';
     
     switch (metric.id) {
       case 'lead-response':
-        if (metric.performance === 'below') {
-          const timesFactor = metric.userValue > metric.industryAvg ? 
-            Math.round(metric.userValue / metric.industryAvg) : 1;
-          return `Your lead response is ${timesFactor}x slower than industry average${confidenceNote} - major revenue opportunity`;
+        if (metric.performance === 'below-average') {
+          const bestInClassMinutes = Math.round(metric.bestInClass * 60);
+          const revenueImpact = metric.revenueOpportunity > 0 ? formatCurrency(metric.revenueOpportunity) : '';
+          return `🚀 Reaching ${bestInClassMinutes}-minute response time could unlock ${revenueImpact} annual revenue${confidenceNote}`;
+        } else if (metric.performance === 'best-in-class') {
+          return `🏆 You've achieved best-in-class response time - massive competitive advantage!`;
         }
-        return `Excellent lead response time - you're ${gapText}% faster than average!`;
+        return `⚡ Strong response time, but best-in-class performers respond in ${Math.round(metric.bestInClass * 60)} minutes`;
       
       case 'conversion-rate':
-        if (metric.performance === 'below') {
-          // More accurate percentage calculation that handles zero values
-          const improvementPercent = metric.userValue > 0 ?
-            Math.round((metric.industryAvg - metric.userValue) / Math.max(0.1, metric.userValue) * 100) :
-            Math.round(metric.industryAvg * 100);
-          return `Your conversion rate has ${improvementPercent}% improvement potential${confidenceNote}`;
+        if (metric.performance === 'below-average') {
+          const revenueImpact = metric.revenueOpportunity > 0 ? formatCurrency(metric.revenueOpportunity) : '';
+          return `🎯 Reaching ${metric.bestInClass}% conversion (best-in-class) could add ${revenueImpact} annually${confidenceNote}`;
+        } else if (metric.performance === 'best-in-class') {
+          return `🏆 Best-in-class conversion rate - you're maximizing every signup!`;
         }
-        return `Strong conversion performance - ${gapText}% above industry standard!`;
+        return `📈 Above average, but ${metric.bestInClass}% is achievable for top performers`;
       
       case 'payment-failure':
-        if (metric.performance === 'above' || metric.performance === 'leading') {
-          return `You're already above average in payment processing - ${gapText}% better than typical${confidenceNote}`;
+        if (metric.performance === 'below-average') {
+          return `💰 Reducing to ${metric.bestInClass}% failure rate (best-in-class) could save significant MRR${confidenceNote}`;
+        } else if (metric.performance === 'best-in-class') {
+          return `🏆 Best-in-class payment processing - minimal revenue loss!`;
         }
-        return `Payment failures are ${Math.abs(metric.gapPercentage).toFixed(0)}% higher than industry average${confidenceNote}`;
+        return `💳 Good payment processing, but ${metric.bestInClass}% is the gold standard`;
       
       case 'process-efficiency':
-        if (metric.performance === 'below') {
-          const hoursDiff = Math.round(metric.userValue - metric.industryAvg);
-          return `High manual workload - ${hoursDiff} more hours than industry average${confidenceNote}`;
+        if (metric.performance === 'below-average') {
+          const hoursSaved = Math.round(metric.userValue - metric.bestInClass);
+          return `⚡ Automating to ${metric.bestInClass} hours/week could save ${hoursSaved} hours weekly${confidenceNote}`;
+        } else if (metric.performance === 'best-in-class') {
+          return `🏆 Highly automated operations - maximum efficiency achieved!`;
         }
-        return `Efficient operations - ${gapText}% better than industry standard!`;
+        return `🔧 Efficient operations, but ${metric.bestInClass} hours/week is possible with full automation`;
       
       default:
         return '';
@@ -273,14 +297,16 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
   });
   
   const biggestOpportunity = metrics.reduce((max, metric) => 
-    metric.opportunityScore > max.opportunityScore ? metric : max
+    metric.revenueOpportunity > max.revenueOpportunity ? metric : max
   );
-  const quickWins = metrics.filter(metric => 
-    metric.performance === 'average' || (metric.performance === 'below' && metric.opportunityScore < biggestOpportunity.opportunityScore)
+  const strategicOpportunities = metrics.filter(metric => 
+    metric.performance === 'below-average' && metric.revenueOpportunity > 0
   );
   const competitiveAdvantages = metrics.filter(metric => 
-    metric.performance === 'above' || metric.performance === 'leading'
+    metric.strategicAdvantage === true
   );
+  
+  const totalRevenueOpportunity = metrics.reduce((sum, metric) => sum + metric.revenueOpportunity, 0);
 
   return (
     <Card className="border-border/50 shadow-lg">
@@ -292,9 +318,9 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
                 <BarChart3 className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-                <CardTitle className="text-2xl">Industry Benchmarking</CardTitle>
+                <CardTitle className="text-2xl">Strategic Performance Analysis</CardTitle>
                 <p className="text-muted-foreground mt-1">
-                  See how your performance compares to {submission.industry || 'SaaS'} industry standards 
+                  Your position vs industry average → best-in-class opportunity zones 
                   {confidenceLevel.level !== 'high' && (
                     <span className="text-revenue-warning"> • {confidenceLevel.level} confidence</span>
                   )}
@@ -310,34 +336,34 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
 
           <CollapsibleContent>
             <CardContent className="space-y-8 pt-6">
-              {/* Opportunity Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gradient-to-r from-background to-primary/5 rounded-lg border">
+              {/* Strategic Opportunity Summary */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 bg-gradient-to-r from-revenue-primary/5 to-revenue-success/5 rounded-lg border border-revenue-primary/20">
                 <div>
-                  <h3 className="font-semibold text-sm text-revenue-danger mb-1">Biggest Opportunity</h3>
-                  <p className="text-sm text-muted-foreground">{biggestOpportunity.title}</p>
-                  <div className="text-lg font-bold text-revenue-danger">
-                    {Math.abs(biggestOpportunity.gapPercentage).toFixed(0)}% gap
+                  <h3 className="font-semibold text-sm text-revenue-primary mb-1">🚀 Revenue Opportunity</h3>
+                  <p className="text-sm text-muted-foreground">Annual potential from best-in-class performance</p>
+                  <div className="text-xl font-bold text-revenue-primary">
+                    {totalRevenueOpportunity > 0 ? formatCurrency(totalRevenueOpportunity) : 'Optimized'}
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm text-revenue-warning mb-1">Quick Win Potential</h3>
-                  <p className="text-sm text-muted-foreground">{quickWins.length} metrics ready for improvement</p>
+                  <h3 className="font-semibold text-sm text-revenue-warning mb-1">⚡ Strategic Opportunities</h3>
+                  <p className="text-sm text-muted-foreground">{strategicOpportunities.length} metrics with massive upside</p>
                   <div className="text-lg font-bold text-revenue-warning">
-                    {quickWins.length} opportunities
+                    {strategicOpportunities.length > 0 ? `${strategicOpportunities.length} breakthrough zones` : 'Fully optimized'}
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm text-revenue-success mb-1">Competitive Advantages</h3>
-                  <p className="text-sm text-muted-foreground">{competitiveAdvantages.length} above-average metrics</p>
+                  <h3 className="font-semibold text-sm text-revenue-success mb-1">🏆 Competitive Advantages</h3>
+                  <p className="text-sm text-muted-foreground">{competitiveAdvantages.length} best-in-class metrics</p>
                   <div className="text-lg font-bold text-revenue-success">
-                    {competitiveAdvantages.length} strengths
+                    {competitiveAdvantages.length} market leaders
                   </div>
                 </div>
               </div>
 
-              {/* Performance Comparison */}
+              {/* Performance Zones */}
               <div>
-                <h3 className="text-lg font-semibold mb-6">📊 Your Performance vs Industry Average</h3>
+                <h3 className="text-lg font-semibold mb-6">🎯 Performance Zones: Industry Average → Best-in-Class</h3>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {metrics.map((metric) => {
                     const Icon = metric.icon;
@@ -367,45 +393,55 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
                             </div>
                           </div>
 
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <div className="text-muted-foreground">Your Performance</div>
-                                <div className="font-bold text-lg">
-                                  {metric.userValue}{metric.unit}
+                            <div className="space-y-4">
+                             <div className="grid grid-cols-3 gap-4 text-sm">
+                               <div>
+                                 <div className="text-muted-foreground">Your Performance</div>
+                                 <div className="font-bold text-lg">
+                                   {metric.userValue}{metric.unit}
+                                 </div>
+                               </div>
+                               <div>
+                                 <div className="text-muted-foreground">Industry Average</div>
+                                 <div className="font-medium text-lg">
+                                   {metric.industryAvg}{metric.unit}
+                                 </div>
+                               </div>
+                               <div>
+                                 <div className="text-muted-foreground">Best-in-Class</div>
+                                 <div className="font-bold text-lg text-revenue-primary">
+                                   {metric.bestInClass}{metric.unit}
+                                 </div>
+                               </div>
+                             </div>
+
+                             <div className="space-y-3">
+                               <div className="flex justify-between text-sm">
+                                 <span>Progress to Best-in-Class</span>
+                                 <span className="font-medium">{Math.round(gauge.value)}%</span>
+                               </div>
+                               <div className="relative">
+                                 <Progress value={gauge.value} className="h-4" />
+                                 <div className="absolute inset-0 flex items-center justify-center">
+                                   <div className="text-xs font-medium text-white mix-blend-difference">
+                                     {metric.performance === 'best-in-class' ? '🏆' : `${Math.round(gauge.value)}%`}
+                                   </div>
                                 </div>
                               </div>
-                              <div>
-                                <div className="text-muted-foreground">Industry Average</div>
-                                <div className="font-medium text-lg">
-                                  {metric.industryAvg}{metric.unit}
-                                </div>
-                              </div>
+                               
+                               {/* Revenue Opportunity Display */}
+                               {metric.revenueOpportunity > 0 && (
+                                 <div className="mt-2 p-2 bg-revenue-primary/10 rounded text-xs">
+                                   <span className="font-medium text-revenue-primary">
+                                     💰 {formatCurrency(metric.revenueOpportunity)} annual opportunity
+                                   </span>
+                                 </div>
+                               )}
                             </div>
 
-                            <div className="space-y-2">
-                              <div className="flex justify-between text-sm">
-                                <span>Performance Score</span>
-                                <span className="font-medium">{Math.round(gauge.value)}%</span>
-                              </div>
-                              <div className="relative">
-                                <Progress value={gauge.value} className="h-3" />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <div className="text-xs font-medium text-white mix-blend-difference">
-                                    {metric.gapPercentage > 0 ? '+' : ''}{metric.gapPercentage.toFixed(0)}%
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                Range: {metric.industryMin}{metric.unit} - {metric.industryMax}{metric.unit}
-                              </div>
-                            </div>
-
-                            <div className="p-3 bg-muted/30 rounded-lg">
-                              <p className="text-sm text-muted-foreground">
-                                {getContextualMessage(metric)}
-                              </p>
-                            </div>
+                             <div className="text-sm bg-muted/30 p-4 rounded-lg border-l-2 border-l-primary">
+                               {getContextualMessage(metric)}
+                             </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -450,24 +486,24 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
                     <div>
                       <h4 className="font-medium mb-3 text-revenue-danger">Priority Improvements:</h4>
                       <ul className="space-y-2">
-                        {metrics.filter(m => m.performance === 'below').map(metric => (
-                          <li key={metric.id} className="flex items-center gap-2 text-sm">
-                            <AlertTriangle className="h-4 w-4 text-revenue-danger" />
-                            <span>{metric.title}: {Math.abs(metric.gapPercentage).toFixed(0)}% below average</span>
-                          </li>
-                        ))}
+                         {metrics.filter(m => m.performance === 'below-average').map(metric => (
+                           <li key={metric.id} className="flex items-center gap-2 text-sm">
+                             <AlertTriangle className="h-4 w-4 text-revenue-danger" />
+                             <span>{metric.title}: {Math.abs(metric.gapToAverage).toFixed(0)} {metric.unit} gap to average</span>
+                           </li>
+                         ))}
                       </ul>
                     </div>
                     
                     <div>
                       <h4 className="font-medium mb-3 text-revenue-success">Current Strengths:</h4>
                       <ul className="space-y-2">
-                        {competitiveAdvantages.map(metric => (
-                          <li key={metric.id} className="flex items-center gap-2 text-sm">
-                            <CheckCircle className="h-4 w-4 text-revenue-success" />
-                            <span>{metric.title}: {Math.abs(metric.gapPercentage).toFixed(0)}% above average</span>
-                          </li>
-                        ))}
+                         {competitiveAdvantages.map(metric => (
+                           <li key={metric.id} className="flex items-center gap-2 text-sm">
+                             <CheckCircle className="h-4 w-4 text-revenue-success" />
+                             <span>{metric.title}: {metric.performance === 'best-in-class' ? 'Best-in-class performance' : 'Above average'}</span>
+                           </li>
+                         ))}
                         {competitiveAdvantages.length === 0 && (
                           <li className="text-sm text-muted-foreground">
                             Focus on reaching industry benchmarks first

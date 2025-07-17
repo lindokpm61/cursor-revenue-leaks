@@ -17,6 +17,14 @@ export interface IndustryBenchmarks {
   hourlyRate: number;
 }
 
+export interface BestInClassBenchmarks {
+  // Best-in-class performance targets (top 5% performers)
+  leadResponseTimeMinutes: number; // <15 min for enterprise, <5 min for SMB
+  freeToPaidConversionRateMax: number; // 25-40% for top performers
+  failedPaymentRateMin: number; // <1% for best-in-class
+  manualHoursMin: number; // <10 hours/week for highly automated
+}
+
 export const industryDefaults: Record<string, IndustryBenchmarks> = {
   "saas-software": {
     monthlyLeads: 850,
@@ -127,6 +135,70 @@ export const industryDefaults: Record<string, IndustryBenchmarks> = {
     failedPaymentRate: 4.0,
     manualHours: 35,
     hourlyRate: 85,
+  },
+};
+
+// Best-in-class performance targets by industry
+export const bestInClassTargets: Record<string, BestInClassBenchmarks> = {
+  "saas-software": {
+    leadResponseTimeMinutes: 15, // <15 minutes
+    freeToPaidConversionRateMax: 30, // 30%+
+    failedPaymentRateMin: 0.8, // <1%
+    manualHoursMin: 8, // <10 hours/week
+  },
+  "technology-it": {
+    leadResponseTimeMinutes: 30,
+    freeToPaidConversionRateMax: 25,
+    failedPaymentRateMin: 0.5,
+    manualHoursMin: 6,
+  },
+  "marketing-advertising": {
+    leadResponseTimeMinutes: 10,
+    freeToPaidConversionRateMax: 35,
+    failedPaymentRateMin: 1.2,
+    manualHoursMin: 12,
+  },
+  "financial-services": {
+    leadResponseTimeMinutes: 60,
+    freeToPaidConversionRateMax: 20,
+    failedPaymentRateMin: 0.3,
+    manualHoursMin: 5,
+  },
+  "consulting-professional": {
+    leadResponseTimeMinutes: 120,
+    freeToPaidConversionRateMax: 18,
+    failedPaymentRateMin: 0.4,
+    manualHoursMin: 8,
+  },
+  "ecommerce-retail": {
+    leadResponseTimeMinutes: 5,
+    freeToPaidConversionRateMax: 40,
+    failedPaymentRateMin: 1.5,
+    manualHoursMin: 15,
+  },
+  "healthcare": {
+    leadResponseTimeMinutes: 240,
+    freeToPaidConversionRateMax: 15,
+    failedPaymentRateMin: 0.2,
+    manualHoursMin: 6,
+  },
+  "manufacturing": {
+    leadResponseTimeMinutes: 480,
+    freeToPaidConversionRateMax: 12,
+    failedPaymentRateMin: 0.1,
+    manualHoursMin: 4,
+  },
+  "education": {
+    leadResponseTimeMinutes: 20,
+    freeToPaidConversionRateMax: 28,
+    failedPaymentRateMin: 1.0,
+    manualHoursMin: 10,
+  },
+  "other": {
+    leadResponseTimeMinutes: 30,
+    freeToPaidConversionRateMax: 25,
+    failedPaymentRateMin: 0.8,
+    manualHoursMin: 8,
   },
 };
 
