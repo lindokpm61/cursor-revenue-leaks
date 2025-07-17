@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,13 @@ import { validateCalculationResults } from "@/lib/calculator/validationHelpers";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { type ConfidenceFactors } from "@/lib/calculator/enhancedCalculations";
 import { type CalculatorData, type Calculations } from "@/components/calculator/useCalculatorData";
+import { 
+  calculateLeadResponseImpact, 
+  calculateFailedPaymentLoss, 
+  calculateSelfServeGap, 
+  calculateProcessInefficiency,
+  RECOVERY_SYSTEMS 
+} from "@/lib/calculator/enhancedCalculations";
 
 const Results = () => {
   const { id } = useParams<{ id: string }>();
@@ -152,10 +159,7 @@ const Results = () => {
     );
   }
 
-  // Calculate key metrics
-  const totalLeak = submission.total_leak || 0;
-  const recovery70 = submission.recovery_potential_70 || 0;
-  const recovery85 = submission.recovery_potential_85 || 0;
+  // Calculate key metrics using fresh calculations (remove old stored values)
   const leadScore = submission.lead_score || 0;
 
   // Derive confidence factors from submission data
@@ -168,47 +172,8 @@ const Results = () => {
     resourceAvailable: true
   };
 
-  const leakageBreakdown = [
-    {
-      category: "leadResponseLoss",
-      title: "Lead Response Loss",
-      amount: submission.lead_response_loss || 0,
-      percentage: totalLeak > 0 ? ((submission.lead_response_loss || 0) / totalLeak) * 100 : 0,
-      icon: Users,
-      description: "Lost revenue from slow lead response times",
-      color: "text-revenue-warning"
-    },
-    {
-      category: "failedPaymentLoss",
-      title: "Failed Payment Loss", 
-      amount: submission.failed_payment_loss || 0,
-      percentage: totalLeak > 0 ? ((submission.failed_payment_loss || 0) / totalLeak) * 100 : 0,
-      icon: CreditCard,
-      description: "Revenue lost due to payment failures",
-      color: "text-revenue-danger"
-    },
-    {
-      category: "selfServeGap",
-      title: "Self-Serve Gap",
-      amount: submission.selfserve_gap_loss || 0,
-      percentage: totalLeak > 0 ? ((submission.selfserve_gap_loss || 0) / totalLeak) * 100 : 0,
-      icon: Target,
-      description: "Missed opportunities in self-service conversion",
-      color: "text-revenue-primary"
-    },
-    {
-      category: "processInefficiency",
-      title: "Process Inefficiency",
-      amount: submission.process_inefficiency_loss || 0,
-      percentage: totalLeak > 0 ? ((submission.process_inefficiency_loss || 0) / totalLeak) * 100 : 0,
-      icon: Settings,
-      description: "Losses from manual processes and inefficiencies",
-      color: "text-muted-foreground"
-    }
-  ];
-
-  // Convert submission data to CalculatorData format for enhanced components
-  const createCalculatorData = (): CalculatorData => ({
+  // Convert submission data to CalculatorData format for fresh calculations
+  const calculatorData: CalculatorData = {
     companyInfo: {
       companyName: submission.company_name,
       email: submission.contact_email,
@@ -231,23 +196,121 @@ const Results = () => {
       manualHoursPerWeek: submission.manual_hours || 0,
       hourlyRate: submission.hourly_rate || 0
     }
-  });
+  };
 
-  const createCalculations = (): Calculations => ({
-    leadResponseLoss: submission.lead_response_loss || 0,
-    failedPaymentLoss: submission.failed_payment_loss || 0,
-    selfServeGap: submission.selfserve_gap_loss || 0,
-    processLoss: submission.process_inefficiency_loss || 0,
-    totalLeakage: totalLeak,
-    totalLeak: totalLeak,
-    recoveryPotential70: recovery70,
-    recoveryPotential85: recovery85,
-    potentialRecovery70: recovery70,
-    potentialRecovery85: recovery85
-  });
+  // Calculate fresh, realistic values using the corrected logic (same as useCalculatorData hook)
+  const calculations: Calculations = useMemo(() => {
+    const safeNumber = (value: any): number => {
+      const num = Number(value);
+      return isNaN(num) ? 0 : num;
+    };
 
-  const calculatorData = createCalculatorData();
-  const calculations = createCalculations();
+    // Extract validated data
+    const monthlyLeads = safeNumber(calculatorData.leadGeneration?.monthlyLeads);
+    const averageDealValue = safeNumber(calculatorData.leadGeneration?.averageDealValue);
+    const leadResponseTimeHours = safeNumber(calculatorData.leadGeneration?.leadResponseTimeHours);
+    const monthlyFreeSignups = safeNumber(calculatorData.selfServeMetrics?.monthlyFreeSignups);
+    const freeToPaidConversionRate = safeNumber(calculatorData.selfServeMetrics?.freeToPaidConversionRate);
+    const monthlyMRR = safeNumber(calculatorData.selfServeMetrics?.monthlyMRR);
+    const failedPaymentRate = safeNumber(calculatorData.operationsData?.failedPaymentRate);
+    const manualHoursPerWeek = safeNumber(calculatorData.operationsData?.manualHoursPerWeek);
+    const hourlyRate = safeNumber(calculatorData.operationsData?.hourlyRate);
+    const currentARR = safeNumber(calculatorData.companyInfo?.currentARR);
+    const industry = calculatorData.companyInfo?.industry || 'other';
+
+    // Determine recovery system type
+    const determineRecoverySystemType = (arr: number, mrr: number): keyof typeof RECOVERY_SYSTEMS => {
+      if (arr > 10000000 || mrr > 500000) return 'best-in-class';
+      if (arr > 1000000 || mrr > 50000) return 'advanced';
+      return 'basic';
+    };
+
+    // Calculate fresh values with realistic bounds
+    const responseImpact = calculateLeadResponseImpact(leadResponseTimeHours, averageDealValue);
+    const rawLeadResponseLoss = monthlyLeads * averageDealValue * (1 - responseImpact) * 12;
+    const leadResponseLoss = Math.min(rawLeadResponseLoss, currentARR * 0.08);
+
+    const recoverySystemType = determineRecoverySystemType(currentARR, monthlyMRR);
+    const failedPaymentLoss = calculateFailedPaymentLoss(monthlyMRR, failedPaymentRate, recoverySystemType);
+
+    const rawSelfServeGap = calculateSelfServeGap(
+      monthlyFreeSignups,
+      freeToPaidConversionRate,
+      monthlyMRR,
+      industry
+    );
+    const selfServeGap = Math.min(rawSelfServeGap, currentARR * 0.12);
+
+    const rawProcessLoss = calculateProcessInefficiency(manualHoursPerWeek, hourlyRate);
+    const processLoss = Math.min(rawProcessLoss, currentARR * 0.05);
+
+    // Total calculations with realistic bounds
+    const rawTotalLeakage = leadResponseLoss + failedPaymentLoss + selfServeGap + processLoss;
+    const totalLeakage = Math.min(rawTotalLeakage, currentARR * 0.20);
+    
+    // Recovery potential with realistic bounds
+    const potentialRecovery70 = Math.min(totalLeakage * 0.7, currentARR * 0.14);
+    const potentialRecovery85 = Math.min(totalLeakage * 0.85, currentARR * 0.17);
+
+    return {
+      leadResponseLoss: isFinite(leadResponseLoss) ? leadResponseLoss : 0,
+      failedPaymentLoss: isFinite(failedPaymentLoss) ? failedPaymentLoss : 0,
+      selfServeGap: isFinite(selfServeGap) ? selfServeGap : 0,
+      processLoss: isFinite(processLoss) ? processLoss : 0,
+      totalLeakage: isFinite(totalLeakage) ? totalLeakage : 0,
+      potentialRecovery70: isFinite(potentialRecovery70) ? potentialRecovery70 : 0,
+      potentialRecovery85: isFinite(potentialRecovery85) ? potentialRecovery85 : 0,
+      // Legacy property names for backward compatibility
+      totalLeak: isFinite(totalLeakage) ? totalLeakage : 0,
+      recoveryPotential70: isFinite(potentialRecovery70) ? potentialRecovery70 : 0,
+      recoveryPotential85: isFinite(potentialRecovery85) ? potentialRecovery85 : 0,
+    };
+  }, [calculatorData]);
+
+  // Use fresh calculations instead of stored (incorrect) values
+  const totalLeak = calculations.totalLeakage;
+  const recovery70 = calculations.potentialRecovery70;
+  const recovery85 = calculations.potentialRecovery85;
+
+  // Update leakage breakdown to use fresh calculations
+  const leakageBreakdown = [
+    {
+      category: "leadResponseLoss",
+      title: "Lead Response Loss",
+      amount: calculations.leadResponseLoss,
+      percentage: totalLeak > 0 ? (calculations.leadResponseLoss / totalLeak) * 100 : 0,
+      icon: Users,
+      description: "Lost revenue from slow lead response times",
+      color: "text-revenue-warning"
+    },
+    {
+      category: "failedPaymentLoss",
+      title: "Failed Payment Loss", 
+      amount: calculations.failedPaymentLoss,
+      percentage: totalLeak > 0 ? (calculations.failedPaymentLoss / totalLeak) * 100 : 0,
+      icon: CreditCard,
+      description: "Revenue lost due to payment failures",
+      color: "text-revenue-danger"
+    },
+    {
+      category: "selfServeGap",
+      title: "Self-Serve Gap",
+      amount: calculations.selfServeGap,
+      percentage: totalLeak > 0 ? (calculations.selfServeGap / totalLeak) * 100 : 0,
+      icon: Target,
+      description: "Missed opportunities in self-service conversion",
+      color: "text-revenue-primary"
+    },
+    {
+      category: "processInefficiency",
+      title: "Process Inefficiency",
+      amount: calculations.processLoss,
+      percentage: totalLeak > 0 ? (calculations.processLoss / totalLeak) * 100 : 0,
+      icon: Settings,
+      description: "Losses from manual processes and inefficiencies",
+      color: "text-muted-foreground"
+    }
+  ];
 
   const sections = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
@@ -583,8 +646,8 @@ const Results = () => {
               formatCurrency={formatCurrency}
               validatedValues={{
                 totalLeak,
-                leadResponseLoss: submission.lead_response_loss || 0,
-                selfServeLoss: submission.selfserve_gap_loss || 0,
+                leadResponseLoss: calculations.leadResponseLoss,
+                selfServeLoss: calculations.selfServeGap,
                 recoveryPotential70: recovery70,
                 recoveryPotential85: recovery85
               }}
