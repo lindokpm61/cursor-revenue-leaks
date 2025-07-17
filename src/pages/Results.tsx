@@ -384,10 +384,14 @@ const Results = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <LeakageBreakdownChart
-                  leakageData={leakageBreakdown}
-                  formatCurrency={formatCurrency}
-                />
+                    <LeakageBreakdownChart 
+                      leakageData={leakageBreakdown.map(item => ({
+                        category: item.title,
+                        amount: item.amount,
+                        percentage: item.percentage
+                      }))}
+                      formatCurrency={formatCurrency}
+                    />
               </CardContent>
             </Card>
 
