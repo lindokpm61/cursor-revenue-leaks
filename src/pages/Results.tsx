@@ -236,60 +236,77 @@ const Results = () => {
       </header>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
+        {/* Hero Section - Two Card Layout */}
         <div className="mb-12">
-          <Card className="bg-gradient-to-r from-primary/5 to-revenue-primary/5 border-primary/20">
-            <CardContent className="p-8">
-              <div className="text-center space-y-6">
-                <div>
-                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">Revenue Recovery Opportunity</h2>
-                  <div className="text-2xl md:text-3xl lg:text-4xl text-revenue-warning font-bold flex items-center justify-center gap-3">
-                    <ArrowUp className="h-8 w-8" />
-                    {formatCurrency(totalLeak)}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            {/* Main Hero Card */}
+            <Card className="lg:col-span-3 bg-gradient-to-r from-primary/5 to-revenue-primary/5 border-primary/20">
+              <CardContent className="p-8">
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4">
+                      Revenue Recovery Opportunity
+                    </h2>
+                    <div className="text-2xl md:text-3xl lg:text-4xl text-revenue-warning font-bold flex items-center gap-3 mb-3">
+                      <ArrowUp className="h-8 w-8" />
+                      {formatCurrency(totalLeak)}
+                    </div>
+                    <p className="text-lg text-muted-foreground">
+                      Annual revenue opportunity identified
+                    </p>
                   </div>
-                  <p className="text-lg md:text-xl text-muted-foreground mt-2">
-                    Annual revenue opportunity identified
-                  </p>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-                  <div className="p-6 rounded-xl bg-background/50 border">
-                    <div className="text-2xl md:text-3xl lg:text-4xl text-revenue-success font-bold mb-2">
-                       {formatCurrency(recovery70)}
-                     </div>
-                     <div className="text-sm font-semibold text-muted-foreground">
-                       Conservative Recovery (70%)
-                     </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-xl bg-background/50 border">
+                      <div className="text-xl md:text-2xl text-revenue-success font-bold mb-1">
+                        {formatCurrency(recovery70)}
+                      </div>
+                      <div className="text-sm font-medium text-muted-foreground">
+                        Conservative Recovery (70%)
+                      </div>
+                    </div>
+                    <div className="p-4 rounded-xl bg-background/50 border">
+                      <div className="text-xl md:text-2xl text-revenue-primary font-bold mb-1">
+                        {formatCurrency(recovery85)}
+                      </div>
+                      <div className="text-sm font-medium text-muted-foreground">
+                        Optimistic Recovery (85%)
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-6 rounded-xl bg-background/50 border">
-                    <div className="text-2xl md:text-3xl lg:text-4xl text-revenue-primary font-bold mb-2">
-                       {formatCurrency(recovery85)}
-                     </div>
-                     <div className="text-sm font-semibold text-muted-foreground">
-                       Optimistic Recovery (85%)
-                     </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                    <Button onClick={handleGetActionPlan} className="flex-1">
+                      <Target className="h-4 w-4 mr-2" />
+                      Get Action Plan
+                    </Button>
+                    <Button variant="outline" onClick={handleQuickWins} className="flex-1">
+                      <Zap className="h-4 w-4 mr-2" />
+                      Quick Wins
+                    </Button>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
 
-                {/* Hero Revenue Chart */}
-                <div className="mb-8">
-                  <HeroRevenueChart
-                    secureRevenue={submission.current_arr ? submission.current_arr - totalLeak : 0}
-                    revenueAtRisk={totalLeak}
-                    recoveryPotential={recovery70}
-                    formatCurrency={formatCurrency}
-                  />
-                </div>
-
-                <div className="text-center mb-8">
-                  <h3 className="text-xl font-semibold mb-4">Revenue Recovery Potential</h3>
-                  <p className="text-muted-foreground max-w-2xl mx-auto">
-                    Based on our analysis, here's what you could recover by optimizing your revenue operations
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Chart Card */}
+            <Card className="lg:col-span-2">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Revenue Breakdown</CardTitle>
+                <CardDescription className="text-sm">
+                  Current revenue composition and recovery potential
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <HeroRevenueChart
+                  secureRevenue={submission.current_arr ? submission.current_arr - totalLeak : 0}
+                  revenueAtRisk={totalLeak}
+                  recoveryPotential={recovery70}
+                  formatCurrency={formatCurrency}
+                />
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Navigation Tabs */}
