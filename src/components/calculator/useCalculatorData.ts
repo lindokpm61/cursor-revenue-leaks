@@ -127,39 +127,39 @@ export const useCalculatorData = () => {
       return 'basic';
     };
 
-    // Enhanced lead response loss calculation with bounds
+    // Enhanced lead response loss calculation with realistic bounds
     const responseImpact = calculateLeadResponseImpact(leadResponseTimeHours, averageDealValue);
     const rawLeadResponseLoss = monthlyLeads * averageDealValue * (1 - responseImpact) * 12;
-    // Apply strict bounds: max 30% of ARR for lead response loss
-    const leadResponseLoss = Math.min(rawLeadResponseLoss, currentARR * 0.3);
+    // Apply realistic bounds: max 8% of ARR for lead response loss
+    const leadResponseLoss = Math.min(rawLeadResponseLoss, currentARR * 0.08);
 
     // Enhanced failed payment loss calculation (with recovery rates)
     const recoverySystemType = determineRecoverySystemType(currentARR, monthlyMRR);
     const failedPaymentLoss = calculateFailedPaymentLoss(monthlyMRR, failedPaymentRate, recoverySystemType);
 
-    // Enhanced self-serve gap calculation with bounds
+    // Enhanced self-serve gap calculation with realistic bounds
     const rawSelfServeGap = calculateSelfServeGap(
       monthlyFreeSignups,
       freeToPaidConversionRate,
       monthlyMRR,
       industry
     );
-    // Apply strict bounds: max 50% of ARR for self-serve gap
-    const selfServeGap = Math.min(rawSelfServeGap, currentARR * 0.5);
+    // Apply realistic bounds: max 12% of ARR for self-serve gap
+    const selfServeGap = Math.min(rawSelfServeGap, currentARR * 0.12);
 
-    // Enhanced process inefficiency calculation with bounds
+    // Enhanced process inefficiency calculation with realistic bounds
     const rawProcessLoss = calculateProcessInefficiency(manualHoursPerWeek, hourlyRate);
-    // Apply bounds: max 20% of ARR for process inefficiency
-    const processLoss = Math.min(rawProcessLoss, currentARR * 0.2);
+    // Apply realistic bounds: max 5% of ARR for process inefficiency
+    const processLoss = Math.min(rawProcessLoss, currentARR * 0.05);
 
-    // Total calculations with final bounds check
+    // Total calculations with realistic final bounds check
     const rawTotalLeakage = leadResponseLoss + failedPaymentLoss + selfServeGap + processLoss;
-    // Cap total leakage at 150% of ARR (very conservative)
-    const totalLeakage = Math.min(rawTotalLeakage, currentARR * 1.5);
+    // Cap total leakage at 20% of ARR (realistic industry standard)
+    const totalLeakage = Math.min(rawTotalLeakage, currentARR * 0.20);
     
     // Recovery potential with realistic bounds
-    const potentialRecovery70 = Math.min(totalLeakage * 0.7, currentARR * 1.0);
-    const potentialRecovery85 = Math.min(totalLeakage * 0.85, currentARR * 1.2);
+    const potentialRecovery70 = Math.min(totalLeakage * 0.7, currentARR * 0.14);
+    const potentialRecovery85 = Math.min(totalLeakage * 0.85, currentARR * 0.17);
 
     // Ensure all values are valid numbers
     const validatedCalculations = {
