@@ -318,23 +318,24 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
   let paybackMonths = 24;
   
   if (unifiedCalcs && realisticTimeline) {
-    // Use imports instead of require for browser compatibility
-    const investmentCalc = {
-      implementationCost: totalInvestment,
-      totalAnnualInvestment: totalAnnualInvestment,
-      paybackMonths: paybackMonths
-    };
     // Calculate based on unified calculations
     const baseInvestment = Math.min(8000 + ((calculatorData?.companyInfo?.currentARR || submission.current_arr || 0) * 0.002), 25000);
-    investmentCalc.implementationCost = baseInvestment * realisticTimeline.length * 3;
-    investmentCalc.totalAnnualInvestment = (investmentCalc.implementationCost / 3) + (baseInvestment * realisticTimeline.length * 0.2);
+    totalInvestment = baseInvestment * realisticTimeline.length * 3;
+    totalAnnualInvestment = (totalInvestment / 3) + (baseInvestment * realisticTimeline.length * 0.2);
     const totalRecoveryCalc = realisticTimeline.reduce((sum, phase) => sum + phase.recoveryPotential, 0);
-    investmentCalc.paybackMonths = totalRecoveryCalc > 0 ? Math.ceil(investmentCalc.implementationCost / (totalRecoveryCalc / 12)) : 36;
-    investmentCalc.paybackMonths = Math.min(investmentCalc.paybackMonths, 36);
+    paybackMonths = totalRecoveryCalc > 0 ? Math.ceil(totalInvestment / (totalRecoveryCalc / 12)) : 36;
+    paybackMonths = Math.min(paybackMonths, 36);
+  } else {
+    // Fallback investment calculation using submission data
+    const currentARR = submission.current_arr || 0;
+    const recoveryPotential = submission.recovery_potential_70 || submission.total_leak || 0;
     
-    totalInvestment = investmentCalc.implementationCost;
-    totalAnnualInvestment = investmentCalc.totalAnnualInvestment;
-    paybackMonths = investmentCalc.paybackMonths;
+    // Base investment scales with company size (0.2% of ARR, min $8k, max $25k)
+    const baseInvestment = Math.min(Math.max(8000, currentARR * 0.002), 25000);
+    totalInvestment = baseInvestment * 3; // 3 phases
+    totalAnnualInvestment = (totalInvestment / 3) + (baseInvestment * 0.6); // Implementation + ongoing
+    paybackMonths = recoveryPotential > 0 ? Math.ceil(totalInvestment / (recoveryPotential / 12)) : 24;
+    paybackMonths = Math.min(paybackMonths, 36);
   }
   
   // Calculate total recovery appropriately based on phase type
