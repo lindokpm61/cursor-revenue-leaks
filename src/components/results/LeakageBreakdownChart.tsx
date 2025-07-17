@@ -22,7 +22,7 @@ export const LeakageBreakdownChart = ({ leakageData, formatCurrency }: LeakageBr
     .sort((a, b) => b.amount - a.amount)
     .map(item => ({
       ...item,
-      displayName: item.category.replace(/([A-Z])/g, ' $1').trim()
+      displayName: item.category
     }));
 
   return (
