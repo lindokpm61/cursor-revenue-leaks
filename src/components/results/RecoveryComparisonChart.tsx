@@ -26,7 +26,7 @@ export const RecoveryComparisonChart = ({ leakageData, formatCurrency }: Recover
   };
 
   const chartData = leakageData
-    .filter(item => item.category !== "Failed Payment Loss") // Exclude failed payment loss
+    .filter(item => item.category !== "failedPaymentLoss") // Exclude failed payment loss
     .map(item => ({
       category: item.category.replace(/([A-Z])/g, ' $1').trim(),
       currentLoss: item.amount,
