@@ -35,7 +35,8 @@ import {
   Share2,
   Copy,
   BarChart3,
-  Activity
+  Activity,
+  
 } from "lucide-react";
 import { submissionService, type Submission } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
@@ -431,222 +432,153 @@ const ActionPlan = () => {
     }).format(amount);
   };
 
-  const UrgencyBanner = ({ recoveryPotential, engagementLevel }: { recoveryPotential: number, engagementLevel: string }) => {
-    const currentARR = submission?.current_arr || 0;
-    const significantOpportunity = recoveryPotential > Math.max(currentARR * 0.15, 500000); // 15% of ARR or $500K
+  const ProgressEncouragement = () => {
+    const completionPercentage = Math.round((checkedActions.length / priorityActions.length) * 100);
     
-    if (significantOpportunity && engagementLevel === 'high') {
-      return (
-        <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🎯</span>
-              <div className="flex items-center gap-2">
-                <span 
-                  className="text-xs font-semibold px-3 py-1 rounded-full"
-                  style={{
-                    backgroundColor: '#dcfce7',
-                    color: '#059669'
-                  }}
-                >
-                  HIGH-IMPACT OPPORTUNITY
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="mt-3">
-            <h4 className="text-emerald-700 font-bold text-lg mb-1">
-              Strong Implementation Intent Detected
-            </h4>
-            <p className="text-gray-600 text-sm">
-              {formatCurrency(recoveryPotential)} opportunity • {checkedActions.length} actions tracked • Priority support available
-            </p>
-          </div>
-        </div>
-      );
-    }
-    
-    if (engagementLevel === 'high') {
-      return (
-        <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🎯</span>
-            <div>
-              <strong className="text-emerald-700 font-bold">Ready to Take Action?</strong>
-              <p className="text-sm text-gray-600 mt-1">
-                Your engagement shows you're serious about implementation
-              </p>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    
-    if (significantOpportunity && engagementLevel === 'medium') {
+    if (checkedActions.length === 0) {
       return (
         <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">💡</span>
+            <Rocket className="h-6 w-6 text-blue-600" />
             <div>
-              <strong className="text-blue-700 font-bold">Significant Opportunity Identified</strong>
-              <p className="text-sm text-gray-600 mt-1">
-                {formatCurrency(recoveryPotential)} in potential recovery • Consider prioritizing implementation
+              <strong className="text-blue-700 font-semibold">Ready to Begin Implementation</strong>
+              <p className="text-sm text-muted-foreground mt-1">
+                Start by selecting your first action below to track your progress
               </p>
             </div>
           </div>
         </div>
       );
     }
-    
-    return null;
+
+    if (completionPercentage < 100) {
+      return (
+        <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg">
+          <div className="flex items-center gap-3">
+            <Trophy className="h-6 w-6 text-emerald-600" />
+            <div>
+              <strong className="text-emerald-700 font-semibold">
+                Great Progress! {completionPercentage}% Complete
+              </strong>
+              <p className="text-sm text-muted-foreground mt-1">
+                {checkedActions.length} of {priorityActions.length} actions tracked • Keep going!
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg">
+        <div className="flex items-center gap-3">
+          <Star className="h-6 w-6 text-amber-600" />
+          <div>
+            <strong className="text-amber-700 font-semibold">All Actions Identified!</strong>
+            <p className="text-sm text-muted-foreground mt-1">
+              Ready for implementation support? Consider booking a strategy call
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   };
 
-  const renderSmartCTAs = () => {
+  const renderContextualCTAs = () => {
     const engagementLevel = getEngagementLevel();
     const recoveryPotential = submission?.recovery_potential_70 || 0;
+    const completionPercentage = Math.round((checkedActions.length / priorityActions.length) * 100);
     
-    // High engagement (70+ score or 2+ actions checked)
-    if (engagementLevel === 'high') {
+    // Show implementation support for users who are progressing
+    if (completionPercentage >= 50 || engagementLevel === 'high') {
       return (
-        <>
-          <Card 
-            className="border-2 rounded-xl h-full flex flex-col"
-            style={{
-              backgroundColor: 'white',
-              borderColor: '#e5e7eb',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
-            }}
-          >
-            <CardContent className="p-6 text-center relative flex-1 flex flex-col">
-              <div 
-                className="absolute top-2 right-2 text-xs px-3 py-1 rounded-full font-bold"
-                style={{
-                  backgroundColor: '#dcfce7',
-                  color: '#059669'
-                }}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6 text-center">
+              <Phone className="h-8 w-8 mx-auto mb-3 text-primary" />
+              <h3 className="font-semibold mb-2">Implementation Support</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Get expert guidance for your {formatCurrency(recoveryPotential)} recovery
+              </p>
+              <Button 
+                className="w-full"
+                onClick={() => handleCTAInteraction('consultation', 'Book Strategy Call', 'primary')}
               >
-                🎯 PRIORITY SUPPORT
-              </div>
-              <div className="flex-1 flex flex-col justify-center mt-6">
-                <Phone className="h-10 w-10 mx-auto mb-4 text-emerald-600" />
-                <h3 className="font-bold mb-3 text-lg text-gray-900 leading-tight">Ready to Accelerate Implementation?</h3>
-                <p className="text-sm text-gray-600 mb-6 flex-grow">
-                  You've shown strong implementation intent. Let's fast-track your {formatCurrency(recoveryPotential)} recovery.
-                </p>
-              </div>
-              <div className="mt-auto">
-                <Button 
-                  className="w-full font-bold py-3 text-base mb-3"
-                  style={{
-                    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(5, 150, 105, 0.3)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(5, 150, 105, 0.25)';
-                  }}
-                  onClick={() => handleCTAInteraction('consultation', 'Book Priority Strategy Call', 'urgent')}
-                >
-                  Book Priority Strategy Call
-                </Button>
-                <p className="text-xs text-emerald-600 font-medium">
-                  ⏰ Next available: Today or tomorrow
-                </p>
-              </div>
+                Book Strategy Call
+              </Button>
             </CardContent>
           </Card>
           
-          <Card 
-            className="rounded-xl h-full flex flex-col"
-            style={{
-              backgroundColor: 'white',
-              border: '2px solid #e5e7eb',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#d1d5db';
-              e.currentTarget.style.backgroundColor = '#f9fafb';
-              e.currentTarget.style.transform = 'translateY(-1px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = '#e5e7eb';
-              e.currentTarget.style.backgroundColor = 'white';
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
-          >
-            <CardContent className="p-6 text-center flex-1 flex flex-col">
-              <div className="flex-1 flex flex-col justify-center">
-                <BookOpen className="h-8 w-8 mx-auto mb-3 text-blue-600" />
-                <h3 className="font-bold mb-2">Implementation Guide</h3>
-                <p className="text-sm text-gray-600 mb-4 flex-grow">Get step-by-step implementation instructions</p>
-              </div>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6 text-center">
+              <BookOpen className="h-8 w-8 mx-auto mb-3 text-primary" />
+              <h3 className="font-semibold mb-2">Implementation Guide</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Download step-by-step instructions
+              </p>
               <Button 
-                className="w-full"
                 variant="outline"
-                onClick={() => handleCTAInteraction('guide', 'Download Implementation Guide', 'primary')}
+                className="w-full"
+                onClick={() => handleCTAInteraction('guide', 'Download Guide', 'secondary')}
               >
                 Download Guide
               </Button>
             </CardContent>
           </Card>
-        </>
+        </div>
       );
     }
     
-    // Default CTAs for medium/low engagement
+    // Show gentle guidance for beginners
     return (
-      <>
-        <Card>
-          <CardContent className="p-6 text-center">
-            <Users className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
-            <h3 className="font-bold mb-2">Book Consultation</h3>
-            <p className="text-sm text-muted-foreground mb-4">Discuss your implementation strategy</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="hover:shadow-md transition-shadow">
+          <CardContent className="p-4 text-center">
+            <BookOpen className="h-6 w-6 mx-auto mb-2 text-primary" />
+            <h4 className="font-medium mb-1">Implementation Guide</h4>
+            <p className="text-xs text-muted-foreground mb-3">Step-by-step instructions</p>
             <Button 
-              className="w-full"
-              onClick={() => handleCTAInteraction('consultation', 'Book Consultation', 'primary')}
-            >
-              Book Strategy Call
-            </Button>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6 text-center">
-            <BookOpen className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
-            <h3 className="font-bold mb-2">Implementation Guide</h3>
-            <p className="text-sm text-muted-foreground mb-4">Get detailed action steps</p>
-            <Button 
+              size="sm"
               variant="outline"
               className="w-full"
               onClick={() => handleCTAInteraction('guide', 'Download Guide', 'secondary')}
             >
-              Download Guide
+              Download
             </Button>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardContent className="p-6 text-center">
-            <Users className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
-            <h3 className="font-bold mb-2">Progress Updates</h3>
-            <p className="text-sm text-muted-foreground mb-4">Get weekly implementation tips</p>
+        <Card className="hover:shadow-md transition-shadow">
+          <CardContent className="p-4 text-center">
+            <Calendar className="h-6 w-6 mx-auto mb-2 text-primary" />
+            <h4 className="font-medium mb-1">Strategy Session</h4>
+            <p className="text-xs text-muted-foreground mb-3">Discuss your approach</p>
             <Button 
-              className="w-full bg-revenue-success text-white"
-              onClick={() => handleCTAInteraction('subscription', 'Subscribe to Updates', 'primary')}
+              size="sm"
+              className="w-full"
+              onClick={() => handleCTAInteraction('consultation', 'Book Consultation', 'primary')}
             >
-              Subscribe to Updates
+              Book Call
             </Button>
           </CardContent>
         </Card>
-      </>
+        
+        <Card className="hover:shadow-md transition-shadow">
+          <CardContent className="p-4 text-center">
+            <Users className="h-6 w-6 mx-auto mb-2 text-primary" />
+            <h4 className="font-medium mb-1">Updates</h4>
+            <p className="text-xs text-muted-foreground mb-3">Weekly implementation tips</p>
+            <Button 
+              size="sm"
+              variant="outline"
+              className="w-full"
+              onClick={() => handleCTAInteraction('subscription', 'Subscribe', 'secondary')}
+            >
+              Subscribe
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   };
 
@@ -813,357 +745,242 @@ const ActionPlan = () => {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
-      {/* Enhanced Navigation with glassmorphism */}
-      <nav className="sticky top-0 z-40 border-b border-white/20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-900/60">
+      {/* Streamlined Navigation */}
+      <nav className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-4">
               <Link to={`/results/${submission.id}`}>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="transition-all duration-200 hover:scale-105 hover:bg-primary/10"
-                >
+                <Button variant="ghost" size="sm">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Results
                 </Button>
               </Link>
-              <div className="flex items-center gap-3">
-                <div className="relative p-2 rounded-lg bg-gradient-to-r from-primary to-primary/70 shadow-lg">
-                  <Target className="h-6 w-6 text-primary-foreground" />
-                  <div className="absolute -top-1 -right-1 h-3 w-3 bg-yellow-400 rounded-full animate-pulse"></div>
-                </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                  Action Plan
-                </span>
+              <div className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-primary" />
+                <span className="font-semibold">{submission.company_name} Action Plan</span>
+                <Badge variant="outline" className="text-xs">
+                  {new Date().toLocaleDateString()}
+                </Badge>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="backdrop-blur-sm bg-white/40 border-white/30 hover:bg-white/60 transition-all duration-200 hover:scale-105"
-                onClick={handleExportPDF}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Download PDF
-              </Button>
-            </div>
+            <Button variant="outline" size="sm" onClick={handleExportPDF}>
+              <Download className="h-4 w-4 mr-2" />
+              Export PDF
+            </Button>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Enhanced Hero Section with animations */}
-        <div className="relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-          <div className="relative backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 rounded-2xl p-8 mb-12 border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-300">
-            <div className="mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="relative">
-                  <Trophy className="h-10 w-10 text-primary animate-pulse" />
-                  <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-yellow-500 animate-bounce" />
-                </div>
-                <h1 className="text-h1 font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
-                  {submission.company_name} Action Plan
-                </h1>
-              </div>
-              <div className="flex items-center gap-2">
-                <Rocket className="h-5 w-5 text-primary" />
-                <p className="text-h3 text-muted-foreground">
-                  Personalized recovery roadmap • Generated {new Date().toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-          
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <Card className="border-revenue-danger/20 bg-revenue-danger/5">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                 <h3 className="text-h3 font-semibold text-revenue-danger">Total Revenue Leak</h3>
-                 {calculations.confidence.level === 'low' && (
-                   <Badge variant="outline" className="text-xs">
-                     Estimated
-                   </Badge>
-                 )}
-               </div>
-               <p className="text-h1 font-bold text-revenue-danger">
-                 {formatCurrency(calculations.total_leak)}
-               </p>
-               <p className="text-small text-muted-foreground">
-                Lost annually due to system gaps
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-revenue-success/20 bg-revenue-success/5">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                 <h3 className="text-h3 font-semibold text-revenue-success">Recovery Potential</h3>
-                 <Badge variant="outline" className="text-xs">70% Confidence</Badge>
-               </div>
-               <p className="text-h1 font-bold text-revenue-success">
-                 {formatCurrency(calculations.recovery_potential_70)}
-               </p>
-               <p className="text-small text-muted-foreground">
-                Recoverable with implementation
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-primary/20 bg-primary/5">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                 <h3 className="text-h3 font-semibold text-primary">Implementation ROI</h3>
-                 <Badge variant="secondary" className="text-xs">12 months</Badge>
-               </div>
-               <p className="text-h1 font-bold text-primary">
-                 {roi}%
-               </p>
-               <p className="text-small text-muted-foreground">
-                Expected revenue improvement
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Enhanced Progress Bar */}
-        <div 
-          className="relative group mb-8 cursor-pointer transition-all duration-300 hover:scale-[1.02]"
-          onClick={() => handleTabChange('timeline')}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-xl blur-lg group-hover:blur-xl transition-all duration-300"></div>
-          <div className="relative backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 rounded-xl p-6 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-primary" />
-                <span className="text-small font-semibold">Implementation Progress</span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge 
-                  variant={checkedActions.length >= priorityActions.length * 0.7 ? "default" : "secondary"}
-                  className="transition-all duration-200"
-                >
-                  {checkedActions.length} of {priorityActions.length}
-                </Badge>
-                 <span className="text-small text-muted-foreground">
-                   actions completed
-                 </span>
-              </div>
-            </div>
-            <div className="relative">
-              <Progress 
-                value={(checkedActions.length / priorityActions.length) * 100} 
-                className="w-full h-3 transition-all duration-500"
-              />
-              {checkedActions.length > 0 && (
-                <div className="absolute top-0 right-0 flex items-center">
-                  <Star className="h-4 w-4 text-yellow-500 animate-pulse" />
-                </div>
-              )}
-            </div>
-            <div className="mt-2 text-xs text-muted-foreground">
-              {Math.round((checkedActions.length / priorityActions.length) * 100)}% complete
-            </div>
-          </div>
-        </div>
-
-        <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
-            <TabsTrigger value="actions">Priority Actions</TabsTrigger>
-            <TabsTrigger value="next-steps">Next Steps</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
-                    Revenue Impact Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                     <div className="flex justify-between items-center">
-                       <span className="text-small">Lead Response Loss</span>
-                       <span className="font-medium text-revenue-danger">
-                         {formatCurrency(calculations.leadResponseLoss)}
-                       </span>
-                     </div>
-                     <div className="flex justify-between items-center">
-                       <span className="text-small">Failed Payment Loss</span>
-                       <span className="font-medium text-revenue-danger">
-                         {formatCurrency(calculations.failedPaymentLoss)}
-                       </span>
-                     </div>
-                     <div className="flex justify-between items-center">
-                       <span className="text-small">Self-Serve Gap</span>
-                       <span className="font-medium text-revenue-danger">
-                         {formatCurrency(calculations.selfServeGap)}
-                       </span>
-                     </div>
-                     <div className="flex justify-between items-center">
-                       <span className="text-small">Process Inefficiency</span>
-                      <span className="font-medium text-revenue-danger">
-                        {formatCurrency(calculations.processLoss)}
-                      </span>
-                    </div>
-                    <div className="border-t pt-2">
-                      <div className="flex justify-between items-center font-semibold">
-                        <span>Total Annual Leak</span>
-                        <span className="text-revenue-danger">
-                          {formatCurrency(calculations.total_leak)}
-                        </span>
-                      </div>
-                    </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Two-Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar - Key Metrics & Progress */}
+          <div className="lg:col-span-1 space-y-4">
+            {/* Progress Card */}
+            <Card className="sticky top-20">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Activity className="h-4 w-4" />
+                  Implementation Progress
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span>Progress</span>
+                    <span className="font-medium">{currentProgress}%</span>
                   </div>
-                </CardContent>
-              </Card>
+                  <Progress value={currentProgress} className="h-2" />
+                  <p className="text-xs text-muted-foreground mt-2">{progressMessage}</p>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-revenue-danger">
+                      {formatCurrency(calculations.total_leak)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Revenue Leak</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-revenue-success">
+                      {formatCurrency(calculations.recovery_potential_70)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Recovery Potential</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-primary">
+                      {roi}%
+                    </p>
+                    <p className="text-xs text-muted-foreground">Implementation ROI</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5" />
-                    Quick Wins
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {priorityActions.slice(0, 3).map((action, index) => (
-                      <div key={action.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id={action.id}
-                            checked={checkedActions.includes(action.id)}
-                            onCheckedChange={(checked) => handleActionToggle(action.id, checked as boolean)}
-                          />
-                          <span className="text-small font-medium">{action.title}</span>
+          {/* Main Content Area */}
+          <div className="lg:col-span-3 space-y-6">
+            <ProgressEncouragement />
+
+              <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="actions">Actions ({priorityActions.length})</TabsTrigger>
+                  <TabsTrigger value="timeline">Timeline</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="overview" className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4" />
+                          Revenue Impact Breakdown
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Lead Response Loss</span>
+                            <span className="font-medium text-revenue-danger">
+                              {formatCurrency(calculations.leadResponseLoss)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Self-Serve Gap</span>
+                            <span className="font-medium text-revenue-danger">
+                              {formatCurrency(calculations.selfServeGap)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Process Inefficiency</span>
+                            <span className="font-medium text-revenue-danger">
+                              {formatCurrency(calculations.processLoss)}
+                            </span>
+                          </div>
+                          <div className="border-t pt-2">
+                            <div className="flex justify-between items-center font-semibold">
+                              <span>Total Annual Leak</span>
+                              <span className="text-revenue-danger">
+                                {formatCurrency(calculations.total_leak)}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <Badge variant="outline" className="ml-auto text-xs">
-                          {action.timeframe}
-                        </Badge>
-                      </div>
-                    ))}
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Target className="h-4 w-4" />
+                          Quick Actions
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {priorityActions.slice(0, 3).map((action) => (
+                            <div key={action.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
+                              <Checkbox
+                                id={action.id}
+                                checked={checkedActions.includes(action.id)}
+                                onCheckedChange={(checked) => handleActionToggle(action.id, checked as boolean)}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <span className="text-sm font-medium truncate">{action.title}</span>
+                              </div>
+                              <Badge variant="outline" className="text-xs shrink-0">
+                                {action.timeframe}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+                </TabsContent>
 
-          <TabsContent value="timeline" className="space-y-6">
-            <ImplementationTimeline 
-              submission={submission}
-              formatCurrency={formatCurrency}
-              validatedValues={{
-                totalLeak: calculations.total_leak,
-                leadResponseLoss: calculations.leadResponseLoss,
-                selfServeLoss: calculations.selfServeGap,
-                recoveryPotential70: calculations.recovery_potential_70,
-                recoveryPotential85: calculations.recovery_potential_70 * 1.2
-              }}
-              calculatorData={{
-                companyInfo: {
-                  currentARR: submission.current_arr || 0,
-                  industry: submission.industry
-                },
-                leadGeneration: {
-                  monthlyLeads: submission.monthly_leads || 0,
-                  averageDealValue: submission.average_deal_value || 0,
-                  leadResponseTime: submission.lead_response_time || 0
-                },
-                selfServe: {
-                  monthlyFreeSignups: submission.monthly_free_signups || 0,
-                  freeToLaidConversion: submission.free_to_paid_conversion || 0,
-                  monthlyMRR: submission.monthly_mrr || 0,
-                  failedPaymentRate: submission.failed_payment_rate || 0
-                },
-                operations: {
-                  manualHours: submission.manual_hours || 0,
-                  hourlyRate: submission.hourly_rate || 0
-                }
-              }}
-            />
-          </TabsContent>
+                <TabsContent value="actions" className="space-y-6">
+                  <PriorityActions 
+                    submission={submission}
+                    formatCurrency={formatCurrency}
+                    calculatorData={{
+                      companyInfo: {
+                        currentARR: submission.current_arr || 0,
+                        industry: submission.industry
+                      },
+                      leadGeneration: {
+                        monthlyLeads: submission.monthly_leads || 0,
+                        averageDealValue: submission.average_deal_value || 0,
+                        leadResponseTime: submission.lead_response_time || 0
+                      },
+                      selfServe: {
+                        monthlyFreeSignups: submission.monthly_free_signups || 0,
+                        freeToLaidConversion: submission.free_to_paid_conversion || 0,
+                        monthlyMRR: submission.monthly_mrr || 0,
+                        failedPaymentRate: submission.failed_payment_rate || 0
+                      },
+                      operations: {
+                        manualHours: submission.manual_hours || 0,
+                        hourlyRate: submission.hourly_rate || 0
+                      }
+                    }}
+                  />
+                </TabsContent>
 
-          <TabsContent value="actions" className="space-y-6">
-            <PriorityActions 
-              submission={submission}
-              formatCurrency={formatCurrency}
-              calculatorData={{
-                companyInfo: {
-                  currentARR: submission.current_arr || 0,
-                  industry: submission.industry
-                },
-                leadGeneration: {
-                  monthlyLeads: submission.monthly_leads || 0,
-                  averageDealValue: submission.average_deal_value || 0,
-                  leadResponseTime: submission.lead_response_time || 0
-                },
-                selfServe: {
-                  monthlyFreeSignups: submission.monthly_free_signups || 0,
-                  freeToLaidConversion: submission.free_to_paid_conversion || 0,
-                  monthlyMRR: submission.monthly_mrr || 0,
-                  failedPaymentRate: submission.failed_payment_rate || 0
-                },
-                operations: {
-                  manualHours: submission.manual_hours || 0,
-                  hourlyRate: submission.hourly_rate || 0
-                }
-              }}
-            />
-          </TabsContent>
+                <TabsContent value="timeline" className="space-y-6">
+                  <ImplementationTimeline 
+                    submission={submission}
+                    formatCurrency={formatCurrency}
+                    validatedValues={{
+                      totalLeak: calculations.total_leak,
+                      leadResponseLoss: calculations.leadResponseLoss,
+                      selfServeLoss: calculations.selfServeGap,
+                      recoveryPotential70: calculations.recovery_potential_70,
+                      recoveryPotential85: calculations.recovery_potential_70 * 1.2
+                    }}
+                    calculatorData={{
+                      companyInfo: {
+                        currentARR: submission.current_arr || 0,
+                        industry: submission.industry
+                      },
+                      leadGeneration: {
+                        monthlyLeads: submission.monthly_leads || 0,
+                        averageDealValue: submission.average_deal_value || 0,
+                        leadResponseTime: submission.lead_response_time || 0
+                      },
+                      selfServe: {
+                        monthlyFreeSignups: submission.monthly_free_signups || 0,
+                        freeToLaidConversion: submission.free_to_paid_conversion || 0,
+                        monthlyMRR: submission.monthly_mrr || 0,
+                        failedPaymentRate: submission.failed_payment_rate || 0
+                      },
+                      operations: {
+                        manualHours: submission.manual_hours || 0,
+                        hourlyRate: submission.hourly_rate || 0
+                      }
+                    }}
+                  />
+                </TabsContent>
+              </Tabs>
 
-          <TabsContent value="next-steps" className="space-y-6">
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recommended Next Steps</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-revenue-success mt-0.5" />
-                    <div>
-                      <p className="font-medium">1. Review Priority Actions</p>
-                       <p className="text-small text-muted-foreground">Check off the actions you want to implement first</p>
-                     </div>
-                   </div>
-                   <div className="flex items-start gap-3">
-                     <Calendar className="h-5 w-5 text-primary mt-0.5" />
-                     <div>
-                       <p className="font-medium">2. Schedule Implementation</p>
-                       <p className="text-small text-muted-foreground">Book a strategy call to discuss timeline and resources</p>
-                     </div>
-                   </div>
-                   <div className="flex items-start gap-3">
-                     <Zap className="h-5 w-5 text-revenue-warning mt-0.5" />
-                     <div>
-                       <p className="font-medium">3. Start with Quick Wins</p>
-                       <p className="text-small text-muted-foreground">Begin with the highest-impact, lowest-effort improvements</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <UrgencyBanner 
-                recoveryPotential={submission.total_leak || 0} 
-                engagementLevel={getEngagementLevel()} 
-              />
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {renderSmartCTAs()}
+              {/* Contextual CTAs based on progress */}
+              <div className="mt-8">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Next Steps</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {renderContextualCTAs()}
+                  </CardContent>
+                </Card>
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 export default ActionPlan;
