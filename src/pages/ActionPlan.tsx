@@ -1,16 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useRouter } from 'next/router';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Target, AlertTriangle, Clock, TrendingUp } from "lucide-react";
-import { Calculations } from "@/components/calculator/useCalculatorData";
-import { calculateUnifiedResults, generateRealisticTimeline, UnifiedCalculationInputs } from "@/lib/calculator/unifiedCalculations";
-import { CalculatorNavigation } from "@/components/calculator/CalculatorNavigation";
 import { ActionPlan as ActionPlanComponent } from "@/components/calculator/results/ActionPlan";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { getTemporarySubmission, saveTemporarySubmission } from "@/lib/submission/submissionStorage";
-import { trackEvent } from "@/lib/analytics";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { useCTAController } from "@/hooks/useCTAController";
@@ -20,21 +15,15 @@ import { ProgressiveEmailCapture } from "@/components/calculator/ProgressiveEmai
 import { UnifiedResultsService } from "@/lib/results/UnifiedResultsService";
 
 export default function ActionPlan() {
-  const router = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
   const { toast } = useToast();
   const [data, setData] = useState<any>(null);
-  const [calculations, setCalculations] = useState<Calculations | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [userEmail, setUserEmail] = useLocalStorage('user_email', '');
+  const [userEmail, setUserEmail] = useState('');
   const [checkedActions, setCheckedActions] = useState<string[]>([]);
 
-  const tempId = useMemo(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('tempId');
-    }
-    return null;
-  }, []);
+  const tempId = params.tempId || null;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,7 +33,6 @@ export default function ActionPlan() {
           const submission = await getTemporarySubmission(tempId);
           if (submission) {
             setData(submission);
-            setCalculations(submission.calculations);
             setUserEmail(submission.email || '');
           } else {
             toast({
@@ -52,7 +40,7 @@ export default function ActionPlan() {
               description: "No data found for this session. Please start again.",
               variant: "destructive",
             });
-            router.push('/');
+            navigate('/');
           }
         } else {
           toast({
@@ -60,7 +48,7 @@ export default function ActionPlan() {
             description: "No session ID found. Please start again.",
             variant: "destructive",
           });
-          router.push('/');
+          navigate('/');
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
@@ -69,25 +57,26 @@ export default function ActionPlan() {
           description: "Failed to load data. Please try again.",
           variant: "destructive",
         });
-        router.push('/');
+        navigate('/');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [tempId, router, toast, setUserEmail]);
+  }, [tempId, navigate, toast]);
 
   useEffect(() => {
     if (tempId && data) {
-      saveTemporarySubmission(tempId, data);
+      saveTemporarySubmission(data);
     }
   }, [tempId, data]);
 
   const handleBack = useCallback(() => {
-    trackEvent('calculator_navigation', { step: 5, action: 'back' });
-    router.push(`/operations?tempId=${tempId}`);
-  }, [router, tempId]);
+    // Track navigation back - simplified without analytics lib
+    console.log('Action plan navigation back');
+    navigate(`/operations?tempId=${tempId}`);
+  }, [navigate, tempId]);
 
   const handleCheckAction = (action: string) => {
     setCheckedActions(prev => {
@@ -101,33 +90,33 @@ export default function ActionPlan() {
 
   // Get unified results for consistent CTA data
   const unifiedResults = useMemo(() => {
-    if (!data?.companyInfo?.currentARR) return null;
+    if (!data?.calculator_data?.companyInfo?.currentARR) return null;
     
-    const resultsService = new UnifiedResultsService();
-    return resultsService.calculateResults({
-      currentARR: data.companyInfo.currentARR,
-      monthlyMRR: data.selfServe?.monthlyMRR || 0,
-      monthlyLeads: data.leadGeneration?.monthlyLeads || 0,
-      averageDealValue: data.leadGeneration?.averageDealValue || 0,
-      leadResponseTime: data.leadGeneration?.leadResponseTime || 0,
-      monthlyFreeSignups: data.selfServe?.monthlyFreeSignups || 0,
-      freeToLaidConversion: data.selfServe?.freeToLaidConversion || 0,
-      failedPaymentRate: data.selfServe?.failedPaymentRate || 0,
-      manualHours: data.operations?.manualHours || 0,
-      hourlyRate: data.operations?.hourlyRate || 0,
-      industry: data.companyInfo?.industry
+    return UnifiedResultsService.calculateResults({
+      id: data.temp_id,
+      company_name: data.company_name || '',
+      contact_email: data.email || '',
+      industry: data.industry,
+      current_arr: data.calculator_data.companyInfo.currentARR,
+      monthly_leads: data.calculator_data.leadGeneration?.monthlyLeads || 0,
+      average_deal_value: data.calculator_data.leadGeneration?.averageDealValue || 0,
+      lead_response_time: data.calculator_data.leadGeneration?.leadResponseTime || 0,
+      monthly_free_signups: data.calculator_data.selfServe?.monthlyFreeSignups || 0,
+      free_to_paid_conversion: data.calculator_data.selfServe?.freeToLaidConversion || 0,
+      monthly_mrr: data.calculator_data.selfServe?.monthlyMRR || 0,
+      failed_payment_rate: data.calculator_data.selfServe?.failedPaymentRate || 0,
+      manual_hours: data.calculator_data.operations?.manualHours || 0,
+      hourly_rate: data.calculator_data.operations?.hourlyRate || 0,
+      lead_score: data.lead_score || 50,
+      user_id: data.converted_to_user_id,
+      created_at: data.created_at || new Date().toISOString()
     });
   }, [data]);
 
   const recoveryData = useMemo(() => ({
-    totalLeak: unifiedResults?.totalLoss || calculations?.totalLeak || 0,
-    formatCurrency: (amount: number) => new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
-  }), [unifiedResults, calculations]);
+    totalLeak: unifiedResults?.totalLoss || 0,
+    formatCurrency: (amount: number) => UnifiedResultsService.formatCurrency(amount)
+  }), [unifiedResults]);
 
   // Initialize CTA controller
   const ctaController = useCTAController(
@@ -154,10 +143,10 @@ export default function ActionPlan() {
   const topPriorityAction = useMemo(() => {
     if (unifiedResults) {
       const priorities = [
-        { name: "Lead Response Optimization", value: unifiedResults.actionRecoveryPotential.leadResponse },
-        { name: "Self-Serve Optimization", value: unifiedResults.actionRecoveryPotential.selfServeOptimization },
-        { name: "Payment Recovery", value: unifiedResults.actionRecoveryPotential.paymentRecovery },
-        { name: "Process Automation", value: unifiedResults.actionRecoveryPotential.processAutomation }
+        { name: "Lead Response Optimization", value: unifiedResults.leadResponseLoss },
+        { name: "Self-Serve Optimization", value: unifiedResults.selfServeGap },
+        { name: "Payment Recovery", value: unifiedResults.failedPaymentLoss },
+        { name: "Process Automation", value: unifiedResults.processInefficiency }
       ];
       return priorities.sort((a, b) => b.value - a.value)[0]?.name;
     }
@@ -175,7 +164,10 @@ export default function ActionPlan() {
       </header>
 
       <div className="container mx-auto mt-8 px-4">
-        <CalculatorNavigation currentStep={5} onBack={handleBack} />
+        <div className="flex items-center gap-4 mb-6">
+          <Badge variant="outline">Step 5 of 5</Badge>
+          <h2 className="text-lg font-semibold">Strategic Action Plan</h2>
+        </div>
 
         <main className="py-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -189,14 +181,25 @@ export default function ActionPlan() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <Skeleton className="h-5 w-1/2" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-5/6" />
-                    <Skeleton className="h-4 w-full" />
+                    <div className="h-5 w-1/2 bg-muted animate-pulse rounded" />
+                    <div className="h-4 w-full bg-muted animate-pulse rounded" />
+                    <div className="h-4 w-5/6 bg-muted animate-pulse rounded" />
+                    <div className="h-4 w-full bg-muted animate-pulse rounded" />
                   </CardContent>
                 </Card>
               ) : (
-                <ActionPlanComponent calculations={calculations || {}} data={data} />
+                <ActionPlanComponent calculations={{
+                  leadResponseLoss: unifiedResults?.leadResponseLoss || 0,
+                  failedPaymentLoss: unifiedResults?.failedPaymentLoss || 0,
+                  selfServeGap: unifiedResults?.selfServeGap || 0,
+                  processLoss: unifiedResults?.processInefficiency || 0,
+                  totalLeak: unifiedResults?.totalLoss || 0,
+                  totalLeakage: unifiedResults?.totalLoss || 0,
+                  potentialRecovery70: unifiedResults?.conservativeRecovery || 0,
+                  potentialRecovery85: unifiedResults?.optimisticRecovery || 0,
+                  recoveryPotential70: unifiedResults?.conservativeRecovery || 0,
+                  recoveryPotential85: unifiedResults?.optimisticRecovery || 0
+                }} data={data} />
               )}
             </div>
 
@@ -273,7 +276,7 @@ export default function ActionPlan() {
         <ProgressiveEmailCapture
           isOpen={ctaController.activeCTA === 'progressive_email'}
           onClose={ctaController.dismissCTA}
-          onEmailSubmit={ctaController.progressiveEmail.handleEmailCaptured}
+          onSuccess={ctaController.progressiveEmail.handleEmailCaptured}
           trigger={ctaController.progressiveEmail.activeCapture}
           context={ctaController.progressiveEmail.captureContext}
           currentStep={5}
