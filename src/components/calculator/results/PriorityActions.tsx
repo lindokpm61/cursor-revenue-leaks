@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { type Submission } from "@/lib/supabase";
 import { calculatePriorityActions, PriorityAction } from "@/lib/calculator/priorityCalculations";
+import { StrategicCTASection } from "@/components/results/StrategicCTASection";
 
 interface PriorityActionsProps {
   submission: Submission;
@@ -379,6 +380,18 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
                       );
                     })}
                   </div>
+                </div>
+              )}
+
+              {/* Strategic CTA Section */}
+              {actions.length > 0 && (
+                <div className="mt-8">
+                  <StrategicCTASection
+                    totalLeak={submission.total_leak || 0}
+                    recovery70={submission.recovery_potential_70 || 0}
+                    leadScore={submission.lead_score || 0}
+                    formatCurrency={formatCurrency}
+                  />
                 </div>
               )}
             </CardContent>
