@@ -1,12 +1,10 @@
-
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Target, AlertTriangle, Clock, TrendingUp } from "lucide-react";
 import { ActionPlan as ActionPlanComponent } from "@/components/calculator/results/ActionPlan";
-import { fetchSubmissionData } from "@/lib/submission/submissionDataFetcher";
-import { saveTemporarySubmission } from "@/lib/submission/submissionStorage";
+import { getTemporarySubmission, saveTemporarySubmission } from "@/lib/submission/submissionStorage";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -25,22 +23,21 @@ export default function ActionPlan() {
   const [userEmail, setUserEmail] = useState('');
   const [checkedActions, setCheckedActions] = useState<string[]>([]);
 
-  const submissionId = params.id || null;
+  const tempId = params.tempId || null;
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        if (submissionId) {
-          const submission = await fetchSubmissionData(submissionId);
+        if (tempId) {
+          const submission = await getTemporarySubmission(tempId);
           if (submission) {
             setData(submission);
             setUserEmail(submission.email || '');
-            console.log("Fetched submission data:", submission);
           } else {
             toast({
               title: "Error",
-              description: "No data found for this submission. Please start again.",
+              description: "No data found for this session. Please start again.",
               variant: "destructive",
             });
             navigate('/');
@@ -48,7 +45,7 @@ export default function ActionPlan() {
         } else {
           toast({
             title: "Error",
-            description: "No submission ID found. Please start again.",
+            description: "No session ID found. Please start again.",
             variant: "destructive",
           });
           navigate('/');
@@ -67,17 +64,17 @@ export default function ActionPlan() {
     };
 
     fetchData();
-  }, [submissionId, navigate, toast]);
+  }, [tempId, navigate, toast]);
 
   useEffect(() => {
-    if (submissionId && data) {
+    if (tempId && data) {
       saveTemporarySubmission(data);
     }
-  }, [submissionId, data]);
+  }, [tempId, data]);
 
   const handleBack = useCallback(() => {
-    navigate(`/operations?tempId=${submissionId}`);
-  }, [navigate, submissionId]);
+    navigate(`/operations?tempId=${tempId}`);
+  }, [navigate, tempId]);
 
   const handleCheckAction = (action: string) => {
     setCheckedActions(prev => {
@@ -89,16 +86,16 @@ export default function ActionPlan() {
     });
   };
 
-  // Map the nested calculator_data to the flat structure expected by UnifiedResultsService
-  const flattenedSubmissionData = useMemo(() => {
-    if (!data || !data.calculator_data) return null;
+  // Get unified results for consistent CTA data
+  const unifiedResults = useMemo(() => {
+    if (!data?.calculator_data?.companyInfo?.currentARR) return null;
     
-    return {
-      id: data.temp_id || submissionId,
+    return UnifiedResultsService.calculateResults({
+      id: data.temp_id,
       company_name: data.company_name || '',
       contact_email: data.email || '',
-      industry: data.industry || data.calculator_data.companyInfo?.industry,
-      current_arr: data.calculator_data.companyInfo?.currentARR || 0,
+      industry: data.industry,
+      current_arr: data.calculator_data.companyInfo.currentARR,
       monthly_leads: data.calculator_data.leadGeneration?.monthlyLeads || 0,
       average_deal_value: data.calculator_data.leadGeneration?.averageDealValue || 0,
       lead_response_time: data.calculator_data.leadGeneration?.leadResponseTime || 0,
@@ -111,17 +108,9 @@ export default function ActionPlan() {
       lead_score: data.lead_score || 50,
       user_id: data.converted_to_user_id,
       created_at: data.created_at || new Date().toISOString()
-    };
-  }, [data, submissionId]);
+    });
+  }, [data]);
 
-  // Calculate results using the UnifiedResultsService
-  const unifiedResults = useMemo(() => {
-    if (!flattenedSubmissionData) return null;
-    console.log("Calculating with flattened data:", flattenedSubmissionData);
-    return UnifiedResultsService.calculateResults(flattenedSubmissionData);
-  }, [flattenedSubmissionData]);
-
-  // Derive recovery data for CTAs
   const recoveryData = useMemo(() => ({
     totalLeak: unifiedResults?.totalLoss || 0,
     formatCurrency: (amount: number) => UnifiedResultsService.formatCurrency(amount)
@@ -129,7 +118,7 @@ export default function ActionPlan() {
 
   // Initialize CTA controller
   const ctaController = useCTAController(
-    submissionId,
+    tempId,
     5, // Action plan is final step
     recoveryData,
     {
@@ -142,7 +131,7 @@ export default function ActionPlan() {
 
   // Handle email submission for exit intent modal
   const handleExitIntentEmailSubmit = async (email: string) => {
-    if (submissionId) {
+    if (tempId) {
       await ctaController.progressiveEmail.handleEmailCaptured(email);
       setUserEmail(email);
     }
@@ -197,21 +186,18 @@ export default function ActionPlan() {
                   </CardContent>
                 </Card>
               ) : (
-                <ActionPlanComponent 
-                  calculations={{
-                    leadResponseLoss: unifiedResults?.leadResponseLoss || 0,
-                    failedPaymentLoss: unifiedResults?.failedPaymentLoss || 0,
-                    selfServeGap: unifiedResults?.selfServeGap || 0,
-                    processLoss: unifiedResults?.processInefficiency || 0,
-                    totalLeak: unifiedResults?.totalLoss || 0,
-                    totalLeakage: unifiedResults?.totalLoss || 0,
-                    potentialRecovery70: unifiedResults?.conservativeRecovery || 0,
-                    potentialRecovery85: unifiedResults?.optimisticRecovery || 0,
-                    recoveryPotential70: unifiedResults?.conservativeRecovery || 0,
-                    recoveryPotential85: unifiedResults?.optimisticRecovery || 0
-                  }} 
-                  data={data} 
-                />
+                <ActionPlanComponent calculations={{
+                  leadResponseLoss: unifiedResults?.leadResponseLoss || 0,
+                  failedPaymentLoss: unifiedResults?.failedPaymentLoss || 0,
+                  selfServeGap: unifiedResults?.selfServeGap || 0,
+                  processLoss: unifiedResults?.processInefficiency || 0,
+                  totalLeak: unifiedResults?.totalLoss || 0,
+                  totalLeakage: unifiedResults?.totalLoss || 0,
+                  potentialRecovery70: unifiedResults?.conservativeRecovery || 0,
+                  potentialRecovery85: unifiedResults?.optimisticRecovery || 0,
+                  recoveryPotential70: unifiedResults?.conservativeRecovery || 0,
+                  recoveryPotential85: unifiedResults?.optimisticRecovery || 0
+                }} data={data} />
               )}
             </div>
 
@@ -292,7 +278,7 @@ export default function ActionPlan() {
           trigger={ctaController.progressiveEmail.activeCapture}
           context={ctaController.progressiveEmail.captureContext}
           currentStep={5}
-          tempId={submissionId}
+          tempId={tempId}
         />
       )}
     </div>
