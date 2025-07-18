@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { StrategicCTASection } from "@/components/results/StrategicCTASection";
 import { FloatingCTABar } from "@/components/results/FloatingCTABar";
 import { 
@@ -67,6 +68,7 @@ const ActionPlan = () => {
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
   const [checkedActions, setCheckedActions] = useState<string[]>([]);
+  const [modifiedActionCosts, setModifiedActionCosts] = useState<Record<string, number>>({});
   const [currentTab, setCurrentTab] = useState("overview");
   const [sessionStartTime] = useState(Date.now());
   const [timeTrackers, setTimeTrackers] = useState<NodeJS.Timeout[]>([]);
@@ -146,6 +148,11 @@ const ActionPlan = () => {
       // Generate priority actions from enhanced calculations
       const enhancedActions = generatePriorityActions(results, timelineData);
       setPriorityActions(enhancedActions);
+      
+      // Recalculate investment if there are cost modifications
+      if (Object.keys(modifiedActionCosts).length > 0) {
+        recalculateInvestmentWithModifications(enhancedActions, timelineData, inputs);
+      }
       
       // Clean up stale checked actions when priority actions change
       if (checkedActions.length > 0) {
@@ -313,6 +320,103 @@ const ActionPlan = () => {
     return actions.sort((a, b) => (b.impact || 0) - (a.impact || 0));
   };
 
+  // Recalculate investment based on modified action costs
+  const recalculateInvestmentWithModifications = (
+    actions: any[], 
+    timelineData: TimelinePhase[], 
+    inputs: UnifiedCalculationInputs
+  ) => {
+    // Calculate total modified cost
+    const totalModifiedCost = Object.values(modifiedActionCosts).reduce((sum, cost) => sum + cost, 0);
+    
+    if (totalModifiedCost === 0) return;
+    
+    // Calculate the original total action costs
+    const originalActionCosts = actions.reduce((sum, action) => {
+      return sum + (action.implementation?.cost || 0);
+    }, 0);
+    
+    // Calculate the scaling factor based on modified costs vs original costs
+    const scalingFactor = totalModifiedCost / Math.max(originalActionCosts, 1);
+    
+    // Get base investment calculation
+    const baseInvestment = calculateRealisticInvestment(timelineData, inputs);
+    
+    // Apply scaling to implementation cost
+    const adjustedImplementationCost = Math.round(baseInvestment.implementationCost * scalingFactor);
+    
+    // Keep ongoing costs proportional
+    const adjustedOngoingCost = Math.round(baseInvestment.ongoingCost * scalingFactor);
+    
+    // Recalculate total annual investment
+    const amortizationYears = 2;
+    const adjustedTotalAnnualInvestment = Math.round((adjustedImplementationCost / amortizationYears) + adjustedOngoingCost);
+    
+    // Recalculate payback
+    const totalRecovery = timelineData.reduce((sum, phase) => sum + phase.recoveryPotential, 0);
+    const monthlyRecovery = totalRecovery / 12;
+    const adjustedPaybackMonths = monthlyRecovery > 0 ? Math.min(Math.round(adjustedImplementationCost / monthlyRecovery), 24) : 24;
+    
+    // Update investment state with modified values
+    const updatedInvestment = {
+      implementationCost: adjustedImplementationCost,
+      ongoingCost: adjustedOngoingCost,
+      totalAnnualInvestment: adjustedTotalAnnualInvestment,
+      paybackMonths: adjustedPaybackMonths
+    };
+    
+    setInvestment(updatedInvestment);
+    
+    // Recalculate ROI with new investment
+    if (unifiedResults) {
+      const updatedROI = calculateRealisticROI(
+        unifiedResults.recovery70Percent,
+        adjustedTotalAnnualInvestment,
+        unifiedResults.confidenceLevel
+      );
+      setRoiData(updatedROI);
+    }
+  };
+
+  // Handle action cost modification
+  const handleActionCostChange = async (actionId: string, newCost: number) => {
+    const updatedCosts = {
+      ...modifiedActionCosts,
+      [actionId]: newCost
+    };
+    
+    setModifiedActionCosts(updatedCosts);
+    
+    // Save to user profile
+    if (user) {
+      try {
+        await supabase
+          .from('user_profiles')
+          .upsert({
+            id: user.id,
+            checked_actions: checkedActions,
+            modified_action_costs: updatedCosts,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'id'
+          });
+      } catch (error) {
+        console.error('Failed to save modified costs:', error);
+      }
+    }
+    
+    // Trigger recalculation if we have priority actions
+    if (priorityActions.length > 0 && timeline.length > 0 && submission) {
+      const inputs = mapSubmissionToUnifiedInputs(submission);
+      recalculateInvestmentWithModifications(priorityActions, timeline, inputs);
+    }
+  };
+
+  // Get the cost for an action (modified or original)
+  const getActionCost = (action: any): number => {
+    return modifiedActionCosts[action.id] || action.implementation?.cost || 0;
+  };
+
   const cleanupStaleActions = (checkedActions: string[], priorityActions: any[]) => {
     const validActionIds = new Set(priorityActions.map(action => action.id));
     return checkedActions.filter(actionId => validActionIds.has(actionId));
@@ -352,6 +456,11 @@ const ActionPlan = () => {
           // Store temporarily until priority actions are available
           setCheckedActions(rawCheckedActions);
         }
+      }
+      
+      // Load modified action costs if they exist
+      if (profile?.modified_action_costs && typeof profile.modified_action_costs === 'object') {
+        setModifiedActionCosts(profile.modified_action_costs as Record<string, number>);
       }
     } catch (error) {
       console.error('Failed to load user profile:', error);
@@ -1278,9 +1387,24 @@ const ActionPlan = () => {
                           </div>
                           {action.implementation && (
                             <>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-4">
                                 <Building className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm">Est. Cost: {formatCurrency(action.implementation.cost)}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm">Est. Cost:</span>
+                                  <Input
+                                    type="number"
+                                    value={getActionCost(action)}
+                                    onChange={(e) => handleActionCostChange(action.id, parseInt(e.target.value) || 0)}
+                                    className="w-24 h-7 text-sm"
+                                    step="1000"
+                                    min="0"
+                                  />
+                                  {modifiedActionCosts[action.id] && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      Modified
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
                               <div className="flex items-center gap-2">
                                 <Users className="h-4 w-4 text-muted-foreground" />
