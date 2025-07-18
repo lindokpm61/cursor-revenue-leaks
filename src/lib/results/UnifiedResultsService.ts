@@ -59,10 +59,6 @@ export interface UnifiedCalculations {
 
 export class UnifiedResultsService {
   static calculateResults(submission: SubmissionData): UnifiedCalculations {
-    // DEBUG: Log input data
-    console.log('=== UNIFIED RESULTS SERVICE INPUT ===');
-    console.log('Input submission:', submission);
-
     // FIXED: More careful sanitization that preserves valid data
     const currentARR = Math.max(0, submission.current_arr || 0);
     const monthlyLeads = Math.max(0, submission.monthly_leads || 0);
@@ -74,21 +70,6 @@ export class UnifiedResultsService {
     const failureRate = Math.max(0, Math.min(30, submission.failed_payment_rate || 5));
     const manualHours = Math.max(0, Math.min(80, submission.manual_hours || 10));
     const hourlyRate = Math.max(25, Math.min(500, submission.hourly_rate || 75));
-
-    // DEBUG: Log sanitized inputs
-    console.log('=== SANITIZED INPUTS ===');
-    console.log({
-      currentARR,
-      monthlyLeads,
-      averageDealValue,
-      leadResponseHours,
-      monthlySignups,
-      conversionRate,
-      monthlyMRR,
-      failureRate,
-      manualHours,
-      hourlyRate
-    });
 
     // CRITICAL: Check for valid data before warning
     if (currentARR === 0 && monthlyLeads === 0 && monthlyMRR === 0) {
@@ -128,26 +109,9 @@ export class UnifiedResultsService {
     
     const lostConversionsPerMonth = actualMonthlyConversions * responseDelayMultiplier;
     const leadResponseLoss = lostConversionsPerMonth * averageDealValue * 12;
-
-    // DEBUG: Log lead response calculation
-    console.log('=== LEAD RESPONSE CALCULATION ===');
-    console.log({
-      actualMonthlyConversions,
-      responseDelayMultiplier,
-      lostConversionsPerMonth,
-      leadResponseLoss
-    });
-
+    
     // 2. Failed Payment Loss: Direct calculation from MRR and failure rate
     const failedPaymentLoss = monthlyMRR * (failureRate / 100) * 12 * 0.70; // 70% actual loss after recovery attempts
-
-    // DEBUG: Log failed payment calculation
-    console.log('=== FAILED PAYMENT CALCULATION ===');
-    console.log({
-      monthlyMRR,
-      failureRate,
-      failedPaymentLoss
-    });
 
     // 3. Self-Serve Gap: More realistic calculation with better customer value estimation
     const conversionGap = Math.max(0, industryConversionRateBenchmark - conversionRate);
@@ -170,25 +134,8 @@ export class UnifiedResultsService {
     const additionalConversionsPerMonth = monthlySignups * (conversionGap / 100);
     const selfServeGap = additionalConversionsPerMonth * realisticSelfServeValue * 12;
 
-    // DEBUG: Log self-serve calculation
-    console.log('=== SELF-SERVE CALCULATION ===');
-    console.log({
-      conversionGap,
-      realisticSelfServeValue,
-      additionalConversionsPerMonth,
-      selfServeGap
-    });
-
     // 4. Process Inefficiency: Direct cost calculation
     const processInefficiency = manualHours * hourlyRate * 52;
-
-    // DEBUG: Log process inefficiency calculation
-    console.log('=== PROCESS INEFFICIENCY CALCULATION ===');
-    console.log({
-      manualHours,
-      hourlyRate,
-      processInefficiency
-    });
 
     // FIXED: Apply more realistic caps but don't cap when ARR is zero
     const cappedLeadResponseLoss = currentARR > 0 ? 
@@ -207,21 +154,6 @@ export class UnifiedResultsService {
       Math.min(processInefficiency, currentARR * 0.06) : 
       processInefficiency;
 
-    // DEBUG: Log capping
-    console.log('=== CAPPING CALCULATIONS ===');
-    console.log('Before capping:', {
-      leadResponseLoss,
-      failedPaymentLoss,
-      selfServeGap,
-      processInefficiency
-    });
-    console.log('After capping:', {
-      cappedLeadResponseLoss,
-      cappedFailedPaymentLoss,
-      cappedSelfServeGap,
-      cappedProcessInefficiency
-    });
-
     // FIXED: Only apply overall cap when ARR exists
     const totalLoss = currentARR > 0 ? 
       Math.min(
@@ -230,22 +162,9 @@ export class UnifiedResultsService {
       ) :
       cappedLeadResponseLoss + cappedFailedPaymentLoss + cappedSelfServeGap + cappedProcessInefficiency;
 
-    // DEBUG: Log total loss calculation
-    console.log('=== TOTAL LOSS CALCULATION ===');
-    console.log('Sum before overall cap:', cappedLeadResponseLoss + cappedFailedPaymentLoss + cappedSelfServeGap + cappedProcessInefficiency);
-    console.log('Overall cap (35% of ARR):', currentARR * 0.35);
-    console.log('Final totalLoss:', totalLoss);
-
     // Recovery calculations with realistic expectations
     const conservativeRecovery = totalLoss * 0.65; // 65% recovery rate
     const optimisticRecovery = totalLoss * 0.82; // 82% recovery rate
-
-    // DEBUG: Log recovery calculations
-    console.log('=== RECOVERY CALCULATIONS ===');
-    console.log({
-      conservativeRecovery,
-      optimisticRecovery
-    });
 
     // Performance metrics
     const lossPercentageOfARR = currentARR > 0 ? (totalLoss / currentARR) * 100 : 0;
@@ -308,10 +227,6 @@ export class UnifiedResultsService {
       }
     };
 
-    // DEBUG: Log final result
-    console.log('=== FINAL UNIFIED RESULTS ===');
-    console.log('Final calculations object:', finalResult);
-
     return finalResult;
   }
 
@@ -327,8 +242,6 @@ export class UnifiedResultsService {
       compactDisplay: 'short'
     }).format(amount);
 
-    // DEBUG: Log currency formatting
-    console.log(`formatCurrency(${amount}) = ${result}`);
     
     return result;
   }

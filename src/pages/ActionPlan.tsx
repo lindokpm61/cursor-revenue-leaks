@@ -92,7 +92,7 @@ export default function ActionPlan() {
     };
 
     fetchData();
-  }, [submissionId, navigation, toast]);
+  }, [submissionId, toast]);
 
   // FIXED: Corrected data transformation with proper field mapping
   const submissionData = useMemo(() => {
@@ -249,7 +249,7 @@ export default function ActionPlan() {
     // If we're currently in the Summary tab, don't switch to other tabs
     // Instead, provide contextual information within the Summary
     if (activeTab === 'summary') {
-      console.log(`User requested to expand ${sectionId} section from Summary tab`);
+      // User requested to expand section from Summary tab
       // Keep user in Summary tab - TldrSummary will handle the expansion internally
       // or we could scroll to a specific section within the Summary tab
       return;
