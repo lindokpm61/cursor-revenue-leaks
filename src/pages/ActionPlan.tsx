@@ -23,21 +23,32 @@ export default function ActionPlan() {
   const [userEmail, setUserEmail] = useState('');
   const [checkedActions, setCheckedActions] = useState<string[]>([]);
 
-  const tempId = params.tempId || null;
+  const submissionId = params.id || null;
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        if (tempId) {
-          const submission = await getTemporarySubmission(tempId);
-          if (submission) {
-            setData(submission);
-            setUserEmail(submission.email || '');
-          } else {
+        if (submissionId) {
+          // Try to get submission from database first, fallback to temporary storage
+          try {
+            // For now, try temporary storage (this handles the temp flow)
+            const submission = await getTemporarySubmission(submissionId);
+            if (submission) {
+              setData(submission);
+              setUserEmail(submission.email || '');
+            } else {
+              toast({
+                title: "Error",
+                description: "No data found for this session. Please start again.",
+                variant: "destructive",
+              });
+              navigate('/');
+            }
+          } catch (error) {
             toast({
-              title: "Error",
-              description: "No data found for this session. Please start again.",
+              title: "Error", 
+              description: "Failed to load submission data.",
               variant: "destructive",
             });
             navigate('/');
@@ -64,17 +75,17 @@ export default function ActionPlan() {
     };
 
     fetchData();
-  }, [tempId, navigate, toast]);
+  }, [submissionId, navigate, toast]);
 
   useEffect(() => {
-    if (tempId && data) {
+    if (submissionId && data) {
       saveTemporarySubmission(data);
     }
-  }, [tempId, data]);
+  }, [submissionId, data]);
 
   const handleBack = useCallback(() => {
-    navigate(`/operations?tempId=${tempId}`);
-  }, [navigate, tempId]);
+    navigate(`/operations?tempId=${submissionId}`);
+  }, [navigate, submissionId]);
 
   const handleCheckAction = (action: string) => {
     setCheckedActions(prev => {
@@ -118,7 +129,7 @@ export default function ActionPlan() {
 
   // Initialize CTA controller
   const ctaController = useCTAController(
-    tempId,
+    submissionId,
     5, // Action plan is final step
     recoveryData,
     {
@@ -131,7 +142,7 @@ export default function ActionPlan() {
 
   // Handle email submission for exit intent modal
   const handleExitIntentEmailSubmit = async (email: string) => {
-    if (tempId) {
+    if (submissionId) {
       await ctaController.progressiveEmail.handleEmailCaptured(email);
       setUserEmail(email);
     }
@@ -278,7 +289,7 @@ export default function ActionPlan() {
           trigger={ctaController.progressiveEmail.activeCapture}
           context={ctaController.progressiveEmail.captureContext}
           currentStep={5}
-          tempId={tempId}
+          tempId={submissionId}
         />
       )}
     </div>
