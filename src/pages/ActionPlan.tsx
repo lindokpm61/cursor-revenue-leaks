@@ -39,7 +39,7 @@ export default function ActionPlan() {
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [userEmail, setUserEmail] = useState('');
-  const [userIntent, setUserIntent] = useState<UserIntent>('plan-implementation');
+  const [userIntent, setUserIntent] = useState<UserIntent>('understand-problem');
   const [activeTab, setActiveTab] = useState('timeline');
 
   const submissionId = params.id || null;
