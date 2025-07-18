@@ -40,7 +40,7 @@ export default function ActionPlan() {
   const [isLoading, setIsLoading] = useState(true);
   const [userEmail, setUserEmail] = useState('');
   const [userIntent, setUserIntent] = useState<UserIntent>('understand-problem');
-  const [activeTab, setActiveTab] = useState('timeline');
+  const [activeTab, setActiveTab] = useState('priorities');
 
   const submissionId = params.id || null;
 
@@ -438,7 +438,7 @@ export default function ActionPlan() {
               </TabsTrigger>
               <TabsTrigger value="priorities" className="flex items-center gap-2">
                 <Target className="h-4 w-4" />
-                Priorities
+                Strategic Action Priorities
               </TabsTrigger>
               <TabsTrigger value="scenarios" className="flex items-center gap-2">
                 <Lightbulb className="h-4 w-4" />
