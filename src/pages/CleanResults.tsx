@@ -216,6 +216,18 @@ const CleanResults = () => {
       </header>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* DEBUG PANEL - Temporary for debugging */}
+        <div className="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <h3 className="font-bold text-yellow-800 mb-2">🐛 DEBUG INFO (Temporary)</h3>
+          <div className="text-sm space-y-1">
+            <div><strong>Legacy DB Total Leak:</strong> {formatCurrency(submission.total_leak || 0)}</div>
+            <div><strong>Legacy DB Recovery 70%:</strong> {formatCurrency(submission.recovery_potential_70 || 0)}</div>
+            <div><strong>UnifiedService Total Loss:</strong> {formatCurrency(calculations.totalLoss)}</div>
+            <div><strong>UnifiedService Conservative Recovery:</strong> {formatCurrency(calculations.conservativeRecovery)}</div>
+            <div><strong>Current ARR:</strong> {formatCurrency(submission.current_arr || 0)}</div>
+            <div><strong>Loss % of ARR:</strong> {calculations.lossPercentageOfARR.toFixed(2)}%</div>
+          </div>
+        </div>
 
         {/* Navigation Tabs */}
         <div className="mb-8">
