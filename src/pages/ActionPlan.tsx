@@ -427,46 +427,7 @@ export default function ActionPlan() {
         {/* User Intent Selector removed per user request */}
 
         <div className="space-y-8">
-          {/* Executive Summary */}
-          <ExecutiveSummary 
-            data={{
-              companyInfo: {
-                companyName: submissionData.company_name || '',
-                currentARR: submissionData.current_arr || 0,
-                industry: submissionData.industry || '',
-                email: submissionData.contact_email || '',
-                phone: ''
-              },
-              leadGeneration: {
-                monthlyLeads: submissionData.monthly_leads || 0,
-                averageDealValue: submissionData.average_deal_value || 0,
-                leadResponseTimeHours: submissionData.lead_response_time || 0
-              },
-              selfServeMetrics: {
-                monthlyFreeSignups: submissionData.monthly_free_signups || 0,
-                freeToPaidConversionRate: submissionData.free_to_paid_conversion || 0,
-                monthlyMRR: submissionData.monthly_mrr || 0
-              },
-              operationsData: {
-                failedPaymentRate: submissionData.failed_payment_rate || 0,
-                manualHoursPerWeek: submissionData.manual_hours || 0,
-                hourlyRate: submissionData.hourly_rate || 0
-              }
-            }}
-            calculations={{
-              leadResponseLoss: submissionData.leadResponseLoss,
-              failedPaymentLoss: submissionData.failedPaymentLoss,
-              selfServeGap: submissionData.selfServeGap,
-              processLoss: submissionData.processInefficiency,
-              totalLeak: submissionData.totalLoss,
-              totalLeakage: submissionData.totalLoss,
-              potentialRecovery70: submissionData.conservativeRecovery,
-              potentialRecovery85: submissionData.optimisticRecovery,
-              recoveryPotential70: submissionData.conservativeRecovery,
-              recoveryPotential85: submissionData.optimisticRecovery
-            }}
-            formatCurrency={UnifiedResultsService.formatCurrency}
-          />
+          {/* Executive Summary removed per user request */}
 
           {/* Main Action Plan Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
