@@ -1,10 +1,12 @@
+
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Target, AlertTriangle, Clock, TrendingUp } from "lucide-react";
 import { ActionPlan as ActionPlanComponent } from "@/components/calculator/results/ActionPlan";
-import { getTemporarySubmission, saveTemporarySubmission } from "@/lib/submission/submissionStorage";
+import { fetchSubmissionData } from "@/lib/submission/submissionDataFetcher";
+import { saveTemporarySubmission } from "@/lib/submission/submissionStorage";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -30,25 +32,14 @@ export default function ActionPlan() {
       setIsLoading(true);
       try {
         if (submissionId) {
-          // Try to get submission from database first, fallback to temporary storage
-          try {
-            // For now, try temporary storage (this handles the temp flow)
-            const submission = await getTemporarySubmission(submissionId);
-            if (submission) {
-              setData(submission);
-              setUserEmail(submission.email || '');
-            } else {
-              toast({
-                title: "Error",
-                description: "No data found for this session. Please start again.",
-                variant: "destructive",
-              });
-              navigate('/');
-            }
-          } catch (error) {
+          const submission = await fetchSubmissionData(submissionId);
+          if (submission) {
+            setData(submission);
+            setUserEmail(submission.email || '');
+          } else {
             toast({
-              title: "Error", 
-              description: "Failed to load submission data.",
+              title: "Error",
+              description: "No data found for this submission. Please start again.",
               variant: "destructive",
             });
             navigate('/');
@@ -56,7 +47,7 @@ export default function ActionPlan() {
         } else {
           toast({
             title: "Error",
-            description: "No session ID found. Please start again.",
+            description: "No submission ID found. Please start again.",
             variant: "destructive",
           });
           navigate('/');
