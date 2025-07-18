@@ -169,12 +169,25 @@ function createPaymentAction(recovery: number, totalRecovery: number, currentARR
 }
 
 export function calculatePriorityActions(submission: Submission): PriorityAction[] {
+  console.log("=== PRIORITY ACTIONS CALCULATION DEBUG ===");
+  console.log("Input submission:", submission);
+
   const currentARR = safeNumber(submission.current_arr);
   const leadResponseLoss = safeNumber(submission.lead_response_loss);
   const selfserveGapLoss = safeNumber(submission.selfserve_gap_loss);
   const processLoss = safeNumber(submission.process_inefficiency_loss);
   const failedPaymentLoss = safeNumber(submission.failed_payment_loss);
   const totalRecovery = safeNumber(submission.recovery_potential_70);
+
+  console.log("=== EXTRACTED VALUES ===");
+  console.log({
+    currentARR,
+    leadResponseLoss,
+    selfserveGapLoss,
+    processLoss,
+    failedPaymentLoss,
+    totalRecovery
+  });
 
   // Calculate realistic action-specific recoveries (conservative estimates)
   const leadResponseRecovery = leadResponseLoss * 0.5; // 50% recovery potential
@@ -187,13 +200,15 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
   
   const actions: PriorityAction[] = [];
 
-  // Updated hybrid thresholds - combination of percentage and absolute minimums
-  const leadResponseThreshold = Math.max(currentARR * 0.005, 25000); // 0.5% of ARR or $25K minimum
-  const selfserveThreshold = Math.max(currentARR * 0.002, 15000); // 0.2% of ARR or $15K minimum
-  const processThreshold = Math.max(currentARR * 0.003, 20000); // 0.3% of ARR or $20K minimum
-  const paymentThreshold = Math.max(currentARR * 0.001, 10000); // 0.1% of ARR or $10K minimum
+  // SIGNIFICANTLY LOWER thresholds to ensure actions show up with real data
+  // For a $12.5M ARR company, these should be much more reasonable
+  const leadResponseThreshold = Math.max(currentARR * 0.0001, 5000); // 0.01% of ARR or $5K minimum
+  const selfserveThreshold = Math.max(currentARR * 0.0001, 3000); // 0.01% of ARR or $3K minimum
+  const processThreshold = Math.max(currentARR * 0.0001, 4000); // 0.01% of ARR or $4K minimum
+  const paymentThreshold = Math.max(currentARR * 0.0001, 2000); // 0.01% of ARR or $2K minimum
 
-  console.log('Updated Priority Action Thresholds Debug:', {
+  console.log('=== ADJUSTED PRIORITY ACTION THRESHOLDS ===');
+  console.log({
     currentARR,
     leadResponseLoss,
     selfserveGapLoss,
@@ -209,26 +224,39 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
 
   // Lead Response Optimization (if significant loss)
   if (leadResponseLoss > leadResponseThreshold) {
+    console.log("Adding lead response action - loss:", leadResponseLoss, "threshold:", leadResponseThreshold);
     actions.push(createLeadResponseAction(leadResponseRecovery, totalActionRecovery, currentARR, leadResponseLoss));
+  } else {
+    console.log("Skipping lead response action - loss:", leadResponseLoss, "threshold:", leadResponseThreshold);
   }
 
   // Self-Serve Gap (if significant loss)
   if (selfserveGapLoss > selfserveThreshold) {
+    console.log("Adding self-serve action - loss:", selfserveGapLoss, "threshold:", selfserveThreshold);
     actions.push(createSelfServeAction(selfserveRecovery, totalActionRecovery, currentARR, selfserveGapLoss));
+  } else {
+    console.log("Skipping self-serve action - loss:", selfserveGapLoss, "threshold:", selfserveThreshold);
   }
 
   // Process Inefficiency (if significant loss)
   if (processLoss > processThreshold) {
+    console.log("Adding process action - loss:", processLoss, "threshold:", processThreshold);
     actions.push(createProcessAction(processRecovery, totalActionRecovery, currentARR, processLoss));
+  } else {
+    console.log("Skipping process action - loss:", processLoss, "threshold:", processThreshold);
   }
 
   // Payment Recovery (if significant loss)
   if (failedPaymentLoss > paymentThreshold) {
+    console.log("Adding payment action - loss:", failedPaymentLoss, "threshold:", paymentThreshold);
     actions.push(createPaymentAction(paymentRecovery, totalActionRecovery, currentARR, failedPaymentLoss));
+  } else {
+    console.log("Skipping payment action - loss:", failedPaymentLoss, "threshold:", paymentThreshold);
   }
 
   // Ensure we have actions to show - if none meet thresholds, show top potential actions
   if (actions.length === 0) {
+    console.log("No actions met thresholds, adding top potential actions");
     // Calculate all potential actions with lower thresholds for display
     const potentialActions = [
       { type: 'lead_response', loss: leadResponseLoss, recovery: leadResponseRecovery },
@@ -258,6 +286,9 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
       action.impact = Math.round((action.recoveryAmount / totalDisplayedRecovery) * 100);
     });
   }
+
+  console.log("=== FINAL PRIORITY ACTIONS ===");
+  console.log("Generated actions:", actions);
 
   // Sort by recovery amount (highest first) and limit to top 4
   return actions.sort((a, b) => b.recoveryAmount - a.recoveryAmount).slice(0, 4);

@@ -1,3 +1,4 @@
+
 import { CalculatorData, Calculations } from "@/components/calculator/useCalculatorData";
 
 /**
@@ -9,7 +10,11 @@ export const mapToSubmissionData = (
   leadScore: number, 
   userId: string
 ) => {
-  return {
+  console.log("=== SUBMISSION DATA MAPPER DEBUG ===");
+  console.log("Input data:", data);
+  console.log("Input calculations:", calculations);
+
+  const mappedData = {
     company_name: data.companyInfo.companyName,
     contact_email: data.companyInfo.email,
     industry: data.companyInfo.industry,
@@ -36,4 +41,9 @@ export const mapToSubmissionData = (
     lead_score: leadScore,
     user_id: userId,
   };
+
+  console.log("=== MAPPED SUBMISSION DATA ===");
+  console.log("Mapped data:", mappedData);
+
+  return mappedData;
 };

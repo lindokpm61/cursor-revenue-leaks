@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +52,9 @@ export default function ActionPlan() {
           if (submission) {
             setData(submission);
             setUserEmail(submission.email || '');
-            console.log("Fetched submission data:", submission);
+            console.log("=== ACTION PLAN DEBUG: Fetched submission data ===");
+            console.log("Raw submission:", submission);
+            console.log("Calculator data:", submission.calculator_data);
           } else {
             toast({
               title: "Error",
@@ -90,52 +91,70 @@ export default function ActionPlan() {
   const submissionData = useMemo(() => {
     if (!data || !data.calculator_data) return null;
     
-    const unifiedCalcs = UnifiedResultsService.calculateResults({
-      id: data.temp_id || submissionId,
-      company_name: data.company_name || '',
-      contact_email: data.email || '',
-      industry: data.industry || data.calculator_data.companyInfo?.industry,
-      current_arr: data.calculator_data.companyInfo?.currentARR || 0,
-      monthly_leads: data.calculator_data.leadGeneration?.monthlyLeads || 0,
-      average_deal_value: data.calculator_data.leadGeneration?.averageDealValue || 0,
-      lead_response_time: data.calculator_data.leadGeneration?.leadResponseTime || 0,
-      monthly_free_signups: data.calculator_data.selfServe?.monthlyFreeSignups || 0,
-      free_to_paid_conversion: data.calculator_data.selfServe?.freeToLaidConversion || 0,
-      monthly_mrr: data.calculator_data.selfServe?.monthlyMRR || 0,
-      failed_payment_rate: data.calculator_data.selfServe?.failedPaymentRate || 0,
-      manual_hours: data.calculator_data.operations?.manualHours || 0,
-      hourly_rate: data.calculator_data.operations?.hourlyRate || 0,
-      lead_score: data.lead_score || 50,
-      user_id: data.converted_to_user_id,
-      created_at: data.created_at || new Date().toISOString()
+    console.log("=== ACTION PLAN DEBUG: Data transformation ===");
+    console.log("Original data structure:", {
+      temp_id: data.temp_id,
+      company_name: data.company_name,
+      email: data.email,
+      industry: data.industry,
+      calculator_data: data.calculator_data
     });
-    
-    return {
+
+    // Extract values from calculator_data with proper fallbacks
+    const companyInfo = data.calculator_data.companyInfo || {};
+    const leadGeneration = data.calculator_data.leadGeneration || {};
+    const selfServe = data.calculator_data.selfServe || {};
+    const operations = data.calculator_data.operations || {};
+
+    // Create the submission data object with correct field mapping
+    const transformedData = {
       id: data.temp_id || submissionId,
-      company_name: data.company_name || '',
+      company_name: data.company_name || companyInfo.companyName || '',
       contact_email: data.email || '',
-      industry: data.industry || data.calculator_data.companyInfo?.industry || '',
-      current_arr: data.calculator_data.companyInfo?.currentARR || 0,
-      monthly_leads: data.calculator_data.leadGeneration?.monthlyLeads || 0,
-      average_deal_value: data.calculator_data.leadGeneration?.averageDealValue || 0,
-      lead_response_time: data.calculator_data.leadGeneration?.leadResponseTime || 0,
-      monthly_free_signups: data.calculator_data.selfServe?.monthlyFreeSignups || 0,
-      free_to_paid_conversion: data.calculator_data.selfServe?.freeToLaidConversion || 0,
-      monthly_mrr: data.calculator_data.selfServe?.monthlyMRR || 0,
-      failed_payment_rate: data.calculator_data.selfServe?.failedPaymentRate || 0,
-      manual_hours: data.calculator_data.operations?.manualHours || 0,
-      hourly_rate: data.calculator_data.operations?.hourlyRate || 0,
+      industry: data.industry || companyInfo.industry || '',
+      current_arr: companyInfo.currentARR || 0,
+      monthly_leads: leadGeneration.monthlyLeads || 0,
+      average_deal_value: leadGeneration.averageDealValue || 0,
+      lead_response_time: leadGeneration.leadResponseTime || leadGeneration.leadResponseTimeHours || 0,
+      monthly_free_signups: selfServe.monthlyFreeSignups || 0,
+      free_to_paid_conversion: selfServe.freeToLaidConversion || selfServe.freeToPaidConversionRate || 0,
+      monthly_mrr: selfServe.monthlyMRR || 0,
+      failed_payment_rate: selfServe.failedPaymentRate || operations.failedPaymentRate || 0,
+      manual_hours: operations.manualHours || operations.manualHoursPerWeek || 0,
+      hourly_rate: operations.hourlyRate || 0,
       lead_score: data.lead_score || 50,
       user_id: data.converted_to_user_id || '',
-      created_at: data.created_at || new Date().toISOString(),
+      created_at: data.created_at || new Date().toISOString()
+    };
+
+    console.log("=== ACTION PLAN DEBUG: Transformed data ===");
+    console.log("Transformed submission data:", transformedData);
+
+    // Calculate unified results
+    const unifiedCalcs = UnifiedResultsService.calculateResults(transformedData);
+    
+    console.log("=== ACTION PLAN DEBUG: Unified calculations ===");
+    console.log("Unified calculations result:", unifiedCalcs);
+    
+    return {
+      ...transformedData,
       // Add unified calculation results
-      ...unifiedCalcs
+      leadResponseLoss: unifiedCalcs.leadResponseLoss,
+      failedPaymentLoss: unifiedCalcs.failedPaymentLoss,
+      selfServeGap: unifiedCalcs.selfServeGap,
+      processInefficiency: unifiedCalcs.processInefficiency,
+      totalLoss: unifiedCalcs.totalLoss,
+      conservativeRecovery: unifiedCalcs.conservativeRecovery,
+      optimisticRecovery: unifiedCalcs.optimisticRecovery
     };
   }, [data, submissionId]);
 
   // Generate timeline and investment calculations
   const { timeline, investment, roiData } = useMemo(() => {
     if (!submissionData) return { timeline: [], investment: null, roiData: null };
+
+    console.log("=== ACTION PLAN DEBUG: Timeline generation ===");
+    console.log("Input data for timeline:", submissionData);
 
     const inputs: UnifiedCalculationInputs = {
       currentARR: submissionData.current_arr,

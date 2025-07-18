@@ -63,7 +63,7 @@ export class UnifiedResultsService {
     console.log('=== UNIFIED RESULTS SERVICE INPUT ===');
     console.log('Input submission:', submission);
 
-    // Sanitize inputs
+    // Sanitize inputs - ENSURE THEY DON'T DEFAULT TO 0 IF VALID DATA EXISTS
     const currentARR = Math.max(0, submission.current_arr || 0);
     const monthlyLeads = Math.max(0, submission.monthly_leads || 0);
     const averageDealValue = Math.max(1000, submission.average_deal_value || 5000);
@@ -89,6 +89,11 @@ export class UnifiedResultsService {
       manualHours,
       hourlyRate
     });
+
+    // Validate we have meaningful data
+    if (currentARR === 0 && monthlyLeads === 0 && monthlyMRR === 0) {
+      console.warn('=== WARNING: All key metrics are zero - check data transformation ===');
+    }
 
     // Industry benchmarks for realistic calculations
     const industryLeadConversionRate = 0.025; // 2.5% typical B2B conversion rate
@@ -181,10 +186,22 @@ export class UnifiedResultsService {
     });
 
     // Apply more realistic caps - allowing for legitimate high-impact scenarios
-    const cappedLeadResponseLoss = Math.min(leadResponseLoss, currentARR * 0.15); // Max 15% of ARR for lead response
-    const cappedFailedPaymentLoss = Math.min(failedPaymentLoss, currentARR * 0.08); // Max 8% of ARR for payment failures
-    const cappedSelfServeGap = Math.min(selfServeGap, currentARR * 0.12); // Max 12% of ARR for self-serve gap
-    const cappedProcessInefficiency = Math.min(processInefficiency, currentARR * 0.06); // Max 6% of ARR for process issues
+    // IMPORTANT: Only cap if we have a meaningful ARR to cap against
+    const cappedLeadResponseLoss = currentARR > 0 
+      ? Math.min(leadResponseLoss, currentARR * 0.15) 
+      : leadResponseLoss; // Don't cap if ARR is 0
+    
+    const cappedFailedPaymentLoss = currentARR > 0 
+      ? Math.min(failedPaymentLoss, currentARR * 0.08) 
+      : failedPaymentLoss;
+    
+    const cappedSelfServeGap = currentARR > 0 
+      ? Math.min(selfServeGap, currentARR * 0.12) 
+      : selfServeGap;
+    
+    const cappedProcessInefficiency = currentARR > 0 
+      ? Math.min(processInefficiency, currentARR * 0.06) 
+      : processInefficiency;
 
     // DEBUG: Log capping
     console.log('=== CAPPING CALCULATIONS ===');
@@ -202,10 +219,12 @@ export class UnifiedResultsService {
     });
 
     // Total loss with more realistic overall cap
-    const totalLoss = Math.min(
-      cappedLeadResponseLoss + cappedFailedPaymentLoss + cappedSelfServeGap + cappedProcessInefficiency,
-      currentARR * 0.35 // Overall cap at 35% of ARR (up from 15%)
-    );
+    const totalLoss = currentARR > 0 
+      ? Math.min(
+          cappedLeadResponseLoss + cappedFailedPaymentLoss + cappedSelfServeGap + cappedProcessInefficiency,
+          currentARR * 0.35 // Overall cap at 35% of ARR
+        )
+      : cappedLeadResponseLoss + cappedFailedPaymentLoss + cappedSelfServeGap + cappedProcessInefficiency;
 
     // DEBUG: Log total loss calculation
     console.log('=== TOTAL LOSS CALCULATION ===');
