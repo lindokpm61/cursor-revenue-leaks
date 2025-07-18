@@ -4,7 +4,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Target, Download, Share2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Target, Download, Share2, FileText, Calendar, Lightbulb } from "lucide-react";
 
 import { fetchSubmissionData } from "@/lib/submission/submissionDataFetcher";
 import { useToast } from "@/hooks/use-toast";
@@ -15,13 +16,21 @@ import { ActionPlanExitIntentModal } from "@/components/calculator/ActionPlanExi
 import { ProgressiveEmailCapture } from "@/components/calculator/ProgressiveEmailCapture";
 import { UnifiedResultsService } from "@/lib/results/UnifiedResultsService";
 
-// Import sophisticated components
+// Import enhanced components
 import { PriorityActions } from "@/components/calculator/results/PriorityActions";
-import { ImplementationTimeline } from "@/components/calculator/results/ImplementationTimeline";
-import { DecisionSupportPanel } from "@/components/results/DecisionSupportPanel";
 import { ExecutiveSummary } from "@/components/calculator/results/ExecutiveSummary";
 import { UserIntentSelector } from "@/components/results/UserIntentSelector";
+import { ActionPlanTimeline } from "@/components/ActionPlanTimeline";
+import { ActionPlanScenarioPlanning } from "@/components/ActionPlanScenarioPlanning";
 import type { UserIntent } from "@/components/results/UserIntentSelector";
+
+// Import calculation functions
+import { 
+  generateRealisticTimeline, 
+  calculateRealisticInvestment,
+  calculateRealisticROI,
+  type UnifiedCalculationInputs 
+} from "@/lib/calculator/unifiedCalculations";
 
 export default function ActionPlan() {
   const navigate = useNavigate();
@@ -31,6 +40,7 @@ export default function ActionPlan() {
   const [isLoading, setIsLoading] = useState(true);
   const [userEmail, setUserEmail] = useState('');
   const [userIntent, setUserIntent] = useState<UserIntent>('plan-implementation');
+  const [activeTab, setActiveTab] = useState('timeline');
 
   const submissionId = params.id || null;
 
@@ -100,7 +110,6 @@ export default function ActionPlan() {
       created_at: data.created_at || new Date().toISOString()
     });
     
-    // Return complete submission object with all required fields
     return {
       id: data.temp_id || submissionId,
       company_name: data.company_name || '',
@@ -119,137 +128,73 @@ export default function ActionPlan() {
       lead_score: data.lead_score || 50,
       user_id: data.converted_to_user_id || '',
       created_at: data.created_at || new Date().toISOString(),
-      // Add calculated fields
-      lead_response_loss: unifiedCalcs.leadResponseLoss,
-      failed_payment_loss: unifiedCalcs.failedPaymentLoss,
-      selfserve_gap_loss: unifiedCalcs.selfServeGap,
-      process_inefficiency_loss: unifiedCalcs.processInefficiency,
-      total_leak: unifiedCalcs.totalLoss,
-      recovery_potential_70: unifiedCalcs.conservativeRecovery,
-      recovery_potential_85: unifiedCalcs.optimisticRecovery,
-      // Add missing required fields with defaults
-      crm_opportunity_id: '',
-      crm_person_id: '',
-      phone: '',
-      utm_source: '',
-      utm_medium: '',
-      utm_campaign: '',
-      utm_term: '',
-      utm_content: '',
-      referrer: '',
-      first_touch_url: '',
-      last_touch_url: '',
-      session_count: 1,
-      page_views: 1,
-      time_on_site: 0,
-      form_submission_time: new Date().toISOString(),
-      browser: '',
-      device: '',
-      os: '',
-      country: '',
-      region: '',
-      city: '',
-      // Add remaining required fields
-      leak_percentage: Math.round((unifiedCalcs.totalLoss / Math.max(data.calculator_data.companyInfo?.currentARR || 1, 1)) * 100),
-      n8n_triggered: false,
-      smartlead_campaign_id: '',
-      synced_to_self_hosted: false,
-      updated_at: new Date().toISOString(),
-      twenty_company_id: '',
-      twenty_contact_id: ''
+      // Add unified calculation results
+      ...unifiedCalcs
     };
   }, [data, submissionId]);
 
-  // Calculate results using UnifiedResultsService
-  const unifiedResults = useMemo(() => {
-    if (!submissionData) return null;
-    console.log("Calculating with submission data:", submissionData);
-    return UnifiedResultsService.calculateResults(submissionData);
+  // Generate timeline and investment calculations
+  const { timeline, investment, roiData } = useMemo(() => {
+    if (!submissionData) return { timeline: [], investment: null, roiData: null };
+
+    const inputs: UnifiedCalculationInputs = {
+      currentARR: submissionData.current_arr,
+      monthlyMRR: submissionData.monthly_mrr,
+      monthlyLeads: submissionData.monthly_leads,
+      averageDealValue: submissionData.average_deal_value,
+      leadResponseTime: submissionData.lead_response_time,
+      monthlyFreeSignups: submissionData.monthly_free_signups,
+      freeToLaidConversion: submissionData.free_to_paid_conversion,
+      failedPaymentRate: submissionData.failed_payment_rate,
+      manualHours: submissionData.manual_hours,
+      hourlyRate: submissionData.hourly_rate,
+      industry: submissionData.industry
+    };
+
+    const timelinePhases = generateRealisticTimeline(
+      {
+        leadResponseLoss: submissionData.leadResponseLoss,
+        selfServeGapLoss: submissionData.selfServeGap,
+        processInefficiencyLoss: submissionData.processInefficiency,
+        failedPaymentLoss: submissionData.failedPaymentLoss,
+        totalLoss: submissionData.totalLoss,
+        recovery70Percent: submissionData.conservativeRecovery,
+        recovery85Percent: submissionData.optimisticRecovery,
+        recoveryBestCase: submissionData.optimisticRecovery,
+        actionSpecificRecovery: {
+          leadResponse: submissionData.leadResponseLoss * 0.6,
+          selfServe: submissionData.selfServeGap * 0.5,
+          processAutomation: submissionData.processInefficiency * 0.7,
+          paymentRecovery: submissionData.failedPaymentLoss * 0.8
+        },
+        implementationFactors: {},
+        riskAdjustments: {},
+        confidenceLevel: 'medium',
+        confidenceBounds: { lower: 0, upper: 0 },
+        recoveryTimeline: { year1: 0, year2: 0, year3: 0 }
+      },
+      inputs
+    );
+
+    const investmentCalc = calculateRealisticInvestment(timelinePhases, inputs);
+    const roi = calculateRealisticROI(
+      submissionData.conservativeRecovery,
+      investmentCalc.totalAnnualInvestment,
+      'medium'
+    );
+
+    return {
+      timeline: timelinePhases,
+      investment: investmentCalc,
+      roiData: roi
+    };
   }, [submissionData]);
-
-  // Transform results for legacy components
-  const legacyCalculations = useMemo(() => {
-    if (!unifiedResults) return null;
-    
-    return {
-      leadResponseLoss: unifiedResults.leadResponseLoss,
-      failedPaymentLoss: unifiedResults.failedPaymentLoss,
-      selfServeGap: unifiedResults.selfServeGap,
-      processLoss: unifiedResults.processInefficiency,
-      totalLeak: unifiedResults.totalLoss,
-      totalLeakage: unifiedResults.totalLoss,
-      potentialRecovery70: unifiedResults.conservativeRecovery,
-      potentialRecovery85: unifiedResults.optimisticRecovery,
-      recoveryPotential70: unifiedResults.conservativeRecovery,
-      recoveryPotential85: unifiedResults.optimisticRecovery
-    };
-  }, [unifiedResults]);
-
-  // Transform data for DecisionSupportPanel (expects submission format)
-  const transformedSubmission = useMemo(() => {
-    if (!submissionData || !unifiedResults) return null;
-    
-    return {
-      id: submissionData.id,
-      company_name: submissionData.company_name,
-      contact_email: submissionData.contact_email,
-      industry: submissionData.industry,
-      current_arr: submissionData.current_arr,
-      monthly_leads: submissionData.monthly_leads,
-      monthly_free_signups: submissionData.monthly_free_signups,
-      average_deal_value: submissionData.average_deal_value,
-      lead_response_time: submissionData.lead_response_time,
-      free_to_paid_conversion: submissionData.free_to_paid_conversion,
-      monthly_mrr: submissionData.monthly_mrr,
-      failed_payment_rate: submissionData.failed_payment_rate,
-      manual_hours: submissionData.manual_hours,
-      hourly_rate: submissionData.hourly_rate,
-      user_id: submissionData.user_id,
-      phone: submissionData.phone,
-      utm_source: submissionData.utm_source,
-      utm_medium: submissionData.utm_medium,
-      utm_campaign: submissionData.utm_campaign,
-      utm_term: submissionData.utm_term,
-      utm_content: submissionData.utm_content,
-      referrer: submissionData.referrer,
-      first_touch_url: submissionData.first_touch_url,
-      last_touch_url: submissionData.last_touch_url,
-      session_count: submissionData.session_count,
-      page_views: submissionData.page_views,
-      time_on_site: submissionData.time_on_site,
-      form_submission_time: submissionData.form_submission_time,
-      browser: submissionData.browser,
-      device: submissionData.device,
-      os: submissionData.os,
-      country: submissionData.country,
-      region: submissionData.region,
-      city: submissionData.city,
-      lead_response_loss: unifiedResults.leadResponseLoss,
-      failed_payment_loss: unifiedResults.failedPaymentLoss,
-      selfserve_gap_loss: unifiedResults.selfServeGap,
-      process_inefficiency_loss: unifiedResults.processInefficiency,
-      total_leak: unifiedResults.totalLoss,
-      recovery_potential_70: unifiedResults.conservativeRecovery,
-      recovery_potential_85: unifiedResults.optimisticRecovery,
-      lead_score: submissionData.lead_score,
-      created_at: submissionData.created_at,
-      crm_opportunity_id: submissionData.crm_opportunity_id,
-      crm_person_id: submissionData.crm_person_id,
-      leak_percentage: submissionData.leak_percentage,
-      n8n_triggered: submissionData.n8n_triggered,
-      smartlead_campaign_id: submissionData.smartlead_campaign_id,
-      synced_to_self_hosted: submissionData.synced_to_self_hosted,
-      updated_at: submissionData.updated_at,
-      twenty_company_id: submissionData.twenty_company_id,
-      twenty_contact_id: submissionData.twenty_contact_id
-    };
-  }, [submissionData, unifiedResults]);
 
   // Recovery data for CTAs
   const recoveryData = useMemo(() => ({
-    totalLeak: unifiedResults?.totalLoss || 0,
+    totalLeak: submissionData?.totalLoss || 0,
     formatCurrency: (amount: number) => UnifiedResultsService.formatCurrency(amount)
-  }), [unifiedResults]);
+  }), [submissionData]);
 
   // Initialize CTA controller
   const ctaController = useCTAController(
@@ -276,13 +221,13 @@ export default function ActionPlan() {
   };
 
   const getTopPriorityAction = () => {
-    if (!unifiedResults) return null;
+    if (!submissionData) return null;
     
     const priorities = [
-      { name: "Lead Response Optimization", value: unifiedResults.leadResponseLoss },
-      { name: "Self-Serve Optimization", value: unifiedResults.selfServeGap },
-      { name: "Payment Recovery", value: unifiedResults.failedPaymentLoss },
-      { name: "Process Automation", value: unifiedResults.processInefficiency }
+      { name: "Lead Response Optimization", value: submissionData.leadResponseLoss || 0 },
+      { name: "Self-Serve Optimization", value: submissionData.selfServeGap || 0 },
+      { name: "Payment Recovery", value: submissionData.failedPaymentLoss || 0 },
+      { name: "Process Automation", value: submissionData.processInefficiency || 0 }
     ];
     
     return priorities.sort((a, b) => b.value - a.value)[0]?.name;
@@ -330,7 +275,7 @@ export default function ActionPlan() {
     );
   }
 
-  if (!legacyCalculations || !transformedSubmission) {
+  if (!submissionData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
         <header className="bg-white border-b">
@@ -378,7 +323,7 @@ export default function ActionPlan() {
                   Strategic Action Plan
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                  {transformedSubmission.company_name}
+                  {submissionData.company_name}
                 </p>
               </div>
             </div>
@@ -404,7 +349,7 @@ export default function ActionPlan() {
             Step 5 of 5
           </Badge>
           <div className="text-sm text-muted-foreground">
-            Total Recovery Potential: {UnifiedResultsService.formatCurrency(unifiedResults.conservativeRecovery)}
+            Total Recovery Potential: {UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)}
           </div>
         </div>
 
@@ -425,7 +370,7 @@ export default function ActionPlan() {
                 currentARR: submissionData.current_arr || 0,
                 industry: submissionData.industry || '',
                 email: submissionData.contact_email || '',
-                phone: submissionData.phone || ''
+                phone: ''
               },
               leadGeneration: {
                 monthlyLeads: submissionData.monthly_leads || 0,
@@ -443,74 +388,115 @@ export default function ActionPlan() {
                 hourlyRate: submissionData.hourly_rate || 0
               }
             }}
-            calculations={legacyCalculations}
+            calculations={{
+              leadResponseLoss: submissionData.leadResponseLoss,
+              failedPaymentLoss: submissionData.failedPaymentLoss,
+              selfServeGap: submissionData.selfServeGap,
+              processLoss: submissionData.processInefficiency,
+              totalLeak: submissionData.totalLoss,
+              totalLeakage: submissionData.totalLoss,
+              potentialRecovery70: submissionData.conservativeRecovery,
+              potentialRecovery85: submissionData.optimisticRecovery,
+              recoveryPotential70: submissionData.conservativeRecovery,
+              recoveryPotential85: submissionData.optimisticRecovery
+            }}
             formatCurrency={UnifiedResultsService.formatCurrency}
           />
 
-          {/* Decision Support Panel */}
-          <DecisionSupportPanel
-            submission={transformedSubmission}
-            userIntent={userIntent}
-            formatCurrency={UnifiedResultsService.formatCurrency}
-          />
+          {/* Main Action Plan Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="timeline" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Timeline
+              </TabsTrigger>
+              <TabsTrigger value="priorities" className="flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                Priorities
+              </TabsTrigger>
+              <TabsTrigger value="scenarios" className="flex items-center gap-2">
+                <Lightbulb className="h-4 w-4" />
+                Scenarios
+              </TabsTrigger>
+              <TabsTrigger value="summary" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Summary
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Priority Actions */}
-          <PriorityActions 
-            submission={submissionData}
-            formatCurrency={UnifiedResultsService.formatCurrency}
-            calculatorData={submissionData}
-          />
+            <TabsContent value="timeline">
+              <ActionPlanTimeline
+                phases={timeline}
+                totalRecovery={submissionData.conservativeRecovery}
+                totalInvestment={investment?.implementationCost || 0}
+                paybackMonths={investment?.paybackMonths || 12}
+                formatCurrency={UnifiedResultsService.formatCurrency}
+                confidenceLevel="medium"
+              />
+            </TabsContent>
 
-          {/* Implementation Timeline */}
-          <ImplementationTimeline 
-            submission={submissionData}
-            formatCurrency={UnifiedResultsService.formatCurrency}
-            calculatorData={submissionData}
-          />
+            <TabsContent value="priorities">
+              <PriorityActions 
+                submission={submissionData}
+                formatCurrency={UnifiedResultsService.formatCurrency}
+                calculatorData={submissionData}
+              />
+            </TabsContent>
 
-          {/* Next Steps Card */}
-          <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                Ready to Get Started?
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold mb-3">Immediate Actions</h4>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li>• Download your personalized action plan</li>
-                    <li>• Share with your leadership team</li>
-                    <li>• Schedule implementation kickoff meeting</li>
-                    <li>• Book a strategy consultation</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-3">Resources & Support</h4>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li>• Implementation playbook</li>
-                    <li>• ROI tracking templates</li>
-                    <li>• Expert consultation calls</li>
-                    <li>• Progress monitoring tools</li>
-                  </ul>
-                </div>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                <Button className="bg-gradient-to-r from-primary to-primary/80">
-                  Schedule Strategy Call
-                </Button>
-                <Button variant="outline">
-                  Download Full Report
-                </Button>
-                <Button variant="ghost">
-                  Join Implementation Community
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            <TabsContent value="scenarios">
+              <ActionPlanScenarioPlanning
+                baseRecovery={submissionData.conservativeRecovery}
+                baseInvestment={investment?.implementationCost || 0}
+                formatCurrency={UnifiedResultsService.formatCurrency}
+              />
+            </TabsContent>
+
+            <TabsContent value="summary">
+              {/* Next Steps Card */}
+              <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5 text-primary" />
+                    Ready to Get Started?
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-semibold mb-3">Immediate Actions</h4>
+                      <ul className="space-y-2 text-sm text-muted-foreground">
+                        <li>• Download your personalized action plan</li>
+                        <li>• Share with your leadership team</li>
+                        <li>• Schedule implementation kickoff meeting</li>
+                        <li>• Book a strategy consultation</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-3">Resources & Support</h4>
+                      <ul className="space-y-2 text-sm text-muted-foreground">
+                        <li>• Implementation playbook</li>
+                        <li>• ROI tracking templates</li>
+                        <li>• Expert consultation calls</li>
+                        <li>• Progress monitoring tools</li>
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                    <Button className="bg-gradient-to-r from-primary to-primary/80">
+                      Schedule Strategy Call
+                    </Button>
+                    <Button variant="outline">
+                      Download Full Report
+                    </Button>
+                    <Button variant="ghost">
+                      Join Implementation Community
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
