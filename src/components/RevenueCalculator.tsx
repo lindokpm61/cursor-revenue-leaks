@@ -45,7 +45,8 @@ export const RevenueCalculator = () => {
   const exitIntent = useExitIntent({
     threshold: 100, // Increase threshold to make it easier to trigger
     delay: 10000, // Reduce delay to 10 seconds for testing
-    scrollThreshold: 30 // Reduce scroll threshold for testing
+    scrollThreshold: 30, // Reduce scroll threshold for testing
+    cooldownPeriod: 300000 // 5 minutes cooldown
   });
 
   // Progressive email capture
