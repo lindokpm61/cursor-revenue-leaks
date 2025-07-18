@@ -424,13 +424,7 @@ export default function ActionPlan() {
           </div>
         </div>
 
-        {/* User Intent Selector */}
-        <div className="mb-8">
-          <UserIntentSelector 
-            selectedIntent={userIntent} 
-            onIntentChange={setUserIntent}
-          />
-        </div>
+        {/* User Intent Selector removed per user request */}
 
         <div className="space-y-8">
           {/* Executive Summary */}
