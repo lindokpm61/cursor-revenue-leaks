@@ -1,20 +1,27 @@
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Target, AlertTriangle, Clock, TrendingUp } from "lucide-react";
-import { ActionPlan as ActionPlanComponent } from "@/components/calculator/results/ActionPlan";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Target, Download, Share2 } from "lucide-react";
+
 import { fetchSubmissionData } from "@/lib/submission/submissionDataFetcher";
-import { saveTemporarySubmission } from "@/lib/submission/submissionStorage";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-
 import { useCTAController } from "@/hooks/useCTAController";
 import { FloatingCTABar } from "@/components/results/FloatingCTABar";
 import { ActionPlanExitIntentModal } from "@/components/calculator/ActionPlanExitIntentModal";
 import { ProgressiveEmailCapture } from "@/components/calculator/ProgressiveEmailCapture";
 import { UnifiedResultsService } from "@/lib/results/UnifiedResultsService";
+
+// Import sophisticated components
+import { PriorityActions } from "@/components/calculator/results/PriorityActions";
+import { ImplementationTimeline } from "@/components/calculator/results/ImplementationTimeline";
+import { DecisionSupportPanel } from "@/components/results/DecisionSupportPanel";
+import { ExecutiveSummary } from "@/components/calculator/results/ExecutiveSummary";
+import { UserIntentSelector } from "@/components/results/UserIntentSelector";
+import type { UserIntent } from "@/components/results/UserIntentSelector";
 
 export default function ActionPlan() {
   const navigate = useNavigate();
@@ -23,7 +30,7 @@ export default function ActionPlan() {
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [userEmail, setUserEmail] = useState('');
-  const [checkedActions, setCheckedActions] = useState<string[]>([]);
+  const [userIntent, setUserIntent] = useState<UserIntent>('plan-implementation');
 
   const submissionId = params.id || null;
 
@@ -69,28 +76,8 @@ export default function ActionPlan() {
     fetchData();
   }, [submissionId, navigate, toast]);
 
-  useEffect(() => {
-    if (submissionId && data) {
-      saveTemporarySubmission(data);
-    }
-  }, [submissionId, data]);
-
-  const handleBack = useCallback(() => {
-    navigate(`/operations?tempId=${submissionId}`);
-  }, [navigate, submissionId]);
-
-  const handleCheckAction = (action: string) => {
-    setCheckedActions(prev => {
-      if (prev.includes(action)) {
-        return prev.filter(a => a !== action);
-      } else {
-        return [...prev, action];
-      }
-    });
-  };
-
-  // Map the nested calculator_data to the flat structure expected by UnifiedResultsService
-  const flattenedSubmissionData = useMemo(() => {
+  // Transform data for UnifiedResultsService
+  const submissionData = useMemo(() => {
     if (!data || !data.calculator_data) return null;
     
     return {
@@ -114,14 +101,56 @@ export default function ActionPlan() {
     };
   }, [data, submissionId]);
 
-  // Calculate results using the UnifiedResultsService
+  // Calculate results using UnifiedResultsService
   const unifiedResults = useMemo(() => {
-    if (!flattenedSubmissionData) return null;
-    console.log("Calculating with flattened data:", flattenedSubmissionData);
-    return UnifiedResultsService.calculateResults(flattenedSubmissionData);
-  }, [flattenedSubmissionData]);
+    if (!submissionData) return null;
+    console.log("Calculating with submission data:", submissionData);
+    return UnifiedResultsService.calculateResults(submissionData);
+  }, [submissionData]);
 
-  // Derive recovery data for CTAs
+  // Transform results for legacy components
+  const legacyCalculations = useMemo(() => {
+    if (!unifiedResults) return null;
+    
+    return {
+      leadResponseLoss: unifiedResults.leadResponseLoss,
+      failedPaymentLoss: unifiedResults.failedPaymentLoss,
+      selfServeGap: unifiedResults.selfServeGap,
+      processLoss: unifiedResults.processInefficiency,
+      totalLeak: unifiedResults.totalLoss,
+      totalLeakage: unifiedResults.totalLoss,
+      potentialRecovery70: unifiedResults.conservativeRecovery,
+      potentialRecovery85: unifiedResults.optimisticRecovery,
+      recoveryPotential70: unifiedResults.conservativeRecovery,
+      recoveryPotential85: unifiedResults.optimisticRecovery
+    };
+  }, [unifiedResults]);
+
+  // Transform data for DecisionSupportPanel (expects submission format)
+  const transformedSubmission = useMemo(() => {
+    if (!submissionData || !unifiedResults) return null;
+    
+    return {
+      id: submissionData.id,
+      company_name: submissionData.company_name,
+      contact_email: submissionData.contact_email,
+      industry: submissionData.industry,
+      current_arr: submissionData.current_arr,
+      monthly_leads: submissionData.monthly_leads,
+      monthly_free_signups: submissionData.monthly_free_signups,
+      lead_response_loss: unifiedResults.leadResponseLoss,
+      failed_payment_loss: unifiedResults.failedPaymentLoss,
+      selfserve_gap_loss: unifiedResults.selfServeGap,
+      process_inefficiency_loss: unifiedResults.processInefficiency,
+      total_leak: unifiedResults.totalLoss,
+      recovery_potential_70: unifiedResults.conservativeRecovery,
+      recovery_potential_85: unifiedResults.optimisticRecovery,
+      lead_score: submissionData.lead_score,
+      created_at: submissionData.created_at
+    };
+  }, [submissionData, unifiedResults]);
+
+  // Recovery data for CTAs
   const recoveryData = useMemo(() => ({
     totalLeak: unifiedResults?.totalLoss || 0,
     formatCurrency: (amount: number) => UnifiedResultsService.formatCurrency(amount)
@@ -135,12 +164,15 @@ export default function ActionPlan() {
     {
       enableFloatingBar: true,
       enableExitIntent: true,
-      enableProgressiveEmail: !userEmail, // Only if no email captured
+      enableProgressiveEmail: !userEmail,
       timeBasedDelay: 180000, // 3 minutes
     }
   );
 
-  // Handle email submission for exit intent modal
+  const handleBack = () => {
+    navigate(`/results/${submissionId}`);
+  };
+
   const handleExitIntentEmailSubmit = async (email: string) => {
     if (submissionId) {
       await ctaController.progressiveEmail.handleEmailCaptured(email);
@@ -148,117 +180,221 @@ export default function ActionPlan() {
     }
   };
 
-  // Get top priority action for personalized messaging
-  const topPriorityAction = useMemo(() => {
-    if (unifiedResults) {
-      const priorities = [
-        { name: "Lead Response Optimization", value: unifiedResults.leadResponseLoss },
-        { name: "Self-Serve Optimization", value: unifiedResults.selfServeGap },
-        { name: "Payment Recovery", value: unifiedResults.failedPaymentLoss },
-        { name: "Process Automation", value: unifiedResults.processInefficiency }
-      ];
-      return priorities.sort((a, b) => b.value - a.value)[0]?.name;
-    }
-    return null;
-  }, [unifiedResults]);
+  const getTopPriorityAction = () => {
+    if (!unifiedResults) return null;
+    
+    const priorities = [
+      { name: "Lead Response Optimization", value: unifiedResults.leadResponseLoss },
+      { name: "Self-Serve Optimization", value: unifiedResults.selfServeGap },
+      { name: "Payment Recovery", value: unifiedResults.failedPaymentLoss },
+      { name: "Process Automation", value: unifiedResults.processInefficiency }
+    ];
+    
+    return priorities.sort((a, b) => b.value - a.value)[0]?.name;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+        <header className="bg-white border-b">
+          <div className="container mx-auto py-4 px-4">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="sm" onClick={handleBack}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Results
+              </Button>
+              <h1 className="text-2xl font-semibold text-gray-800">
+                Strategic Action Plan
+              </h1>
+            </div>
+          </div>
+        </header>
+
+        <div className="container mx-auto mt-8 px-4">
+          <div className="flex items-center gap-4 mb-6">
+            <Badge variant="outline">Step 5 of 5</Badge>
+            <Skeleton className="h-6 w-48" />
+          </div>
+
+          <div className="space-y-8">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="border-primary/20">
+                <CardHeader>
+                  <Skeleton className="h-6 w-64" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-32 w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!legacyCalculations || !transformedSubmission) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+        <header className="bg-white border-b">
+          <div className="container mx-auto py-4 px-4">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="sm" onClick={handleBack}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Results
+              </Button>
+              <h1 className="text-2xl font-semibold text-gray-800">
+                Strategic Action Plan
+              </h1>
+            </div>
+          </div>
+        </header>
+
+        <div className="container mx-auto mt-8 px-4">
+          <Card className="border-destructive/20 bg-destructive/5">
+            <CardContent className="p-6 text-center">
+              <p className="text-destructive">
+                Unable to generate action plan. Please try again or contact support.
+              </p>
+              <Button variant="outline" onClick={handleBack} className="mt-4">
+                Return to Results
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <header className="bg-white border-b">
+      <header className="bg-white border-b sticky top-0 z-40">
         <div className="container mx-auto py-4 px-4">
-          <h1 className="text-2xl font-semibold text-gray-800">
-            SaaS Revenue Leak Calculator
-          </h1>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="sm" onClick={handleBack}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Results
+              </Button>
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-800">
+                  Strategic Action Plan
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {transformedSubmission.company_name}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Export PDF
+              </Button>
+              <Button variant="outline" size="sm">
+                <Share2 className="h-4 w-4 mr-2" />
+                Share
+              </Button>
+            </div>
+          </div>
         </div>
       </header>
 
-      <div className="container mx-auto mt-8 px-4">
-        <div className="flex items-center gap-4 mb-6">
-          <Badge variant="outline">Step 5 of 5</Badge>
-          <h2 className="text-lg font-semibold">Strategic Action Plan</h2>
+      <div className="container mx-auto py-8 px-4">
+        <div className="flex items-center gap-4 mb-8">
+          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+            <Target className="h-3 w-3 mr-1" />
+            Step 5 of 5
+          </Badge>
+          <div className="text-sm text-muted-foreground">
+            Total Recovery Potential: {UnifiedResultsService.formatCurrency(unifiedResults.conservativeRecovery)}
+          </div>
         </div>
 
-        <main className="py-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              {isLoading ? (
-                <Card className="border-primary/20 bg-primary/5">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Target className="h-5 w-5 text-primary" />
-                      Strategic Action Plan
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="h-5 w-1/2 bg-muted animate-pulse rounded" />
-                    <div className="h-4 w-full bg-muted animate-pulse rounded" />
-                    <div className="h-4 w-5/6 bg-muted animate-pulse rounded" />
-                    <div className="h-4 w-full bg-muted animate-pulse rounded" />
-                  </CardContent>
-                </Card>
-              ) : (
-                <ActionPlanComponent 
-                  calculations={{
-                    leadResponseLoss: unifiedResults?.leadResponseLoss || 0,
-                    failedPaymentLoss: unifiedResults?.failedPaymentLoss || 0,
-                    selfServeGap: unifiedResults?.selfServeGap || 0,
-                    processLoss: unifiedResults?.processInefficiency || 0,
-                    totalLeak: unifiedResults?.totalLoss || 0,
-                    totalLeakage: unifiedResults?.totalLoss || 0,
-                    potentialRecovery70: unifiedResults?.conservativeRecovery || 0,
-                    potentialRecovery85: unifiedResults?.optimisticRecovery || 0,
-                    recoveryPotential70: unifiedResults?.conservativeRecovery || 0,
-                    recoveryPotential85: unifiedResults?.optimisticRecovery || 0
-                  }} 
-                  data={data} 
-                />
-              )}
-            </div>
+        {/* User Intent Selector */}
+        <div className="mb-8">
+          <UserIntentSelector 
+            value={userIntent} 
+            onChange={setUserIntent}
+            totalLeak={unifiedResults.totalLoss}
+            formatCurrency={UnifiedResultsService.formatCurrency}
+          />
+        </div>
 
-            <div>
-              <Card className="border-primary/20 bg-primary/5">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Badge variant="secondary">Step 5</Badge>
-                    Next Steps
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Ready to take action? Here are some resources to help you
-                    get started.
-                  </p>
-                  <ul className="space-y-2">
-                    <li>
-                      <a
-                        href="#"
-                        className="text-blue-500 hover:underline text-sm"
-                      >
-                        Download our free guide to revenue recovery
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="text-blue-500 hover:underline text-sm"
-                      >
-                        Schedule a consultation with our experts
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="text-blue-500 hover:underline text-sm"
-                      >
-                        Join our community forum for peer support
-                      </a>
-                    </li>
+        <div className="space-y-8">
+          {/* Executive Summary */}
+          <ExecutiveSummary 
+            calculations={legacyCalculations}
+            data={data}
+            currentARR={submissionData.current_arr}
+            companyName={submissionData.company_name}
+          />
+
+          {/* Decision Support Panel */}
+          <DecisionSupportPanel
+            submission={transformedSubmission}
+            userIntent={userIntent}
+            formatCurrency={UnifiedResultsService.formatCurrency}
+          />
+
+          {/* Priority Actions */}
+          <PriorityActions 
+            calculations={legacyCalculations}
+            data={data}
+          />
+
+          {/* Implementation Timeline */}
+          <ImplementationTimeline 
+            calculations={legacyCalculations}
+            data={data}
+          />
+
+          {/* Next Steps Card */}
+          <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-primary" />
+                Ready to Get Started?
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-semibold mb-3">Immediate Actions</h4>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li>• Download your personalized action plan</li>
+                    <li>• Share with your leadership team</li>
+                    <li>• Schedule implementation kickoff meeting</li>
+                    <li>• Book a strategy consultation</li>
                   </ul>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </main>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-3">Resources & Support</h4>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li>• Implementation playbook</li>
+                    <li>• ROI tracking templates</li>
+                    <li>• Expert consultation calls</li>
+                    <li>• Progress monitoring tools</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                <Button className="bg-gradient-to-r from-primary to-primary/80">
+                  Schedule Strategy Call
+                </Button>
+                <Button variant="outline">
+                  Download Full Report
+                </Button>
+                <Button variant="ghost">
+                  Join Implementation Community
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* CTA Components */}
@@ -280,8 +416,8 @@ export default function ActionPlan() {
         recoveryAmount={recoveryData.totalLeak}
         formatCurrency={recoveryData.formatCurrency}
         onEmailSubmit={handleExitIntentEmailSubmit}
-        checkedActionsCount={checkedActions.length}
-        topPriorityAction={topPriorityAction}
+        checkedActionsCount={0}
+        topPriorityAction={getTopPriorityAction()}
       />
 
       {ctaController.progressiveEmail.isActive && !userEmail && (

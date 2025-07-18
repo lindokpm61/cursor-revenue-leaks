@@ -3,46 +3,83 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Target, AlertTriangle, Clock, TrendingUp } from "lucide-react";
 import { Calculations } from "../useCalculatorData";
-import { calculateUnifiedResults, generateRealisticTimeline, UnifiedCalculationInputs } from "@/lib/calculator/unifiedCalculations";
+import { generateRealisticTimeline, calculateRealisticInvestment, UnifiedCalculationInputs } from "@/lib/calculator/unifiedCalculations";
+import { UnifiedResultsService } from "@/lib/results/UnifiedResultsService";
 
 interface ActionPlanProps {
   calculations: Calculations;
-  data?: any; // Calculator data for enhanced calculations
+  data?: any;
 }
 
 export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
-  // Use unified calculations if data is available
+  // Calculate unified results if data is available
   let unifiedResults = null;
   let timeline = null;
   
-  if (data) {
-    const inputs: UnifiedCalculationInputs = {
-      currentARR: data.calculator_data?.companyInfo?.currentARR || 0,
-      monthlyMRR: data.calculator_data?.selfServe?.monthlyMRR || 0,
-      monthlyLeads: data.calculator_data?.leadGeneration?.monthlyLeads || 0,
-      averageDealValue: data.calculator_data?.leadGeneration?.averageDealValue || 0,
-      leadResponseTime: data.calculator_data?.leadGeneration?.leadResponseTime || 0,
-      monthlyFreeSignups: data.calculator_data?.selfServe?.monthlyFreeSignups || 0,
-      freeToLaidConversion: data.calculator_data?.selfServe?.freeToLaidConversion || 0,
-      failedPaymentRate: data.calculator_data?.selfServe?.failedPaymentRate || 0,
-      manualHours: data.calculator_data?.operations?.manualHours || 0,
-      hourlyRate: data.calculator_data?.operations?.hourlyRate || 0,
-      industry: data.calculator_data?.companyInfo?.industry || data.industry
+  if (data?.calculator_data) {
+    const submissionData = {
+      id: data.temp_id || '',
+      company_name: data.company_name || '',
+      contact_email: data.email || '',
+      industry: data.industry || data.calculator_data.companyInfo?.industry,
+      current_arr: data.calculator_data.companyInfo?.currentARR || 0,
+      monthly_leads: data.calculator_data.leadGeneration?.monthlyLeads || 0,
+      average_deal_value: data.calculator_data.leadGeneration?.averageDealValue || 0,
+      lead_response_time: data.calculator_data.leadGeneration?.leadResponseTime || 0,
+      monthly_free_signups: data.calculator_data.selfServe?.monthlyFreeSignups || 0,
+      free_to_paid_conversion: data.calculator_data.selfServe?.freeToLaidConversion || 0,
+      monthly_mrr: data.calculator_data.selfServe?.monthlyMRR || 0,
+      failed_payment_rate: data.calculator_data.selfServe?.failedPaymentRate || 0,
+      manual_hours: data.calculator_data.operations?.manualHours || 0,
+      hourly_rate: data.calculator_data.operations?.hourlyRate || 0,
+      lead_score: data.lead_score || 50,
+      user_id: data.converted_to_user_id,
+      created_at: data.created_at || new Date().toISOString()
     };
     
-    console.log("ActionPlan component - calculating with inputs:", inputs);
-    unifiedResults = calculateUnifiedResults(inputs);
-    timeline = generateRealisticTimeline(unifiedResults, inputs);
+    console.log("ActionPlan component - calculating with submission data:", submissionData);
+    unifiedResults = UnifiedResultsService.calculateResults(submissionData);
+    
+    // Generate timeline using the new unified calculations
+    const inputs: UnifiedCalculationInputs = {
+      currentARR: submissionData.current_arr,
+      monthlyMRR: submissionData.monthly_mrr,
+      monthlyLeads: submissionData.monthly_leads,
+      averageDealValue: submissionData.average_deal_value,
+      leadResponseTime: submissionData.lead_response_time,
+      monthlyFreeSignups: submissionData.monthly_free_signups,
+      freeToLaidConversion: submissionData.free_to_paid_conversion,
+      failedPaymentRate: submissionData.failed_payment_rate,
+      manualHours: submissionData.manual_hours,
+      hourlyRate: submissionData.hourly_rate,
+      industry: submissionData.industry
+    };
+    
+    timeline = generateRealisticTimeline(
+      {
+        leadResponseLoss: unifiedResults.leadResponseLoss,
+        selfServeGapLoss: unifiedResults.selfServeGap,
+        processInefficiencyLoss: unifiedResults.processInefficiency,
+        failedPaymentLoss: unifiedResults.failedPaymentLoss,
+        totalLoss: unifiedResults.totalLoss,
+        recovery70Percent: unifiedResults.conservativeRecovery,
+        recovery85Percent: unifiedResults.optimisticRecovery,
+        recoveryBestCase: unifiedResults.optimisticRecovery,
+        actionSpecificRecovery: {
+          leadResponse: unifiedResults.leadResponseLoss * 0.6,
+          selfServe: unifiedResults.selfServeGap * 0.5,
+          processAutomation: unifiedResults.processInefficiency * 0.7,
+          paymentRecovery: unifiedResults.failedPaymentLoss * 0.8
+        },
+        implementationFactors: {},
+        riskAdjustments: {},
+        confidenceLevel: unifiedResults.confidenceLevel,
+        confidenceBounds: unifiedResults.confidenceBounds,
+        recoveryTimeline: unifiedResults.recoveryTimeline
+      },
+      inputs
+    );
   }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -82,25 +119,6 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
 
   const topPriority = getTopPriority();
 
-  // Add debug output
-  console.log("ActionPlan rendering with:", {
-    unifiedResults: unifiedResults ? {
-      leadResponseLoss: unifiedResults.leadResponseLoss,
-      failedPaymentLoss: unifiedResults.failedPaymentLoss,
-      selfServeGap: unifiedResults.selfServeGap,
-      processInefficiency: unifiedResults.processInefficiency,
-      actionSpecificRecovery: unifiedResults.actionSpecificRecovery,
-      confidence: unifiedResults.confidenceLevel
-    } : 'None',
-    calculationsInput: {
-      leadResponseLoss: calculations.leadResponseLoss,
-      failedPaymentLoss: calculations.failedPaymentLoss,
-      selfServeGap: calculations.selfServeGap,
-      processLoss: calculations.processLoss
-    },
-    topPriority
-  });
-
   return (
     <Card className="border-primary/20 bg-primary/5">
       <CardHeader>
@@ -126,7 +144,7 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
               </div>
               <p className="text-lg font-medium text-primary">{topPriority.name}</p>
               <p className="text-sm text-muted-foreground">
-                Recovery potential: {formatCurrency(topPriority.value)}
+                Recovery potential: {UnifiedResultsService.formatCurrency(topPriority.value)}
               </p>
             </div>
 
@@ -154,7 +172,7 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
                             Months {phase.startMonth}-{phase.endMonth}
                           </span>
                           <span className="font-medium text-primary">
-                            {formatCurrency(phase.recoveryPotential)} recovery
+                            {UnifiedResultsService.formatCurrency(phase.recoveryPotential)} recovery
                           </span>
                         </div>
                       </div>
@@ -176,14 +194,62 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
               </div>
             </div>
 
+            {/* Implementation Investment Summary */}
+            {timeline.length > 0 && (
+              <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                  <span className="font-medium text-green-800">Investment & ROI Summary</span>
+                </div>
+                {(() => {
+                  const investment = calculateRealisticInvestment(timeline, {
+                    currentARR: data?.calculator_data?.companyInfo?.currentARR || 0,
+                    monthlyMRR: data?.calculator_data?.selfServe?.monthlyMRR || 0,
+                    monthlyLeads: data?.calculator_data?.leadGeneration?.monthlyLeads || 0,
+                    averageDealValue: data?.calculator_data?.leadGeneration?.averageDealValue || 0,
+                    leadResponseTime: data?.calculator_data?.leadGeneration?.leadResponseTime || 0,
+                    monthlyFreeSignups: data?.calculator_data?.selfServe?.monthlyFreeSignups || 0,
+                    freeToLaidConversion: data?.calculator_data?.selfServe?.freeToLaidConversion || 0,
+                    failedPaymentRate: data?.calculator_data?.selfServe?.failedPaymentRate || 0,
+                    manualHours: data?.calculator_data?.operations?.manualHours || 0,
+                    hourlyRate: data?.calculator_data?.operations?.hourlyRate || 0,
+                    industry: data?.industry
+                  });
+                  
+                  return (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <div className="font-medium text-gray-800">Total Investment</div>
+                        <div className="text-gray-600">{UnifiedResultsService.formatCurrency(investment.implementationCost)}</div>
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-800">Annual Recovery</div>
+                        <div className="text-green-600">{UnifiedResultsService.formatCurrency(unifiedResults?.conservativeRecovery || 0)}</div>
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-800">Payback Period</div>
+                        <div className="text-gray-600">{investment.paybackMonths} months</div>
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-800">Year 1 ROI</div>
+                        <div className="text-green-600">
+                          {Math.round(((unifiedResults?.conservativeRecovery || 0) - investment.totalAnnualInvestment) / investment.totalAnnualInvestment * 100)}%
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
             {/* Warnings */}
-            {unifiedResults?.bounds?.warningFlags && unifiedResults.bounds.warningFlags.length > 0 && (
+            {unifiedResults?.lossPercentageOfARR && unifiedResults.lossPercentageOfARR > 20 && (
               <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <h6 className="font-medium text-yellow-800 mb-2">Calculation Notes:</h6>
+                <h6 className="font-medium text-yellow-800 mb-2">Implementation Notes:</h6>
                 <ul className="text-sm text-yellow-700 space-y-1">
-                  {unifiedResults.bounds.warningFlags.map((warning, index) => (
-                    <li key={index}>• {warning}</li>
-                  ))}
+                  <li>• High revenue leak detected - prioritize quick wins first</li>
+                  <li>• Consider phased approach to manage change complexity</li>
+                  <li>• Monitor KPIs closely during implementation</li>
                 </ul>
               </div>
             )}
