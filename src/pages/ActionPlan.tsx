@@ -38,39 +38,47 @@ import {
   Copy,
   BarChart3,
   Activity,
-  CheckSquare
+  CheckSquare,
+  DollarSign,
+  Building,
+  Shield,
+  Layers
 } from "lucide-react";
 import { submissionService, type Submission } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { 
-  calculateLeadResponseImpact,
-  calculateFailedPaymentLoss,
-  calculateSelfServeGap,
-  calculateProcessInefficiency,
-  validateRecoveryAssumptions,
-  INDUSTRY_BENCHMARKS
-} from "@/lib/calculator/enhancedCalculations";
-import { calculateUnifiedResults, generateRealisticTimeline, UnifiedCalculationInputs } from "@/lib/calculator/unifiedCalculations";
+  calculateUnifiedResults, 
+  generateRealisticTimeline, 
+  calculateRealisticInvestment,
+  calculateRealisticROI,
+  type UnifiedCalculationInputs,
+  type UnifiedCalculationResults,
+  type TimelinePhase
+} from "@/lib/calculator/unifiedCalculations";
 import { 
-  validateCalculationResults,
   getCalculationConfidenceLevel
 } from "@/lib/calculator/validationHelpers";
-import { ImplementationTimeline } from "@/components/calculator/results/ImplementationTimeline";
-import { PriorityActions } from "@/components/calculator/results/PriorityActions";
 
 const ActionPlan = () => {
   const { id } = useParams<{ id: string }>();
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
-  const [progress, setProgress] = useState(15);
   const [checkedActions, setCheckedActions] = useState<string[]>([]);
   const [currentTab, setCurrentTab] = useState("overview");
   const [sessionStartTime] = useState(Date.now());
   const [timeTrackers, setTimeTrackers] = useState<NodeJS.Timeout[]>([]);
   const [engagementScore, setEngagementScore] = useState(0);
   const [userProfile, setUserProfile] = useState<any>(null);
+  
+  // Enhanced calculations state
+  const [unifiedResults, setUnifiedResults] = useState<UnifiedCalculationResults | null>(null);
+  const [timeline, setTimeline] = useState<TimelinePhase[]>([]);
+  const [priorityActions, setPriorityActions] = useState<any[]>([]);
+  const [investment, setInvestment] = useState<any>(null);
+  const [roiData, setRoiData] = useState<any>(null);
+  
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -91,6 +99,209 @@ const ActionPlan = () => {
     // Set up engagement tracking when component mounts
     setupEngagementTracking();
   }, [id, user]);
+
+  // Enhanced calculations effect
+  useEffect(() => {
+    if (submission) {
+      calculateEnhancedResults();
+    }
+  }, [submission]);
+
+  const mapSubmissionToUnifiedInputs = (submission: Submission): UnifiedCalculationInputs => {
+    return {
+      currentARR: submission.current_arr || 0,
+      monthlyMRR: submission.monthly_mrr || 0,
+      monthlyLeads: submission.monthly_leads || 0,
+      averageDealValue: submission.average_deal_value || 5000,
+      leadResponseTime: submission.lead_response_time || 24,
+      monthlyFreeSignups: submission.monthly_free_signups || 0,
+      freeToLaidConversion: submission.free_to_paid_conversion || 2,
+      failedPaymentRate: submission.failed_payment_rate || 5,
+      manualHours: submission.manual_hours || 10,
+      hourlyRate: submission.hourly_rate || 75,
+      industry: submission.industry
+    };
+  };
+
+  const calculateEnhancedResults = () => {
+    if (!submission) return;
+
+    try {
+      const inputs = mapSubmissionToUnifiedInputs(submission);
+      const results = calculateUnifiedResults(inputs);
+      const timelineData = generateRealisticTimeline(results, inputs);
+      const investmentData = calculateRealisticInvestment(timelineData, inputs);
+      const roiCalculation = calculateRealisticROI(
+        results.recovery70Percent, 
+        investmentData.totalAnnualInvestment,
+        results.confidenceLevel
+      );
+
+      setUnifiedResults(results);
+      setTimeline(timelineData);
+      setInvestment(investmentData);
+      setRoiData(roiCalculation);
+
+      // Generate priority actions from enhanced calculations
+      const enhancedActions = generatePriorityActions(results, timelineData);
+      setPriorityActions(enhancedActions);
+
+      console.log('Enhanced Action Plan calculations:', {
+        results,
+        timeline: timelineData,
+        investment: investmentData,
+        roi: roiCalculation,
+        actions: enhancedActions
+      });
+    } catch (error) {
+      console.error('Error calculating enhanced results:', error);
+      // Fallback to legacy calculations if enhanced fails
+      const fallbackActions = getLegacyPriorityActions(submission);
+      setPriorityActions(fallbackActions);
+    }
+  };
+
+  const generatePriorityActions = (results: UnifiedCalculationResults, timeline: TimelinePhase[]) => {
+    const actions = [];
+    const { actionSpecificRecovery } = results;
+
+    // Generate actions based on recovery potential and timeline phases
+    if (actionSpecificRecovery.leadResponse > 10000) {
+      actions.push({
+        id: 'lead-response',
+        title: 'Optimize Lead Response System',
+        impact: actionSpecificRecovery.leadResponse,
+        timeframe: '2-4 weeks',
+        difficulty: 'Medium',
+        description: 'Implement automated lead routing, instant notifications, and response tracking to reduce time-to-contact.',
+        confidence: results.confidenceLevel,
+        category: 'Quick Win',
+        implementation: {
+          effort: 'Medium',
+          cost: investment ? Math.round(investment.implementationCost * 0.25) : 25000,
+          prerequisites: ['CRM audit', 'Team training']
+        }
+      });
+    }
+
+    if (actionSpecificRecovery.selfServe > 15000) {
+      actions.push({
+        id: 'self-serve',
+        title: 'Enhance Self-Serve Conversion',
+        impact: actionSpecificRecovery.selfServe,
+        timeframe: '4-8 weeks',
+        difficulty: 'Hard',
+        description: 'Redesign onboarding flow, implement progressive profiling, and add in-app guidance systems.',
+        confidence: results.confidenceLevel,
+        category: 'Growth Driver',
+        implementation: {
+          effort: 'High',
+          cost: investment ? Math.round(investment.implementationCost * 0.35) : 40000,
+          prerequisites: ['User research', 'A/B testing framework']
+        }
+      });
+    }
+
+    if (actionSpecificRecovery.paymentRecovery > 8000) {
+      actions.push({
+        id: 'payment-recovery',
+        title: 'Deploy Smart Payment Recovery',
+        impact: actionSpecificRecovery.paymentRecovery,
+        timeframe: '1-3 weeks',
+        difficulty: 'Easy',
+        description: 'Implement intelligent retry logic, dunning management, and alternative payment methods.',
+        confidence: results.confidenceLevel,
+        category: 'Quick Win',
+        implementation: {
+          effort: 'Low',
+          cost: investment ? Math.round(investment.implementationCost * 0.15) : 15000,
+          prerequisites: ['Payment gateway integration']
+        }
+      });
+    }
+
+    if (actionSpecificRecovery.processAutomation > 12000) {
+      actions.push({
+        id: 'automation',
+        title: 'Automate Critical Processes',
+        impact: actionSpecificRecovery.processAutomation,
+        timeframe: '6-12 weeks',
+        difficulty: 'Hard',
+        description: 'Replace manual workflows with automated systems for reporting, data entry, and customer communications.',
+        confidence: results.confidenceLevel,
+        category: 'Efficiency',
+        implementation: {
+          effort: 'High',
+          cost: investment ? Math.round(investment.implementationCost * 0.25) : 30000,
+          prerequisites: ['Process mapping', 'Tool selection']
+        }
+      });
+    }
+
+    return actions
+      .sort((a, b) => (b.impact || 0) - (a.impact || 0))
+      .slice(0, 6); // Limit to top 6 actions
+  };
+
+  const getLegacyPriorityActions = (submission: Submission) => {
+    // Fallback to stored values if enhanced calculations fail
+    const actions = [];
+    const currentARR = submission.current_arr || 0;
+    
+    if ((submission.lead_response_loss || 0) > currentARR * 0.01) {
+      actions.push({
+        id: 'lead-response',
+        title: 'Optimize Lead Response Time',
+        impact: submission.lead_response_loss || 0,
+        timeframe: '2-4 weeks',
+        difficulty: 'Medium',
+        description: 'Implement automated lead routing and response systems',
+        confidence: 'medium',
+        category: 'Quick Win'
+      });
+    }
+    
+    if ((submission.selfserve_gap_loss || 0) > currentARR * 0.01) {
+      actions.push({
+        id: 'self-serve',
+        title: 'Optimize Self-Serve Conversion',
+        impact: submission.selfserve_gap_loss || 0,
+        timeframe: '4-6 weeks',
+        difficulty: 'Hard',
+        description: 'Enhance onboarding flow and reduce conversion friction',
+        confidence: 'medium',
+        category: 'Growth Driver'
+      });
+    }
+    
+    if ((submission.failed_payment_loss || 0) > currentARR * 0.005) {
+      actions.push({
+        id: 'payment-recovery',
+        title: 'Deploy Payment Recovery System',
+        impact: submission.failed_payment_loss || 0,
+        timeframe: '1-2 weeks',
+        difficulty: 'Easy',
+        description: 'Implement automated dunning management and payment retry logic',
+        confidence: 'high',
+        category: 'Quick Win'
+      });
+    }
+    
+    if ((submission.process_inefficiency_loss || 0) > currentARR * 0.005) {
+      actions.push({
+        id: 'automation',
+        title: 'Automate Manual Processes',
+        impact: submission.process_inefficiency_loss || 0,
+        timeframe: '6-8 weeks',
+        difficulty: 'Hard',
+        description: 'Replace manual workflows with automated systems',
+        confidence: 'medium',
+        category: 'Efficiency'
+      });
+    }
+
+    return actions.sort((a, b) => (b.impact || 0) - (a.impact || 0));
+  };
 
   const loadUserProfile = async () => {
     if (!user) return;
@@ -121,8 +332,9 @@ const ActionPlan = () => {
     
     // Track initial page view
     trackEngagementEvent('action_plan_viewed', {
-      recovery_potential: submission.recovery_potential_70 || submission.total_leak,
-      user_type: user.user_metadata?.role || 'standard'
+      recovery_potential: unifiedResults?.recovery70Percent || submission.total_leak,
+      user_type: user.user_metadata?.role || 'standard',
+      confidence_level: unifiedResults?.confidenceLevel || 'medium'
     });
     
     // Set up time milestone trackers
@@ -183,8 +395,6 @@ const ActionPlan = () => {
 
       setSubmission(data);
       console.log('Action Plan - Loaded submission:', data);
-      // Load saved action progress
-      await loadActionProgress(data.id);
       
       // Load user engagement score
       await loadEngagementScore();
@@ -214,22 +424,6 @@ const ActionPlan = () => {
       }
     } catch (error) {
       console.error('Error loading engagement score:', error);
-    }
-  };
-
-  const loadActionProgress = async (submissionId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('checked_actions')
-        .eq('id', user?.id)
-        .single();
-      
-      if (data?.checked_actions && Array.isArray(data.checked_actions)) {
-        setCheckedActions(data.checked_actions as string[]);
-      }
-    } catch (error) {
-      console.error('Error loading action progress:', error);
     }
   };
 
@@ -264,7 +458,7 @@ const ActionPlan = () => {
           id: user?.id,
           checked_actions: checkedActionIds,
           actions_checked_count: checkedActionIds.length,
-          last_analysis_date: new Date().toISOString(),
+          last_action_plan_visit: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
       
@@ -326,7 +520,7 @@ const ActionPlan = () => {
       cta_priority: priority,
       engagement_score: engagementScore,
       actions_checked: checkedActions.length,
-      recovery_potential: submission?.recovery_potential_70 || submission?.total_leak,
+      recovery_potential: unifiedResults?.recovery70Percent || submission?.total_leak,
       engagement_level: getEngagementLevel()
     });
   };
@@ -335,12 +529,12 @@ const ActionPlan = () => {
     try {
       // Track the export action
       await trackEngagementEvent('export_pdf', {
-        recovery_potential: submission?.recovery_potential_70 || 0,
+        recovery_potential: unifiedResults?.recovery70Percent || 0,
         actions_checked: checkedActions.length,
         engagement_level: getEngagementLevel()
       });
 
-      // Create a simple PDF export using the browser's print functionality
+      // Create a comprehensive PDF export using the browser's print functionality
       const printWindow = window.open('', '_blank');
       if (printWindow) {
         printWindow.document.write(`
@@ -348,11 +542,14 @@ const ActionPlan = () => {
             <head>
               <title>${submission?.company_name} Action Plan</title>
               <style>
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                .header { text-align: center; margin-bottom: 30px; }
-                .section { margin-bottom: 20px; }
-                .metric { display: inline-block; margin: 10px; padding: 10px; border: 1px solid #ccc; }
-                .action { margin: 10px 0; padding: 10px; background: #f5f5f5; }
+                body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+                .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+                .section { margin-bottom: 30px; }
+                .metric { display: inline-block; margin: 10px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; }
+                .action { margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; }
+                .timeline-phase { margin: 10px 0; padding: 10px; border-left: 4px solid #007bff; }
+                .confidence { color: #28a745; font-weight: bold; }
+                .warning { color: #dc3545; }
                 @media print { body { margin: 0; } }
               </style>
             </head>
@@ -360,18 +557,22 @@ const ActionPlan = () => {
               <div class="header">
                 <h1>${submission?.company_name} Revenue Recovery Action Plan</h1>
                 <p>Generated on ${new Date().toLocaleDateString()}</p>
+                <p class="confidence">Confidence Level: ${unifiedResults?.confidenceLevel?.toUpperCase() || 'MEDIUM'}</p>
               </div>
               
               <div class="section">
                 <h2>Executive Summary</h2>
                 <div class="metric">
-                  <strong>Total Revenue Leak:</strong> ${formatCurrency(calculations.total_leak)}
+                  <strong>Total Revenue Leak:</strong> ${formatCurrency(unifiedResults?.totalLoss || submission?.total_leak || 0)}
                 </div>
                 <div class="metric">
-                  <strong>Recovery Potential:</strong> ${formatCurrency(calculations.recovery_potential_70)}
+                  <strong>Recovery Potential (Conservative):</strong> ${formatCurrency(unifiedResults?.recovery70Percent || 0)}
                 </div>
                 <div class="metric">
-                  <strong>Implementation ROI:</strong> ${calculateROI(submission)}%
+                  <strong>Implementation ROI:</strong> ${roiData?.confidenceAdjustedROI ? Math.round(roiData.confidenceAdjustedROI) : 0}%
+                </div>
+                <div class="metric">
+                  <strong>Payback Period:</strong> ${investment?.paybackMonths ? Math.round(investment.paybackMonths) : 'TBD'} months
                 </div>
               </div>
 
@@ -383,16 +584,37 @@ const ActionPlan = () => {
                     <p><strong>Impact:</strong> ${formatCurrency(action.impact || 0)}</p>
                     <p><strong>Timeframe:</strong> ${action.timeframe}</p>
                     <p><strong>Difficulty:</strong> ${action.difficulty}</p>
+                    <p><strong>Category:</strong> ${action.category || 'General'}</p>
                     <p>${action.description}</p>
                   </div>
                 `).join('')}
               </div>
+
+              ${timeline.length > 0 ? `
+                <div class="section">
+                  <h2>Implementation Timeline</h2>
+                  ${timeline.map(phase => `
+                    <div class="timeline-phase">
+                      <h4>${phase.title} (Months ${phase.startMonth}-${phase.endMonth})</h4>
+                      <p>${phase.description}</p>
+                      <p><strong>Recovery Potential:</strong> ${formatCurrency(phase.recoveryPotential)}</p>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
 
               <div class="section">
                 <h2>Implementation Progress</h2>
                 <p>Actions Completed: ${checkedActions.length} of ${priorityActions.length}</p>
                 <p>Progress: ${Math.round((checkedActions.length / priorityActions.length) * 100)}%</p>
               </div>
+
+              ${unifiedResults?.confidenceLevel === 'low' ? `
+                <div class="section warning">
+                  <h3>⚠️ Important Notes</h3>
+                  <p>This analysis has lower confidence due to limited data or high complexity factors. Use as directional guidance and consider additional validation.</p>
+                </div>
+              ` : ''}
             </body>
           </html>
         `);
@@ -434,18 +656,36 @@ const ActionPlan = () => {
     }).format(amount);
   };
 
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty?.toLowerCase()) {
+      case 'easy': return 'bg-success/10 text-success border-success/20';
+      case 'medium': return 'bg-warning/10 text-warning border-warning/20';
+      case 'hard': return 'bg-destructive/10 text-destructive border-destructive/20';
+      default: return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'Quick Win': return <Zap className="h-4 w-4" />;
+      case 'Growth Driver': return <TrendingUp className="h-4 w-4" />;
+      case 'Efficiency': return <Target className="h-4 w-4" />;
+      default: return <Activity className="h-4 w-4" />;
+    }
+  };
+
   const ProgressEncouragement = () => {
     const completionPercentage = Math.round((checkedActions.length / priorityActions.length) * 100);
     
     if (checkedActions.length === 0) {
       return (
-        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+        <div className="mb-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
           <div className="flex items-center gap-3">
-            <Rocket className="h-6 w-6 text-blue-600" />
+            <Rocket className="h-6 w-6 text-primary" />
             <div>
-              <strong className="text-blue-700 font-semibold">Ready to Begin Implementation</strong>
+              <strong className="text-primary font-semibold">Ready to Begin Implementation</strong>
               <p className="text-sm text-muted-foreground mt-1">
-                Start by selecting your first action below to track your progress
+                Start with the highest-impact actions to see immediate results
               </p>
             </div>
           </div>
@@ -455,15 +695,15 @@ const ActionPlan = () => {
 
     if (completionPercentage < 100) {
       return (
-        <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg">
+        <div className="mb-6 p-4 bg-success/5 border border-success/20 rounded-lg">
           <div className="flex items-center gap-3">
-            <Trophy className="h-6 w-6 text-emerald-600" />
+            <Trophy className="h-6 w-6 text-success" />
             <div>
-              <strong className="text-emerald-700 font-semibold">
-                Great Progress! {completionPercentage}% Complete
+              <strong className="text-success font-semibold">
+                Excellent Progress! {completionPercentage}% Complete
               </strong>
               <p className="text-sm text-muted-foreground mt-1">
-                {checkedActions.length} of {priorityActions.length} actions tracked • Keep going!
+                {checkedActions.length} of {priorityActions.length} actions identified • Recovery potential: {formatCurrency(unifiedResults?.recovery70Percent || 0)}
               </p>
             </div>
           </div>
@@ -472,13 +712,13 @@ const ActionPlan = () => {
     }
 
     return (
-      <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg">
+      <div className="mb-6 p-4 bg-warning/5 border border-warning/20 rounded-lg">
         <div className="flex items-center gap-3">
-          <Star className="h-6 w-6 text-amber-600" />
+          <Star className="h-6 w-6 text-warning" />
           <div>
-            <strong className="text-amber-700 font-semibold">All Actions Identified!</strong>
+            <strong className="text-warning font-semibold">All Actions Identified!</strong>
             <p className="text-sm text-muted-foreground mt-1">
-              Ready for implementation support? Consider booking a strategy call
+              Ready for implementation strategy? Consider expert guidance for maximum success
             </p>
           </div>
         </div>
@@ -486,204 +726,17 @@ const ActionPlan = () => {
     );
   };
 
-  const renderContextualCTAs = () => {
-    const engagementLevel = getEngagementLevel();
-    const recoveryPotential = submission?.recovery_potential_70 || 0;
-    const completionPercentage = Math.round((checkedActions.length / priorityActions.length) * 100);
-    
-    // Show implementation support for users who are progressing
-    if (completionPercentage >= 50 || engagementLevel === 'high') {
-      return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6 text-center">
-              <Phone className="h-8 w-8 mx-auto mb-3 text-primary" />
-              <h3 className="font-semibold mb-2">Implementation Support</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Get expert guidance for your {formatCurrency(recoveryPotential)} recovery
-              </p>
-              <Button 
-                className="w-full"
-                onClick={() => handleCTAInteraction('consultation', 'Book Strategy Call', 'primary')}
-              >
-                Book Strategy Call
-              </Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6 text-center">
-              <BookOpen className="h-8 w-8 mx-auto mb-3 text-primary" />
-              <h3 className="font-semibold mb-2">Implementation Guide</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Download step-by-step instructions
-              </p>
-              <Button 
-                variant="outline"
-                className="w-full"
-                onClick={() => handleCTAInteraction('guide', 'Download Guide', 'secondary')}
-              >
-                Download Guide
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      );
-    }
-    
-    // Show gentle guidance for beginners
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="hover:shadow-md transition-shadow">
-          <CardContent className="p-4 text-center">
-            <BookOpen className="h-6 w-6 mx-auto mb-2 text-primary" />
-            <h4 className="font-medium mb-1">Implementation Guide</h4>
-            <p className="text-xs text-muted-foreground mb-3">Step-by-step instructions</p>
-            <Button 
-              size="sm"
-              variant="outline"
-              className="w-full"
-              onClick={() => handleCTAInteraction('guide', 'Download Guide', 'secondary')}
-            >
-              Download
-            </Button>
-          </CardContent>
-        </Card>
-        
-        <Card className="hover:shadow-md transition-shadow">
-          <CardContent className="p-4 text-center">
-            <Calendar className="h-6 w-6 mx-auto mb-2 text-primary" />
-            <h4 className="font-medium mb-1">Strategy Session</h4>
-            <p className="text-xs text-muted-foreground mb-3">Discuss your approach</p>
-            <Button 
-              size="sm"
-              className="w-full"
-              onClick={() => handleCTAInteraction('consultation', 'Book Consultation', 'primary')}
-            >
-              Book Call
-            </Button>
-          </CardContent>
-        </Card>
-        
-        <Card className="hover:shadow-md transition-shadow">
-          <CardContent className="p-4 text-center">
-            <Users className="h-6 w-6 mx-auto mb-2 text-primary" />
-            <h4 className="font-medium mb-1">Updates</h4>
-            <p className="text-xs text-muted-foreground mb-3">Weekly implementation tips</p>
-            <Button 
-              size="sm"
-              variant="outline"
-              className="w-full"
-              onClick={() => handleCTAInteraction('subscription', 'Subscribe', 'secondary')}
-            >
-              Subscribe
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  };
-
-  const getEnhancedCalculations = (submission: Submission) => {
-    // Use stored submission values directly to ensure consistency with Results page
-    return {
-      leadResponseLoss: submission.lead_response_loss || 0,
-      failedPaymentLoss: submission.failed_payment_loss || 0,
-      selfServeGap: submission.selfserve_gap_loss || 0,
-      processLoss: submission.process_inefficiency_loss || 0,
-      total_leak: submission.total_leak || 0,
-      recovery_potential_70: submission.recovery_potential_70 || 0,
-      confidence: {
-        level: submission.lead_score ? (submission.lead_score > 70 ? 'high' : submission.lead_score > 40 ? 'medium' : 'low') : 'medium',
-        factors: []
-      }
-    };
-  };
-
-  const calculateROI = (submission: Submission) => {
-    // Use stored recovery potential directly
-    const recoveryPotential = submission.recovery_potential_70 || 0;
-    const currentARR = submission.current_arr || 0;
-    
-    // Calculate realistic ROI as percentage improvement over current ARR
-    if (currentARR > 0 && recoveryPotential > 0) {
-      return Math.round((recoveryPotential / currentARR) * 100);
-    }
-    
-    return 0;
-  };
-
-  const getPriorityActions = (submission: Submission) => {
-    // Use stored submission values for priority actions
-    const actions = [];
-    const currentARR = submission.current_arr || 0;
-    
-    // Lead Response Optimization
-    if ((submission.lead_response_loss || 0) > currentARR * 0.01) {
-      actions.push({
-        id: 'lead-response',
-        title: 'Optimize Lead Response Time',
-        impact: submission.lead_response_loss || 0,
-        timeframe: '2-4 weeks',
-        difficulty: 'Medium',
-        description: 'Implement automated lead routing and response systems',
-        confidence: 'high'
-      });
-    }
-    
-    // Self-Serve Optimization
-    if ((submission.selfserve_gap_loss || 0) > currentARR * 0.01) {
-      actions.push({
-        id: 'self-serve',
-        title: 'Optimize Self-Serve Conversion',
-        impact: submission.selfserve_gap_loss || 0,
-        timeframe: '4-6 weeks',
-        difficulty: 'Hard',
-        description: 'Enhance onboarding flow and reduce conversion friction',
-        confidence: 'high'
-      });
-    }
-    
-    // Payment Recovery
-    if ((submission.failed_payment_loss || 0) > currentARR * 0.005) {
-      actions.push({
-        id: 'payment-recovery',
-        title: 'Deploy Payment Recovery System',
-        impact: submission.failed_payment_loss || 0,
-        timeframe: '1-2 weeks',
-        difficulty: 'Easy',
-        description: 'Implement automated dunning management and payment retry logic',
-        confidence: 'high'
-      });
-    }
-    
-    // Process Automation
-    if ((submission.process_inefficiency_loss || 0) > currentARR * 0.005) {
-      actions.push({
-        id: 'automation',
-        title: 'Automate Manual Processes',
-        impact: submission.process_inefficiency_loss || 0,
-        timeframe: '6-8 weeks',
-        difficulty: 'Hard',
-        description: 'Replace manual workflows with automated systems',
-        confidence: 'medium'
-      });
-    }
-
-    return actions.sort((a, b) => (b.impact || 0) - (a.impact || 0));
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background/80 to-primary/5">
         <div className="text-center relative">
           {/* Glassmorphism loading card */}
-          <div className="backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 rounded-2xl p-8 border border-white/20 shadow-2xl">
+          <div className="backdrop-blur-sm bg-background/70 rounded-2xl p-8 border border-border shadow-2xl">
             <div className="relative mb-6">
               <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/20 border-t-primary mx-auto"></div>
-              <Sparkles className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-primary animate-pulse" />
+              <Calculator className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-primary animate-pulse" />
             </div>
-            <p className="text-muted-foreground font-medium">Crafting your personalized action plan...</p>
+            <p className="text-muted-foreground font-medium">Calculating your enhanced action plan...</p>
             <div className="mt-4 flex items-center justify-center gap-1">
               <div className="h-1 w-8 bg-primary/30 rounded-full animate-pulse delay-0"></div>
               <div className="h-1 w-8 bg-primary/50 rounded-full animate-pulse delay-100"></div>
@@ -698,7 +751,7 @@ const ActionPlan = () => {
   if (!submission) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background/80 to-destructive/5">
-        <Card className="max-w-md mx-auto text-center backdrop-blur-sm bg-white/90 dark:bg-gray-900/90 border-white/20 shadow-2xl">
+        <Card className="max-w-md mx-auto text-center backdrop-blur-sm bg-background/90 border shadow-2xl">
           <CardContent className="p-8">
             <div className="relative mb-6">
               <div className="absolute inset-0 bg-destructive/10 rounded-full blur-xl"></div>
@@ -722,108 +775,92 @@ const ActionPlan = () => {
     );
   }
 
-  const priorityActions = getPriorityActions(submission);
   const actionsChecked = checkedActions.length;
   const completionPercentage = Math.round((actionsChecked / priorityActions.length) * 100);
-  const roi = calculateROI(submission);
-  const calculations = getEnhancedCalculations(submission);
-
-  // Dynamic progress calculation
-  const calculateImplementationProgress = (checkedActions: string[], totalActions: any[]) => {
-    const baseProgress = 15; // Analysis completion
-    const actionProgress = (checkedActions.length / totalActions.length) * 85;
-    return Math.round(baseProgress + actionProgress);
-  };
-
-  const getProgressMessage = (checkedCount: number, totalCount: number) => {
-    if (checkedCount === 0) return "Analysis Complete • Ready to Implement";
-    if (checkedCount === 1) return "1 action started • Great start!";
-    if (checkedCount < totalCount) return `${checkedCount} actions in progress • Building momentum!`;
-    return "All actions identified • Ready for implementation strategy call";
-  };
-
-  const currentProgress = calculateImplementationProgress(checkedActions, priorityActions);
-  const progressMessage = getProgressMessage(checkedActions.length, priorityActions.length);
-
-  console.log('ActionPlan component rendering:', { submission, priorityActions, roi, calculations });
   
   return (
     <div className="min-h-screen bg-background">
-        {/* Compact Hero Section */}
-        <div className="border-b bg-background">
-          <div className="container mx-auto px-4 py-8">
-            <div className="max-w-6xl mx-auto">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Link to={`/results/${submission.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to Results
-                      </Button>
-                    </Link>
+      {/* Compact Hero Section */}
+      <div className="border-b bg-background">
+        <div className="container mx-auto px-4 py-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <Link to={`/results/${submission.id}`}>
+                    <Button variant="ghost" size="sm">
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Back to Results
+                    </Button>
+                  </Link>
+                </div>
+                
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
+                    <Target className="h-5 w-5 text-primary" />
                   </div>
-                  
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
-                      <Target className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h1 className="text-h1 font-bold">Action Plan</h1>
-                      <p className="text-sm text-muted-foreground">{submission?.company_name}</p>
-                    </div>
-                  </div>
-                  
-                  <p className="text-muted-foreground mb-4">
-                    Your personalized roadmap to recover{" "}
-                    <span className="font-semibold text-revenue-success">
-                      {formatCurrency(submission?.total_leak || 0)}
-                    </span>{" "}
-                    in annual revenue leakage.
-                  </p>
-
-                  <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4 text-revenue-success" />
-                      <span className="text-sm">
-                        <span className="font-semibold">{Math.round(calculateROI(submission) || 0)}%</span> ROI
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-primary" />
-                      <span className="text-sm">3-6 month timeline</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckSquare className="h-4 w-4 text-secondary" />
-                      <span className="text-sm">
-                        {actionsChecked}/{priorityActions.length} actions completed
-                      </span>
-                    </div>
+                  <div>
+                    <h1 className="text-h1 font-bold">Enhanced Action Plan</h1>
+                    <p className="text-sm text-muted-foreground">{submission?.company_name}</p>
                   </div>
                 </div>
+                
+                <p className="text-muted-foreground mb-4">
+                  Your data-driven roadmap to recover{" "}
+                  <span className="font-semibold text-success">
+                    {formatCurrency(unifiedResults?.recovery70Percent || submission?.total_leak || 0)}
+                  </span>{" "}
+                  in annual revenue with {unifiedResults?.confidenceLevel || 'medium'} confidence.
+                </p>
 
-                <div className="flex items-center gap-4">
-                  <Card className="p-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-foreground mb-1">
-                        {Math.round(completionPercentage)}%
-                      </div>
-                      <div className="text-xs text-muted-foreground">Complete</div>
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-success" />
+                    <span className="text-sm">
+                      <span className="font-semibold">{Math.round(roiData?.confidenceAdjustedROI || 0)}%</span> ROI
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <span className="text-sm">{investment?.paybackMonths ? Math.round(investment.paybackMonths) : 'TBD'} month payback</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckSquare className="h-4 w-4 text-secondary" />
+                    <span className="text-sm">
+                      {actionsChecked}/{priorityActions.length} actions completed
+                    </span>
+                  </div>
+                  {unifiedResults?.confidenceLevel && (
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-warning" />
+                      <span className="text-sm capitalize">{unifiedResults.confidenceLevel} confidence</span>
                     </div>
-                  </Card>
-                  
-                  <Button 
-                    onClick={handleExportPDF}
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    <FileDown className="h-4 w-4 mr-2" />
-                    Export PDF
-                  </Button>
+                  )}
                 </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <Card className="p-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-foreground mb-1">
+                      {Math.round(completionPercentage)}%
+                    </div>
+                    <div className="text-xs text-muted-foreground">Complete</div>
+                  </div>
+                </Card>
+                
+                <Button 
+                  onClick={handleExportPDF}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Export PDF
+                </Button>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <ProgressEncouragement />
@@ -843,40 +880,47 @@ const ActionPlan = () => {
 
           <TabsContent value="overview" className="space-y-6 mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Enhanced Revenue Impact */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3">
-                    <div className="p-2 bg-revenue-danger/10 rounded-lg">
-                      <TrendingDown className="h-5 w-5 text-revenue-danger" />
+                    <div className="p-2 bg-destructive/10 rounded-lg">
+                      <TrendingDown className="h-5 w-5 text-destructive" />
                     </div>
-                    Revenue Impact Breakdown
+                    Enhanced Revenue Analysis
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                       <span className="font-medium">Lead Response Loss</span>
-                      <span className="font-bold text-revenue-danger">
-                        {formatCurrency(calculations.leadResponseLoss)}
+                      <span className="font-bold text-destructive">
+                        {formatCurrency(unifiedResults?.leadResponseLoss || submission?.lead_response_loss || 0)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                       <span className="font-medium">Self-Serve Gap</span>
-                      <span className="font-bold text-revenue-danger">
-                        {formatCurrency(calculations.selfServeGap)}
+                      <span className="font-bold text-destructive">
+                        {formatCurrency(unifiedResults?.selfServeGapLoss || submission?.selfserve_gap_loss || 0)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                      <span className="font-medium">Payment Failures</span>
+                      <span className="font-bold text-destructive">
+                        {formatCurrency(unifiedResults?.failedPaymentLoss || submission?.failed_payment_loss || 0)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                       <span className="font-medium">Process Inefficiency</span>
-                      <span className="font-bold text-revenue-danger">
-                        {formatCurrency(calculations.processLoss)}
+                      <span className="font-bold text-destructive">
+                        {formatCurrency(unifiedResults?.processInefficiencyLoss || submission?.process_inefficiency_loss || 0)}
                       </span>
                     </div>
                     <div className="border-t pt-4">
-                      <div className="flex justify-between items-center p-4 bg-revenue-danger/10 rounded-lg">
+                      <div className="flex justify-between items-center p-4 bg-destructive/10 rounded-lg">
                         <span className="font-bold">Total Annual Leak</span>
-                        <span className="text-lg font-bold text-revenue-danger">
-                          {formatCurrency(calculations.total_leak)}
+                        <span className="text-lg font-bold text-destructive">
+                          {formatCurrency(unifiedResults?.totalLoss || submission?.total_leak || 0)}
                         </span>
                       </div>
                     </div>
@@ -884,120 +928,309 @@ const ActionPlan = () => {
                 </CardContent>
               </Card>
 
+              {/* Enhanced Recovery Potential */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <Target className="h-5 w-5 text-primary" />
+                    <div className="p-2 bg-success/10 rounded-lg">
+                      <Target className="h-5 w-5 text-success" />
                     </div>
-                    Quick Actions
+                    Recovery Scenarios
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   <div className="space-y-3">
-                    {priorityActions.slice(0, 3).map((action) => (
-                      <div key={action.id} className="flex items-center gap-4 p-4 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
-                        <Checkbox
-                          id={action.id}
-                          checked={checkedActions.includes(action.id)}
-                          onCheckedChange={(checked) => handleActionToggle(action.id, checked as boolean)}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <span className="font-semibold">{action.title}</span>
-                        </div>
-                        <Badge variant="outline" className="text-primary">
-                          {action.timeframe}
-                        </Badge>
+                    <div className="flex justify-between items-center p-3 bg-success/5 rounded-lg border border-success/20">
+                      <div>
+                        <span className="font-medium">Conservative (70%)</span>
+                        <p className="text-xs text-muted-foreground">High confidence</p>
                       </div>
-                    ))}
+                      <span className="font-bold text-success">
+                        {formatCurrency(unifiedResults?.recovery70Percent || 0)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-warning/5 rounded-lg border border-warning/20">
+                      <div>
+                        <span className="font-medium">Optimistic (85%)</span>
+                        <p className="text-xs text-muted-foreground">Strong execution</p>
+                      </div>
+                      <span className="font-bold text-warning">
+                        {formatCurrency(unifiedResults?.recovery85Percent || 0)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-primary/5 rounded-lg border border-primary/20">
+                      <div>
+                        <span className="font-medium">Best Case</span>
+                        <p className="text-xs text-muted-foreground">Perfect conditions</p>
+                      </div>
+                      <span className="font-bold text-primary">
+                        {formatCurrency(unifiedResults?.recoveryBestCase || 0)}
+                      </span>
+                    </div>
                   </div>
+                  
+                  {unifiedResults?.confidenceBounds && (
+                    <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                      <p className="text-sm text-muted-foreground">
+                        <strong>Confidence Range:</strong> {formatCurrency(unifiedResults.confidenceBounds.lower)} - {formatCurrency(unifiedResults.confidenceBounds.upper)}
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
+
+              {/* Investment Analysis */}
+              {investment && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                      <div className="p-2 bg-warning/10 rounded-lg">
+                        <DollarSign className="h-5 w-5 text-warning" />
+                      </div>
+                      Investment Requirements
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                        <span className="font-medium">Implementation Cost</span>
+                        <span className="font-bold">
+                          {formatCurrency(investment.implementationCost)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                        <span className="font-medium">Annual Ongoing</span>
+                        <span className="font-bold">
+                          {formatCurrency(investment.ongoingCost)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                        <span className="font-medium">Payback Period</span>
+                        <span className="font-bold">
+                          {Math.round(investment.paybackMonths)} months
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* ROI Analysis */}
+              {roiData && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <BarChart3 className="h-5 w-5 text-primary" />
+                      </div>
+                      ROI Analysis
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                        <span className="font-medium">Baseline ROI</span>
+                        <span className="font-bold">
+                          {Math.round(roiData.roi)}%
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
+                        <span className="font-medium">Confidence-Adjusted ROI</span>
+                        <span className="font-bold text-primary">
+                          {Math.round(roiData.confidenceAdjustedROI)}%
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                        <span className="font-medium">Return Category</span>
+                        <Badge variant="secondary">
+                          {roiData.category}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </TabsContent>
 
           <TabsContent value="actions" className="space-y-6 mt-6">
-            <PriorityActions 
-              submission={submission}
-              formatCurrency={formatCurrency}
-              calculatorData={{
-                companyInfo: {
-                  currentARR: submission.current_arr || 0,
-                  industry: submission.industry
-                },
-                leadGeneration: {
-                  monthlyLeads: submission.monthly_leads || 0,
-                  averageDealValue: submission.average_deal_value || 0,
-                  leadResponseTime: submission.lead_response_time || 0
-                },
-                selfServe: {
-                  monthlyFreeSignups: submission.monthly_free_signups || 0,
-                  freeToLaidConversion: submission.free_to_paid_conversion || 0,
-                  monthlyMRR: submission.monthly_mrr || 0,
-                  failedPaymentRate: submission.failed_payment_rate || 0
-                },
-                operations: {
-                  manualHours: submission.manual_hours || 0,
-                  hourlyRate: submission.hourly_rate || 0
-                }
-              }}
-            />
+            <div className="space-y-4">
+              {priorityActions.map((action, index) => (
+                <Card key={action.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <Checkbox
+                        id={action.id}
+                        checked={checkedActions.includes(action.id)}
+                        onCheckedChange={(checked) => handleActionToggle(action.id, checked as boolean)}
+                        className="mt-1"
+                      />
+                      
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className="flex items-center gap-2">
+                                {getCategoryIcon(action.category)}
+                                <h3 className="font-semibold text-lg">{action.title}</h3>
+                              </div>
+                              <Badge className={getDifficultyColor(action.difficulty)}>
+                                {action.difficulty}
+                              </Badge>
+                              <Badge variant="outline">
+                                {action.category}
+                              </Badge>
+                            </div>
+                            <p className="text-muted-foreground mb-3">{action.description}</p>
+                          </div>
+                          
+                          <div className="text-right ml-4">
+                            <div className="text-lg font-bold text-success">
+                              {formatCurrency(action.impact || 0)}
+                            </div>
+                            <div className="text-sm text-muted-foreground">recovery potential</div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-wrap items-center gap-4 pt-3 border-t">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">{action.timeframe}</span>
+                          </div>
+                          {action.implementation && (
+                            <>
+                              <div className="flex items-center gap-2">
+                                <Building className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm">Est. Cost: {formatCurrency(action.implementation.cost)}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Users className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm">{action.implementation.effort} effort</span>
+                              </div>
+                            </>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <Shield className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm capitalize">{action.confidence} confidence</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </TabsContent>
 
           <TabsContent value="timeline" className="space-y-6 mt-6">
-            <ImplementationTimeline 
-              submission={submission}
-              formatCurrency={formatCurrency}
-              validatedValues={{
-                totalLeak: calculations.total_leak,
-                leadResponseLoss: calculations.leadResponseLoss,
-                selfServeLoss: calculations.selfServeGap,
-                recoveryPotential70: calculations.recovery_potential_70,
-                recoveryPotential85: calculations.recovery_potential_70 * 1.2
-              }}
-              calculatorData={{
-                companyInfo: {
-                  currentARR: submission.current_arr || 0,
-                  industry: submission.industry
-                },
-                leadGeneration: {
-                  monthlyLeads: submission.monthly_leads || 0,
-                  averageDealValue: submission.average_deal_value || 0,
-                  leadResponseTime: submission.lead_response_time || 0
-                },
-                selfServe: {
-                  monthlyFreeSignups: submission.monthly_free_signups || 0,
-                  freeToLaidConversion: submission.free_to_paid_conversion || 0,
-                  monthlyMRR: submission.monthly_mrr || 0,
-                  failedPaymentRate: submission.failed_payment_rate || 0
-                },
-                operations: {
-                  manualHours: submission.manual_hours || 0,
-                  hourlyRate: submission.hourly_rate || 0
-                }
-              }}
-            />
+            {timeline.length > 0 ? (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold text-success mb-1">
+                        {timeline.length}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Implementation Phases</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold text-primary mb-1">
+                        {Math.max(...timeline.map(p => p.endMonth))}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Months to Complete</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold text-warning mb-1">
+                        {formatCurrency(timeline.reduce((sum, p) => sum + p.recoveryPotential, 0))}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Total Recovery</div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="space-y-4">
+                  {timeline.map((phase, index) => (
+                    <Card key={phase.id} className="border-l-4 border-l-primary">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium text-primary">
+                                {index + 1}
+                              </div>
+                              <h3 className="font-semibold text-lg">{phase.title}</h3>
+                              <Badge className={getDifficultyColor(phase.difficulty)}>
+                                {phase.difficulty}
+                              </Badge>
+                            </div>
+                            <p className="text-muted-foreground mb-3">{phase.description}</p>
+                            <div className="flex items-center gap-4 text-sm">
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-4 w-4" />
+                                Months {phase.startMonth}-{phase.endMonth}
+                              </span>
+                              <span className="font-medium text-success">
+                                {formatCurrency(phase.recoveryPotential)} recovery
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Actions List */}
+                        <div className="space-y-3">
+                          <h4 className="font-medium text-sm">Key Implementation Actions:</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {phase.actions.map((action, actionIndex) => (
+                              <div key={actionIndex} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                                <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs">
+                                  {actionIndex + 1}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">{action.title}</p>
+                                  <p className="text-xs text-muted-foreground">{action.weeks}w • {action.owner}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Timeline Under Development</h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  We're analyzing your specific situation to create a detailed implementation timeline. 
+                  Check back soon or contact us for personalized guidance.
+                </p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 
-        {/* Strategic CTA Section */}
-        {submission && (
+        {/* Enhanced Strategic CTA Section */}
+        <div className="mt-12">
           <StrategicCTASection
-            totalLeak={submission.total_leak || 0}
-            recovery70={submission.recovery_potential_70 || 0}
-            leadScore={submission.lead_score || 0}
+            totalLeak={unifiedResults?.totalLoss || submission?.total_leak || 0}
+            recovery70={unifiedResults?.recovery70Percent || submission?.recovery_potential_70 || 0}
+            leadScore={submission?.lead_score || 50}
             formatCurrency={formatCurrency}
           />
-        )}
-
-        {/* Floating CTA Bar */}
-        {submission && (
-          <FloatingCTABar
-            totalLeak={submission.total_leak || 0}
-            formatCurrency={formatCurrency}
-          />
-        )}
+        </div>
       </div>
+
+      {/* Enhanced Floating CTA */}
+      <FloatingCTABar
+        totalLeak={unifiedResults?.totalLoss || submission?.total_leak || 0}
+        formatCurrency={formatCurrency}
+      />
     </div>
   );
 };
