@@ -224,7 +224,64 @@ export interface TimelinePhase {
   }[];
 }
 
-// Enhanced investment calculation with realistic cost modeling
+// Work type classification for realistic cost modeling
+export interface WorkTypeConfig {
+  dailyRate: number;
+  teamSize: number;
+  fteFactor: number;
+  toolingCostMultiplier: number;
+  ongoingMultiplier: number;
+}
+
+const WORK_TYPE_CONFIGS: Record<string, WorkTypeConfig> = {
+  'quick-optimization': {
+    dailyRate: 150,    // Internal optimization work
+    teamSize: 1,       // Single person
+    fteFactor: 0.2,    // 20% time allocation
+    toolingCostMultiplier: 0.1,
+    ongoingMultiplier: 0.05
+  },
+  'tool-implementation': {
+    dailyRate: 250,    // Blended internal + some external
+    teamSize: 1.2,     // Minimal team
+    fteFactor: 0.3,    // 30% time allocation
+    toolingCostMultiplier: 0.3,
+    ongoingMultiplier: 0.075
+  },
+  'technical-development': {
+    dailyRate: 400,    // Developer rates
+    teamSize: 1.5,     // Small dev team
+    fteFactor: 0.4,    // 40% time allocation
+    toolingCostMultiplier: 0.5,
+    ongoingMultiplier: 0.10
+  },
+  'complex-automation': {
+    dailyRate: 500,    // Senior dev + PM
+    teamSize: 2,       // Small specialized team
+    fteFactor: 0.5,    // 50% time allocation
+    toolingCostMultiplier: 0.7,
+    ongoingMultiplier: 0.15
+  }
+};
+
+// Function to classify work type based on phase characteristics
+const classifyWorkType = (phase: TimelinePhase): string => {
+  switch (phase.id) {
+    case 'self-serve-optimization':
+      return 'quick-optimization';
+    case 'lead-response':
+      return 'tool-implementation';
+    case 'payment-recovery':
+      return 'technical-development';
+    case 'process-automation':
+      return 'complex-automation';
+    default:
+      return phase.difficulty === 'easy' ? 'quick-optimization' :
+             phase.difficulty === 'medium' ? 'tool-implementation' : 'technical-development';
+  }
+};
+
+// Enhanced investment calculation with work-type based cost modeling
 export const calculateRealisticInvestment = (
   phases: TimelinePhase[],
   inputs: UnifiedCalculationInputs
@@ -237,33 +294,12 @@ export const calculateRealisticInvestment = (
   // Calculate total annual recovery potential for validation
   const totalRecovery = phases.reduce((sum, phase) => sum + phase.recoveryPotential, 0);
   
-  // Company scale factors with much more conservative resource allocation
+  // Company scale factors for tooling and infrastructure
   const getCompanyScaleFactors = (arr: number) => {
-    if (arr > 50000000) return { // $50M+ ARR
-      blendedDailyRate: 600, // Mix of internal + consulting
-      partTimeAllocation: 0.6, // 60% time allocation
-      toolingBudget: 150000
-    };
-    if (arr > 10000000) return { // $10M+ ARR
-      blendedDailyRate: 500,
-      partTimeAllocation: 0.5,
-      toolingBudget: 100000
-    };
-    if (arr > 5000000) return { // $5M+ ARR
-      blendedDailyRate: 400,
-      partTimeAllocation: 0.4,
-      toolingBudget: 75000
-    };
-    if (arr > 1000000) return { // $1M+ ARR
-      blendedDailyRate: 350,
-      partTimeAllocation: 0.3,
-      toolingBudget: 50000
-    };
-    return { // < $1M ARR
-      blendedDailyRate: 300,
-      partTimeAllocation: 0.25,
-      toolingBudget: 25000
-    };
+    if (arr > 10000000) return { toolingBudget: 25000, infrastructureFactor: 1.2 };
+    if (arr > 5000000) return { toolingBudget: 15000, infrastructureFactor: 1.1 };
+    if (arr > 1000000) return { toolingBudget: 10000, infrastructureFactor: 1.0 };
+    return { toolingBudget: 5000, infrastructureFactor: 0.8 };
   };
 
   // Industry-specific adjustments (much more conservative)
@@ -289,23 +325,14 @@ export const calculateRealisticInvestment = (
   
   phases.forEach(phase => {
     const totalWeeks = phase.actions.reduce((sum, action) => sum + action.weeks, 0);
+    const workType = classifyWorkType(phase);
+    const workConfig = WORK_TYPE_CONFIGS[workType];
     
-    // Conservative difficulty multipliers
-    const difficultyMultiplier = {
-      'easy': 1.0,
-      'medium': 1.2,
-      'hard': 1.4
-    }[phase.difficulty];
-
-    // Blended daily rate (internal staff + occasional consulting)
-    const dailyRate = scaleFactors.blendedDailyRate * difficultyMultiplier * industryFactors.complexityFactor;
+    // Use work-type specific daily rates
+    const dailyRate = workConfig.dailyRate * industryFactors.complexityFactor;
     
-    // Small team sizes with part-time allocation
-    const teamSize = phase.difficulty === 'easy' ? 1 : 
-                    phase.difficulty === 'medium' ? 1.5 : 2;
-    
-    // Apply part-time allocation to realistic resource commitment
-    const effectiveTeamSize = teamSize * scaleFactors.partTimeAllocation;
+    // Apply work-type specific team configuration
+    const effectiveTeamSize = workConfig.teamSize * workConfig.fteFactor;
     
     // Weekly cost = daily rate × effective team size × 5 days
     const weeklyTeamCost = dailyRate * effectiveTeamSize * 5;
@@ -313,11 +340,8 @@ export const calculateRealisticInvestment = (
     const phaseImplementationCost = weeklyTeamCost * totalWeeks;
     implementationCost += phaseImplementationCost;
     
-    // Ongoing costs (much lower - 5-10% of implementation cost annually)
-    const ongoingMultiplier = phase.difficulty === 'easy' ? 0.05 : 
-                             phase.difficulty === 'medium' ? 0.075 : 0.10;
-    
-    ongoingAnnualCost += phaseImplementationCost * ongoingMultiplier;
+    // Use work-type specific ongoing costs
+    ongoingAnnualCost += phaseImplementationCost * workConfig.ongoingMultiplier;
   });
   
   // Add reasonable tooling costs (not per-phase, but total)
