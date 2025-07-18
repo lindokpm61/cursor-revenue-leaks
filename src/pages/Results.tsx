@@ -22,6 +22,7 @@ import {
   Calendar
 } from "lucide-react";
 import { submissionService, type Submission } from "@/lib/supabase";
+import { UnifiedResultsService, type SubmissionData } from "@/lib/results/UnifiedResultsService";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -87,111 +88,50 @@ const Results = () => {
     };
   }, [submission]);
 
-  // Calculate fresh, realistic values using the corrected logic (moved before early returns)
-  const calculations: Calculations = useMemo(() => {
-    if (!submission) return {} as Calculations;
-
-    console.log('=== CALCULATION COMPARISON DEBUG ===');
-    console.log('Legacy stored values:', {
-      storedTotalLeak: submission.total_leak,
-      storedRecovery70: submission.recovery_potential_70,
-      storedRecovery85: submission.recovery_potential_85,
-      currentARR: submission.current_arr,
-      leakPercentage: submission.total_leak && submission.current_arr ? 
-        ((submission.total_leak / submission.current_arr) * 100).toFixed(1) + '%' : 'N/A'
-    });
-
-    const safeNumber = (value: any): number => {
-      const num = Number(value);
-      return isNaN(num) ? 0 : num;
-    };
-
-    // Extract validated data
-    const monthlyLeads = safeNumber(calculatorData.leadGeneration?.monthlyLeads);
-    const averageDealValue = safeNumber(calculatorData.leadGeneration?.averageDealValue);
-    const leadResponseTimeHours = safeNumber(calculatorData.leadGeneration?.leadResponseTimeHours);
-    const monthlyFreeSignups = safeNumber(calculatorData.selfServeMetrics?.monthlyFreeSignups);
-    const freeToPaidConversionRate = safeNumber(calculatorData.selfServeMetrics?.freeToPaidConversionRate);
-    const monthlyMRR = safeNumber(calculatorData.selfServeMetrics?.monthlyMRR);
-    const failedPaymentRate = safeNumber(calculatorData.operationsData?.failedPaymentRate);
-    const manualHoursPerWeek = safeNumber(calculatorData.operationsData?.manualHoursPerWeek);
-    const hourlyRate = safeNumber(calculatorData.operationsData?.hourlyRate);
-    const currentARR = safeNumber(calculatorData.companyInfo?.currentARR);
-    const industry = calculatorData.companyInfo?.industry || 'other';
-
-    // Determine recovery system type
-    const determineRecoverySystemType = (arr: number, mrr: number): keyof typeof RECOVERY_SYSTEMS => {
-      if (arr > 10000000 || mrr > 500000) return 'best-in-class';
-      if (arr > 1000000 || mrr > 50000) return 'advanced';
-      return 'basic';
-    };
-
-    // Calculate fresh values with realistic bounds
-    const responseImpact = calculateLeadResponseImpact(leadResponseTimeHours, averageDealValue);
-    const rawLeadResponseLoss = monthlyLeads * averageDealValue * (1 - responseImpact) * 12;
-    const leadResponseLoss = Math.min(rawLeadResponseLoss, currentARR * 0.08);
-
-    const recoverySystemType = determineRecoverySystemType(currentARR, monthlyMRR);
-    const failedPaymentLoss = calculateFailedPaymentLoss(monthlyMRR, failedPaymentRate, recoverySystemType);
-
-    const rawSelfServeGap = calculateSelfServeGap(
-      monthlyFreeSignups,
-      freeToPaidConversionRate,
-      monthlyMRR,
-      industry
-    );
-    const selfServeGap = Math.min(rawSelfServeGap, currentARR * 0.12);
-
-    const rawProcessLoss = calculateProcessInefficiency(manualHoursPerWeek, hourlyRate);
-    const processLoss = Math.min(rawProcessLoss, currentARR * 0.05);
-
-    // Total calculations with realistic bounds
-    const rawTotalLeakage = leadResponseLoss + failedPaymentLoss + selfServeGap + processLoss;
-    const totalLeakage = Math.min(rawTotalLeakage, currentARR * 0.20);
+  // Convert submission to the format expected by UnifiedResultsService
+  const submissionData: SubmissionData = useMemo(() => {
+    if (!submission) return {} as SubmissionData;
     
-    // Recovery potential with realistic bounds
-    const potentialRecovery70 = Math.min(totalLeakage * 0.7, currentARR * 0.14);
-    const potentialRecovery85 = Math.min(totalLeakage * 0.85, currentARR * 0.17);
-
-    const freshCalculations = {
-      leadResponseLoss: isFinite(leadResponseLoss) ? leadResponseLoss : 0,
-      failedPaymentLoss: isFinite(failedPaymentLoss) ? failedPaymentLoss : 0,
-      selfServeGap: isFinite(selfServeGap) ? selfServeGap : 0,
-      processLoss: isFinite(processLoss) ? processLoss : 0,
-      totalLeakage: isFinite(totalLeakage) ? totalLeakage : 0,
-      potentialRecovery70: isFinite(potentialRecovery70) ? potentialRecovery70 : 0,
-      potentialRecovery85: isFinite(potentialRecovery85) ? potentialRecovery85 : 0,
-      // Legacy property names for backward compatibility
-      totalLeak: isFinite(totalLeakage) ? totalLeakage : 0,
-      recoveryPotential70: isFinite(potentialRecovery70) ? potentialRecovery70 : 0,
-      recoveryPotential85: isFinite(potentialRecovery85) ? potentialRecovery85 : 0,
+    return {
+      id: submission.id,
+      company_name: submission.company_name,
+      contact_email: submission.contact_email,
+      industry: submission.industry,
+      current_arr: submission.current_arr || 0,
+      monthly_leads: submission.monthly_leads || 0,
+      average_deal_value: submission.average_deal_value || 0,
+      lead_response_time: submission.lead_response_time || 24,
+      monthly_free_signups: submission.monthly_free_signups || 0,
+      free_to_paid_conversion: submission.free_to_paid_conversion || 0,
+      monthly_mrr: submission.monthly_mrr || 0,
+      failed_payment_rate: submission.failed_payment_rate || 0,
+      manual_hours: submission.manual_hours || 0,
+      hourly_rate: submission.hourly_rate || 0,
+      lead_score: submission.lead_score || 0,
+      user_id: submission.user_id,
+      created_at: submission.created_at
     };
+  }, [submission]);
 
-    console.log('Fresh unified calculations:', {
-      totalLeakage: freshCalculations.totalLeakage,
-      potentialRecovery70: freshCalculations.potentialRecovery70,
-      potentialRecovery85: freshCalculations.potentialRecovery85,
-      leakPercentage: currentARR > 0 ? 
-        ((freshCalculations.totalLeakage / currentARR) * 100).toFixed(1) + '%' : 'N/A',
-      breakdown: {
-        leadResponseLoss: freshCalculations.leadResponseLoss,
-        failedPaymentLoss: freshCalculations.failedPaymentLoss,
-        selfServeGap: freshCalculations.selfServeGap,
-        processLoss: freshCalculations.processLoss
-      }
-    });
+  // Calculate unified results
+  const unifiedCalculations = useMemo(() => {
+    return UnifiedResultsService.calculateResults(submissionData);
+  }, [submissionData]);
 
-    // Validation warning for unrealistic stored values
-    if (submission.total_leak && currentARR > 0 && (submission.total_leak / currentARR) > 0.25) {
-      console.warn('⚠️ LEGACY VALUES DETECTED: Stored values exceed realistic bounds', {
-        storedLeakPercentage: ((submission.total_leak / currentARR) * 100).toFixed(1) + '%',
-        realisticLeakPercentage: ((freshCalculations.totalLeakage / currentARR) * 100).toFixed(1) + '%',
-        recommendation: 'Using fresh unified calculations instead'
-      });
-    }
-
-    return freshCalculations;
-  }, [calculatorData, submission]);
+  // Create compatibility layer for components expecting old Calculations interface
+  const calculations: Calculations = useMemo(() => ({
+    leadResponseLoss: unifiedCalculations.leadResponseLoss,
+    failedPaymentLoss: unifiedCalculations.failedPaymentLoss,
+    selfServeGap: unifiedCalculations.selfServeGap,
+    processLoss: unifiedCalculations.processInefficiency,
+    totalLeakage: unifiedCalculations.totalLoss,
+    potentialRecovery70: unifiedCalculations.conservativeRecovery,
+    potentialRecovery85: unifiedCalculations.optimisticRecovery,
+    // Legacy property names for backward compatibility
+    totalLeak: unifiedCalculations.totalLoss,
+    recoveryPotential70: unifiedCalculations.conservativeRecovery,
+    recoveryPotential85: unifiedCalculations.optimisticRecovery,
+  }), [unifiedCalculations]);
 
   useEffect(() => {
     if (id) {
@@ -665,6 +605,7 @@ const Results = () => {
             <IndustryBenchmarking 
               submission={submission}
               formatCurrency={formatCurrency}
+              calculations={unifiedCalculations}
             />
             <SectionCTA type="benchmarking" totalLeak={totalLeak} formatCurrency={formatCurrency} />
           </div>
