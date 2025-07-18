@@ -19,7 +19,7 @@ import { UnifiedResultsService } from "@/lib/results/UnifiedResultsService";
 import { PriorityActions } from "@/components/calculator/results/PriorityActions";
 import { ExecutiveSummary } from "@/components/calculator/results/ExecutiveSummary";
 import { UserIntentSelector } from "@/components/results/UserIntentSelector";
-import { TldrSummary } from "@/components/results/TldrSummary";
+import { ComprehensiveSummary } from "@/components/results/ComprehensiveSummary";
 import { ActionPlanTimeline } from "@/components/ActionPlanTimeline";
 import { ActionPlanScenarioPlanning } from "@/components/ActionPlanScenarioPlanning";
 import type { UserIntent } from "@/components/results/UserIntentSelector";
@@ -523,59 +523,11 @@ export default function ActionPlan() {
             </TabsContent>
 
             <TabsContent value="summary">
-              <div className="space-y-6">
-                {/* Dynamic TldrSummary component */}
-                <TldrSummary
-                  submission={submissionData as any}
-                  userIntent={userIntent}
-                  formatCurrency={UnifiedResultsService.formatCurrency}
-                  onExpandSection={handleExpandSection}
-                />
-
-                {/* Enhanced CTA Section */}
-                <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Target className="h-5 w-5 text-primary" />
-                      Ready to Get Started?
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <h4 className="font-semibold mb-3">Immediate Actions</h4>
-                        <ul className="space-y-2 text-sm text-muted-foreground">
-                          <li>• Download your personalized action plan</li>
-                          <li>• Share with your leadership team</li>
-                          <li>• Schedule implementation kickoff meeting</li>
-                          <li>• Book a strategy consultation</li>
-                        </ul>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold mb-3">Resources & Support</h4>
-                        <ul className="space-y-2 text-sm text-muted-foreground">
-                          <li>• Implementation playbook</li>
-                          <li>• ROI tracking templates</li>
-                          <li>• Expert consultation calls</li>
-                          <li>• Progress monitoring tools</li>
-                        </ul>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                      <Button className="bg-gradient-to-r from-primary to-primary/80">
-                        Schedule Strategy Call
-                      </Button>
-                      <Button variant="outline">
-                        Download Full Report
-                      </Button>
-                      <Button variant="ghost">
-                        Join Implementation Community
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              <ComprehensiveSummary
+                submission={submissionData as any}
+                formatCurrency={UnifiedResultsService.formatCurrency}
+                onExpandSection={handleExpandSection}
+              />
             </TabsContent>
           </Tabs>
         </div>
