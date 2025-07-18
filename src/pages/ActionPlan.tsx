@@ -395,7 +395,7 @@ const ActionPlan = () => {
           .upsert({
             id: user.id,
             checked_actions: checkedActions,
-            modified_action_costs: updatedCosts,
+            modified_action_costs: updatedCosts as any,
             updated_at: new Date().toISOString()
           }, {
             onConflict: 'id'
@@ -459,8 +459,8 @@ const ActionPlan = () => {
       }
       
       // Load modified action costs if they exist
-      if (profile?.modified_action_costs && typeof profile.modified_action_costs === 'object') {
-        setModifiedActionCosts(profile.modified_action_costs as Record<string, number>);
+      if ((profile as any)?.modified_action_costs && typeof (profile as any).modified_action_costs === 'object') {
+        setModifiedActionCosts((profile as any).modified_action_costs as Record<string, number>);
       }
     } catch (error) {
       console.error('Failed to load user profile:', error);
