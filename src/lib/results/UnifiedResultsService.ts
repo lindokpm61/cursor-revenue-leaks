@@ -71,42 +71,52 @@ export class UnifiedResultsService {
     const manualHours = Math.max(0, Math.min(80, submission.manual_hours || 10));
     const hourlyRate = Math.max(25, Math.min(500, submission.hourly_rate || 75));
 
-    // Calculate individual losses with realistic formulas
+    // Industry benchmarks for realistic calculations
+    const industryLeadConversionRate = 0.03; // 3% typical B2B conversion rate
+    const industryResponseTimeOptimal = 1; // 1 hour optimal response time
+    const industryConversionRateBenchmark = 3.5; // 3.5% self-serve conversion benchmark
+
+    // Calculate individual losses with realistic, conversion-based formulas
     
-    // 1. Lead Response Loss: Based on response delay impact
-    const responseDelayImpact = Math.min(0.12, (leadResponseHours - 1) / 24 * 0.05); // Max 12% impact
-    const leadResponseLoss = Math.min(
-      monthlyLeads * averageDealValue * responseDelayImpact * 12,
-      currentARR * 0.08 // Cap at 8% of ARR
-    );
+    // 1. Lead Response Loss: Based on conversion rate impact from delayed response
+    // Calculate actual converted customers per month
+    const actualMonthlyConversions = monthlyLeads * industryLeadConversionRate;
+    
+    // Response delay impact on conversion rate (research shows 50% drop after first hour)
+    const responseDelayMultiplier = leadResponseHours > industryResponseTimeOptimal ? 
+      Math.min(0.5, (leadResponseHours - industryResponseTimeOptimal) / 24 * 0.2) : 0;
+    
+    // Lost conversions due to slow response
+    const lostConversionsPerMonth = actualMonthlyConversions * responseDelayMultiplier;
+    const leadResponseLoss = lostConversionsPerMonth * averageDealValue * 12;
 
-    // 2. Failed Payment Loss: Direct calculation from MRR and failure rate
-    const failedPaymentLoss = Math.min(
-      monthlyMRR * (failureRate / 100) * 12 * 0.65, // 65% actual loss after recovery attempts
-      currentARR * 0.06 // Cap at 6% of ARR
-    );
+    // 2. Failed Payment Loss: Direct calculation from MRR and failure rate (already correct)
+    const failedPaymentLoss = monthlyMRR * (failureRate / 100) * 12 * 0.65; // 65% actual loss after recovery attempts
 
-    // 3. Self-Serve Gap: Conversion rate improvement opportunity
-    const industryBenchmark = 3.5;
-    const conversionGap = Math.max(0, industryBenchmark - conversionRate);
-    const estimatedCustomerValue = monthlyMRR > 0 && conversionRate > 0 ? 
+    // 3. Self-Serve Gap: Based on incremental conversion rate improvement
+    const conversionGap = Math.max(0, industryConversionRateBenchmark - conversionRate);
+    
+    // Calculate value per signup based on current performance
+    const currentCustomerValue = conversionRate > 0 && monthlySignups > 0 ? 
       (monthlyMRR * 12) / (monthlySignups * conversionRate / 100) :
-      averageDealValue * 0.3; // Estimate for self-serve
+      averageDealValue * 0.3; // Conservative estimate for self-serve customers
     
-    const selfServeGap = Math.min(
-      monthlySignups * (conversionGap / 100) * estimatedCustomerValue * 12,
-      currentARR * 0.12 // Cap at 12% of ARR
-    );
+    // Additional conversions from improving to industry benchmark
+    const additionalConversionsPerMonth = monthlySignups * (conversionGap / 100);
+    const selfServeGap = additionalConversionsPerMonth * currentCustomerValue * 12;
 
-    // 4. Process Inefficiency: Direct cost calculation
-    const processInefficiency = Math.min(
-      manualHours * hourlyRate * 52,
-      currentARR * 0.05 // Cap at 5% of ARR
-    );
+    // 4. Process Inefficiency: Direct cost calculation (already correct)
+    const processInefficiency = manualHours * hourlyRate * 52;
+
+    // Apply reasonable caps to prevent unrealistic values
+    const cappedLeadResponseLoss = Math.min(leadResponseLoss, currentARR * 0.08);
+    const cappedFailedPaymentLoss = Math.min(failedPaymentLoss, currentARR * 0.06);
+    const cappedSelfServeGap = Math.min(selfServeGap, currentARR * 0.12);
+    const cappedProcessInefficiency = Math.min(processInefficiency, currentARR * 0.05);
 
     // Total loss with overall cap
     const totalLoss = Math.min(
-      leadResponseLoss + failedPaymentLoss + selfServeGap + processInefficiency,
+      cappedLeadResponseLoss + cappedFailedPaymentLoss + cappedSelfServeGap + cappedProcessInefficiency,
       currentARR * 0.25 // Overall cap at 25% of ARR
     );
 
@@ -123,29 +133,29 @@ export class UnifiedResultsService {
       {
         category: 'leadResponse',
         title: 'Lead Response Loss',
-        amount: leadResponseLoss,
-        percentage: totalLoss > 0 ? (leadResponseLoss / totalLoss) * 100 : 0,
+        amount: cappedLeadResponseLoss,
+        percentage: totalLoss > 0 ? (cappedLeadResponseLoss / totalLoss) * 100 : 0,
         color: 'hsl(var(--destructive))'
       },
       {
         category: 'failedPayments',
         title: 'Failed Payment Loss',
-        amount: failedPaymentLoss,
-        percentage: totalLoss > 0 ? (failedPaymentLoss / totalLoss) * 100 : 0,
+        amount: cappedFailedPaymentLoss,
+        percentage: totalLoss > 0 ? (cappedFailedPaymentLoss / totalLoss) * 100 : 0,
         color: 'hsl(var(--revenue-warning))'
       },
       {
         category: 'selfServe',
         title: 'Self-Serve Gap',
-        amount: selfServeGap,
-        percentage: totalLoss > 0 ? (selfServeGap / totalLoss) * 100 : 0,
+        amount: cappedSelfServeGap,
+        percentage: totalLoss > 0 ? (cappedSelfServeGap / totalLoss) * 100 : 0,
         color: 'hsl(var(--primary))'
       },
       {
         category: 'processInefficiency',
         title: 'Process Inefficiency',
-        amount: processInefficiency,
-        percentage: totalLoss > 0 ? (processInefficiency / totalLoss) * 100 : 0,
+        amount: cappedProcessInefficiency,
+        percentage: totalLoss > 0 ? (cappedProcessInefficiency / totalLoss) * 100 : 0,
         color: 'hsl(var(--muted-foreground))'
       }
     ];
@@ -156,10 +166,10 @@ export class UnifiedResultsService {
     const bestInClassRecovery = optimisticRecovery;
 
     return {
-      leadResponseLoss,
-      failedPaymentLoss,
-      selfServeGap,
-      processInefficiency,
+      leadResponseLoss: cappedLeadResponseLoss,
+      failedPaymentLoss: cappedFailedPaymentLoss,
+      selfServeGap: cappedSelfServeGap,
+      processInefficiency: cappedProcessInefficiency,
       totalLoss,
       conservativeRecovery,
       optimisticRecovery,
