@@ -48,7 +48,7 @@ interface BenchmarkMetric {
 }
 
 export const IndustryBenchmarking = ({ submission, formatCurrency, calculations, variant = 'standard' }: IndustryBenchmarkingProps) => {
-  const [isContentOpen, setIsContentOpen] = useState(variant === 'detailed' ? true : false);
+  const [isContentOpen, setIsContentOpen] = useState(true);
 
   const calculateBenchmarks = (): BenchmarkMetric[] => {
     // Map submission industry to benchmark keys with robust fallback
