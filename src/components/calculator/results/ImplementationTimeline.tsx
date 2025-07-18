@@ -48,7 +48,7 @@ interface TimelinePhase {
 }
 
 export const ImplementationTimeline = ({ submission, formatCurrency, validatedValues, calculatorData, variant = 'standard' }: ImplementationTimelineProps) => {
-  const [isContentOpen, setIsContentOpen] = useState(variant === 'condensed' ? false : variant === 'detailed' ? true : false);
+  const [isContentOpen, setIsContentOpen] = useState(true);
 
   // Use unified calculations consistently
   const unifiedCalcs = UnifiedResultsService.calculateResults(submission);
