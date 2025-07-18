@@ -62,9 +62,6 @@ export default function ActionPlan() {
           if (submission) {
             setData(submission);
             setUserEmail(submission.email || '');
-            console.log("=== ACTION PLAN FETCH DEBUG ===");
-            console.log("Raw submission data:", submission);
-            console.log("Calculator data structure:", submission.calculator_data);
           } else {
             toast({
               title: "Error",
@@ -101,21 +98,12 @@ export default function ActionPlan() {
   const submissionData = useMemo(() => {
     if (!data || !data.calculator_data) return null;
     
-    console.log("=== ACTION PLAN DATA TRANSFORMATION DEBUG ===");
-    console.log("Original data:", data);
-    console.log("Calculator data:", data.calculator_data);
-
+    
     const calcData = data.calculator_data;
     const companyInfo = calcData.companyInfo || {};
     const leadGeneration = calcData.leadGeneration || {};
     const selfServe = calcData.selfServe || {};
     const operations = calcData.operations || {};
-
-    console.log("=== EXTRACTED NESTED DATA ===");
-    console.log("Company info:", companyInfo);
-    console.log("Lead generation:", leadGeneration);
-    console.log("Self serve:", selfServe);
-    console.log("Operations:", operations);
 
     // CRITICAL FIX: Proper field mapping with fallbacks
     const transformedData = {
@@ -140,30 +128,8 @@ export default function ActionPlan() {
       created_at: data.created_at || new Date().toISOString()
     };
 
-    console.log("=== TRANSFORMED SUBMISSION DATA ===");
-    console.log("Transformed data:", transformedData);
-    console.log("Key values check:");
-    console.log("- Current ARR:", transformedData.current_arr);
-    console.log("- Monthly leads:", transformedData.monthly_leads);
-    console.log("- Average deal value:", transformedData.average_deal_value);
-    console.log("- Lead response time:", transformedData.lead_response_time);
-    console.log("- Monthly signups:", transformedData.monthly_free_signups);
-    console.log("- Conversion rate:", transformedData.free_to_paid_conversion);
-    console.log("- Monthly MRR:", transformedData.monthly_mrr);
-    console.log("- Failed payment rate:", transformedData.failed_payment_rate);
-    console.log("- Manual hours:", transformedData.manual_hours);
-    console.log("- Hourly rate:", transformedData.hourly_rate);
-
     // FIXED: Calculate unified results with proper data
     const unifiedCalcs = UnifiedResultsService.calculateResults(transformedData);
-    
-    console.log("=== UNIFIED CALCULATIONS RESULT ===");
-    console.log("Unified calculations:", unifiedCalcs);
-    console.log("Total loss:", unifiedCalcs.totalLoss);
-    console.log("Recovery amounts:", {
-      conservative: unifiedCalcs.conservativeRecovery,
-      optimistic: unifiedCalcs.optimisticRecovery
-    });
     
     return {
       ...transformedData,
@@ -190,8 +156,6 @@ export default function ActionPlan() {
   const { timeline, investment, roiData } = useMemo(() => {
     if (!submissionData) return { timeline: [], investment: null, roiData: null };
 
-    console.log("=== TIMELINE GENERATION DEBUG ===");
-    console.log("Input data for timeline:", submissionData);
 
     const inputs: UnifiedCalculationInputs = {
       currentARR: submissionData.current_arr,
