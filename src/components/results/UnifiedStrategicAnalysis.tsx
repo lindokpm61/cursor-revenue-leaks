@@ -21,6 +21,15 @@ export const UnifiedStrategicAnalysis = ({
   onQuickWins,
   onBookCall
 }: UnifiedStrategicAnalysisProps) => {
+  // DEBUG: Log what UnifiedStrategicAnalysis is receiving
+  console.log('=== UNIFIED STRATEGIC ANALYSIS COMPONENT ===');
+  console.log('Received calculations object:', calculations);
+  console.log('calculations.totalLoss:', calculations.totalLoss);
+  console.log('calculations.conservativeRecovery:', calculations.conservativeRecovery);
+  console.log('calculations.optimisticRecovery:', calculations.optimisticRecovery);
+  console.log('formatCurrency function:', formatCurrency);
+  console.log('formatCurrency(calculations.totalLoss):', formatCurrency(calculations.totalLoss));
+
   return (
     <div className="space-y-8">
       {/* Hero Section */}
@@ -36,6 +45,10 @@ export const UnifiedStrategicAnalysis = ({
                 <div className="text-2xl md:text-3xl lg:text-4xl text-revenue-warning font-bold flex items-center gap-3 mb-3">
                   <ArrowUp className="h-8 w-8" />
                   {formatCurrency(calculations.totalLoss)}
+                  {/* DEBUG: Show raw value */}
+                  <span className="text-sm bg-red-100 px-2 py-1 rounded">
+                    Raw: ${calculations.totalLoss.toLocaleString()}
+                  </span>
                 </div>
                 <p className="text-lg text-muted-foreground">
                   Annual revenue opportunity identified
@@ -46,6 +59,10 @@ export const UnifiedStrategicAnalysis = ({
                 <div className="p-4 rounded-xl bg-background/50 border">
                   <div className="text-xl md:text-2xl text-revenue-success font-bold mb-1">
                     {formatCurrency(calculations.conservativeRecovery)}
+                    {/* DEBUG: Show raw value */}
+                    <span className="text-xs bg-green-100 px-1 rounded ml-2">
+                      Raw: ${calculations.conservativeRecovery.toLocaleString()}
+                    </span>
                   </div>
                   <div className="text-sm font-medium text-muted-foreground">
                     Conservative Recovery (60%)
@@ -57,6 +74,10 @@ export const UnifiedStrategicAnalysis = ({
                 <div className="p-4 rounded-xl bg-background/50 border">
                   <div className="text-xl md:text-2xl text-revenue-primary font-bold mb-1">
                     {formatCurrency(calculations.optimisticRecovery)}
+                    {/* DEBUG: Show raw value */}
+                    <span className="text-xs bg-blue-100 px-1 rounded ml-2">
+                      Raw: ${calculations.optimisticRecovery.toLocaleString()}
+                    </span>
                   </div>
                   <div className="text-sm font-medium text-muted-foreground">
                     Optimistic Recovery (80%)

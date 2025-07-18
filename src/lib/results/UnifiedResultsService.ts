@@ -59,6 +59,10 @@ export interface UnifiedCalculations {
 
 export class UnifiedResultsService {
   static calculateResults(submission: SubmissionData): UnifiedCalculations {
+    // DEBUG: Log input data
+    console.log('=== UNIFIED RESULTS SERVICE INPUT ===');
+    console.log('Input submission:', submission);
+
     // Sanitize inputs
     const currentARR = Math.max(0, submission.current_arr || 0);
     const monthlyLeads = Math.max(0, submission.monthly_leads || 0);
@@ -70,6 +74,21 @@ export class UnifiedResultsService {
     const failureRate = Math.max(0, Math.min(30, submission.failed_payment_rate || 5));
     const manualHours = Math.max(0, Math.min(80, submission.manual_hours || 10));
     const hourlyRate = Math.max(25, Math.min(500, submission.hourly_rate || 75));
+
+    // DEBUG: Log sanitized inputs
+    console.log('=== SANITIZED INPUTS ===');
+    console.log({
+      currentARR,
+      monthlyLeads,
+      averageDealValue,
+      leadResponseHours,
+      monthlySignups,
+      conversionRate,
+      monthlyMRR,
+      failureRate,
+      manualHours,
+      hourlyRate
+    });
 
     // Industry benchmarks for realistic calculations
     const industryLeadConversionRate = 0.03; // 3% typical B2B conversion rate
@@ -90,8 +109,25 @@ export class UnifiedResultsService {
     const lostConversionsPerMonth = actualMonthlyConversions * responseDelayMultiplier;
     const leadResponseLoss = lostConversionsPerMonth * averageDealValue * 12;
 
+    // DEBUG: Log lead response calculation
+    console.log('=== LEAD RESPONSE CALCULATION ===');
+    console.log({
+      actualMonthlyConversions,
+      responseDelayMultiplier,
+      lostConversionsPerMonth,
+      leadResponseLoss
+    });
+
     // 2. Failed Payment Loss: Direct calculation from MRR and failure rate (already correct)
     const failedPaymentLoss = monthlyMRR * (failureRate / 100) * 12 * 0.65; // 65% actual loss after recovery attempts
+
+    // DEBUG: Log failed payment calculation
+    console.log('=== FAILED PAYMENT CALCULATION ===');
+    console.log({
+      monthlyMRR,
+      failureRate,
+      failedPaymentLoss
+    });
 
     // 3. Self-Serve Gap: Based on realistic self-serve LTV and incremental improvement
     const conversionGap = Math.max(0, industryConversionRateBenchmark - conversionRate);
@@ -103,8 +139,25 @@ export class UnifiedResultsService {
     const additionalConversionsPerMonth = monthlySignups * (conversionGap / 100);
     const selfServeGap = additionalConversionsPerMonth * realisticSelfServeValue;
 
+    // DEBUG: Log self-serve calculation
+    console.log('=== SELF-SERVE CALCULATION ===');
+    console.log({
+      conversionGap,
+      realisticSelfServeValue,
+      additionalConversionsPerMonth,
+      selfServeGap
+    });
+
     // 4. Process Inefficiency: Direct cost calculation (already correct)
     const processInefficiency = manualHours * hourlyRate * 52;
+
+    // DEBUG: Log process inefficiency calculation
+    console.log('=== PROCESS INEFFICIENCY CALCULATION ===');
+    console.log({
+      manualHours,
+      hourlyRate,
+      processInefficiency
+    });
 
     // Apply realistic caps to prevent unrealistic values
     const cappedLeadResponseLoss = Math.min(leadResponseLoss, currentARR * 0.04); // Max 4% of ARR
@@ -112,15 +165,43 @@ export class UnifiedResultsService {
     const cappedSelfServeGap = Math.min(selfServeGap, currentARR * 0.06); // Max 6% of ARR
     const cappedProcessInefficiency = Math.min(processInefficiency, currentARR * 0.03); // Max 3% of ARR
 
+    // DEBUG: Log capping
+    console.log('=== CAPPING CALCULATIONS ===');
+    console.log('Before capping:', {
+      leadResponseLoss,
+      failedPaymentLoss,
+      selfServeGap,
+      processInefficiency
+    });
+    console.log('After capping:', {
+      cappedLeadResponseLoss,
+      cappedFailedPaymentLoss,
+      cappedSelfServeGap,
+      cappedProcessInefficiency
+    });
+
     // Total loss with realistic overall cap
     const totalLoss = Math.min(
       cappedLeadResponseLoss + cappedFailedPaymentLoss + cappedSelfServeGap + cappedProcessInefficiency,
       currentARR * 0.15 // Overall cap at 15% of ARR
     );
 
+    // DEBUG: Log total loss calculation
+    console.log('=== TOTAL LOSS CALCULATION ===');
+    console.log('Sum before overall cap:', cappedLeadResponseLoss + cappedFailedPaymentLoss + cappedSelfServeGap + cappedProcessInefficiency);
+    console.log('Overall cap (15% of ARR):', currentARR * 0.15);
+    console.log('Final totalLoss:', totalLoss);
+
     // Recovery calculations with realistic expectations
     const conservativeRecovery = totalLoss * 0.60; // 60% recovery rate
     const optimisticRecovery = totalLoss * 0.80; // 80% recovery rate
+
+    // DEBUG: Log recovery calculations
+    console.log('=== RECOVERY CALCULATIONS ===');
+    console.log({
+      conservativeRecovery,
+      optimisticRecovery
+    });
 
     // Performance metrics
     const lossPercentageOfARR = currentARR > 0 ? (totalLoss / currentARR) * 100 : 0;
@@ -163,7 +244,7 @@ export class UnifiedResultsService {
     const industryAverageRecovery = conservativeRecovery;
     const bestInClassRecovery = optimisticRecovery;
 
-    return {
+    const finalResult = {
       leadResponseLoss: cappedLeadResponseLoss,
       failedPaymentLoss: cappedFailedPaymentLoss,
       selfServeGap: cappedSelfServeGap,
@@ -182,12 +263,18 @@ export class UnifiedResultsService {
         bestInClassRecovery
       }
     };
+
+    // DEBUG: Log final result
+    console.log('=== FINAL UNIFIED RESULTS ===');
+    console.log('Final calculations object:', finalResult);
+
+    return finalResult;
   }
 
   static formatCurrency(amount: number): string {
     if (!isFinite(amount) || isNaN(amount)) return '$0';
     
-    return new Intl.NumberFormat('en-US', {
+    const result = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
@@ -195,5 +282,10 @@ export class UnifiedResultsService {
       notation: amount >= 1000000 ? 'compact' : 'standard',
       compactDisplay: 'short'
     }).format(amount);
+
+    // DEBUG: Log currency formatting
+    console.log(`formatCurrency(${amount}) = ${result}`);
+    
+    return result;
   }
 }

@@ -61,6 +61,12 @@ const CleanResults = () => {
         throw new Error(`Access denied. Submission belongs to user ${data.user_id}, current user is ${user?.id}`);
       }
 
+      // DEBUG: Log raw submission data
+      console.log('=== RAW SUBMISSION DATA ===');
+      console.log('Raw submission from database:', data);
+      console.log('Legacy total_leak from DB:', data.total_leak);
+      console.log('Legacy recovery_potential_70 from DB:', data.recovery_potential_70);
+
       setSubmission(data);
     } catch (error) {
       console.error('Error loading submission:', error);
@@ -153,9 +159,26 @@ const CleanResults = () => {
     created_at: submission.created_at
   };
 
+  // DEBUG: Log submission data transformation
+  console.log('=== SUBMISSION DATA TRANSFORMATION ===');
+  console.log('Transformed submissionData:', submissionData);
+
   // Calculate unified results
   const calculations = UnifiedResultsService.calculateResults(submissionData);
+  
+  // DEBUG: Log UnifiedResultsService calculations
+  console.log('=== UNIFIED RESULTS SERVICE CALCULATIONS ===');
+  console.log('UnifiedResultsService calculations:', calculations);
+  console.log('Total Loss from UnifiedService:', calculations.totalLoss);
+  console.log('Conservative Recovery from UnifiedService:', calculations.conservativeRecovery);
+  console.log('Optimistic Recovery from UnifiedService:', calculations.optimisticRecovery);
+  
   const formatCurrency = UnifiedResultsService.formatCurrency;
+
+  // DEBUG: Test formatCurrency function
+  console.log('=== FORMAT CURRENCY TEST ===');
+  console.log('formatCurrency(calculations.totalLoss):', formatCurrency(calculations.totalLoss));
+  console.log('formatCurrency(1230000):', formatCurrency(1230000));
 
   const sections = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
@@ -194,6 +217,19 @@ const CleanResults = () => {
       </header>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* DEBUG PANEL - Temporary for debugging */}
+        <div className="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <h3 className="font-bold text-yellow-800 mb-2">🐛 DEBUG INFO (Temporary)</h3>
+          <div className="text-sm space-y-1">
+            <div><strong>Legacy DB Total Leak:</strong> {formatCurrency(submission.total_leak || 0)}</div>
+            <div><strong>Legacy DB Recovery 70%:</strong> {formatCurrency(submission.recovery_potential_70 || 0)}</div>
+            <div><strong>UnifiedService Total Loss:</strong> {formatCurrency(calculations.totalLoss)}</div>
+            <div><strong>UnifiedService Conservative Recovery:</strong> {formatCurrency(calculations.conservativeRecovery)}</div>
+            <div><strong>Current ARR:</strong> {formatCurrency(submission.current_arr || 0)}</div>
+            <div><strong>Loss % of ARR:</strong> {calculations.lossPercentageOfARR.toFixed(2)}%</div>
+          </div>
+        </div>
+
         {/* Navigation Tabs */}
         <div className="mb-8">
           <div className="flex flex-wrap gap-2">
@@ -275,6 +311,31 @@ const CleanResults = () => {
       />
     </div>
   );
+
+  // Handler functions
+  function handleGetActionPlan() {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to access your action plan.",
+        variant: "destructive",
+      });
+      return;
+    }
+    navigate(`/action-plan/${submission?.id}`);
+  }
+
+  function handleQuickWins() {
+    setActiveSection('actions');
+    const element = document.getElementById('actions-section');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  function handleBookCall() {
+    window.open('https://calendly.com/your-calendar', '_blank');
+  }
 };
 
 export default CleanResults;
