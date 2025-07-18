@@ -66,7 +66,7 @@ export interface UnifiedCalculationResults {
   };
 }
 
-// Main calculation function with enhanced recovery matrix and realistic factors
+// Main calculation function with fixed and realistic formulas
 export const calculateUnifiedResults = (inputs: UnifiedCalculationInputs): UnifiedCalculationResults => {
   // Input sanitization and validation
   const sanitizedInputs = {
@@ -83,49 +83,92 @@ export const calculateUnifiedResults = (inputs: UnifiedCalculationInputs): Unifi
     hourlyRate: Math.max(25, Math.min(500, inputs.hourlyRate || 75))
   };
 
-  // Calculate core losses with progressive caps based on company size
-  const getCapMultiplier = (arr: number) => {
-    if (arr > 10000000) return 1.0;    // Enterprise - full caps
-    if (arr > 5000000) return 0.85;    // Large - 85% of caps
-    if (arr > 1000000) return 0.70;    // Medium - 70% of caps
-    return 0.50;                       // Small - 50% of caps
-  };
-  
-  const capMultiplier = getCapMultiplier(sanitizedInputs.currentARR);
+  console.log('=== UNIFIED CALCULATIONS DEBUG ===');
+  console.log('Sanitized inputs:', {
+    currentARR: sanitizedInputs.currentARR,
+    monthlyLeads: sanitizedInputs.monthlyLeads,
+    leadResponseTimeHours: sanitizedInputs.leadResponseTimeHours,
+    averageDealValue: sanitizedInputs.averageDealValue,
+    monthlyMRR: sanitizedInputs.monthlyMRR,
+    failedPaymentRate: sanitizedInputs.failedPaymentRate
+  });
 
+  // FIXED: Simplified Lead Response Loss Calculation
+  // Formula: Monthly leads × Deal value × Response impact % × 12 months
+  const responseImpactFactor = Math.min(0.15, sanitizedInputs.leadResponseTimeHours / 24 * 0.03); // Max 15% impact
   const leadResponseLoss = Math.min(
-    calculateLeadResponseImpact(sanitizedInputs.leadResponseTimeHours, sanitizedInputs.averageDealValue) 
-    * sanitizedInputs.monthlyLeads 
-    * sanitizedInputs.averageDealValue 
-    * 12 
-    * (1 - calculateLeadResponseImpact(sanitizedInputs.leadResponseTimeHours, sanitizedInputs.averageDealValue)),
-    sanitizedInputs.currentARR * 0.12 * capMultiplier // Progressive cap
+    sanitizedInputs.monthlyLeads * sanitizedInputs.averageDealValue * responseImpactFactor * 12,
+    sanitizedInputs.currentARR * 0.08 // Cap at 8% of ARR
   );
 
+  console.log('Lead response calculation:', {
+    monthlyLeads: sanitizedInputs.monthlyLeads,
+    averageDealValue: sanitizedInputs.averageDealValue,
+    responseImpactFactor: responseImpactFactor,
+    annualLoss: leadResponseLoss,
+    percentOfARR: ((leadResponseLoss / sanitizedInputs.currentARR) * 100).toFixed(2) + '%'
+  });
+
+  // FIXED: Simplified Failed Payment Loss Calculation
+  // Formula: Monthly MRR × Failure rate % × 12 months
   const failedPaymentLoss = Math.min(
-    calculateFailedPaymentLoss(sanitizedInputs.monthlyMRR, sanitizedInputs.failedPaymentRate),
-    sanitizedInputs.currentARR * 0.10 * capMultiplier
+    sanitizedInputs.monthlyMRR * (sanitizedInputs.failedPaymentRate / 100) * 12,
+    sanitizedInputs.currentARR * 0.06 // Cap at 6% of ARR
   );
 
+  console.log('Failed payment calculation:', {
+    monthlyMRR: sanitizedInputs.monthlyMRR,
+    failedPaymentRate: sanitizedInputs.failedPaymentRate,
+    annualLoss: failedPaymentLoss,
+    percentOfARR: ((failedPaymentLoss / sanitizedInputs.currentARR) * 100).toFixed(2) + '%'
+  });
+
+  // FIXED: Simplified Self-Serve Gap Calculation
+  // Formula: Monthly signups × Conversion gap × Estimated value × 12 months
+  const industryConversionRate = 3.5; // Industry average
+  const conversionGap = Math.max(0, industryConversionRate - sanitizedInputs.currentConversionRate);
+  const estimatedCustomerValue = sanitizedInputs.monthlyMRR > 0 ? 
+    (sanitizedInputs.monthlyMRR * 12) / Math.max(1, sanitizedInputs.monthlyFreeSignups * sanitizedInputs.currentConversionRate / 100) :
+    sanitizedInputs.averageDealValue;
+  
   const selfServeGapLoss = Math.min(
-    calculateSelfServeGap(
-      sanitizedInputs.monthlyFreeSignups,
-      sanitizedInputs.currentConversionRate,
-      sanitizedInputs.monthlyMRR,
-      sanitizedInputs.industry
-    ),
-    sanitizedInputs.currentARR * 0.20 * capMultiplier
+    sanitizedInputs.monthlyFreeSignups * (conversionGap / 100) * estimatedCustomerValue * 12,
+    sanitizedInputs.currentARR * 0.12 // Cap at 12% of ARR
   );
 
+  console.log('Self-serve calculation:', {
+    monthlySignups: sanitizedInputs.monthlyFreeSignups,
+    currentConversion: sanitizedInputs.currentConversionRate,
+    conversionGap: conversionGap,
+    estimatedCustomerValue: estimatedCustomerValue,
+    annualLoss: selfServeGapLoss,
+    percentOfARR: ((selfServeGapLoss / sanitizedInputs.currentARR) * 100).toFixed(2) + '%'
+  });
+
+  // FIXED: Simplified Process Inefficiency Calculation
+  // Formula: Weekly hours × Hourly rate × 52 weeks
   const processInefficiencyLoss = Math.min(
-    calculateProcessInefficiency(
-      sanitizedInputs.manualHoursPerWeek,
-      sanitizedInputs.hourlyRate
-    ),
-    sanitizedInputs.currentARR * 0.06 * capMultiplier
+    sanitizedInputs.manualHoursPerWeek * sanitizedInputs.hourlyRate * 52,
+    sanitizedInputs.currentARR * 0.05 // Cap at 5% of ARR
   );
+
+  console.log('Process inefficiency calculation:', {
+    weeklyHours: sanitizedInputs.manualHoursPerWeek,
+    hourlyRate: sanitizedInputs.hourlyRate,
+    annualCost: processInefficiencyLoss,
+    percentOfARR: ((processInefficiencyLoss / sanitizedInputs.currentARR) * 100).toFixed(2) + '%'
+  });
 
   const totalLoss = leadResponseLoss + failedPaymentLoss + selfServeGapLoss + processInefficiencyLoss;
+
+  console.log('Total loss calculation:', {
+    leadResponse: leadResponseLoss,
+    failedPayment: failedPaymentLoss,
+    selfServeGap: selfServeGapLoss,
+    processInefficiency: processInefficiencyLoss,
+    total: totalLoss,
+    percentOfARR: ((totalLoss / sanitizedInputs.currentARR) * 100).toFixed(2) + '%'
+  });
 
   // Determine confidence factors based on inputs and company characteristics
   const confidenceFactors: ConfidenceFactors = {
@@ -150,7 +193,7 @@ export const calculateUnifiedResults = (inputs: UnifiedCalculationInputs): Unifi
 
   // Determine confidence level based on multiple factors
   const riskFactorCount = [
-    totalLoss > sanitizedInputs.currentARR * 0.3, // High loss ratio
+    totalLoss > sanitizedInputs.currentARR * 0.25, // High loss ratio (reduced from 0.3)
     sanitizedInputs.currentARR < 1000000,         // Small company
     selfServeGapLoss > totalLoss * 0.4,          // Heavy dependence on self-serve
     processInefficiencyLoss > totalLoss * 0.3    // High process inefficiency
@@ -162,14 +205,25 @@ export const calculateUnifiedResults = (inputs: UnifiedCalculationInputs): Unifi
 
   // Apply progressive confidence multipliers
   const confidenceMultiplier = {
-    'high': 0.95,
-    'medium': 0.85,
-    'low': 0.70
+    'high': 0.90,    // Reduced from 0.95
+    'medium': 0.75,  // Reduced from 0.85
+    'low': 0.60      // Reduced from 0.70
   }[confidenceLevel];
 
   const recovery70Percent = recoveryRanges.conservative.totalRecovery * confidenceMultiplier;
   const recovery85Percent = recoveryRanges.optimistic.totalRecovery * confidenceMultiplier;
   const recoveryBestCase = recoveryRanges.bestCase.totalRecovery * confidenceMultiplier;
+
+  console.log('Recovery calculations:', {
+    conservative: recoveryRanges.conservative.totalRecovery,
+    optimistic: recoveryRanges.optimistic.totalRecovery,
+    bestCase: recoveryRanges.bestCase.totalRecovery,
+    confidenceLevel: confidenceLevel,
+    confidenceMultiplier: confidenceMultiplier,
+    final70: recovery70Percent,
+    final85: recovery85Percent,
+    finalBest: recoveryBestCase
+  });
 
   // Calculate confidence bounds with realistic spreads
   const confidenceBounds = {
@@ -184,7 +238,7 @@ export const calculateUnifiedResults = (inputs: UnifiedCalculationInputs): Unifi
     year3: recovery70Percent * 1.00  // 100% by year 3
   };
 
-  return {
+  const finalResults = {
     leadResponseLoss,
     selfServeGapLoss,
     processInefficiencyLoss,
@@ -205,6 +259,11 @@ export const calculateUnifiedResults = (inputs: UnifiedCalculationInputs): Unifi
     confidenceBounds,
     recoveryTimeline
   };
+
+  console.log('=== FINAL UNIFIED RESULTS ===', finalResults);
+  console.log('Total loss as % of ARR:', ((totalLoss / sanitizedInputs.currentARR) * 100).toFixed(2) + '%');
+
+  return finalResults;
 };
 
 // Timeline calculation with realistic phases and dependencies
