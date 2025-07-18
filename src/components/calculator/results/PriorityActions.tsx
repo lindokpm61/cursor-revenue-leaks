@@ -50,7 +50,7 @@ interface ActionItem {
 }
 
 export const PriorityActions = ({ submission, formatCurrency, calculatorData, variant = 'standard' }: PriorityActionsProps) => {
-  const [isContentOpen, setIsContentOpen] = useState(variant === 'condensed' ? true : false);
+  const [isContentOpen, setIsContentOpen] = useState(true);
 
   // Calculate unified results for accurate CTA values
   const unifiedCalculations = UnifiedResultsService.calculateResults(submission);
