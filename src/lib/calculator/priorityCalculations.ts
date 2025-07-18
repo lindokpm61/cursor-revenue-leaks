@@ -267,26 +267,40 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
     console.log("Skipping payment action - loss:", failedPaymentLoss, "threshold:", paymentThreshold);
   }
 
-  // ENHANCED: If no actions qualify, create actions based on any non-zero values
+  // ENHANCED: Always ensure we have 4 actions if data is available
+  console.log("Current actions count:", actions.length);
+  
+  // Check for any meaningful data and create corresponding actions if missing
+  const hasLeadData = (submission.monthly_leads || 0) > 0 && (submission.average_deal_value || 0) > 0;
+  const hasSelfServeData = (submission.monthly_free_signups || 0) > 0;
+  const hasProcessData = (submission.manual_hours || 0) > 0 && (submission.hourly_rate || 0) > 0;
+  const hasPaymentData = (submission.monthly_mrr || 0) > 0 && (submission.failed_payment_rate || 0) > 0;
+
+  console.log("Data availability check:", {
+    hasLeadData,
+    hasSelfServeData,
+    hasProcessData,
+    hasPaymentData
+  });
+
+  // Add self-serve action if data is available but action wasn't created
+  if (hasSelfServeData && !actions.find(a => a.id === 'selfserve-optimization')) {
+    console.log("Adding self-serve action based on signup data");
+    const monthlySignups = safeNumber(submission.monthly_free_signups);
+    const conversionRate = safeNumber(submission.free_to_paid_conversion);
+    const dealValue = safeNumber(submission.average_deal_value);
+    // Calculate potential recovery from improving conversion rate by 1.5%
+    const improvementPotential = Math.max(1.5, conversionRate * 0.5);
+    const annualRecovery = monthlySignups * (improvementPotential / 100) * dealValue * 12;
+    actions.push(createSelfServeAction(annualRecovery * 0.4, totalActionRecovery, currentARR, annualRecovery));
+  }
+
+  // If still no actions, create fallback actions with minimal values
   if (actions.length === 0) {
-    console.log("No actions met ultra-low thresholds, creating actions for any non-zero values");
+    console.log("No actions met thresholds, creating fallback actions");
     
-    // Check for any meaningful data and create corresponding actions
-    const hasLeadData = (submission.monthly_leads || 0) > 0 && (submission.average_deal_value || 0) > 0;
-    const hasSelfServeData = (submission.monthly_free_signups || 0) > 0;
-    const hasProcessData = (submission.manual_hours || 0) > 0 && (submission.hourly_rate || 0) > 0;
-    const hasPaymentData = (submission.monthly_mrr || 0) > 0 && (submission.failed_payment_rate || 0) > 0;
-
-    console.log("Data availability check:", {
-      hasLeadData,
-      hasSelfServeData,
-      hasProcessData,
-      hasPaymentData
-    });
-
-    // Create actions with minimal recovery amounts for display
     if (hasLeadData) {
-      actions.push(createLeadResponseAction(10000, 50000, currentARR, 5000)); // Minimal values for display
+      actions.push(createLeadResponseAction(10000, 50000, currentARR, 5000));
     }
     if (hasSelfServeData) {
       actions.push(createSelfServeAction(8000, 50000, currentARR, 4000));
