@@ -41,11 +41,12 @@ export const useCTAController = (
   const [scrollDepth, setScrollDepth] = useState(0);
   const [hasInteracted, setHasInteracted] = useState(false);
 
-  // Initialize hooks
+  // Initialize hooks with enhanced configuration
   const exitIntent = useExitIntent({
     threshold: 50,
     delay: 30000,
-    scrollThreshold: 25
+    scrollThreshold: 25,
+    cooldownPeriod: 300000 // 5 minutes
   });
 
   const progressiveEmail = useProgressiveEmailCapture(tempId, currentStep, {
@@ -93,35 +94,61 @@ export const useCTAController = (
     };
   }, []);
 
-  // CTA priority logic
+  // CTA priority logic with enhanced logging
   const triggerCTA = useCallback((type: CTAType, priority: number, context?: any) => {
+    console.log('Attempting to trigger CTA:', { type, priority, currentPriority: ctaState.priority });
+    
     if (priority > ctaState.priority) {
+      console.log('Triggering CTA:', type);
       setCTAState({ activeCTA: type, priority, context });
       return true;
     }
+    console.log('CTA blocked by higher priority');
     return false;
   }, [ctaState.priority]);
 
   const dismissCTA = useCallback(() => {
+    console.log('Dismissing CTA:', ctaState.activeCTA);
+    
+    // If dismissing exit intent, mark it as dismissed to prevent re-triggering
+    if (ctaState.activeCTA === 'exit_intent') {
+      exitIntent.markAsDismissed();
+    }
+    
     setCTAState({ activeCTA: null, priority: 0 });
-  }, []);
+  }, [ctaState.activeCTA, exitIntent]);
 
-  // Exit intent trigger
+  // Exit intent trigger with enhanced conditions
   useEffect(() => {
-    if (exitIntent.isTriggered && mergedConfig.enableExitIntent && !progressiveEmail.hasEmail) {
+    if (
+      exitIntent.isTriggered && 
+      mergedConfig.enableExitIntent && 
+      !progressiveEmail.hasEmail &&
+      !exitIntent.isDismissed &&
+      !exitIntent.isInCooldown
+    ) {
+      console.log('Exit intent triggered - showing modal');
       triggerCTA('exit_intent', 90, { recoveryAmount: recoveryData.totalLeak });
     }
-  }, [exitIntent.isTriggered, mergedConfig.enableExitIntent, progressiveEmail.hasEmail, triggerCTA, recoveryData.totalLeak]);
+  }, [
+    exitIntent.isTriggered, 
+    exitIntent.isDismissed, 
+    exitIntent.isInCooldown,
+    mergedConfig.enableExitIntent, 
+    progressiveEmail.hasEmail, 
+    triggerCTA, 
+    recoveryData.totalLeak
+  ]);
 
   // Progressive email trigger
   useEffect(() => {
-    if (progressiveEmail.isActive) {
+    if (progressiveEmail.isActive && !exitIntent.isDismissed) {
       triggerCTA('progressive_email', 85, { 
         trigger: progressiveEmail.activeCapture,
         context: progressiveEmail.captureContext 
       });
     }
-  }, [progressiveEmail.isActive, progressiveEmail.activeCapture, progressiveEmail.captureContext, triggerCTA]);
+  }, [progressiveEmail.isActive, progressiveEmail.activeCapture, progressiveEmail.captureContext, exitIntent.isDismissed, triggerCTA]);
 
   // Time-based CTA trigger
   useEffect(() => {
@@ -129,6 +156,7 @@ export const useCTAController = (
       mergedConfig.enableTimeBased &&
       timeOnPage >= mergedConfig.timeBasedDelay &&
       !progressiveEmail.hasEmail &&
+      !exitIntent.isDismissed &&
       hasInteracted &&
       scrollDepth >= 30
     ) {
@@ -138,7 +166,7 @@ export const useCTAController = (
         recoveryAmount: recoveryData.totalLeak 
       });
     }
-  }, [timeOnPage, mergedConfig.enableTimeBased, mergedConfig.timeBasedDelay, progressiveEmail.hasEmail, hasInteracted, scrollDepth, triggerCTA, recoveryData.totalLeak]);
+  }, [timeOnPage, mergedConfig.enableTimeBased, mergedConfig.timeBasedDelay, progressiveEmail.hasEmail, exitIntent.isDismissed, hasInteracted, scrollDepth, triggerCTA, recoveryData.totalLeak]);
 
   // Floating bar trigger (lower priority)
   useEffect(() => {
@@ -146,7 +174,8 @@ export const useCTAController = (
       mergedConfig.enableFloatingBar &&
       scrollDepth >= 40 &&
       timeOnPage >= 60000 && // 1 minute
-      !progressiveEmail.hasEmail
+      !progressiveEmail.hasEmail &&
+      !exitIntent.isDismissed
     ) {
       triggerCTA('floating_bar', 50, { 
         scrollDepth,
@@ -154,7 +183,7 @@ export const useCTAController = (
         recoveryAmount: recoveryData.totalLeak 
       });
     }
-  }, [scrollDepth, timeOnPage, mergedConfig.enableFloatingBar, progressiveEmail.hasEmail, triggerCTA, recoveryData.totalLeak]);
+  }, [scrollDepth, timeOnPage, mergedConfig.enableFloatingBar, progressiveEmail.hasEmail, exitIntent.isDismissed, triggerCTA, recoveryData.totalLeak]);
 
   return {
     // State

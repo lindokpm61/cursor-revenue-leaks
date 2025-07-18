@@ -29,6 +29,7 @@ export const ActionPlanExitIntentModal = ({
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +46,24 @@ export const ActionPlanExitIntentModal = ({
     }
   };
 
+  const handleClose = () => {
+    console.log('ActionPlanExitIntentModal: Close button clicked');
+    setIsClosing(true);
+    
+    // Add small delay for visual feedback
+    setTimeout(() => {
+      onClose();
+      setIsClosing(false);
+    }, 150);
+  };
+
+  const handleEscapeKey = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      console.log('ActionPlanExitIntentModal: Escape key pressed');
+      handleClose();
+    }
+  };
+
   const getPersonalizedMessage = () => {
     if (checkedActionsCount >= 3) {
       return `You've identified ${checkedActionsCount} priority actions. Let us help you implement them effectively.`;
@@ -57,8 +76,8 @@ export const ActionPlanExitIntentModal = ({
 
   if (isSubmitted) {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-md" onKeyDown={handleEscapeKey}>
           <div className="flex flex-col items-center text-center space-y-4 py-4">
             <CheckCircle className="h-12 w-12 text-green-500" />
             <div>
@@ -67,7 +86,7 @@ export const ActionPlanExitIntentModal = ({
                 We'll send you a personalized implementation guide within 24 hours.
               </p>
             </div>
-            <Button onClick={onClose} className="w-full">
+            <Button onClick={handleClose} className="w-full">
               Continue Reviewing Action Plan
             </Button>
           </div>
@@ -77,13 +96,23 @@ export const ActionPlanExitIntentModal = ({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent 
+        className={`sm:max-w-lg transition-opacity duration-150 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
+        onKeyDown={handleEscapeKey}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-primary" />
             Don't Miss This Opportunity
           </DialogTitle>
+          <button
+            onClick={handleClose}
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </DialogHeader>
         
         <div className="space-y-4">
@@ -142,7 +171,7 @@ export const ActionPlanExitIntentModal = ({
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={onClose}
+              onClick={handleClose}
               className="text-muted-foreground hover:text-foreground"
             >
               Continue without saving
