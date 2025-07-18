@@ -187,13 +187,13 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
   
   const actions: PriorityAction[] = [];
 
-  // Adjusted realistic thresholds (as % of ARR)
-  const leadResponseThreshold = currentARR * 0.02; // 2% of ARR
-  const selfserveThreshold = currentARR * 0.01; // 1% of ARR
-  const processThreshold = currentARR * 0.01; // 1% of ARR
-  const paymentThreshold = currentARR * 0.005; // 0.5% of ARR
+  // Updated hybrid thresholds - combination of percentage and absolute minimums
+  const leadResponseThreshold = Math.max(currentARR * 0.005, 25000); // 0.5% of ARR or $25K minimum
+  const selfserveThreshold = Math.max(currentARR * 0.002, 15000); // 0.2% of ARR or $15K minimum
+  const processThreshold = Math.max(currentARR * 0.003, 20000); // 0.3% of ARR or $20K minimum
+  const paymentThreshold = Math.max(currentARR * 0.001, 10000); // 0.1% of ARR or $10K minimum
 
-  console.log('Priority Action Thresholds Debug:', {
+  console.log('Updated Priority Action Thresholds Debug:', {
     currentARR,
     leadResponseLoss,
     selfserveGapLoss,
@@ -209,105 +209,22 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
 
   // Lead Response Optimization (if significant loss)
   if (leadResponseLoss > leadResponseThreshold) {
-    actions.push({
-      id: 'lead-response',
-      title: 'Accelerate Lead Response Time',
-      description: 'Implement automated lead routing and instant response systems',
-      impact: Math.round((leadResponseRecovery / totalActionRecovery) * 100),
-      effort: 'Medium',
-      timeframe: '4-6 weeks',
-      recoveryAmount: leadResponseRecovery,
-      confidence: getConfidenceLevel(leadResponseLoss, currentARR, 'lead_response'),
-      urgency: getUrgencyLevel(leadResponseLoss, currentARR, 'lead_response'),
-      complexity: 'Medium',
-      paybackPeriod: '2-3 months',
-      whyItMatters: 'Faster lead response dramatically increases conversion rates. Every hour of delay reduces conversion probability by 10%.',
-      dependencies: ['CRM integration', 'Sales team training'],
-      implementationSteps: [
-        'Set up automated lead routing',
-        'Create instant response templates',
-        'Train sales team on new process',
-        'Monitor response time metrics'
-      ]
-    });
+    actions.push(createLeadResponseAction(leadResponseRecovery, totalActionRecovery, currentARR, leadResponseLoss));
   }
 
   // Self-Serve Gap (if significant loss)
   if (selfserveGapLoss > selfserveThreshold) {
-    actions.push({
-      id: 'selfserve-optimization',
-      title: 'Optimize Self-Serve Experience',
-      description: 'Improve onboarding flow and reduce friction points',
-      impact: Math.round((selfserveRecovery / totalActionRecovery) * 100),
-      effort: 'High',
-      timeframe: '8-12 weeks',
-      recoveryAmount: selfserveRecovery,
-      confidence: getConfidenceLevel(selfserveGapLoss, currentARR, 'selfserve'),
-      urgency: getUrgencyLevel(selfserveGapLoss, currentARR, 'selfserve'),
-      complexity: 'High',
-      paybackPeriod: '4-6 months',
-      whyItMatters: 'Self-serve optimization reduces customer acquisition costs and improves user experience, leading to higher conversion rates.',
-      dependencies: ['UX/UI team', 'Product development', 'User research'],
-      implementationSteps: [
-        'Conduct user journey analysis',
-        'Identify friction points in onboarding',
-        'Design improved user flows',
-        'A/B test new experience',
-        'Roll out optimized flow'
-      ]
-    });
+    actions.push(createSelfServeAction(selfserveRecovery, totalActionRecovery, currentARR, selfserveGapLoss));
   }
 
   // Process Inefficiency (if significant loss)
   if (processLoss > processThreshold) {
-    actions.push({
-      id: 'process-automation',
-      title: 'Automate Manual Processes',
-      description: 'Eliminate repetitive tasks and streamline workflows',
-      impact: Math.round((processRecovery / totalActionRecovery) * 100),
-      effort: 'Low',
-      timeframe: '2-4 weeks',
-      recoveryAmount: processRecovery,
-      confidence: getConfidenceLevel(processLoss, currentARR, 'process'),
-      urgency: getUrgencyLevel(processLoss, currentARR, 'process'),
-      complexity: 'Low',
-      paybackPeriod: '1-2 months',
-      whyItMatters: 'Automation reduces operational costs, eliminates human error, and frees up team capacity for strategic work.',
-      dependencies: ['Operations team', 'Technical resources'],
-      implementationSteps: [
-        'Map current manual processes',
-        'Identify automation opportunities',
-        'Implement workflow automation',
-        'Train team on new processes',
-        'Monitor efficiency gains'
-      ]
-    });
+    actions.push(createProcessAction(processRecovery, totalActionRecovery, currentARR, processLoss));
   }
 
   // Payment Recovery (if significant loss)
   if (failedPaymentLoss > paymentThreshold) {
-    actions.push({
-      id: 'payment-recovery',
-      title: 'Improve Payment Recovery',
-      description: 'Implement dunning management and payment retry logic',
-      impact: Math.round((paymentRecovery / totalActionRecovery) * 100),
-      effort: 'Low',
-      timeframe: '1-2 weeks',
-      recoveryAmount: paymentRecovery,
-      confidence: getConfidenceLevel(failedPaymentLoss, currentARR, 'payment'),
-      urgency: getUrgencyLevel(failedPaymentLoss, currentARR, 'payment'),
-      complexity: 'Low',
-      paybackPeriod: '1 month',
-      whyItMatters: 'Failed payment recovery directly impacts revenue retention and reduces involuntary churn.',
-      dependencies: ['Payment processor integration', 'Customer success team'],
-      implementationSteps: [
-        'Set up automated dunning sequences',
-        'Implement smart retry logic',
-        'Create customer communication templates',
-        'Monitor recovery rates',
-        'Optimize based on performance'
-      ]
-    });
+    actions.push(createPaymentAction(paymentRecovery, totalActionRecovery, currentARR, failedPaymentLoss));
   }
 
   // Ensure we have actions to show - if none meet thresholds, show top potential actions
@@ -320,19 +237,18 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
       { type: 'payment', loss: failedPaymentLoss, recovery: paymentRecovery }
     ].filter(a => a.loss > 0).sort((a, b) => b.recovery - a.recovery);
 
-    // Add top action even if below threshold
-    if (potentialActions.length > 0) {
-      const topAction = potentialActions[0];
-      if (topAction.type === 'lead_response') {
+    // Add top 2 actions even if below threshold
+    potentialActions.slice(0, 2).forEach(action => {
+      if (action.type === 'lead_response') {
         actions.push(createLeadResponseAction(leadResponseRecovery, totalActionRecovery, currentARR, leadResponseLoss));
-      } else if (topAction.type === 'selfserve') {
+      } else if (action.type === 'selfserve') {
         actions.push(createSelfServeAction(selfserveRecovery, totalActionRecovery, currentARR, selfserveGapLoss));
-      } else if (topAction.type === 'process') {
+      } else if (action.type === 'process') {
         actions.push(createProcessAction(processRecovery, totalActionRecovery, currentARR, processLoss));
-      } else if (topAction.type === 'payment') {
+      } else if (action.type === 'payment') {
         actions.push(createPaymentAction(paymentRecovery, totalActionRecovery, currentARR, failedPaymentLoss));
       }
-    }
+    });
   }
 
   // Recalculate impact percentages for displayed actions only
@@ -343,8 +259,8 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
     });
   }
 
-  // Sort by recovery amount (highest first) and limit to top 3
-  return actions.sort((a, b) => b.recoveryAmount - a.recoveryAmount).slice(0, 3);
+  // Sort by recovery amount (highest first) and limit to top 4
+  return actions.sort((a, b) => b.recoveryAmount - a.recoveryAmount).slice(0, 4);
 }
 
 export function calculateQuickWins(submission: Submission): QuickWin[] {
