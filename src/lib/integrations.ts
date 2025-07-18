@@ -1,5 +1,5 @@
 // Integration Services for CRM, Email, and Automation
-import { CalculatorSubmission } from './database';
+import { Tables } from "@/integrations/supabase/types";
 
 interface IntegrationConfig {
   twentyCrm: {
@@ -74,7 +74,7 @@ class IntegrationService {
   }
 
   // N8N Webhook Integration - Now uses existing n8n-trigger edge function
-  async triggerN8nWorkflow(submission: CalculatorSubmission): Promise<{ success: boolean; error?: string }> {
+  async triggerN8nWorkflow(submission: any): Promise<{ success: boolean; error?: string }> {
     try {
       const { supabase } = await import('@/integrations/supabase/client');
       
@@ -102,7 +102,7 @@ class IntegrationService {
   }
 
   // Smartlead Email Integration
-  async assignToEmailCampaign(submission: CalculatorSubmission): Promise<{ success: boolean; campaignId?: string; error?: string }> {
+  async assignToEmailCampaign(submission: any): Promise<{ success: boolean; campaignId?: string; error?: string }> {
     try {
       const campaignId = this.selectEmailCampaign(submission.lead_score || 0);
       
@@ -161,7 +161,7 @@ class IntegrationService {
 
   // Process submission with scenario-based approach
   async processSubmission(
-    submission: CalculatorSubmission, 
+    submission: any, 
     userId?: string, 
     scenario: 'new_user' | 'existing_user' | 'anonymous' = 'anonymous'
   ): Promise<{

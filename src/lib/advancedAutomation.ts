@@ -8,7 +8,7 @@ import {
   triggerN8NWorkflow 
 } from "./coreDataCapture";
 import { integrations } from "./integrations";
-import { CalculatorSubmission } from "./database";
+import { Tables } from "@/integrations/supabase/types";
 
 // Get scheduled email sequences that are ready to be sent
 export const getScheduledEmailSequences = async () => {
@@ -445,7 +445,7 @@ export const handleUserRegistration = async (registrationData: any, tempId: stri
       
       // 7. Trigger Twenty CRM integration
       try {
-        const crmSubmission: CalculatorSubmission = {
+        const crmSubmission: any = {
           id: permanentSubmission.id,
           email: user.email!,
           company_name: registrationData.actualCompany || tempSubmission.company_name,

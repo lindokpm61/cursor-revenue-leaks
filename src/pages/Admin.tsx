@@ -12,13 +12,14 @@ import {
   Trash2, AlertTriangle
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { db, CalculatorSubmission } from "@/lib/database";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
 const Admin = () => {
-  const [submissions, setSubmissions] = useState<CalculatorSubmission[]>([]);
-  const [filteredSubmissions, setFilteredSubmissions] = useState<CalculatorSubmission[]>([]);
+  const [submissions, setSubmissions] = useState<Tables<'submissions'>[]>([]);
+  const [filteredSubmissions, setFilteredSubmissions] = useState<Tables<'submissions'>[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [industryFilter, setIndustryFilter] = useState("all");
@@ -49,17 +50,43 @@ const Admin = () => {
 
   const loadAdminData = async () => {
     try {
-      const [submissionsResponse, analyticsResponse] = await Promise.all([
-        db.getSubmissions({ limit: 100 }),
-        db.getAnalytics()
-      ]);
+      // Get submissions
+      const { data: submissionsData, error: submissionsError } = await supabase
+        .from('submissions')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
 
-      if (submissionsResponse.data) {
-        setSubmissions(submissionsResponse.data);
-      }
+      if (submissionsError) throw submissionsError;
 
-      if (analyticsResponse.data) {
-        setAnalytics(analyticsResponse.data);
+      if (submissionsData) {
+        setSubmissions(submissionsData);
+        
+        // Calculate analytics from submissions data
+        const totalSubmissions = submissionsData.length;
+        const weeklySubmissions = submissionsData.filter(sub => 
+          new Date(sub.created_at || '').getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
+        ).length;
+        const averageLeakage = submissionsData.reduce((sum, sub) => sum + (sub.total_leak || 0), 0) / totalSubmissions;
+        
+        // Top industries
+        const industryCount: Record<string, number> = {};
+        submissionsData.forEach(sub => {
+          if (sub.industry) {
+            industryCount[sub.industry] = (industryCount[sub.industry] || 0) + 1;
+          }
+        });
+        const topIndustries = Object.entries(industryCount)
+          .map(([industry, count]) => ({ industry, count }))
+          .sort((a, b) => b.count - a.count);
+
+        setAnalytics({
+          totalSubmissions,
+          weeklySubmissions,
+          averageLeakage,
+          topIndustries,
+          conversionFunnel: [] // Placeholder for now
+        });
       }
     } catch (error) {
       toast({
@@ -78,7 +105,7 @@ const Admin = () => {
     if (searchTerm) {
       filtered = filtered.filter(sub => 
         sub.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sub.email.toLowerCase().includes(searchTerm.toLowerCase())
+        sub.contact_email.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -87,7 +114,8 @@ const Admin = () => {
     }
 
     if (statusFilter !== "all") {
-      filtered = filtered.filter(sub => sub.status === statusFilter);
+      // Since we don't have a status field in submissions table, skip this filter for now
+      // filtered = filtered.filter(sub => sub.status === statusFilter);
     }
 
     setFilteredSubmissions(filtered);
@@ -95,16 +123,11 @@ const Admin = () => {
 
   const updateSubmissionStatus = async (id: string, status: string) => {
     try {
-      const response = await db.updateSubmission(id, { status: status as any });
-      if (response.data) {
-        setSubmissions(prev => 
-          prev.map(sub => sub.id === id ? { ...sub, status: status as any } : sub)
-        );
-        toast({
-          title: "Success",
-          description: "Status updated successfully",
-        });
-      }
+      // For now, just show a message since we don't have status in the submissions table
+      toast({
+        title: "Info",
+        description: "Status update feature will be available once status field is added to database",
+      });
     } catch (error) {
       toast({
         title: "Error", 
@@ -119,13 +142,13 @@ const Admin = () => {
       'Company Name,Email,Industry,Current ARR,Total Leakage,Recovery Potential,Lead Score,Status,Created Date',
       ...filteredSubmissions.map(sub => [
         sub.company_name,
-        sub.email,
+        sub.contact_email,
         sub.industry,
         sub.current_arr,
-        sub.calculations?.totalLeakage || 0,
-        sub.calculations?.potentialRecovery70 || 0,
+        sub.total_leak || 0,
+        sub.recovery_potential_70 || 0,
         sub.lead_score || 0,
-        sub.status || 'new',
+        'new', // Default status since we don't have this field
         sub.created_at || ''
       ].join(','))
     ].join('\n');
@@ -371,7 +394,7 @@ const Admin = () => {
                         <TableCell>
                           <div>
                             <div className="font-medium">{submission.company_name}</div>
-                            <div className="text-sm text-muted-foreground">{submission.email}</div>
+                            <div className="text-sm text-muted-foreground">{submission.contact_email}</div>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -379,9 +402,9 @@ const Admin = () => {
                             {submission.industry}
                           </Badge>
                         </TableCell>
-                        <TableCell>{formatCurrency(submission.current_arr)}</TableCell>
+                        <TableCell>{formatCurrency(submission.current_arr || 0)}</TableCell>
                         <TableCell className="text-revenue-danger">
-                          {formatCurrency(submission.calculations?.totalLeakage || 0)}
+                          {formatCurrency(submission.total_leak || 0)}
                         </TableCell>
                         <TableCell>
                           <span className={`font-bold ${getLeadScoreColor(submission.lead_score || 0)}`}>
@@ -389,20 +412,7 @@ const Admin = () => {
                           </span>
                         </TableCell>
                         <TableCell>
-                          <Select
-                            value={submission.status || 'new'}
-                            onValueChange={(value) => updateSubmissionStatus(submission.id!, value)}
-                          >
-                            <SelectTrigger className="w-[120px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="new">New</SelectItem>
-                              <SelectItem value="contacted">Contacted</SelectItem>
-                              <SelectItem value="qualified">Qualified</SelectItem>
-                              <SelectItem value="closed">Closed</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Badge variant="outline">New</Badge>
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {submission.created_at ? 
