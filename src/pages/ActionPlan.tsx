@@ -146,6 +146,15 @@ const ActionPlan = () => {
       // Generate priority actions from enhanced calculations
       const enhancedActions = generatePriorityActions(results, timelineData);
       setPriorityActions(enhancedActions);
+      
+      // Clean up stale checked actions when priority actions change
+      if (checkedActions.length > 0) {
+        const cleanedActions = cleanupStaleActions(checkedActions, enhancedActions);
+        if (cleanedActions.length !== checkedActions.length) {
+          setCheckedActions(cleanedActions);
+          syncCleanedActionsToDatabase(cleanedActions);
+        }
+      }
 
       console.log('Enhanced Action Plan calculations:', {
         results,
@@ -304,6 +313,11 @@ const ActionPlan = () => {
     return actions.sort((a, b) => (b.impact || 0) - (a.impact || 0));
   };
 
+  const cleanupStaleActions = (checkedActions: string[], priorityActions: any[]) => {
+    const validActionIds = new Set(priorityActions.map(action => action.id));
+    return checkedActions.filter(actionId => validActionIds.has(actionId));
+  };
+
   const loadUserProfile = async () => {
     if (!user) return;
     
@@ -320,11 +334,42 @@ const ActionPlan = () => {
       }
       
       setUserProfile(profile);
+      
+      // Load checked actions but don't set them yet - wait for priority actions to be generated
       if (profile?.checked_actions && Array.isArray(profile.checked_actions)) {
-        setCheckedActions(profile.checked_actions.filter((item): item is string => typeof item === 'string'));
+        const rawCheckedActions = profile.checked_actions.filter((item): item is string => typeof item === 'string');
+        
+        // If we have priority actions already, clean up immediately
+        if (priorityActions.length > 0) {
+          const cleanedActions = cleanupStaleActions(rawCheckedActions, priorityActions);
+          setCheckedActions(cleanedActions);
+          
+          // Update database with cleaned actions if there were changes
+          if (cleanedActions.length !== rawCheckedActions.length) {
+            await syncCleanedActionsToDatabase(cleanedActions);
+          }
+        } else {
+          // Store temporarily until priority actions are available
+          setCheckedActions(rawCheckedActions);
+        }
       }
     } catch (error) {
       console.error('Failed to load user profile:', error);
+    }
+  };
+
+  const syncCleanedActionsToDatabase = async (cleanedActions: string[]) => {
+    if (!user) return;
+    
+    try {
+      await supabase
+        .from('user_profiles')
+        .update({ checked_actions: cleanedActions })
+        .eq('id', user.id);
+        
+      console.log('Cleaned stale actions from database');
+    } catch (error) {
+      console.error('Failed to sync cleaned actions:', error);
     }
   };
 
@@ -429,6 +474,13 @@ const ActionPlan = () => {
   };
 
   const handleActionToggle = async (actionId: string, isChecked: boolean) => {
+    // Validate that the action exists in current priority actions
+    const actionExists = priorityActions.some(action => action.id === actionId);
+    if (!actionExists) {
+      console.warn(`Action ${actionId} not found in current priority actions. Skipping toggle.`);
+      return;
+    }
+    
     const newCheckedActions = isChecked
       ? [...checkedActions, actionId]
       : checkedActions.filter(id => id !== actionId);
