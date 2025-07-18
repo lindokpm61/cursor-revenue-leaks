@@ -76,11 +76,11 @@ export default function ActionPlan() {
     fetchData();
   }, [submissionId, navigate, toast]);
 
-  // Transform data for UnifiedResultsService
+  // Transform data for UnifiedResultsService and components
   const submissionData = useMemo(() => {
     if (!data || !data.calculator_data) return null;
     
-    return {
+    const unifiedCalcs = UnifiedResultsService.calculateResults({
       id: data.temp_id || submissionId,
       company_name: data.company_name || '',
       contact_email: data.email || '',
@@ -98,6 +98,65 @@ export default function ActionPlan() {
       lead_score: data.lead_score || 50,
       user_id: data.converted_to_user_id,
       created_at: data.created_at || new Date().toISOString()
+    });
+    
+    // Return complete submission object with all required fields
+    return {
+      id: data.temp_id || submissionId,
+      company_name: data.company_name || '',
+      contact_email: data.email || '',
+      industry: data.industry || data.calculator_data.companyInfo?.industry || '',
+      current_arr: data.calculator_data.companyInfo?.currentARR || 0,
+      monthly_leads: data.calculator_data.leadGeneration?.monthlyLeads || 0,
+      average_deal_value: data.calculator_data.leadGeneration?.averageDealValue || 0,
+      lead_response_time: data.calculator_data.leadGeneration?.leadResponseTime || 0,
+      monthly_free_signups: data.calculator_data.selfServe?.monthlyFreeSignups || 0,
+      free_to_paid_conversion: data.calculator_data.selfServe?.freeToLaidConversion || 0,
+      monthly_mrr: data.calculator_data.selfServe?.monthlyMRR || 0,
+      failed_payment_rate: data.calculator_data.selfServe?.failedPaymentRate || 0,
+      manual_hours: data.calculator_data.operations?.manualHours || 0,
+      hourly_rate: data.calculator_data.operations?.hourlyRate || 0,
+      lead_score: data.lead_score || 50,
+      user_id: data.converted_to_user_id || '',
+      created_at: data.created_at || new Date().toISOString(),
+      // Add calculated fields
+      lead_response_loss: unifiedCalcs.leadResponseLoss,
+      failed_payment_loss: unifiedCalcs.failedPaymentLoss,
+      selfserve_gap_loss: unifiedCalcs.selfServeGap,
+      process_inefficiency_loss: unifiedCalcs.processInefficiency,
+      total_leak: unifiedCalcs.totalLoss,
+      recovery_potential_70: unifiedCalcs.conservativeRecovery,
+      recovery_potential_85: unifiedCalcs.optimisticRecovery,
+      // Add missing required fields with defaults
+      crm_opportunity_id: '',
+      crm_person_id: '',
+      phone: '',
+      utm_source: '',
+      utm_medium: '',
+      utm_campaign: '',
+      utm_term: '',
+      utm_content: '',
+      referrer: '',
+      first_touch_url: '',
+      last_touch_url: '',
+      session_count: 1,
+      page_views: 1,
+      time_on_site: 0,
+      form_submission_time: new Date().toISOString(),
+      browser: '',
+      device: '',
+      os: '',
+      country: '',
+      region: '',
+      city: '',
+      // Add remaining required fields
+      leak_percentage: Math.round((unifiedCalcs.totalLoss / Math.max(data.calculator_data.companyInfo?.currentARR || 1, 1)) * 100),
+      n8n_triggered: false,
+      smartlead_campaign_id: '',
+      synced_to_self_hosted: false,
+      updated_at: new Date().toISOString(),
+      twenty_company_id: '',
+      twenty_contact_id: ''
     };
   }, [data, submissionId]);
 
@@ -138,6 +197,33 @@ export default function ActionPlan() {
       current_arr: submissionData.current_arr,
       monthly_leads: submissionData.monthly_leads,
       monthly_free_signups: submissionData.monthly_free_signups,
+      average_deal_value: submissionData.average_deal_value,
+      lead_response_time: submissionData.lead_response_time,
+      free_to_paid_conversion: submissionData.free_to_paid_conversion,
+      monthly_mrr: submissionData.monthly_mrr,
+      failed_payment_rate: submissionData.failed_payment_rate,
+      manual_hours: submissionData.manual_hours,
+      hourly_rate: submissionData.hourly_rate,
+      user_id: submissionData.user_id,
+      phone: submissionData.phone,
+      utm_source: submissionData.utm_source,
+      utm_medium: submissionData.utm_medium,
+      utm_campaign: submissionData.utm_campaign,
+      utm_term: submissionData.utm_term,
+      utm_content: submissionData.utm_content,
+      referrer: submissionData.referrer,
+      first_touch_url: submissionData.first_touch_url,
+      last_touch_url: submissionData.last_touch_url,
+      session_count: submissionData.session_count,
+      page_views: submissionData.page_views,
+      time_on_site: submissionData.time_on_site,
+      form_submission_time: submissionData.form_submission_time,
+      browser: submissionData.browser,
+      device: submissionData.device,
+      os: submissionData.os,
+      country: submissionData.country,
+      region: submissionData.region,
+      city: submissionData.city,
       lead_response_loss: unifiedResults.leadResponseLoss,
       failed_payment_loss: unifiedResults.failedPaymentLoss,
       selfserve_gap_loss: unifiedResults.selfServeGap,
@@ -146,7 +232,16 @@ export default function ActionPlan() {
       recovery_potential_70: unifiedResults.conservativeRecovery,
       recovery_potential_85: unifiedResults.optimisticRecovery,
       lead_score: submissionData.lead_score,
-      created_at: submissionData.created_at
+      created_at: submissionData.created_at,
+      crm_opportunity_id: submissionData.crm_opportunity_id,
+      crm_person_id: submissionData.crm_person_id,
+      leak_percentage: submissionData.leak_percentage,
+      n8n_triggered: submissionData.n8n_triggered,
+      smartlead_campaign_id: submissionData.smartlead_campaign_id,
+      synced_to_self_hosted: submissionData.synced_to_self_hosted,
+      updated_at: submissionData.updated_at,
+      twenty_company_id: submissionData.twenty_company_id,
+      twenty_contact_id: submissionData.twenty_contact_id
     };
   }, [submissionData, unifiedResults]);
 
@@ -316,20 +411,40 @@ export default function ActionPlan() {
         {/* User Intent Selector */}
         <div className="mb-8">
           <UserIntentSelector 
-            value={userIntent} 
-            onChange={setUserIntent}
-            totalLeak={unifiedResults.totalLoss}
-            formatCurrency={UnifiedResultsService.formatCurrency}
+            selectedIntent={userIntent} 
+            onIntentChange={setUserIntent}
           />
         </div>
 
         <div className="space-y-8">
           {/* Executive Summary */}
           <ExecutiveSummary 
+            data={{
+              companyInfo: {
+                companyName: submissionData.company_name || '',
+                currentARR: submissionData.current_arr || 0,
+                industry: submissionData.industry || '',
+                email: submissionData.contact_email || '',
+                phone: submissionData.phone || ''
+              },
+              leadGeneration: {
+                monthlyLeads: submissionData.monthly_leads || 0,
+                averageDealValue: submissionData.average_deal_value || 0,
+                leadResponseTimeHours: submissionData.lead_response_time || 0
+              },
+              selfServeMetrics: {
+                monthlyFreeSignups: submissionData.monthly_free_signups || 0,
+                freeToPaidConversionRate: submissionData.free_to_paid_conversion || 0,
+                monthlyMRR: submissionData.monthly_mrr || 0
+              },
+              operationsData: {
+                failedPaymentRate: submissionData.failed_payment_rate || 0,
+                manualHoursPerWeek: submissionData.manual_hours || 0,
+                hourlyRate: submissionData.hourly_rate || 0
+              }
+            }}
             calculations={legacyCalculations}
-            data={data}
-            currentARR={submissionData.current_arr}
-            companyName={submissionData.company_name}
+            formatCurrency={UnifiedResultsService.formatCurrency}
           />
 
           {/* Decision Support Panel */}
@@ -341,14 +456,16 @@ export default function ActionPlan() {
 
           {/* Priority Actions */}
           <PriorityActions 
-            calculations={legacyCalculations}
-            data={data}
+            submission={submissionData}
+            formatCurrency={UnifiedResultsService.formatCurrency}
+            calculatorData={submissionData}
           />
 
           {/* Implementation Timeline */}
           <ImplementationTimeline 
-            calculations={legacyCalculations}
-            data={data}
+            submission={submissionData}
+            formatCurrency={UnifiedResultsService.formatCurrency}
+            calculatorData={submissionData}
           />
 
           {/* Next Steps Card */}
