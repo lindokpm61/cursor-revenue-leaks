@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,10 +22,12 @@ import {
 import { type Submission } from "@/lib/supabase";
 import { industryDefaults, IndustryBenchmarks, bestInClassTargets, BestInClassBenchmarks } from '@/lib/industryDefaults';
 import { getCalculationConfidenceLevel } from '@/lib/calculator/validationHelpers';
+import { type UnifiedCalculations } from '@/lib/results/UnifiedResultsService';
 
 interface IndustryBenchmarkingProps {
   submission: Submission;
   formatCurrency: (amount: number) => string;
+  calculations: UnifiedCalculations;
   variant?: 'condensed' | 'standard' | 'detailed' | 'competitive';
 }
 
@@ -44,7 +47,7 @@ interface BenchmarkMetric {
   strategicAdvantage: boolean;
 }
 
-export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'standard' }: IndustryBenchmarkingProps) => {
+export const IndustryBenchmarking = ({ submission, formatCurrency, calculations, variant = 'standard' }: IndustryBenchmarkingProps) => {
   const [isContentOpen, setIsContentOpen] = useState(variant === 'detailed' ? true : false);
 
   const calculateBenchmarks = (): BenchmarkMetric[] => {
@@ -67,9 +70,11 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
     const industryData = industryDefaults[industryKey];
     const bestInClassData = bestInClassTargets[industryKey];
     
-    // Calculate revenue impact multipliers based on submission data
-    const currentARR = submission.current_arr || 0;
-    const monthlyLeads = submission.monthly_leads || 0;
+    // Use UnifiedResultsService calculations for revenue opportunities instead of internal calculations
+    const leadResponseOpportunity = calculations.leadResponseLoss;
+    const conversionOpportunity = calculations.selfServeGap;
+    const paymentOpportunity = calculations.failedPaymentLoss;
+    const processOpportunity = calculations.processInefficiency;
     
     const metrics: BenchmarkMetric[] = [
       {
@@ -84,7 +89,7 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
         performance: 'below-average',
         gapToAverage: 0,
         gapToBestInClass: 0,
-        revenueOpportunity: 0,
+        revenueOpportunity: leadResponseOpportunity,
         strategicAdvantage: false
       },
       {
@@ -99,7 +104,7 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
         performance: 'below-average',
         gapToAverage: 0,
         gapToBestInClass: 0,
-        revenueOpportunity: 0,
+        revenueOpportunity: conversionOpportunity,
         strategicAdvantage: false
       },
       {
@@ -114,7 +119,7 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
         performance: 'below-average',
         gapToAverage: 0,
         gapToBestInClass: 0,
-        revenueOpportunity: 0,
+        revenueOpportunity: paymentOpportunity,
         strategicAdvantage: false
       },
       {
@@ -129,7 +134,7 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
         performance: 'below-average',
         gapToAverage: 0,
         gapToBestInClass: 0,
-        revenueOpportunity: 0,
+        revenueOpportunity: processOpportunity,
         strategicAdvantage: false
       }
     ];
@@ -152,17 +157,6 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
         
         metric.gapToAverage = metric.industryAvg - metric.userValue;
         metric.gapToBestInClass = metric.bestInClass - metric.userValue;
-        
-        // Calculate exponential revenue opportunity based on conversion improvements
-        if (metric.id === 'conversion-rate') {
-          const monthlySignups = submission.monthly_free_signups || 0;
-          const avgDealValue = submission.average_deal_value || 0;
-          
-          // Revenue impact of reaching best-in-class conversion
-          const currentMonthlyRevenue = (monthlySignups * metric.userValue / 100) * avgDealValue;
-          const bestInClassMonthlyRevenue = (monthlySignups * metric.bestInClass / 100) * avgDealValue;
-          metric.revenueOpportunity = (bestInClassMonthlyRevenue - currentMonthlyRevenue) * 12; // Annual
-        }
       } else {
         // For metrics where lower is better
         if (metric.userValue <= metric.bestInClass) {
@@ -179,20 +173,6 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
         
         metric.gapToAverage = metric.userValue - metric.industryAvg;
         metric.gapToBestInClass = metric.userValue - metric.bestInClass;
-        
-        // Calculate revenue opportunity for time-sensitive metrics
-        if (metric.id === 'lead-response' && metric.userValue > metric.bestInClass) {
-          const monthlyLeads = submission.monthly_leads || 0;
-          const avgDealValue = submission.average_deal_value || 0;
-          const currentCloseRate = 0.15; // Assume 15% baseline close rate
-          
-          // Revenue impact of aggressive response time improvement
-          // Best-in-class response can increase close rates by 50-300%
-          const responseMultiplier = Math.min(3, metric.userValue / metric.bestInClass);
-          const improvedCloseRate = currentCloseRate * (1 + (responseMultiplier - 1) * 0.5);
-          const additionalDeals = monthlyLeads * (improvedCloseRate - currentCloseRate);
-          metric.revenueOpportunity = additionalDeals * avgDealValue * 12; // Annual
-        }
       }
     });
 
@@ -268,7 +248,7 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
       
       case 'payment-failure':
         if (metric.performance === 'below-average') {
-          return `💰 Reducing to ${metric.bestInClass}% failure rate (best-in-class) could save significant MRR${confidenceNote}`;
+          return `💰 Reducing to ${metric.bestInClass}% failure rate (best-in-class) could save ${formatCurrency(metric.revenueOpportunity)} annually${confidenceNote}`;
         } else if (metric.performance === 'best-in-class') {
           return `🏆 Best-in-class payment processing - minimal revenue loss!`;
         }
@@ -277,7 +257,7 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, variant = 'st
       case 'process-efficiency':
         if (metric.performance === 'below-average') {
           const hoursSaved = Math.round(metric.userValue - metric.bestInClass);
-          return `⚡ Automating to ${metric.bestInClass} hours/week could save ${hoursSaved} hours weekly${confidenceNote}`;
+          return `⚡ Automating to ${metric.bestInClass} hours/week could save ${hoursSaved} hours weekly and ${formatCurrency(metric.revenueOpportunity)} annually${confidenceNote}`;
         } else if (metric.performance === 'best-in-class') {
           return `🏆 Highly automated operations - maximum efficiency achieved!`;
         }

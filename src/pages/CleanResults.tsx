@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -275,6 +274,7 @@ const CleanResults = () => {
           <IndustryBenchmarking 
             submission={submission}
             formatCurrency={formatCurrency}
+            calculations={calculations}
           />
         )}
 
