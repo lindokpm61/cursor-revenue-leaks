@@ -73,8 +73,6 @@ export default function ActionPlan() {
   }, [tempId, data]);
 
   const handleBack = useCallback(() => {
-    // Track navigation back - simplified without analytics lib
-    console.log('Action plan navigation back');
     navigate(`/operations?tempId=${tempId}`);
   }, [navigate, tempId]);
 
