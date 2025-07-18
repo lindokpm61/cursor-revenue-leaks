@@ -82,6 +82,14 @@ const ActionPlan = () => {
   const [investment, setInvestment] = useState<any>(null);
   const [roiData, setRoiData] = useState<any>(null);
   
+  // Save state management
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [lastSavedState, setLastSavedState] = useState<{
+    checkedActions: string[];
+    modifiedCosts: Record<string, number>;
+  }>({ checkedActions: [], modifiedCosts: {} });
+  
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -383,31 +391,22 @@ const ActionPlan = () => {
   };
 
   // Handle action cost modification
-  const handleActionCostChange = async (actionId: string, newCost: number) => {
+  const handleActionCostChange = (actionId: string, newCost: number) => {
     const updatedCosts = {
       ...modifiedActionCosts,
       [actionId]: newCost
     };
     
     setModifiedActionCosts(updatedCosts);
+    setHasUnsavedChanges(true);
     
-    // Save to user profile
-    if (user) {
-      try {
-        await supabase
-          .from('user_profiles')
-          .upsert({
-            id: user.id,
-            checked_actions: checkedActions,
-            modified_action_costs: updatedCosts as any,
-            updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'id'
-          });
-      } catch (error) {
-        console.error('Failed to save modified costs:', error);
-      }
-    }
+    // Show feedback for cost modification
+    const actionName = priorityActions.find(a => a.id === actionId)?.title || 'Action';
+    toast({
+      title: "Cost Updated",
+      description: `${actionName} cost changed to $${newCost.toLocaleString()}. Click "Save Changes" to persist.`,
+      duration: 2000,
+    });
     
     // Trigger recalculation if we have priority actions
     if (priorityActions.length > 0 && timeline.length > 0 && submission) {
@@ -587,7 +586,7 @@ const ActionPlan = () => {
     }
   };
 
-  const handleActionToggle = async (actionId: string, isChecked: boolean) => {
+  const handleActionToggle = (actionId: string, isChecked: boolean) => {
     // Validate that the action exists in current priority actions
     const actionExists = priorityActions.some(action => action.id === actionId);
     if (!actionExists) {
@@ -600,12 +599,18 @@ const ActionPlan = () => {
       : checkedActions.filter(id => id !== actionId);
     
     setCheckedActions(newCheckedActions);
+    setHasUnsavedChanges(true);
     
-    // Save to database
-    await saveActionProgress(newCheckedActions);
+    // Show feedback for action toggle
+    const actionName = priorityActions.find(a => a.id === actionId)?.title || 'Action';
+    toast({
+      title: isChecked ? "Action Added" : "Action Removed",
+      description: `${actionName} ${isChecked ? 'added to' : 'removed from'} your plan. Don't forget to save your changes.`,
+      duration: 2000,
+    });
     
     // Track engagement event with action interaction
-    await trackEngagementEvent('action_interaction', {
+    trackEngagementEvent('action_interaction', {
       actionId,
       isChecked,
       actionTitle: priorityActions.find(a => a.id === actionId)?.title,
@@ -634,6 +639,79 @@ const ActionPlan = () => {
       console.error('Error saving action progress:', error);
     }
   };
+
+  // Save all changes (checked actions and modified costs)
+  const handleSaveChanges = async () => {
+    if (!user || isSaving) return;
+    
+    setIsSaving(true);
+    
+    try {
+      await supabase
+        .from('user_profiles')
+        .upsert({
+          id: user.id,
+          checked_actions: checkedActions,
+          actions_checked_count: checkedActions.length,
+          modified_action_costs: modifiedActionCosts as any,
+          last_action_plan_visit: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'id'
+        });
+      
+      setHasUnsavedChanges(false);
+      setLastSavedState({
+        checkedActions: [...checkedActions],
+        modifiedCosts: { ...modifiedActionCosts }
+      });
+      
+      toast({
+        title: "Changes Saved",
+        description: "Your action plan modifications have been saved successfully.",
+      });
+      
+      // Track save event
+      await trackEngagementEvent('action_plan_saved', {
+        checked_actions_count: checkedActions.length,
+        modified_costs_count: Object.keys(modifiedActionCosts).length,
+        total_investment: investment?.totalAnnualInvestment || 0
+      });
+      
+    } catch (error) {
+      console.error('Failed to save changes:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save your changes. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Check if there are unsaved changes
+  const checkForUnsavedChanges = () => {
+    const currentState = {
+      checkedActions: [...checkedActions],
+      modifiedCosts: { ...modifiedActionCosts }
+    };
+    
+    const hasCheckedChanges = JSON.stringify(currentState.checkedActions.sort()) !== 
+                              JSON.stringify(lastSavedState.checkedActions.sort());
+    const hasCostChanges = JSON.stringify(currentState.modifiedCosts) !== 
+                           JSON.stringify(lastSavedState.modifiedCosts);
+    
+    return hasCheckedChanges || hasCostChanges;
+  };
+
+  // Update unsaved changes status
+  useEffect(() => {
+    const hasChanges = checkForUnsavedChanges();
+    if (hasChanges !== hasUnsavedChanges) {
+      setHasUnsavedChanges(hasChanges);
+    }
+  }, [checkedActions, modifiedActionCosts, lastSavedState]);
 
   const trackEngagementEvent = async (eventType: string, eventData: any = {}) => {
     if (!user || !submission) return;
@@ -1142,13 +1220,36 @@ const ActionPlan = () => {
                   </div>
                 </Card>
                 
-                <Button 
-                  onClick={handleExportPDF}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  <FileDown className="h-4 w-4 mr-2" />
-                  Export PDF
-                </Button>
+                <div className="flex gap-3">
+                  {hasUnsavedChanges && (
+                    <Button 
+                      onClick={handleSaveChanges}
+                      disabled={isSaving}
+                      variant="success"
+                      className="animate-pulse"
+                    >
+                      {isSaving ? (
+                        <>
+                          <Activity className="h-4 w-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Save Changes
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  
+                  <Button 
+                    onClick={handleExportPDF}
+                    variant="outline"
+                  >
+                    <FileDown className="h-4 w-4 mr-2" />
+                    Export PDF
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -1159,17 +1260,34 @@ const ActionPlan = () => {
         <ProgressEncouragement />
 
         <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="actions">
-              Actions ({priorityActions.length})
-            </TabsTrigger>
-            <TabsTrigger value="timeline">
-              Timeline
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex items-center justify-between mb-4">
+            <TabsList className="grid grid-cols-3">
+              <TabsTrigger value="overview">
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="actions">
+                Actions ({priorityActions.length})
+              </TabsTrigger>
+              <TabsTrigger value="timeline">
+                Timeline
+              </TabsTrigger>
+            </TabsList>
+            
+            {/* Save Status Indicator */}
+            <div className="flex items-center gap-2">
+              {hasUnsavedChanges ? (
+                <Badge variant="destructive" className="animate-pulse">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  Unsaved Changes
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="text-green-600">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  All Changes Saved
+                </Badge>
+              )}
+            </div>
+          </div>
 
           <TabsContent value="overview" className="space-y-6 mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
