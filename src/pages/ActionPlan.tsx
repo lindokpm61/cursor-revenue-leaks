@@ -57,6 +57,7 @@ import {
   type UnifiedCalculationResults,
   type TimelinePhase
 } from "@/lib/calculator/unifiedCalculations";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, ComposedChart } from 'recharts';
 import { 
   getCalculationConfidenceLevel
 } from "@/lib/calculator/validationHelpers";
@@ -674,6 +675,88 @@ const ActionPlan = () => {
     }
   };
 
+  // Chart data generators
+  const generateRecoveryChartData = () => {
+    if (!timeline.length) return [];
+    
+    const data = [{ month: 'Current', cumulative: 0 }];
+    let cumulativeTotal = 0;
+    
+    // Generate 12 months of data based on timeline phases
+    for (let month = 1; month <= 12; month++) {
+      let monthlyRecovery = 0;
+      
+      timeline.forEach(phase => {
+        if (month >= phase.startMonth && month <= phase.endMonth) {
+          const phaseProgress = (month - phase.startMonth + 1) / (phase.endMonth - phase.startMonth + 1);
+          const totalPhaseMonths = phase.endMonth - phase.startMonth + 1;
+          
+          // Realistic ramp-up curve
+          let monthlyContribution: number;
+          if (phaseProgress <= 0.3) {
+            monthlyContribution = (phase.recoveryPotential * 0.2) / (totalPhaseMonths * 0.3);
+          } else if (phaseProgress <= 0.8) {
+            monthlyContribution = (phase.recoveryPotential * 0.7) / (totalPhaseMonths * 0.5);
+          } else {
+            monthlyContribution = (phase.recoveryPotential * 0.1) / (totalPhaseMonths * 0.2);
+          }
+          
+          monthlyRecovery += monthlyContribution;
+        }
+      });
+      
+      cumulativeTotal += monthlyRecovery;
+      data.push({
+        month: `Month ${month}`,
+        cumulative: cumulativeTotal
+      });
+    }
+    
+    return data;
+  };
+
+  const generateInvestmentAnalysisData = () => {
+    if (!timeline.length || !investment) return [];
+    
+    return timeline.map((phase, index) => {
+      const phaseInvestment = investment.implementationCost / timeline.length;
+      return {
+        phase: `Phase ${index + 1}`,
+        investment: phaseInvestment,
+        recovery: phase.recoveryPotential
+      };
+    });
+  };
+
+  const generateROIProgressionData = () => {
+    if (!timeline.length || !investment) return [];
+    
+    const data = [];
+    let cumulativeRecovery = 0;
+    const totalInvestment = investment.totalAnnualInvestment;
+    
+    for (let month = 1; month <= 12; month++) {
+      // Calculate monthly recovery based on timeline phases
+      let monthlyRecovery = 0;
+      timeline.forEach(phase => {
+        if (month >= phase.startMonth && month <= phase.endMonth) {
+          const monthsInPhase = phase.endMonth - phase.startMonth + 1;
+          monthlyRecovery += phase.recoveryPotential / monthsInPhase;
+        }
+      });
+      
+      cumulativeRecovery += monthlyRecovery;
+      const roi = totalInvestment > 0 ? ((cumulativeRecovery - totalInvestment) / totalInvestment) * 100 : 0;
+      
+      data.push({
+        month: `M${month}`,
+        roi: Math.max(roi, -100) // Cap at -100% for visualization
+      });
+    }
+    
+    return data;
+  };
+
   const ProgressEncouragement = () => {
     const completionPercentage = Math.round((checkedActions.length / priorityActions.length) * 100);
     
@@ -1125,7 +1208,8 @@ const ActionPlan = () => {
           <TabsContent value="timeline" className="space-y-6 mt-6">
             {timeline.length > 0 ? (
               <div className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                {/* Summary Stats */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
                   <Card>
                     <CardContent className="p-4 text-center">
                       <div className="text-2xl font-bold text-success mb-1">
@@ -1150,57 +1234,229 @@ const ActionPlan = () => {
                       <div className="text-sm text-muted-foreground">Total Recovery</div>
                     </CardContent>
                   </Card>
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold text-destructive mb-1">
+                        {investment ? Math.round(investment.paybackMonths) : 'N/A'}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Month Payback</div>
+                    </CardContent>
+                  </Card>
                 </div>
 
-                <div className="space-y-4">
-                  {timeline.map((phase, index) => (
-                    <Card key={phase.id} className="border-l-4 border-l-primary">
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium text-primary">
-                                {index + 1}
-                              </div>
-                              <h3 className="font-semibold text-lg">{phase.title}</h3>
-                              <Badge className={getDifficultyColor(phase.difficulty)}>
-                                {phase.difficulty}
-                              </Badge>
-                            </div>
-                            <p className="text-muted-foreground mb-3">{phase.description}</p>
-                            <div className="flex items-center gap-4 text-sm">
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-4 w-4" />
-                                Months {phase.startMonth}-{phase.endMonth}
-                              </span>
-                              <span className="font-medium text-success">
-                                {formatCurrency(phase.recoveryPotential)} recovery
-                              </span>
-                            </div>
-                          </div>
+                {/* Main Recovery Timeline Chart */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                      <div className="p-2 bg-success/10 rounded-lg">
+                        <TrendingUp className="h-5 w-5 text-success" />
+                      </div>
+                      Cumulative Recovery Timeline
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-80 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={generateRecoveryChartData()}>
+                          <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                          <XAxis 
+                            dataKey="month" 
+                            axisLine={false}
+                            tickLine={false}
+                            className="text-xs"
+                          />
+                          <YAxis 
+                            axisLine={false}
+                            tickLine={false}
+                            className="text-xs"
+                            tickFormatter={(value) => formatCurrency(value)}
+                          />
+                          <Tooltip 
+                            contentStyle={{
+                              backgroundColor: 'hsl(var(--background))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px'
+                            }}
+                            formatter={(value: number) => [formatCurrency(value), 'Cumulative Recovery']}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="cumulative"
+                            stroke="hsl(var(--success))"
+                            fill="hsl(var(--success)/0.2)"
+                            strokeWidth={2}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Investment vs Recovery Analysis */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-3">
+                        <div className="p-2 bg-warning/10 rounded-lg">
+                          <BarChart3 className="h-5 w-5 text-warning" />
                         </div>
-                        
-                        {/* Actions List */}
-                        <div className="space-y-3">
-                          <h4 className="font-medium text-sm">Key Implementation Actions:</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {phase.actions.map((action, actionIndex) => (
-                              <div key={actionIndex} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                                <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs">
-                                  {actionIndex + 1}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">{action.title}</p>
-                                  <p className="text-xs text-muted-foreground">{action.weeks}w • {action.owner}</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                        Investment vs Recovery
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-64 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <ComposedChart data={generateInvestmentAnalysisData()}>
+                            <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                            <XAxis 
+                              dataKey="phase" 
+                              axisLine={false}
+                              tickLine={false}
+                              className="text-xs"
+                            />
+                            <YAxis 
+                              axisLine={false}
+                              tickLine={false}
+                              className="text-xs"
+                              tickFormatter={(value) => formatCurrency(value)}
+                            />
+                            <Tooltip 
+                              contentStyle={{
+                                backgroundColor: 'hsl(var(--background))',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px'
+                              }}
+                              formatter={(value: number, name: string) => [
+                                formatCurrency(value), 
+                                name === 'investment' ? 'Investment' : 'Recovery'
+                              ]}
+                            />
+                            <Bar 
+                              dataKey="investment" 
+                              fill="hsl(var(--destructive)/0.7)" 
+                              name="investment"
+                            />
+                            <Bar 
+                              dataKey="recovery" 
+                              fill="hsl(var(--success)/0.7)" 
+                              name="recovery"
+                            />
+                          </ComposedChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                          <Activity className="h-5 w-5 text-primary" />
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        ROI Progression
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-64 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={generateROIProgressionData()}>
+                            <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                            <XAxis 
+                              dataKey="month" 
+                              axisLine={false}
+                              tickLine={false}
+                              className="text-xs"
+                            />
+                            <YAxis 
+                              axisLine={false}
+                              tickLine={false}
+                              className="text-xs"
+                              tickFormatter={(value) => `${value}%`}
+                            />
+                            <Tooltip 
+                              contentStyle={{
+                                backgroundColor: 'hsl(var(--background))',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px'
+                              }}
+                              formatter={(value: number) => [`${Math.round(value)}%`, 'ROI']}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="roi"
+                              stroke="hsl(var(--primary))"
+                              strokeWidth={3}
+                              dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
+
+                {/* Implementation Timeline */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                      <div className="p-2 bg-secondary/10 rounded-lg">
+                        <Calendar className="h-5 w-5 text-secondary" />
+                      </div>
+                      Implementation Phases
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {timeline.map((phase, index) => (
+                        <Card key={phase.id} className="border-l-4 border-l-primary">
+                          <CardContent className="p-6">
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium text-primary">
+                                    {index + 1}
+                                  </div>
+                                  <h3 className="font-semibold text-lg">{phase.title}</h3>
+                                  <Badge className={getDifficultyColor(phase.difficulty)}>
+                                    {phase.difficulty}
+                                  </Badge>
+                                </div>
+                                <p className="text-muted-foreground mb-3">{phase.description}</p>
+                                <div className="flex items-center gap-4 text-sm">
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="h-4 w-4" />
+                                    Months {phase.startMonth}-{phase.endMonth}
+                                  </span>
+                                  <span className="font-medium text-success">
+                                    {formatCurrency(phase.recoveryPotential)} recovery
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Actions List */}
+                            <div className="space-y-3">
+                              <h4 className="font-medium text-sm">Key Implementation Actions:</h4>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {phase.actions.map((action, actionIndex) => (
+                                  <div key={actionIndex} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                                    <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs">
+                                      {actionIndex + 1}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium truncate">{action.title}</p>
+                                      <p className="text-xs text-muted-foreground">{action.weeks}w • {action.owner}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             ) : (
               <div className="text-center py-12">
