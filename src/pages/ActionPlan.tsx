@@ -342,11 +342,9 @@ export default function ActionPlan() {
 
           <div className="space-y-8">
             {[1, 2, 3].map((i) => (
-              <Card key={i} className="border-primary/20">
-                <CardHeader>
+               <Card key={i} className="border-primary/20">
+                <CardContent className="space-y-4 pt-6">
                   <Skeleton className="h-6 w-64" />
-                </CardHeader>
-                <CardContent className="space-y-4">
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-32 w-full" />
