@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, DollarSign, Zap, Target, TrendingUp } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Line, LineChart } from "recharts";
@@ -28,13 +29,22 @@ export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFa
   const industryBenchmark = industryDefaults[industry] || industryDefaults['saas-software'];
   const bestInClass = bestInClassTargets[industry] || bestInClassTargets['saas-software'];
 
-  // Calculate realistic recovery potential using enhanced calculations
+  // Use fresh calculations instead of potentially inflated stored values
   const losses = {
-    leadResponse: calculations.leadResponseLoss,
-    selfServe: calculations.selfServeGap,
-    processAutomation: calculations.processLoss,
-    paymentRecovery: calculations.failedPaymentLoss
+    leadResponse: calculations.leadResponseLoss || 0,
+    selfServe: calculations.selfServeGap || 0,
+    processAutomation: calculations.processLoss || 0,
+    paymentRecovery: calculations.failedPaymentLoss || 0
   };
+
+  console.log('=== REVENUE CHARTS CALCULATIONS ===');
+  console.log('Using fresh calculations for charts:', {
+    totalLeakage: calculations.totalLeakage,
+    losses: losses,
+    currentARR: data.companyInfo?.currentARR,
+    leakPercentage: data.companyInfo?.currentARR ? 
+      ((calculations.totalLeakage || 0) / data.companyInfo.currentARR * 100).toFixed(1) + '%' : 'N/A'
+  });
 
   const recoveryRanges = calculateRecoveryRanges(losses, factors);
 
@@ -45,22 +55,22 @@ export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFa
   const leakageData = [
     {
       name: 'Lead Response',
-      value: calculations.leadResponseLoss,
+      value: calculations.leadResponseLoss || 0,
       color: 'hsl(var(--destructive))',
     },
     {
       name: 'Failed Payments',
-      value: calculations.failedPaymentLoss,
+      value: calculations.failedPaymentLoss || 0,
       color: 'hsl(var(--revenue-warning))',
     },
     {
       name: 'Self-Serve Gap',
-      value: calculations.selfServeGap,
+      value: calculations.selfServeGap || 0,
       color: 'hsl(var(--primary))',
     },
     {
       name: 'Process Loss',
-      value: calculations.processLoss,
+      value: calculations.processLoss || 0,
       color: 'hsl(var(--accent))',
     },
   ];
@@ -69,35 +79,35 @@ export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFa
   const recoveryData = [
     {
       category: 'Lead Response',
-      current: calculations.leadResponseLoss,
-      conservative: recoveryRanges.conservative.categoryRecovery.leadResponse,
-      optimistic: recoveryRanges.optimistic.categoryRecovery.leadResponse,
+      current: calculations.leadResponseLoss || 0,
+      conservative: recoveryRanges.conservative.categoryRecovery.leadResponse || 0,
+      optimistic: recoveryRanges.optimistic.categoryRecovery.leadResponse || 0,
     },
     {
       category: 'Failed Payments',
-      current: calculations.failedPaymentLoss,
-      conservative: recoveryRanges.conservative.categoryRecovery.paymentRecovery,
-      optimistic: recoveryRanges.optimistic.categoryRecovery.paymentRecovery,
+      current: calculations.failedPaymentLoss || 0,
+      conservative: recoveryRanges.conservative.categoryRecovery.paymentRecovery || 0,
+      optimistic: recoveryRanges.optimistic.categoryRecovery.paymentRecovery || 0,
     },
     {
       category: 'Self-Serve Gap',
-      current: calculations.selfServeGap,
-      conservative: recoveryRanges.conservative.categoryRecovery.selfServe,
-      optimistic: recoveryRanges.optimistic.categoryRecovery.selfServe,
+      current: calculations.selfServeGap || 0,
+      conservative: recoveryRanges.conservative.categoryRecovery.selfServe || 0,
+      optimistic: recoveryRanges.optimistic.categoryRecovery.selfServe || 0,
     },
     {
       category: 'Process Loss',
-      current: calculations.processLoss,
-      conservative: recoveryRanges.conservative.categoryRecovery.processAutomation,
-      optimistic: recoveryRanges.optimistic.categoryRecovery.processAutomation,
+      current: calculations.processLoss || 0,
+      conservative: recoveryRanges.conservative.categoryRecovery.processAutomation || 0,
+      optimistic: recoveryRanges.optimistic.categoryRecovery.processAutomation || 0,
     },
   ];
 
-  // Three-tier recovery opportunity visualization
+  // Three-tier recovery opportunity visualization using fresh calculations
   const recoveryOpportunityData = [
     {
       name: 'Current ARR',
-      value: data.companyInfo.currentARR,
+      value: data.companyInfo?.currentARR || 0,
       color: 'hsl(var(--revenue-primary))',
     },
     {
@@ -112,31 +122,31 @@ export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFa
     },
   ];
 
-  // Performance zone chart data
+  // Performance zone chart data using fresh calculations
   const performanceZoneData = [
     {
       category: 'Lead Response',
-      current: calculations.leadResponseLoss,
-      industryAvg: calculations.leadResponseLoss * 0.6, // Industry average performance
-      bestInClass: calculations.leadResponseLoss * 0.85, // Best-in-class recovery
+      current: calculations.leadResponseLoss || 0,
+      industryAvg: (calculations.leadResponseLoss || 0) * 0.6, // Industry average performance
+      bestInClass: (calculations.leadResponseLoss || 0) * 0.85, // Best-in-class recovery
     },
     {
       category: 'Self-Serve',
-      current: calculations.selfServeGap,
-      industryAvg: calculations.selfServeGap * 0.5,
-      bestInClass: calculations.selfServeGap * 0.8,
+      current: calculations.selfServeGap || 0,
+      industryAvg: (calculations.selfServeGap || 0) * 0.5,
+      bestInClass: (calculations.selfServeGap || 0) * 0.8,
     },
     {
       category: 'Process Automation',
-      current: calculations.processLoss,
-      industryAvg: calculations.processLoss * 0.7,
-      bestInClass: calculations.processLoss * 0.85,
+      current: calculations.processLoss || 0,
+      industryAvg: (calculations.processLoss || 0) * 0.7,
+      bestInClass: (calculations.processLoss || 0) * 0.85,
     },
     {
       category: 'Payment Recovery',
-      current: calculations.failedPaymentLoss,
-      industryAvg: calculations.failedPaymentLoss * 0.4,
-      bestInClass: calculations.failedPaymentLoss * 0.65,
+      current: calculations.failedPaymentLoss || 0,
+      industryAvg: (calculations.failedPaymentLoss || 0) * 0.4,
+      bestInClass: (calculations.failedPaymentLoss || 0) * 0.65,
     },
   ];
 

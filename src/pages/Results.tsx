@@ -91,6 +91,16 @@ const Results = () => {
   const calculations: Calculations = useMemo(() => {
     if (!submission) return {} as Calculations;
 
+    console.log('=== CALCULATION COMPARISON DEBUG ===');
+    console.log('Legacy stored values:', {
+      storedTotalLeak: submission.total_leak,
+      storedRecovery70: submission.recovery_potential_70,
+      storedRecovery85: submission.recovery_potential_85,
+      currentARR: submission.current_arr,
+      leakPercentage: submission.total_leak && submission.current_arr ? 
+        ((submission.total_leak / submission.current_arr) * 100).toFixed(1) + '%' : 'N/A'
+    });
+
     const safeNumber = (value: any): number => {
       const num = Number(value);
       return isNaN(num) ? 0 : num;
@@ -143,7 +153,7 @@ const Results = () => {
     const potentialRecovery70 = Math.min(totalLeakage * 0.7, currentARR * 0.14);
     const potentialRecovery85 = Math.min(totalLeakage * 0.85, currentARR * 0.17);
 
-    return {
+    const freshCalculations = {
       leadResponseLoss: isFinite(leadResponseLoss) ? leadResponseLoss : 0,
       failedPaymentLoss: isFinite(failedPaymentLoss) ? failedPaymentLoss : 0,
       selfServeGap: isFinite(selfServeGap) ? selfServeGap : 0,
@@ -156,6 +166,31 @@ const Results = () => {
       recoveryPotential70: isFinite(potentialRecovery70) ? potentialRecovery70 : 0,
       recoveryPotential85: isFinite(potentialRecovery85) ? potentialRecovery85 : 0,
     };
+
+    console.log('Fresh unified calculations:', {
+      totalLeakage: freshCalculations.totalLeakage,
+      potentialRecovery70: freshCalculations.potentialRecovery70,
+      potentialRecovery85: freshCalculations.potentialRecovery85,
+      leakPercentage: currentARR > 0 ? 
+        ((freshCalculations.totalLeakage / currentARR) * 100).toFixed(1) + '%' : 'N/A',
+      breakdown: {
+        leadResponseLoss: freshCalculations.leadResponseLoss,
+        failedPaymentLoss: freshCalculations.failedPaymentLoss,
+        selfServeGap: freshCalculations.selfServeGap,
+        processLoss: freshCalculations.processLoss
+      }
+    });
+
+    // Validation warning for unrealistic stored values
+    if (submission.total_leak && currentARR > 0 && (submission.total_leak / currentARR) > 0.25) {
+      console.warn('⚠️ LEGACY VALUES DETECTED: Stored values exceed realistic bounds', {
+        storedLeakPercentage: ((submission.total_leak / currentARR) * 100).toFixed(1) + '%',
+        realisticLeakPercentage: ((freshCalculations.totalLeakage / currentARR) * 100).toFixed(1) + '%',
+        recommendation: 'Using fresh unified calculations instead'
+      });
+    }
+
+    return freshCalculations;
   }, [calculatorData, submission]);
 
   useEffect(() => {
@@ -358,7 +393,7 @@ const Results = () => {
         {/* Hero Section - Two Card Layout */}
         <div className="mb-8">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            {/* Main Hero Card */}
+            {/* Main Hero Card - Updated to use fresh calculations */}
             <Card className="lg:col-span-3 bg-gradient-to-r from-primary/5 to-revenue-primary/5 border-primary/20">
               <CardContent className="p-8">
                 <div className="space-y-6">
@@ -418,7 +453,7 @@ const Results = () => {
               </CardContent>
             </Card>
 
-            {/* Chart Card */}
+            {/* Chart Card - Updated to use fresh calculations */}
             <Card className="lg:col-span-2">
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg">Revenue Breakdown</CardTitle>
@@ -438,7 +473,7 @@ const Results = () => {
           </div>
         </div>
 
-        {/* Strategic CTA Section */}
+        {/* Strategic CTA Section - Updated to use fresh calculations */}
         <div className="mb-8">
           <StrategicCTASection 
             totalLeak={totalLeak}
@@ -485,7 +520,7 @@ const Results = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-8">
-                  {/* Performance Zone Indicator */}
+                  {/* Performance Zone Indicator - Updated to use fresh calculations */}
                   <div className="bg-gradient-to-r from-revenue-danger/10 via-revenue-warning/10 to-revenue-success/10 p-6 rounded-xl border">
                     <div className="text-center mb-4">
                       <h3 className="text-lg font-semibold mb-2">Performance Zone Analysis</h3>
@@ -530,7 +565,7 @@ const Results = () => {
                     </div>
                   </div>
 
-                  {/* Competitive Positioning Metrics */}
+                  {/* Competitive Positioning Metrics - Updated to use fresh calculations */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div className="text-center p-4 border rounded-lg">
                       <div className="text-xl md:text-2xl font-bold text-foreground mb-2">
@@ -663,7 +698,7 @@ const Results = () => {
         )}
       </div>
 
-      {/* Floating CTA Bar */}
+      {/* Floating CTA Bar - Updated to use fresh calculations */}
       <FloatingCTABar totalLeak={totalLeak} formatCurrency={formatCurrency} />
     </div>
   );
