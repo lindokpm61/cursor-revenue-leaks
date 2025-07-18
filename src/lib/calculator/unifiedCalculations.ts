@@ -455,47 +455,46 @@ export const generateRealisticTimeline = (
     });
   }
 
-  // Phase 3: Self-Serve Optimization (Months 4-8) - Depends on lead data
+  // Phase 3: Self-Serve Optimization (Months 4-7) - Focus on quick wins
   if (actionSpecificRecovery.selfServe > arrThreshold) {
     phases.push({
       id: 'self-serve-optimization',
-      title: 'Self-Serve Conversion Optimization',
-      description: 'Improve onboarding flow and conversion funnel with extensive testing',
+      title: 'Enhance Self-Serve Conversion',
+      description: 'Optimize onboarding flow and reduce conversion friction',
       startMonth: 4,
-      endMonth: 8,
+      endMonth: 7,
       difficulty: 'medium',
       recoveryPotential: actionSpecificRecovery.selfServe,
       prerequisites: [], // Can run independently
       actions: [
-        { title: 'Deep-dive conversion funnel analysis', weeks: 4, owner: 'Product Analytics' },
-        { title: 'User research and feedback collection', weeks: 3, owner: 'UX Research' },
-        { title: 'Redesign onboarding experience', weeks: 6, owner: 'Product' },
-        { title: 'Implement in-app guidance system', weeks: 5, owner: 'Engineering' },
-        { title: 'A/B test onboarding improvements', weeks: 8, owner: 'Growth' },
-        { title: 'Optimize conversion touchpoints', weeks: 4, owner: 'Product' }
+        { title: 'Analyze conversion funnel data', weeks: 2, owner: 'Product Analytics' },
+        { title: 'Identify key friction points', weeks: 2, owner: 'UX Research' },
+        { title: 'Optimize onboarding steps', weeks: 3, owner: 'Product' },
+        { title: 'Implement conversion triggers', weeks: 2, owner: 'Growth' },
+        { title: 'A/B test improvements', weeks: 3, owner: 'Product' },
+        { title: 'Deploy help resources', weeks: 2, owner: 'Customer Success' }
       ]
     });
   }
 
-  // Phase 4: Process Automation (Months 6-12) - Most complex, requires stable foundation
+  // Phase 4: Process Automation (Months 6-10) - Focus on high-impact automations
   if (actionSpecificRecovery.processAutomation > Math.max(inputs.currentARR * 0.004, 20000)) {
     phases.push({
       id: 'process-automation',
-      title: 'Process Automation Initiative',
-      description: 'Comprehensive automation of manual processes and workflow optimization',
+      title: 'Automate Critical Processes',
+      description: 'Implement key workflow automations using existing tools',
       startMonth: 6,
-      endMonth: 12,
+      endMonth: 10,
       difficulty: 'hard',
       recoveryPotential: actionSpecificRecovery.processAutomation,
       prerequisites: [], // Can run independently with proper planning
       actions: [
-        { title: 'Comprehensive process audit', weeks: 4, owner: 'Operations' },
-        { title: 'Process mapping and documentation', weeks: 3, owner: 'Operations' },
-        { title: 'Automation tool evaluation', weeks: 3, owner: 'IT' },
-        { title: 'Workflow automation design', weeks: 6, owner: 'Operations' },
-        { title: 'Automation platform implementation', weeks: 8, owner: 'Engineering' },
-        { title: 'Team training and change management', weeks: 4, owner: 'HR' },
-        { title: 'Rollout and optimization', weeks: 4, owner: 'Operations' }
+        { title: 'Map current workflows', weeks: 2, owner: 'Operations' },
+        { title: 'Identify automation opportunities', weeks: 2, owner: 'Operations' },
+        { title: 'Configure automation tools', weeks: 3, owner: 'Operations' },
+        { title: 'Implement key automations', weeks: 4, owner: 'Operations' },
+        { title: 'Train team on new processes', weeks: 2, owner: 'Operations' },
+        { title: 'Monitor and optimize', weeks: 3, owner: 'Operations' }
       ]
     });
   }
