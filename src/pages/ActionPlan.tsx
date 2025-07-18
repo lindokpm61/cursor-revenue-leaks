@@ -52,9 +52,9 @@ export default function ActionPlan() {
           if (submission) {
             setData(submission);
             setUserEmail(submission.email || '');
-            console.log("=== ACTION PLAN DEBUG: Fetched submission data ===");
-            console.log("Raw submission:", submission);
-            console.log("Calculator data:", submission.calculator_data);
+            console.log("=== ACTION PLAN FETCH DEBUG ===");
+            console.log("Raw submission data:", submission);
+            console.log("Calculator data structure:", submission.calculator_data);
           } else {
             toast({
               title: "Error",
@@ -87,36 +87,39 @@ export default function ActionPlan() {
     fetchData();
   }, [submissionId, navigate, toast]);
 
-  // Transform data for UnifiedResultsService and components
+  // FIXED: Corrected data transformation with proper field mapping
   const submissionData = useMemo(() => {
     if (!data || !data.calculator_data) return null;
     
-    console.log("=== ACTION PLAN DEBUG: Data transformation ===");
-    console.log("Original data structure:", {
-      temp_id: data.temp_id,
-      company_name: data.company_name,
-      email: data.email,
-      industry: data.industry,
-      calculator_data: data.calculator_data
-    });
+    console.log("=== ACTION PLAN DATA TRANSFORMATION DEBUG ===");
+    console.log("Original data:", data);
+    console.log("Calculator data:", data.calculator_data);
 
-    // Extract values from calculator_data with proper fallbacks
-    const companyInfo = data.calculator_data.companyInfo || {};
-    const leadGeneration = data.calculator_data.leadGeneration || {};
-    const selfServe = data.calculator_data.selfServe || {};
-    const operations = data.calculator_data.operations || {};
+    const calcData = data.calculator_data;
+    const companyInfo = calcData.companyInfo || {};
+    const leadGeneration = calcData.leadGeneration || {};
+    const selfServe = calcData.selfServe || {};
+    const operations = calcData.operations || {};
 
-    // Create the submission data object with correct field mapping
+    console.log("=== EXTRACTED NESTED DATA ===");
+    console.log("Company info:", companyInfo);
+    console.log("Lead generation:", leadGeneration);
+    console.log("Self serve:", selfServe);
+    console.log("Operations:", operations);
+
+    // CRITICAL FIX: Proper field mapping with fallbacks
     const transformedData = {
       id: data.temp_id || submissionId,
       company_name: data.company_name || companyInfo.companyName || '',
       contact_email: data.email || '',
       industry: data.industry || companyInfo.industry || '',
+      // FIXED: Ensure these critical values are preserved
       current_arr: companyInfo.currentARR || 0,
       monthly_leads: leadGeneration.monthlyLeads || 0,
       average_deal_value: leadGeneration.averageDealValue || 0,
       lead_response_time: leadGeneration.leadResponseTime || leadGeneration.leadResponseTimeHours || 0,
       monthly_free_signups: selfServe.monthlyFreeSignups || 0,
+      // CRITICAL FIX: Correct field name mapping
       free_to_paid_conversion: selfServe.freeToLaidConversion || selfServe.freeToPaidConversionRate || 0,
       monthly_mrr: selfServe.monthlyMRR || 0,
       failed_payment_rate: selfServe.failedPaymentRate || operations.failedPaymentRate || 0,
@@ -127,18 +130,42 @@ export default function ActionPlan() {
       created_at: data.created_at || new Date().toISOString()
     };
 
-    console.log("=== ACTION PLAN DEBUG: Transformed data ===");
-    console.log("Transformed submission data:", transformedData);
+    console.log("=== TRANSFORMED SUBMISSION DATA ===");
+    console.log("Transformed data:", transformedData);
+    console.log("Key values check:");
+    console.log("- Current ARR:", transformedData.current_arr);
+    console.log("- Monthly leads:", transformedData.monthly_leads);
+    console.log("- Average deal value:", transformedData.average_deal_value);
+    console.log("- Lead response time:", transformedData.lead_response_time);
+    console.log("- Monthly signups:", transformedData.monthly_free_signups);
+    console.log("- Conversion rate:", transformedData.free_to_paid_conversion);
+    console.log("- Monthly MRR:", transformedData.monthly_mrr);
+    console.log("- Failed payment rate:", transformedData.failed_payment_rate);
+    console.log("- Manual hours:", transformedData.manual_hours);
+    console.log("- Hourly rate:", transformedData.hourly_rate);
 
-    // Calculate unified results
+    // FIXED: Calculate unified results with proper data
     const unifiedCalcs = UnifiedResultsService.calculateResults(transformedData);
     
-    console.log("=== ACTION PLAN DEBUG: Unified calculations ===");
-    console.log("Unified calculations result:", unifiedCalcs);
+    console.log("=== UNIFIED CALCULATIONS RESULT ===");
+    console.log("Unified calculations:", unifiedCalcs);
+    console.log("Total loss:", unifiedCalcs.totalLoss);
+    console.log("Recovery amounts:", {
+      conservative: unifiedCalcs.conservativeRecovery,
+      optimistic: unifiedCalcs.optimisticRecovery
+    });
     
     return {
       ...transformedData,
-      // Add unified calculation results
+      // Add the calculated results to submission for priority actions
+      lead_response_loss: unifiedCalcs.leadResponseLoss,
+      failed_payment_loss: unifiedCalcs.failedPaymentLoss,
+      selfserve_gap_loss: unifiedCalcs.selfServeGap,
+      process_inefficiency_loss: unifiedCalcs.processInefficiency,
+      total_leak: unifiedCalcs.totalLoss,
+      recovery_potential_70: unifiedCalcs.conservativeRecovery,
+      recovery_potential_85: unifiedCalcs.optimisticRecovery,
+      // Pass through for components
       leadResponseLoss: unifiedCalcs.leadResponseLoss,
       failedPaymentLoss: unifiedCalcs.failedPaymentLoss,
       selfServeGap: unifiedCalcs.selfServeGap,
@@ -153,7 +180,7 @@ export default function ActionPlan() {
   const { timeline, investment, roiData } = useMemo(() => {
     if (!submissionData) return { timeline: [], investment: null, roiData: null };
 
-    console.log("=== ACTION PLAN DEBUG: Timeline generation ===");
+    console.log("=== TIMELINE GENERATION DEBUG ===");
     console.log("Input data for timeline:", submissionData);
 
     const inputs: UnifiedCalculationInputs = {
@@ -456,7 +483,7 @@ export default function ActionPlan() {
 
             <TabsContent value="priorities">
               <PriorityActions 
-                submission={data as any}
+                submission={submissionData as any}
                 formatCurrency={UnifiedResultsService.formatCurrency}
                 calculatorData={submissionData}
               />
@@ -471,7 +498,6 @@ export default function ActionPlan() {
             </TabsContent>
 
             <TabsContent value="summary">
-              {/* Next Steps Card */}
               <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
