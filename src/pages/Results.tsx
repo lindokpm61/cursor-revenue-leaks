@@ -274,19 +274,19 @@ const Results = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-green-50 border border-green-200">
-                  <div className="text-xl font-bold text-green-700 mb-1">
+                <div className="p-4 rounded-xl bg-revenue-success/5 border border-revenue-success/20">
+                  <div className="text-xl font-bold text-revenue-success mb-1">
                     {formatCurrency(recovery70)}
                   </div>
-                  <div className="text-sm font-medium text-green-600">
+                  <div className="text-sm font-medium text-revenue-success/80">
                     Conservative Recovery
                   </div>
                 </div>
-                <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
-                  <div className="text-xl font-bold text-blue-700 mb-1">
+                <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
+                  <div className="text-xl font-bold text-primary mb-1">
                     {formatCurrency(recovery85)}
                   </div>
-                  <div className="text-sm font-medium text-blue-600">
+                  <div className="text-sm font-medium text-primary/80">
                     Optimistic Recovery
                   </div>
                 </div>

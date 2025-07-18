@@ -42,11 +42,11 @@ export const ContentSection = ({
   const getPriorityStyles = () => {
     switch (priority) {
       case 'high':
-        return "border-revenue-danger/20 bg-gradient-to-r from-white to-red-50";
+        return "border-revenue-danger/20 bg-gradient-to-r from-background to-revenue-danger/5";
       case 'medium':
-        return "border-revenue-warning/20 bg-gradient-to-r from-white to-yellow-50";
+        return "border-revenue-warning/20 bg-gradient-to-r from-background to-revenue-warning/5";
       case 'low':
-        return "border-primary/20 bg-gradient-to-r from-white to-blue-50";
+        return "border-primary/20 bg-gradient-to-r from-background to-primary/5";
       default:
         return "";
     }
