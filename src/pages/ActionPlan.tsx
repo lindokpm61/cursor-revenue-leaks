@@ -267,8 +267,18 @@ export default function ActionPlan() {
     }
   };
 
-  // NEW: Section expansion handler for TldrSummary
+  // FIXED: Modified section expansion handler to prevent tab switching from Summary
   const handleExpandSection = (sectionId: string) => {
+    // If we're currently in the Summary tab, don't switch to other tabs
+    // Instead, provide contextual information within the Summary
+    if (activeTab === 'summary') {
+      console.log(`User requested to expand ${sectionId} section from Summary tab`);
+      // Keep user in Summary tab - TldrSummary will handle the expansion internally
+      // or we could scroll to a specific section within the Summary tab
+      return;
+    }
+    
+    // Only switch tabs if we're not in the Summary tab
     const sectionToTabMap = {
       'timeline': 'timeline',
       'breakdown': 'priorities',
@@ -514,7 +524,7 @@ export default function ActionPlan() {
 
             <TabsContent value="summary">
               <div className="space-y-6">
-                {/* NEW: Dynamic TldrSummary component */}
+                {/* Dynamic TldrSummary component */}
                 <TldrSummary
                   submission={submissionData as any}
                   userIntent={userIntent}
