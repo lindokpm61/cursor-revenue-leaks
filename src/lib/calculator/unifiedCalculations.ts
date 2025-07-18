@@ -224,7 +224,7 @@ export interface TimelinePhase {
   }[];
 }
 
-// Investment calculation helper
+// Enhanced investment calculation with realistic cost modeling
 export const calculateRealisticInvestment = (
   phases: TimelinePhase[],
   inputs: UnifiedCalculationInputs
@@ -234,43 +234,140 @@ export const calculateRealisticInvestment = (
   totalAnnualInvestment: number;
   paybackMonths: number;
 } => {
-  // Activity-based costing instead of flat percentages
+  // Company scale factors
+  const getCompanyScaleFactors = (arr: number) => {
+    if (arr > 50000000) return { // $50M+ ARR
+      baseDailyRate: 1500,
+      teamMultiplier: 1.4,
+      toolingMultiplier: 1.3,
+      complexityMultiplier: 1.2
+    };
+    if (arr > 10000000) return { // $10M+ ARR
+      baseDailyRate: 1200,
+      teamMultiplier: 1.2,
+      toolingMultiplier: 1.2,
+      complexityMultiplier: 1.1
+    };
+    if (arr > 5000000) return { // $5M+ ARR
+      baseDailyRate: 1000,
+      teamMultiplier: 1.1,
+      toolingMultiplier: 1.1,
+      complexityMultiplier: 1.0
+    };
+    if (arr > 1000000) return { // $1M+ ARR
+      baseDailyRate: 800,
+      teamMultiplier: 1.0,
+      toolingMultiplier: 1.0,
+      complexityMultiplier: 0.9
+    };
+    return { // < $1M ARR
+      baseDailyRate: 600,
+      teamMultiplier: 0.8,
+      toolingMultiplier: 0.9,
+      complexityMultiplier: 0.8
+    };
+  };
+
+  // Industry-specific adjustments
+  const getIndustryFactors = (industry?: string) => {
+    const industryMap: Record<string, { complexityFactor: number; complianceFactor: number; integrationFactor: number }> = {
+      'fintech': { complexityFactor: 1.4, complianceFactor: 1.6, integrationFactor: 1.3 },
+      'healthcare': { complexityFactor: 1.3, complianceFactor: 1.5, integrationFactor: 1.2 },
+      'e-commerce': { complexityFactor: 0.9, complianceFactor: 1.0, integrationFactor: 1.1 },
+      'saas': { complexityFactor: 1.0, complianceFactor: 1.1, integrationFactor: 1.0 },
+      'manufacturing': { complexityFactor: 1.2, complianceFactor: 1.2, integrationFactor: 1.4 },
+      'other': { complexityFactor: 1.0, complianceFactor: 1.0, integrationFactor: 1.0 }
+    };
+    
+    const normalizedIndustry = industry?.toLowerCase().replace(/[^a-z]/g, '') || 'other';
+    return industryMap[normalizedIndustry] || industryMap.other;
+  };
+
+  const scaleFactors = getCompanyScaleFactors(inputs.currentARR);
+  const industryFactors = getIndustryFactors(inputs.industry);
+
   let implementationCost = 0;
   let ongoingAnnualCost = 0;
   
   phases.forEach(phase => {
     const totalWeeks = phase.actions.reduce((sum, action) => sum + action.weeks, 0);
     
-    // Calculate implementation cost based on phase complexity and duration
-    const costPerWeek = phase.difficulty === 'easy' ? 5000 : 
-                       phase.difficulty === 'medium' ? 8000 : 12000;
+    // Resource-based costing with difficulty multipliers
+    const difficultyMultiplier = {
+      'easy': 1.0,
+      'medium': 1.4,
+      'hard': 1.8
+    }[phase.difficulty];
+
+    // Calculate daily rate based on phase complexity and company scale
+    const dailyRate = scaleFactors.baseDailyRate * difficultyMultiplier * industryFactors.complexityFactor;
     
-    implementationCost += totalWeeks * costPerWeek;
+    // Calculate team size requirements (more complex phases need bigger teams)
+    const teamSize = phase.difficulty === 'easy' ? 2 : 
+                    phase.difficulty === 'medium' ? 3 : 4;
     
-    // Ongoing operational costs (maintenance, tools, training)
-    const ongoingCostMultiplier = phase.difficulty === 'easy' ? 0.1 : 
-                                 phase.difficulty === 'medium' ? 0.15 : 0.2;
+    // Weekly cost = daily rate × team size × 5 days × team multiplier
+    const weeklyTeamCost = dailyRate * teamSize * 5 * scaleFactors.teamMultiplier;
     
-    ongoingAnnualCost += (totalWeeks * costPerWeek) * ongoingCostMultiplier;
+    const phaseImplementationCost = weeklyTeamCost * totalWeeks;
+    implementationCost += phaseImplementationCost;
+    
+    // Phase-specific tooling and licensing costs
+    const toolingCosts = {
+      'lead-response': 15000 * scaleFactors.toolingMultiplier,
+      'payment-recovery': 25000 * scaleFactors.toolingMultiplier,
+      'self-serve-optimization': 20000 * scaleFactors.toolingMultiplier,
+      'process-automation': 35000 * scaleFactors.toolingMultiplier
+    };
+    
+    const phaseTotalCost = phaseImplementationCost + (toolingCosts[phase.id] || 10000);
+    implementationCost += (toolingCosts[phase.id] || 10000);
+    
+    // Ongoing costs (15-25% of implementation cost annually)
+    const ongoingMultiplier = phase.difficulty === 'easy' ? 0.15 : 
+                             phase.difficulty === 'medium' ? 0.20 : 0.25;
+    
+    ongoingAnnualCost += phaseTotalCost * ongoingMultiplier;
   });
   
-  // Add base infrastructure and tool costs
-  const baseInfrastructureCost = Math.min(inputs.currentARR * 0.02, 50000);
-  implementationCost += baseInfrastructureCost;
-  ongoingAnnualCost += baseInfrastructureCost * 0.3; // 30% of base for ongoing
+  // Base infrastructure costs scaled by company size and industry
+  const baseInfrastructure = Math.min(
+    inputs.currentARR * 0.015 * industryFactors.integrationFactor, 
+    inputs.currentARR > 10000000 ? 150000 : 
+    inputs.currentARR > 5000000 ? 100000 : 
+    inputs.currentARR > 1000000 ? 75000 : 50000
+  );
   
-  // Total annual investment (implementation amortized over 3 years + ongoing)
-  const totalAnnualInvestment = (implementationCost / 3) + ongoingAnnualCost;
+  // Compliance and security costs for regulated industries
+  const complianceCosts = baseInfrastructure * (industryFactors.complianceFactor - 1);
   
-  // Calculate payback period
+  implementationCost += baseInfrastructure + complianceCosts;
+  ongoingAnnualCost += (baseInfrastructure + complianceCosts) * 0.4; // 40% ongoing
+  
+  // Project management overhead (10-15% of total implementation cost)
+  const projectManagementCost = implementationCost * (inputs.currentARR > 5000000 ? 0.15 : 0.12);
+  implementationCost += projectManagementCost;
+  
+  // Change management costs for larger organizations
+  if (inputs.currentARR > 2000000) {
+    const changeManagementCost = implementationCost * 0.08; // 8% for change management
+    implementationCost += changeManagementCost;
+  }
+  
+  // Total annual investment (implementation amortized over realistic payback period)
+  const amortizationYears = inputs.currentARR > 10000000 ? 2 : 3;
+  const totalAnnualInvestment = (implementationCost / amortizationYears) + ongoingAnnualCost;
+  
+  // Calculate realistic payback period
   const totalRecovery = phases.reduce((sum, phase) => sum + phase.recoveryPotential, 0);
-  const paybackMonths = totalRecovery > 0 ? (implementationCost / (totalRecovery / 12)) : 36;
+  const monthlyRecovery = totalRecovery / 12;
+  const paybackMonths = monthlyRecovery > 0 ? (implementationCost / monthlyRecovery) : 36;
   
   return {
-    implementationCost,
-    ongoingCost: ongoingAnnualCost,
-    totalAnnualInvestment,
-    paybackMonths: Math.min(paybackMonths, 36) // Cap at 3 years
+    implementationCost: Math.round(implementationCost),
+    ongoingCost: Math.round(ongoingAnnualCost),
+    totalAnnualInvestment: Math.round(totalAnnualInvestment),
+    paybackMonths: Math.min(Math.round(paybackMonths), 48) // Cap at 4 years
   };
 };
 
