@@ -36,6 +36,7 @@ export default function ActionPlan() {
           if (submission) {
             setData(submission);
             setUserEmail(submission.email || '');
+            console.log("Fetched submission data:", submission);
           } else {
             toast({
               title: "Error",
@@ -88,16 +89,16 @@ export default function ActionPlan() {
     });
   };
 
-  // Get unified results for consistent CTA data
-  const unifiedResults = useMemo(() => {
-    if (!data?.calculator_data?.companyInfo?.currentARR) return null;
+  // Map the nested calculator_data to the flat structure expected by UnifiedResultsService
+  const flattenedSubmissionData = useMemo(() => {
+    if (!data || !data.calculator_data) return null;
     
-    return UnifiedResultsService.calculateResults({
-      id: data.temp_id,
+    return {
+      id: data.temp_id || submissionId,
       company_name: data.company_name || '',
       contact_email: data.email || '',
-      industry: data.industry,
-      current_arr: data.calculator_data.companyInfo.currentARR,
+      industry: data.industry || data.calculator_data.companyInfo?.industry,
+      current_arr: data.calculator_data.companyInfo?.currentARR || 0,
       monthly_leads: data.calculator_data.leadGeneration?.monthlyLeads || 0,
       average_deal_value: data.calculator_data.leadGeneration?.averageDealValue || 0,
       lead_response_time: data.calculator_data.leadGeneration?.leadResponseTime || 0,
@@ -110,9 +111,17 @@ export default function ActionPlan() {
       lead_score: data.lead_score || 50,
       user_id: data.converted_to_user_id,
       created_at: data.created_at || new Date().toISOString()
-    });
-  }, [data]);
+    };
+  }, [data, submissionId]);
 
+  // Calculate results using the UnifiedResultsService
+  const unifiedResults = useMemo(() => {
+    if (!flattenedSubmissionData) return null;
+    console.log("Calculating with flattened data:", flattenedSubmissionData);
+    return UnifiedResultsService.calculateResults(flattenedSubmissionData);
+  }, [flattenedSubmissionData]);
+
+  // Derive recovery data for CTAs
   const recoveryData = useMemo(() => ({
     totalLeak: unifiedResults?.totalLoss || 0,
     formatCurrency: (amount: number) => UnifiedResultsService.formatCurrency(amount)
@@ -188,18 +197,21 @@ export default function ActionPlan() {
                   </CardContent>
                 </Card>
               ) : (
-                <ActionPlanComponent calculations={{
-                  leadResponseLoss: unifiedResults?.leadResponseLoss || 0,
-                  failedPaymentLoss: unifiedResults?.failedPaymentLoss || 0,
-                  selfServeGap: unifiedResults?.selfServeGap || 0,
-                  processLoss: unifiedResults?.processInefficiency || 0,
-                  totalLeak: unifiedResults?.totalLoss || 0,
-                  totalLeakage: unifiedResults?.totalLoss || 0,
-                  potentialRecovery70: unifiedResults?.conservativeRecovery || 0,
-                  potentialRecovery85: unifiedResults?.optimisticRecovery || 0,
-                  recoveryPotential70: unifiedResults?.conservativeRecovery || 0,
-                  recoveryPotential85: unifiedResults?.optimisticRecovery || 0
-                }} data={data} />
+                <ActionPlanComponent 
+                  calculations={{
+                    leadResponseLoss: unifiedResults?.leadResponseLoss || 0,
+                    failedPaymentLoss: unifiedResults?.failedPaymentLoss || 0,
+                    selfServeGap: unifiedResults?.selfServeGap || 0,
+                    processLoss: unifiedResults?.processInefficiency || 0,
+                    totalLeak: unifiedResults?.totalLoss || 0,
+                    totalLeakage: unifiedResults?.totalLoss || 0,
+                    potentialRecovery70: unifiedResults?.conservativeRecovery || 0,
+                    potentialRecovery85: unifiedResults?.optimisticRecovery || 0,
+                    recoveryPotential70: unifiedResults?.conservativeRecovery || 0,
+                    recoveryPotential85: unifiedResults?.optimisticRecovery || 0
+                  }} 
+                  data={data} 
+                />
               )}
             </div>
 
