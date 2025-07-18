@@ -98,7 +98,7 @@ export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFa
     {
       name: 'Current ARR',
       value: data.companyInfo.currentARR,
-      color: 'hsl(var(--muted-foreground))',
+      color: 'hsl(var(--revenue-primary))',
     },
     {
       name: 'Industry Average Recovery',
