@@ -53,12 +53,11 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
 
   const getTopPriority = () => {
     if (unifiedResults) {
-      const { actionRecoveryPotential } = unifiedResults;
       const priorities = [
-        { name: "Lead Response Optimization", value: actionRecoveryPotential.leadResponse },
-        { name: "Self-Serve Optimization", value: actionRecoveryPotential.selfServeOptimization },
-        { name: "Payment Recovery", value: actionRecoveryPotential.paymentRecovery },
-        { name: "Process Automation", value: actionRecoveryPotential.processAutomation }
+        { name: "Lead Response Optimization", value: unifiedResults.leadResponseLoss || 0 },
+        { name: "Self-Serve Optimization", value: unifiedResults.selfServeGap || 0 },
+        { name: "Payment Recovery", value: unifiedResults.failedPaymentLoss || 0 },
+        { name: "Process Automation", value: unifiedResults.processInefficiency || 0 }
       ];
       
       return priorities.sort((a, b) => b.value - a.value)[0];
