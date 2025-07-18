@@ -455,24 +455,23 @@ export const generateRealisticTimeline = (
     });
   }
 
-  // Phase 3: Self-Serve Optimization (Months 4-7) - Focus on quick wins
+  // Phase 3: Self-Serve Optimization (Months 4-6) - Quick wins only
   if (actionSpecificRecovery.selfServe > arrThreshold) {
     phases.push({
       id: 'self-serve-optimization',
       title: 'Enhance Self-Serve Conversion',
-      description: 'Optimize onboarding flow and reduce conversion friction',
+      description: 'Quick optimization wins using existing tools and simple changes',
       startMonth: 4,
-      endMonth: 7,
-      difficulty: 'medium',
+      endMonth: 6,
+      difficulty: 'easy',
       recoveryPotential: actionSpecificRecovery.selfServe,
       prerequisites: [], // Can run independently
       actions: [
-        { title: 'Analyze conversion funnel data', weeks: 2, owner: 'Product Analytics' },
-        { title: 'Identify key friction points', weeks: 2, owner: 'UX Research' },
-        { title: 'Optimize onboarding steps', weeks: 3, owner: 'Product' },
-        { title: 'Implement conversion triggers', weeks: 2, owner: 'Growth' },
-        { title: 'A/B test improvements', weeks: 3, owner: 'Product' },
-        { title: 'Deploy help resources', weeks: 2, owner: 'Customer Success' }
+        { title: 'Review conversion analytics', weeks: 1, owner: 'Product' },
+        { title: 'Identify quick UX fixes', weeks: 1, owner: 'Product' },
+        { title: 'Update onboarding copy', weeks: 2, owner: 'Marketing' },
+        { title: 'Add simple conversion triggers', weeks: 2, owner: 'Product' },
+        { title: 'Test and deploy changes', weeks: 2, owner: 'Product' }
       ]
     });
   }
