@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,8 +23,8 @@ import { UnifiedRevenueCharts } from "@/components/results/UnifiedRevenueCharts"
 import { PriorityActions } from "@/components/calculator/results/PriorityActions";
 import { ImplementationTimeline } from "@/components/calculator/results/ImplementationTimeline";
 import { IndustryBenchmarking } from "@/components/calculator/results/IndustryBenchmarking";
-import { EnhancedExportCTA } from "@/components/results/EnhancedExportCTA";
 import { FloatingCTABar } from "@/components/results/FloatingCTABar";
+import { ResultsLayout } from "@/components/layouts/ResultsLayout";
 
 const CleanResults = () => {
   const { id } = useParams<{ id: string }>();
@@ -60,12 +61,6 @@ const CleanResults = () => {
         throw new Error(`Access denied. Submission belongs to user ${data.user_id}, current user is ${user?.id}`);
       }
 
-      // DEBUG: Log raw submission data
-      console.log('=== RAW SUBMISSION DATA ===');
-      console.log('Raw submission from database:', data);
-      console.log('Legacy total_leak from DB:', data.total_leak);
-      console.log('Legacy recovery_potential_70 from DB:', data.recovery_potential_70);
-
       setSubmission(data);
     } catch (error) {
       console.error('Error loading submission:', error);
@@ -100,7 +95,6 @@ const CleanResults = () => {
   };
 
   const handleBookCall = () => {
-    // Implement booking functionality
     window.open('https://calendly.com/your-calendar', '_blank');
   };
 
@@ -158,26 +152,9 @@ const CleanResults = () => {
     created_at: submission.created_at
   };
 
-  // DEBUG: Log submission data transformation
-  console.log('=== SUBMISSION DATA TRANSFORMATION ===');
-  console.log('Transformed submissionData:', submissionData);
-
   // Calculate unified results
   const calculations = UnifiedResultsService.calculateResults(submissionData);
-  
-  // DEBUG: Log UnifiedResultsService calculations
-  console.log('=== UNIFIED RESULTS SERVICE CALCULATIONS ===');
-  console.log('UnifiedResultsService calculations:', calculations);
-  console.log('Total Loss from UnifiedService:', calculations.totalLoss);
-  console.log('Conservative Recovery from UnifiedService:', calculations.conservativeRecovery);
-  console.log('Optimistic Recovery from UnifiedService:', calculations.optimisticRecovery);
-  
   const formatCurrency = UnifiedResultsService.formatCurrency;
-
-  // DEBUG: Test formatCurrency function
-  console.log('=== FORMAT CURRENCY TEST ===');
-  console.log('formatCurrency(calculations.totalLoss):', formatCurrency(calculations.totalLoss));
-  console.log('formatCurrency(1230000):', formatCurrency(1230000));
 
   const sections = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
@@ -188,116 +165,92 @@ const CleanResults = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Clean Header */}
-      <header className="border-b bg-card">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Link to="/dashboard">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Dashboard
-                </Button>
-              </Link>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary text-primary-foreground">
-                  <Calculator className="h-5 w-5" />
-                </div>
-                <div>
-                  <h1 className="text-lg md:text-xl font-semibold">{submission.company_name}</h1>
-                  <p className="text-sm md:text-base text-muted-foreground">Revenue Analysis Results</p>
-                </div>
-              </div>
-            </div>
-            <EnhancedExportCTA />
-          </div>
+    <ResultsLayout 
+      submission={submission} 
+      pageType="results"
+      totalLeak={calculations.totalLoss}
+      formatCurrency={formatCurrency}
+    >
+      {/* Navigation Tabs */}
+      <div className="mb-8">
+        <div className="flex flex-wrap gap-2">
+          {sections.map((section) => {
+            const Icon = section.icon;
+            const isActive = activeSection === section.id;
+            return (
+              <Button
+                key={section.id}
+                variant={isActive ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveSection(section.id)}
+                className="flex items-center gap-2"
+              >
+                <Icon className="h-4 w-4" />
+                {section.label}
+              </Button>
+            );
+          })}
         </div>
-      </header>
+      </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Content Sections */}
+      {activeSection === 'overview' && (
+        <UnifiedStrategicAnalysis
+          calculations={calculations}
+          companyName={submission.company_name}
+          formatCurrency={formatCurrency}
+          onGetActionPlan={handleGetActionPlan}
+          onQuickWins={handleQuickWins}
+          onBookCall={handleBookCall}
+        />
+      )}
 
-        {/* Navigation Tabs */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-2">
-            {sections.map((section) => {
-              const Icon = section.icon;
-              const isActive = activeSection === section.id;
-              return (
-                <Button
-                  key={section.id}
-                  variant={isActive ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setActiveSection(section.id)}
-                  className="flex items-center gap-2"
-                >
-                  <Icon className="h-4 w-4" />
-                  {section.label}
-                </Button>
-              );
-            })}
-          </div>
-        </div>
+      {activeSection === 'breakdown' && (
+        <UnifiedRevenueCharts
+          calculations={calculations}
+          formatCurrency={formatCurrency}
+        />
+      )}
 
-        {/* Content Sections */}
-        {activeSection === 'overview' && (
-          <UnifiedStrategicAnalysis
-            calculations={calculations}
-            companyName={submission.company_name}
-            formatCurrency={formatCurrency}
-            onGetActionPlan={handleGetActionPlan}
-            onQuickWins={handleQuickWins}
-            onBookCall={handleBookCall}
-          />
-        )}
+      {activeSection === 'benchmarking' && (
+        <IndustryBenchmarking 
+          submission={submission}
+          formatCurrency={formatCurrency}
+          calculations={calculations}
+        />
+      )}
 
-        {activeSection === 'breakdown' && (
-          <UnifiedRevenueCharts
-            calculations={calculations}
-            formatCurrency={formatCurrency}
-          />
-        )}
-
-        {activeSection === 'benchmarking' && (
-          <IndustryBenchmarking 
+      {activeSection === 'actions' && (
+        <div className="space-y-8" id="actions-section">
+          <PriorityActions 
             submission={submission}
             formatCurrency={formatCurrency}
-            calculations={calculations}
           />
-        )}
+        </div>
+      )}
 
-        {activeSection === 'actions' && (
-          <div className="space-y-8" id="actions-section">
-            <PriorityActions 
-              submission={submission}
-              formatCurrency={formatCurrency}
-            />
-          </div>
-        )}
-
-        {activeSection === 'timeline' && (
-          <div className="space-y-8">
-            <ImplementationTimeline 
-              submission={submission}
-              formatCurrency={formatCurrency}
-              validatedValues={{
-                totalLeak: calculations.totalLoss,
-                leadResponseLoss: calculations.leadResponseLoss,
-                selfServeLoss: calculations.selfServeGap,
-                recoveryPotential70: calculations.conservativeRecovery,
-                recoveryPotential85: calculations.optimisticRecovery
-              }}
-            />
-          </div>
-        )}
-      </div>
+      {activeSection === 'timeline' && (
+        <div className="space-y-8">
+          <ImplementationTimeline 
+            submission={submission}
+            formatCurrency={formatCurrency}
+            validatedValues={{
+              totalLeak: calculations.totalLoss,
+              leadResponseLoss: calculations.leadResponseLoss,
+              selfServeLoss: calculations.selfServeGap,
+              recoveryPotential70: calculations.conservativeRecovery,
+              recoveryPotential85: calculations.optimisticRecovery
+            }}
+          />
+        </div>
+      )}
 
       {/* Floating CTA Bar */}
       <FloatingCTABar 
         totalLeak={calculations.totalLoss} 
         formatCurrency={formatCurrency} 
       />
-    </div>
+    </ResultsLayout>
   );
 };
 
