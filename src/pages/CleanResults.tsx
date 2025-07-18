@@ -311,31 +311,6 @@ const CleanResults = () => {
       />
     </div>
   );
-
-  // Handler functions
-  function handleGetActionPlan() {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to access your action plan.",
-        variant: "destructive",
-      });
-      return;
-    }
-    navigate(`/action-plan/${submission?.id}`);
-  }
-
-  function handleQuickWins() {
-    setActiveSection('actions');
-    const element = document.getElementById('actions-section');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  }
-
-  function handleBookCall() {
-    window.open('https://calendly.com/your-calendar', '_blank');
-  }
 };
 
 export default CleanResults;
