@@ -93,31 +93,29 @@ export class UnifiedResultsService {
     // 2. Failed Payment Loss: Direct calculation from MRR and failure rate (already correct)
     const failedPaymentLoss = monthlyMRR * (failureRate / 100) * 12 * 0.65; // 65% actual loss after recovery attempts
 
-    // 3. Self-Serve Gap: Based on incremental conversion rate improvement
+    // 3. Self-Serve Gap: Based on realistic self-serve LTV and incremental improvement
     const conversionGap = Math.max(0, industryConversionRateBenchmark - conversionRate);
     
-    // Calculate value per signup based on current performance
-    const currentCustomerValue = conversionRate > 0 && monthlySignups > 0 ? 
-      (monthlyMRR * 12) / (monthlySignups * conversionRate / 100) :
-      averageDealValue * 0.3; // Conservative estimate for self-serve customers
+    // Use realistic self-serve customer annual value (typical SaaS self-serve: $5K-15K annually)
+    const realisticSelfServeValue = Math.min(15000, Math.max(5000, averageDealValue * 0.4));
     
     // Additional conversions from improving to industry benchmark
     const additionalConversionsPerMonth = monthlySignups * (conversionGap / 100);
-    const selfServeGap = additionalConversionsPerMonth * currentCustomerValue * 12;
+    const selfServeGap = additionalConversionsPerMonth * realisticSelfServeValue;
 
     // 4. Process Inefficiency: Direct cost calculation (already correct)
     const processInefficiency = manualHours * hourlyRate * 52;
 
-    // Apply reasonable caps to prevent unrealistic values
-    const cappedLeadResponseLoss = Math.min(leadResponseLoss, currentARR * 0.08);
-    const cappedFailedPaymentLoss = Math.min(failedPaymentLoss, currentARR * 0.06);
-    const cappedSelfServeGap = Math.min(selfServeGap, currentARR * 0.12);
-    const cappedProcessInefficiency = Math.min(processInefficiency, currentARR * 0.05);
+    // Apply realistic caps to prevent unrealistic values
+    const cappedLeadResponseLoss = Math.min(leadResponseLoss, currentARR * 0.04); // Max 4% of ARR
+    const cappedFailedPaymentLoss = Math.min(failedPaymentLoss, currentARR * 0.05); // Max 5% of ARR
+    const cappedSelfServeGap = Math.min(selfServeGap, currentARR * 0.06); // Max 6% of ARR
+    const cappedProcessInefficiency = Math.min(processInefficiency, currentARR * 0.03); // Max 3% of ARR
 
-    // Total loss with overall cap
+    // Total loss with realistic overall cap
     const totalLoss = Math.min(
       cappedLeadResponseLoss + cappedFailedPaymentLoss + cappedSelfServeGap + cappedProcessInefficiency,
-      currentARR * 0.25 // Overall cap at 25% of ARR
+      currentARR * 0.15 // Overall cap at 15% of ARR
     );
 
     // Recovery calculations with realistic expectations
