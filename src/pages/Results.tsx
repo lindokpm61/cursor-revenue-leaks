@@ -2,21 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  BarChart3, 
-  Target,
-  AlertTriangle,
-  TrendingUp,
-  Calendar,
-  FileText,
-  ArrowUp,
-  Users,
-  CreditCard,
-  Settings,
-  DollarSign
-} from "lucide-react";
+import { AlertTriangle, BarChart3 } from "lucide-react";
 
 import { submissionService, type Submission } from "@/lib/supabase";
 import { UnifiedResultsService, type SubmissionData } from "@/lib/results/UnifiedResultsService";
@@ -24,18 +10,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
-// Import unified components
-import { UnifiedHeader } from "@/components/navigation/UnifiedHeader";
-import { UnifiedCTA } from "@/components/ui/unified-cta";
-import { ContentSection } from "@/components/ui/content-section";
+// Import new simplified components
+import { SimplifiedHero } from "@/components/results/SimplifiedHero";
+import { ProgressiveAnalysis } from "@/components/results/ProgressiveAnalysis";
+import { GuidedTour } from "@/components/results/GuidedTour";
 
-// Import existing specialized components
+// Import existing specialized components for detailed view
 import { PriorityActions } from "@/components/calculator/results/PriorityActions";
 import { ImplementationTimeline } from "@/components/calculator/results/ImplementationTimeline";
-import { IndustryBenchmarking } from "@/components/calculator/results/IndustryBenchmarking";
 import { DetailedBreakdown } from "@/components/calculator/results/DetailedBreakdown";
 import { RevenueCharts } from "@/components/calculator/results/RevenueCharts";
-import { HeroRevenueChart } from "@/components/results/HeroRevenueChart";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { type ConfidenceFactors } from "@/lib/calculator/enhancedCalculations";
@@ -45,7 +29,8 @@ const Results = () => {
   const { id } = useParams<{ id: string }>();
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>("overview");
+  const [showGuidedTour, setShowGuidedTour] = useState(true);
+  const [viewMode, setViewMode] = useState<'simple' | 'detailed'>('simple');
   const { user } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -180,20 +165,21 @@ const Results = () => {
     navigate(`/action-plan/${submission?.id}`);
   };
 
-  const handleDownloadReport = () => {
-    toast({
-      title: "Download Started",
-      description: "Your comprehensive report is being prepared.",
-    });
+  const handleShowDetails = () => {
+    setViewMode('detailed');
+  };
+
+  const handleTourComplete = () => {
+    setShowGuidedTour(false);
+  };
+
+  const handleTourSkip = () => {
+    setShowGuidedTour(false);
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <UnifiedHeader 
-          title="Loading Analysis..."
-          context="results"
-        />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
@@ -209,11 +195,6 @@ const Results = () => {
   if (!submission) {
     return (
       <div className="min-h-screen bg-background">
-        <UnifiedHeader 
-          title="Results Not Found"
-          backTo="/dashboard"
-          context="results"
-        />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Card className="max-w-md mx-auto text-center">
             <CardContent className="p-8">
@@ -234,181 +215,90 @@ const Results = () => {
 
   const totalLeak = calculations.totalLeakage;
   const recovery70 = calculations.potentialRecovery70;
-  const recovery85 = calculations.potentialRecovery85;
-
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: BarChart3 },
-    { id: 'breakdown', label: 'Analysis', icon: DollarSign },
-    { id: 'actions', label: 'Action Plan', icon: Target },
-    { id: 'timeline', label: 'Implementation', icon: Calendar }
-  ];
 
   return (
     <div className="min-h-screen bg-background">
-      <UnifiedHeader 
-        title={submission.company_name}
-        subtitle="Revenue Recovery Analysis"
-        backTo="/dashboard"
-        context="results"
-      />
+      {/* Guided Tour */}
+      {showGuidedTour && (
+        <GuidedTour
+          onComplete={handleTourComplete}
+          onSkip={handleTourSkip}
+        />
+      )}
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Simplified Hero Section */}
-        <ContentSection 
-          title="Revenue Recovery Opportunity"
-          badge={`${((totalLeak / (submission.current_arr || 1)) * 100).toFixed(1)}% of ARR at Risk`}
-          badgeVariant="destructive"
-          priority="high"
-          className="mb-8"
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div>
-                <div className="text-3xl md:text-4xl text-revenue-warning font-bold flex items-center gap-3 mb-2">
-                  <ArrowUp className="h-8 w-8" />
-                  {formatCurrency(totalLeak)}
-                </div>
-                <p className="text-lg text-muted-foreground mb-6">
-                  Annual revenue opportunity identified
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-revenue-success/5 border border-revenue-success/20">
-                  <div className="text-xl font-bold text-revenue-success mb-1">
-                    {formatCurrency(recovery70)}
-                  </div>
-                  <div className="text-sm font-medium text-revenue-success/80">
-                    Conservative Recovery
-                  </div>
-                </div>
-                <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
-                  <div className="text-xl font-bold text-primary mb-1">
-                    {formatCurrency(recovery85)}
-                  </div>
-                  <div className="text-sm font-medium text-primary/80">
-                    Optimistic Recovery
-                  </div>
-                </div>
-              </div>
-
-              <UnifiedCTA
-                variant="primary"
-                context="results"
-                data={{
-                  totalLeak,
-                  recovery: recovery70,
-                  formatCurrency
-                }}
-                onPrimaryAction={handleGetActionPlan}
-                onSecondaryAction={handleDownloadReport}
-              />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {viewMode === 'simple' ? (
+          <>
+            {/* Simplified Hero Section */}
+            <SimplifiedHero
+              companyName={submission.company_name}
+              totalLeak={totalLeak}
+              recovery70={recovery70}
+              formatCurrency={formatCurrency}
+              onGetActionPlan={handleGetActionPlan}
+              onShowDetails={handleShowDetails}
+            />
+          </>
+        ) : (
+          <>
+            {/* Back to Simple View Button */}
+            <div className="mb-8">
+              <Button
+                variant="ghost"
+                onClick={() => setViewMode('simple')}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                ← Back to Summary
+              </Button>
             </div>
 
-            <div>
-              <HeroRevenueChart
-                secureRevenue={submission.current_arr ? submission.current_arr - totalLeak : 0}
-                revenueAtRisk={totalLeak}
-                recoveryPotential={recovery70}
-                formatCurrency={formatCurrency}
-              />
-            </div>
-          </div>
-        </ContentSection>
-
-        {/* Tabbed Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
-                  <Icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
-
-          <TabsContent value="overview">
-            <ContentSection 
-              title="Strategic Performance Overview"
-              description="Your competitive position and improvement opportunities"
+            {/* Progressive Analysis with Full Details */}
+            <ProgressiveAnalysis
+              data={calculatorData}
+              calculations={calculations}
+              formatCurrency={formatCurrency}
             >
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-foreground mb-2">
-                    {formatCurrency(submission.current_arr || 0)}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Current ARR</div>
-                </div>
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-revenue-danger mb-2">
-                    {formatCurrency(totalLeak)}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Revenue at Risk</div>
-                </div>
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-revenue-success mb-2">
-                    {formatCurrency(recovery70)}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Recovery Potential</div>
-                </div>
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-primary mb-2">
-                    {Math.round((recovery70 / Math.max(totalLeak, 1)) * 100)}%
-                  </div>
-                  <div className="text-sm text-muted-foreground">Recovery Rate</div>
-                </div>
+              <div className="space-y-8">
+                <RevenueCharts
+                  data={calculatorData}
+                  calculations={calculations}
+                  formatCurrency={formatCurrency}
+                  confidenceFactors={{
+                    companySize: submission.current_arr && submission.current_arr > 10000000 ? 'enterprise' :
+                                 submission.current_arr && submission.current_arr > 1000000 ? 'scaleup' : 'startup',
+                    currentMaturity: submission.lead_score && submission.lead_score > 75 ? 'advanced' :
+                                     submission.lead_score && submission.lead_score > 45 ? 'intermediate' : 'basic',
+                    changeManagementCapability: submission.current_arr && submission.current_arr > 5000000 ? 'high' : 'medium',
+                    resourceAvailable: true
+                  } as ConfidenceFactors}
+                />
+                
+                <DetailedBreakdown
+                  data={calculatorData}
+                  calculations={calculations}
+                  formatCurrency={formatCurrency}
+                />
+
+                <PriorityActions 
+                  submission={submission}
+                  formatCurrency={formatCurrency}
+                />
+
+                <ImplementationTimeline 
+                  submission={submission}
+                  formatCurrency={formatCurrency}
+                  validatedValues={{
+                    totalLeak,
+                    leadResponseLoss: calculations.leadResponseLoss,
+                    selfServeLoss: calculations.selfServeGap,
+                    recoveryPotential70: recovery70,
+                    recoveryPotential85: calculations.potentialRecovery85
+                  }}
+                />
               </div>
-            </ContentSection>
-          </TabsContent>
-
-          <TabsContent value="breakdown">
-            <div className="space-y-8">
-              <RevenueCharts
-                data={calculatorData}
-                calculations={calculations}
-                formatCurrency={formatCurrency}
-                confidenceFactors={{
-                  companySize: submission.current_arr && submission.current_arr > 10000000 ? 'enterprise' :
-                               submission.current_arr && submission.current_arr > 1000000 ? 'scaleup' : 'startup',
-                  currentMaturity: submission.lead_score && submission.lead_score > 75 ? 'advanced' :
-                                   submission.lead_score && submission.lead_score > 45 ? 'intermediate' : 'basic',
-                  changeManagementCapability: submission.current_arr && submission.current_arr > 5000000 ? 'high' : 'medium',
-                  resourceAvailable: true
-                } as ConfidenceFactors}
-              />
-              
-              <DetailedBreakdown
-                data={calculatorData}
-                calculations={calculations}
-                formatCurrency={formatCurrency}
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="actions">
-            <PriorityActions 
-              submission={submission}
-              formatCurrency={formatCurrency}
-            />
-          </TabsContent>
-
-          <TabsContent value="timeline">
-            <ImplementationTimeline 
-              submission={submission}
-              formatCurrency={formatCurrency}
-              validatedValues={{
-                totalLeak,
-                leadResponseLoss: calculations.leadResponseLoss,
-                selfServeLoss: calculations.selfServeGap,
-                recoveryPotential70: recovery70,
-                recoveryPotential85: recovery85
-              }}
-            />
-          </TabsContent>
-        </Tabs>
+            </ProgressiveAnalysis>
+          </>
+        )}
       </div>
     </div>
   );
