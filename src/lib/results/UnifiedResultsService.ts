@@ -1,6 +1,6 @@
 
 // Clean unified calculation service - single source of truth
-// No legacy fallbacks, no debugging logs, just clean calculations
+// Updated with realistic caps and industry-standard impact calculations
 
 export interface SubmissionData {
   id: string;
@@ -91,21 +91,31 @@ export class UnifiedResultsService {
     });
 
     // Industry benchmarks for realistic calculations
-    const industryLeadConversionRate = 0.03; // 3% typical B2B conversion rate
+    const industryLeadConversionRate = 0.025; // 2.5% typical B2B conversion rate
     const industryResponseTimeOptimal = 1; // 1 hour optimal response time
     const industryConversionRateBenchmark = 3.5; // 3.5% self-serve conversion benchmark
 
     // Calculate individual losses with realistic, conversion-based formulas
     
-    // 1. Lead Response Loss: Based on conversion rate impact from delayed response
-    // Calculate actual converted customers per month
+    // 1. Lead Response Loss: More aggressive calculation for poor response times
     const actualMonthlyConversions = monthlyLeads * industryLeadConversionRate;
     
-    // Response delay impact on conversion rate (research shows 50% drop after first hour)
-    const responseDelayMultiplier = leadResponseHours > industryResponseTimeOptimal ? 
-      Math.min(0.5, (leadResponseHours - industryResponseTimeOptimal) / 24 * 0.2) : 0;
+    // Enhanced response delay impact - research shows significant drop-off after first hour
+    let responseDelayMultiplier = 0;
+    if (leadResponseHours > industryResponseTimeOptimal) {
+      if (leadResponseHours <= 2) {
+        responseDelayMultiplier = 0.15; // 15% loss for 2-hour response
+      } else if (leadResponseHours <= 4) {
+        responseDelayMultiplier = 0.30; // 30% loss for 4-hour response
+      } else if (leadResponseHours <= 8) {
+        responseDelayMultiplier = 0.50; // 50% loss for 8-hour response
+      } else if (leadResponseHours <= 24) {
+        responseDelayMultiplier = 0.70; // 70% loss for 24-hour response
+      } else {
+        responseDelayMultiplier = 0.85; // 85% loss for >24-hour response
+      }
+    }
     
-    // Lost conversions due to slow response
     const lostConversionsPerMonth = actualMonthlyConversions * responseDelayMultiplier;
     const leadResponseLoss = lostConversionsPerMonth * averageDealValue * 12;
 
@@ -118,8 +128,8 @@ export class UnifiedResultsService {
       leadResponseLoss
     });
 
-    // 2. Failed Payment Loss: Direct calculation from MRR and failure rate (already correct)
-    const failedPaymentLoss = monthlyMRR * (failureRate / 100) * 12 * 0.65; // 65% actual loss after recovery attempts
+    // 2. Failed Payment Loss: Direct calculation from MRR and failure rate
+    const failedPaymentLoss = monthlyMRR * (failureRate / 100) * 12 * 0.70; // 70% actual loss after recovery attempts
 
     // DEBUG: Log failed payment calculation
     console.log('=== FAILED PAYMENT CALCULATION ===');
@@ -129,15 +139,26 @@ export class UnifiedResultsService {
       failedPaymentLoss
     });
 
-    // 3. Self-Serve Gap: Based on realistic self-serve LTV and incremental improvement
+    // 3. Self-Serve Gap: More realistic calculation with better customer value estimation
     const conversionGap = Math.max(0, industryConversionRateBenchmark - conversionRate);
     
-    // Use realistic self-serve customer annual value (typical SaaS self-serve: $5K-15K annually)
-    const realisticSelfServeValue = Math.min(15000, Math.max(5000, averageDealValue * 0.4));
+    // Enhanced self-serve customer value calculation
+    let realisticSelfServeValue;
+    if (monthlyMRR > 0 && monthlySignups > 0 && conversionRate > 0) {
+      // Calculate average customer value from existing metrics
+      const existingCustomers = (monthlyMRR * 12) / Math.max(1, averageDealValue * 0.8);
+      const currentSelfServeCustomers = monthlySignups * (conversionRate / 100) * 12;
+      if (currentSelfServeCustomers > 0) {
+        realisticSelfServeValue = Math.min(averageDealValue * 0.6, (monthlyMRR * 12) / currentSelfServeCustomers);
+      } else {
+        realisticSelfServeValue = Math.min(averageDealValue * 0.4, 8000);
+      }
+    } else {
+      realisticSelfServeValue = Math.min(averageDealValue * 0.4, 8000);
+    }
     
-    // Additional conversions from improving to industry benchmark
     const additionalConversionsPerMonth = monthlySignups * (conversionGap / 100);
-    const selfServeGap = additionalConversionsPerMonth * realisticSelfServeValue;
+    const selfServeGap = additionalConversionsPerMonth * realisticSelfServeValue * 12;
 
     // DEBUG: Log self-serve calculation
     console.log('=== SELF-SERVE CALCULATION ===');
@@ -148,7 +169,7 @@ export class UnifiedResultsService {
       selfServeGap
     });
 
-    // 4. Process Inefficiency: Direct cost calculation (already correct)
+    // 4. Process Inefficiency: Direct cost calculation
     const processInefficiency = manualHours * hourlyRate * 52;
 
     // DEBUG: Log process inefficiency calculation
@@ -159,11 +180,11 @@ export class UnifiedResultsService {
       processInefficiency
     });
 
-    // Apply realistic caps to prevent unrealistic values
-    const cappedLeadResponseLoss = Math.min(leadResponseLoss, currentARR * 0.04); // Max 4% of ARR
-    const cappedFailedPaymentLoss = Math.min(failedPaymentLoss, currentARR * 0.05); // Max 5% of ARR
-    const cappedSelfServeGap = Math.min(selfServeGap, currentARR * 0.06); // Max 6% of ARR
-    const cappedProcessInefficiency = Math.min(processInefficiency, currentARR * 0.03); // Max 3% of ARR
+    // Apply more realistic caps - allowing for legitimate high-impact scenarios
+    const cappedLeadResponseLoss = Math.min(leadResponseLoss, currentARR * 0.15); // Max 15% of ARR for lead response
+    const cappedFailedPaymentLoss = Math.min(failedPaymentLoss, currentARR * 0.08); // Max 8% of ARR for payment failures
+    const cappedSelfServeGap = Math.min(selfServeGap, currentARR * 0.12); // Max 12% of ARR for self-serve gap
+    const cappedProcessInefficiency = Math.min(processInefficiency, currentARR * 0.06); // Max 6% of ARR for process issues
 
     // DEBUG: Log capping
     console.log('=== CAPPING CALCULATIONS ===');
@@ -180,21 +201,21 @@ export class UnifiedResultsService {
       cappedProcessInefficiency
     });
 
-    // Total loss with realistic overall cap
+    // Total loss with more realistic overall cap
     const totalLoss = Math.min(
       cappedLeadResponseLoss + cappedFailedPaymentLoss + cappedSelfServeGap + cappedProcessInefficiency,
-      currentARR * 0.15 // Overall cap at 15% of ARR
+      currentARR * 0.35 // Overall cap at 35% of ARR (up from 15%)
     );
 
     // DEBUG: Log total loss calculation
     console.log('=== TOTAL LOSS CALCULATION ===');
     console.log('Sum before overall cap:', cappedLeadResponseLoss + cappedFailedPaymentLoss + cappedSelfServeGap + cappedProcessInefficiency);
-    console.log('Overall cap (15% of ARR):', currentARR * 0.15);
+    console.log('Overall cap (35% of ARR):', currentARR * 0.35);
     console.log('Final totalLoss:', totalLoss);
 
     // Recovery calculations with realistic expectations
-    const conservativeRecovery = totalLoss * 0.60; // 60% recovery rate
-    const optimisticRecovery = totalLoss * 0.80; // 80% recovery rate
+    const conservativeRecovery = totalLoss * 0.65; // 65% recovery rate
+    const optimisticRecovery = totalLoss * 0.82; // 82% recovery rate
 
     // DEBUG: Log recovery calculations
     console.log('=== RECOVERY CALCULATIONS ===');
