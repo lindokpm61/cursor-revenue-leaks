@@ -92,8 +92,12 @@ const ActionPlan = () => {
       return;
     }
     
-    if (id) {
+    console.log('ActionPlan component - id from params:', id);
+    if (id && id !== ':id') {
       loadSubmission(id);
+    } else {
+      console.error('Invalid submission ID:', id);
+      setLoading(false);
     }
     
     // Load user profile
@@ -532,6 +536,7 @@ const ActionPlan = () => {
   }, []);
 
   const loadSubmission = async (submissionId: string) => {
+    console.log('Loading submission with ID:', submissionId);
     try {
       const { data, error } = await submissionService.getById(submissionId);
       
