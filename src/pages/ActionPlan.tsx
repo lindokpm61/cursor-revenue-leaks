@@ -736,11 +736,37 @@ const ActionPlan = () => {
   const generateInvestmentAnalysisData = () => {
     if (!timeline.length || !investment) return [];
     
-    return timeline.map((phase, index) => {
-      const phaseInvestment = investment.implementationCost / timeline.length;
+    // Calculate phase-specific investment based on characteristics
+    const phaseInvestments = timeline.map(phase => {
+      // Base cost multipliers based on difficulty and duration
+      const difficultyMultiplier = {
+        'easy': 0.7,
+        'medium': 1.0,
+        'hard': 1.5
+      }[phase.difficulty] || 1.0;
+      
+      // Duration factor (longer phases cost more)
+      const durationMonths = phase.endMonth - phase.startMonth + 1;
+      const durationMultiplier = Math.max(0.5, durationMonths / 3);
+      
+      // Action complexity factor
+      const actionCount = phase.actions?.length || 3;
+      const complexityMultiplier = Math.max(0.8, actionCount / 5);
+      
+      // Calculate relative cost weight
+      const costWeight = difficultyMultiplier * durationMultiplier * complexityMultiplier;
+      
+      return { phase, costWeight };
+    });
+    
+    // Calculate total weight and distribute investment proportionally
+    const totalWeight = phaseInvestments.reduce((sum, item) => sum + item.costWeight, 0);
+    
+    return phaseInvestments.map(({ phase, costWeight }, index) => {
+      const phaseInvestment = (investment.implementationCost * costWeight) / totalWeight;
       return {
         phase: `Phase ${index + 1}`,
-        investment: phaseInvestment,
+        investment: Math.round(phaseInvestment),
         recovery: phase.recoveryPotential
       };
     });
