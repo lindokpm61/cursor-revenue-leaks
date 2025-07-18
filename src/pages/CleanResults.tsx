@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,9 @@ import { ImplementationTimeline } from "@/components/calculator/results/Implemen
 import { IndustryBenchmarking } from "@/components/calculator/results/IndustryBenchmarking";
 import { EnhancedExportCTA } from "@/components/results/EnhancedExportCTA";
 import { FloatingCTABar } from "@/components/results/FloatingCTABar";
+import { useAnalysisNavigation } from "@/hooks/useAnalysisNavigation";
+import { AnalysisBreadcrumb } from "@/components/navigation/AnalysisBreadcrumb";
+import { AnalysisProgress } from "@/components/navigation/AnalysisProgress";
 
 const CleanResults = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,7 +36,9 @@ const CleanResults = () => {
   const [activeSection, setActiveSection] = useState<string>("overview");
   const { user } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
+  
+  // Use unified navigation
+  const navigation = useAnalysisNavigation(id, submission?.company_name);
 
   useEffect(() => {
     if (id) {
@@ -42,7 +48,7 @@ const CleanResults = () => {
 
   const loadSubmission = async (submissionId: string) => {
     try {
-      if (!submissionId || submissionId === ':id' || submissionId.includes(':')) {
+      if (!navigation.validateSubmissionId(submissionId)) {
         throw new Error('Invalid submission ID format');
       }
       
@@ -88,7 +94,9 @@ const CleanResults = () => {
       });
       return;
     }
-    navigate(`/action-plan/${submission?.id}`);
+    if (id) {
+      navigation.navigateToActionPlan(id);
+    }
   };
 
   const handleQuickWins = () => {
@@ -100,8 +108,7 @@ const CleanResults = () => {
   };
 
   const handleBookCall = () => {
-    // Implement booking functionality
-    window.open('https://calendly.com/your-calendar', '_blank');
+    navigation.openExternalLink('https://calendly.com/your-calendar');
   };
 
   if (loading) {
@@ -125,12 +132,10 @@ const CleanResults = () => {
             <p className="text-body text-muted-foreground mb-6">
               The requested results could not be found or you don't have access to them.
             </p>
-            <Link to="/dashboard">
-              <Button>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </Link>
+            <Button onClick={navigation.navigateToDashboard}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -194,12 +199,10 @@ const CleanResults = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
-              <Link to="/dashboard">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Dashboard
-                </Button>
-              </Link>
+              <Button variant="ghost" size="sm" onClick={navigation.navigateToDashboard}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Dashboard
+              </Button>
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-primary text-primary-foreground">
                   <Calculator className="h-5 w-5" />
@@ -216,6 +219,16 @@ const CleanResults = () => {
       </header>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Navigation Context */}
+        <div className="mb-6 space-y-4">
+          <AnalysisBreadcrumb items={navigation.breadcrumbs} />
+          <AnalysisProgress 
+            current={navigation.progressInfo.current}
+            total={navigation.progressInfo.total}
+            percentage={navigation.progressInfo.percentage}
+            label={`Total Recovery Potential: ${formatCurrency(calculations.conservativeRecovery)}`}
+          />
+        </div>
 
         {/* Navigation Tabs */}
         <div className="mb-8">

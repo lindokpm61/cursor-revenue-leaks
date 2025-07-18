@@ -1,7 +1,8 @@
+
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Target, Download, Share2, FileText, Calendar, Lightbulb } from "lucide-react";
@@ -33,8 +34,12 @@ import {
   type UnifiedCalculationInputs 
 } from "@/lib/calculator/unifiedCalculations";
 
+// Import unified navigation
+import { useAnalysisNavigation } from "@/hooks/useAnalysisNavigation";
+import { AnalysisBreadcrumb } from "@/components/navigation/AnalysisBreadcrumb";
+import { AnalysisProgress } from "@/components/navigation/AnalysisProgress";
+
 export default function ActionPlan() {
-  const navigate = useNavigate();
   const params = useParams();
   const { toast } = useToast();
   const [data, setData] = useState<any>(null);
@@ -44,12 +49,15 @@ export default function ActionPlan() {
   const [activeTab, setActiveTab] = useState('priorities');
 
   const submissionId = params.id || null;
+  
+  // Use unified navigation
+  const navigation = useAnalysisNavigation(submissionId, data?.company_name);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        if (submissionId) {
+        if (submissionId && navigation.validateSubmissionId(submissionId)) {
           const submission = await fetchSubmissionData(submissionId);
           if (submission) {
             setData(submission);
@@ -63,7 +71,7 @@ export default function ActionPlan() {
               description: "No data found for this submission. Please start again.",
               variant: "destructive",
             });
-            navigate('/');
+            navigation.navigateToDashboard();
           }
         } else {
           toast({
@@ -71,7 +79,7 @@ export default function ActionPlan() {
             description: "No submission ID found. Please start again.",
             variant: "destructive",
           });
-          navigate('/');
+          navigation.navigateToDashboard();
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
@@ -80,14 +88,14 @@ export default function ActionPlan() {
           description: "Failed to load data. Please try again.",
           variant: "destructive",
         });
-        navigate('/');
+        navigation.navigateToDashboard();
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [submissionId, navigate, toast]);
+  }, [submissionId, navigation, toast]);
 
   // FIXED: Corrected data transformation with proper field mapping
   const submissionData = useMemo(() => {
@@ -258,7 +266,11 @@ export default function ActionPlan() {
   );
 
   const handleBack = () => {
-    navigate(`/results/${submissionId}`);
+    if (submissionId) {
+      navigation.navigateToResults(submissionId);
+    } else {
+      navigation.navigateToDashboard();
+    }
   };
 
   const handleExitIntentEmailSubmit = async (email: string) => {
@@ -415,14 +427,15 @@ export default function ActionPlan() {
       </header>
 
       <div className="container mx-auto py-8 px-4">
-        <div className="flex items-center gap-4 mb-8">
-          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-            <Target className="h-3 w-3 mr-1" />
-            Step 5 of 5
-          </Badge>
-          <div className="text-sm text-muted-foreground">
-            Total Recovery Potential: {UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)}
-          </div>
+        {/* Navigation Context */}
+        <div className="mb-8 space-y-4">
+          <AnalysisBreadcrumb items={navigation.breadcrumbs} />
+          <AnalysisProgress 
+            current={navigation.progressInfo.current}
+            total={navigation.progressInfo.total}
+            percentage={navigation.progressInfo.percentage}
+            label={`Total Recovery Potential: ${UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)}`}
+          />
         </div>
 
         <div className="space-y-8">
