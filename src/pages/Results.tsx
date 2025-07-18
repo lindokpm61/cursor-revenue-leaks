@@ -1,64 +1,56 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useParams } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Calculator, 
-  ArrowLeft, 
-  TrendingUp, 
-  AlertTriangle, 
+  BarChart3, 
   Target,
-  BarChart3,
+  AlertTriangle,
+  TrendingUp,
+  Calendar,
+  FileText,
+  ArrowUp,
   Users,
   CreditCard,
   Settings,
-  Download,
-  Share2,
-  ArrowUp,
-  CheckCircle,
-  Zap,
-  DollarSign,
-  Calendar
+  DollarSign
 } from "lucide-react";
+
 import { submissionService, type Submission } from "@/lib/supabase";
 import { UnifiedResultsService, type SubmissionData } from "@/lib/results/UnifiedResultsService";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+
+// Import unified components
+import { UnifiedHeader } from "@/components/navigation/UnifiedHeader";
+import { UnifiedCTA } from "@/components/ui/unified-cta";
+import { ContentSection } from "@/components/ui/content-section";
+
+// Import existing specialized components
 import { PriorityActions } from "@/components/calculator/results/PriorityActions";
 import { ImplementationTimeline } from "@/components/calculator/results/ImplementationTimeline";
 import { IndustryBenchmarking } from "@/components/calculator/results/IndustryBenchmarking";
 import { DetailedBreakdown } from "@/components/calculator/results/DetailedBreakdown";
 import { RevenueCharts } from "@/components/calculator/results/RevenueCharts";
 import { HeroRevenueChart } from "@/components/results/HeroRevenueChart";
-import { StrategicCTASection } from "@/components/results/StrategicCTASection";
-import { SectionCTA } from "@/components/results/SectionCTAs";
-import { FloatingCTABar } from "@/components/results/FloatingCTABar";
-import { EnhancedExportCTA } from "@/components/results/EnhancedExportCTA";
-import { validateCalculationResults } from "@/lib/calculator/validationHelpers";
+
 import { useIsMobile } from "@/hooks/use-mobile";
 import { type ConfidenceFactors } from "@/lib/calculator/enhancedCalculations";
 import { type CalculatorData, type Calculations } from "@/components/calculator/useCalculatorData";
-import { 
-  calculateLeadResponseImpact, 
-  calculateFailedPaymentLoss, 
-  calculateSelfServeGap, 
-  calculateProcessInefficiency,
-  RECOVERY_SYSTEMS 
-} from "@/lib/calculator/enhancedCalculations";
 
 const Results = () => {
   const { id } = useParams<{ id: string }>();
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState<string>("overview");
+  const [activeTab, setActiveTab] = useState<string>("overview");
   const { user } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
-  // Convert submission data to CalculatorData format for fresh calculations (moved before early returns)
   const calculatorData: CalculatorData = useMemo(() => {
     if (!submission) return {} as CalculatorData;
     
@@ -88,7 +80,6 @@ const Results = () => {
     };
   }, [submission]);
 
-  // Convert submission to the format expected by UnifiedResultsService
   const submissionData: SubmissionData = useMemo(() => {
     if (!submission) return {} as SubmissionData;
     
@@ -113,12 +104,10 @@ const Results = () => {
     };
   }, [submission]);
 
-  // Calculate unified results
   const unifiedCalculations = useMemo(() => {
     return UnifiedResultsService.calculateResults(submissionData);
   }, [submissionData]);
 
-  // Create compatibility layer for components expecting old Calculations interface
   const calculations: Calculations = useMemo(() => ({
     leadResponseLoss: unifiedCalculations.leadResponseLoss,
     failedPaymentLoss: unifiedCalculations.failedPaymentLoss,
@@ -127,7 +116,6 @@ const Results = () => {
     totalLeakage: unifiedCalculations.totalLoss,
     potentialRecovery70: unifiedCalculations.conservativeRecovery,
     potentialRecovery85: unifiedCalculations.optimisticRecovery,
-    // Legacy property names for backward compatibility
     totalLeak: unifiedCalculations.totalLoss,
     recoveryPotential70: unifiedCalculations.conservativeRecovery,
     recoveryPotential85: unifiedCalculations.optimisticRecovery,
@@ -161,7 +149,6 @@ const Results = () => {
 
       setSubmission(data);
     } catch (error) {
-      console.error('Error loading submission:', error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to load results. Please try again.",
@@ -193,21 +180,27 @@ const Results = () => {
     navigate(`/action-plan/${submission?.id}`);
   };
 
-  const handleQuickWins = () => {
-    setActiveSection('actions');
-    // Scroll to actions section
-    const element = document.getElementById('actions-section');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+  const handleDownloadReport = () => {
+    toast({
+      title: "Download Started",
+      description: "Your comprehensive report is being prepared.",
+    });
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Calculator className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-body text-muted-foreground">Loading your results...</p>
+      <div className="min-h-screen bg-background">
+        <UnifiedHeader 
+          title="Loading Analysis..."
+          context="results"
+        />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <BarChart3 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+              <p className="text-body text-muted-foreground">Loading your results...</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -215,414 +208,194 @@ const Results = () => {
 
   if (!submission) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-md mx-auto text-center">
-          <CardContent className="p-8">
-            <AlertTriangle className="h-12 w-12 text-revenue-warning mx-auto mb-4" />
-            <h2 className="text-h1 mb-2">Results Not Found</h2>
-            <p className="text-body text-muted-foreground mb-6">
-              The requested results could not be found or you don't have access to them.
-            </p>
-            <Link to="/dashboard">
-              <Button>
-                <ArrowLeft className="h-4 w-4 mr-2" />
+      <div className="min-h-screen bg-background">
+        <UnifiedHeader 
+          title="Results Not Found"
+          backTo="/dashboard"
+          context="results"
+        />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Card className="max-w-md mx-auto text-center">
+            <CardContent className="p-8">
+              <AlertTriangle className="h-12 w-12 text-revenue-warning mx-auto mb-4" />
+              <h2 className="text-h1 mb-2">Results Not Found</h2>
+              <p className="text-body text-muted-foreground mb-6">
+                The requested results could not be found or you don't have access to them.
+              </p>
+              <Button onClick={() => navigate("/dashboard")}>
                 Back to Dashboard
               </Button>
-            </Link>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
-  // Calculate key metrics using fresh calculations (remove old stored values)
-  const leadScore = submission.lead_score || 0;
-
-  // Derive confidence factors from submission data
-  const confidenceFactors: ConfidenceFactors = {
-    companySize: submission.current_arr && submission.current_arr > 10000000 ? 'enterprise' :
-                 submission.current_arr && submission.current_arr > 1000000 ? 'scaleup' : 'startup',
-    currentMaturity: submission.lead_score && submission.lead_score > 75 ? 'advanced' :
-                     submission.lead_score && submission.lead_score > 45 ? 'intermediate' : 'basic',
-    changeManagementCapability: submission.current_arr && submission.current_arr > 5000000 ? 'high' : 'medium',
-    resourceAvailable: true
-  };
-
-  // Use fresh calculations instead of stored (incorrect) values
   const totalLeak = calculations.totalLeakage;
   const recovery70 = calculations.potentialRecovery70;
   const recovery85 = calculations.potentialRecovery85;
 
-  // Update leakage breakdown to use fresh calculations
-  const leakageBreakdown = [
-    {
-      category: "leadResponseLoss",
-      title: "Lead Response Loss",
-      amount: calculations.leadResponseLoss,
-      percentage: totalLeak > 0 ? (calculations.leadResponseLoss / totalLeak) * 100 : 0,
-      icon: Users,
-      description: "Lost revenue from slow lead response times",
-      color: "text-revenue-warning"
-    },
-    {
-      category: "failedPaymentLoss",
-      title: "Failed Payment Loss", 
-      amount: calculations.failedPaymentLoss,
-      percentage: totalLeak > 0 ? (calculations.failedPaymentLoss / totalLeak) * 100 : 0,
-      icon: CreditCard,
-      description: "Revenue lost due to payment failures",
-      color: "text-revenue-danger"
-    },
-    {
-      category: "selfServeGap",
-      title: "Self-Serve Gap",
-      amount: calculations.selfServeGap,
-      percentage: totalLeak > 0 ? (calculations.selfServeGap / totalLeak) * 100 : 0,
-      icon: Target,
-      description: "Missed opportunities in self-service conversion",
-      color: "text-revenue-primary"
-    },
-    {
-      category: "processInefficiency",
-      title: "Process Inefficiency",
-      amount: calculations.processLoss,
-      percentage: totalLeak > 0 ? (calculations.processLoss / totalLeak) * 100 : 0,
-      icon: Settings,
-      description: "Losses from manual processes and inefficiencies",
-      color: "text-muted-foreground"
-    }
-  ];
-
-  const sections = [
+  const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
-    { id: 'breakdown', label: 'Revenue Breakdown', icon: DollarSign },
-    { id: 'benchmarking', label: 'Industry Benchmarks', icon: TrendingUp },
+    { id: 'breakdown', label: 'Analysis', icon: DollarSign },
     { id: 'actions', label: 'Action Plan', icon: Target },
-    { id: 'timeline', label: 'Implementation', icon: CheckCircle }
+    { id: 'timeline', label: 'Implementation', icon: Calendar }
   ];
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Clean Header */}
-      <header className="border-b bg-card">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Link to="/dashboard">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Dashboard
-                </Button>
-              </Link>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary text-primary-foreground">
-                  <Calculator className="h-5 w-5" />
-                </div>
-                <div>
-                  <h1 className="text-lg md:text-xl font-semibold">{submission.company_name}</h1>
-                  <p className="text-sm md:text-base text-muted-foreground">Revenue Analysis Results</p>
-                </div>
-              </div>
-            </div>
-            <EnhancedExportCTA />
-          </div>
-        </div>
-      </header>
+      <UnifiedHeader 
+        title={submission.company_name}
+        subtitle="Revenue Recovery Analysis"
+        backTo="/dashboard"
+        context="results"
+      />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section - Two Card Layout */}
-        <div className="mb-8">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            {/* Main Hero Card - Updated to use fresh calculations */}
-            <Card className="lg:col-span-3 bg-gradient-to-r from-primary/5 to-revenue-primary/5 border-primary/20">
-              <CardContent className="p-8">
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4">
-                      Revenue Recovery Opportunity
-                    </h2>
-                    <div className="text-2xl md:text-3xl lg:text-4xl text-revenue-warning font-bold flex items-center gap-3 mb-3">
-                      <ArrowUp className="h-8 w-8" />
-                      {formatCurrency(totalLeak)}
-                    </div>
-                    <p className="text-lg text-muted-foreground">
-                      Annual revenue opportunity identified
-                    </p>
-                  </div>
+        {/* Simplified Hero Section */}
+        <ContentSection 
+          title="Revenue Recovery Opportunity"
+          badge={`${((totalLeak / (submission.current_arr || 1)) * 100).toFixed(1)}% of ARR at Risk`}
+          badgeVariant="destructive"
+          priority="high"
+          className="mb-8"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="space-y-6">
+              <div>
+                <div className="text-3xl md:text-4xl text-revenue-warning font-bold flex items-center gap-3 mb-2">
+                  <ArrowUp className="h-8 w-8" />
+                  {formatCurrency(totalLeak)}
+                </div>
+                <p className="text-lg text-muted-foreground mb-6">
+                  Annual revenue opportunity identified
+                </p>
+              </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl bg-background/50 border">
-                      <div className="text-xl md:text-2xl text-revenue-success font-bold mb-1">
-                        {formatCurrency(recovery70)}
-                      </div>
-                      <div className="text-sm font-medium text-muted-foreground">
-                        Conservative Recovery (40-60%)
-                      </div>
-                      <div className="text-xs text-muted-foreground/70 mt-1">
-                        Based on category-specific potential
-                      </div>
-                    </div>
-                    <div className="p-4 rounded-xl bg-background/50 border">
-                      <div className="text-xl md:text-2xl text-revenue-primary font-bold mb-1">
-                        {formatCurrency(recovery85)}
-                      </div>
-                      <div className="text-sm font-medium text-muted-foreground">
-                        Optimistic Recovery (55-75%)
-                      </div>
-                      <div className="text-xs text-muted-foreground/70 mt-1">
-                        With optimal execution and resources
-                      </div>
-                    </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 rounded-xl bg-green-50 border border-green-200">
+                  <div className="text-xl font-bold text-green-700 mb-1">
+                    {formatCurrency(recovery70)}
                   </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                    <Button onClick={handleGetActionPlan} className="flex-1">
-                      <Target className="h-4 w-4 mr-2" />
-                      Get Action Plan
-                    </Button>
-                    <Button variant="outline" onClick={handleQuickWins} className="flex-1">
-                      <Zap className="h-4 w-4 mr-2" />
-                      Quick Wins
-                    </Button>
-                    <Button variant="gradient" className="flex-1">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Book Expert Call
-                    </Button>
+                  <div className="text-sm font-medium text-green-600">
+                    Conservative Recovery
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
+                  <div className="text-xl font-bold text-blue-700 mb-1">
+                    {formatCurrency(recovery85)}
+                  </div>
+                  <div className="text-sm font-medium text-blue-600">
+                    Optimistic Recovery
+                  </div>
+                </div>
+              </div>
 
-            {/* Chart Card - Updated to use fresh calculations */}
-            <Card className="lg:col-span-2">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg">Revenue Breakdown</CardTitle>
-                <CardDescription className="text-sm">
-                  Current revenue composition and recovery potential
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <HeroRevenueChart
-                  secureRevenue={submission.current_arr ? submission.current_arr - totalLeak : 0}
-                  revenueAtRisk={totalLeak}
-                  recoveryPotential={recovery70}
-                  formatCurrency={formatCurrency}
-                />
-              </CardContent>
-            </Card>
+              <UnifiedCTA
+                variant="primary"
+                context="results"
+                data={{
+                  totalLeak,
+                  recovery: recovery70,
+                  formatCurrency
+                }}
+                onPrimaryAction={handleGetActionPlan}
+                onSecondaryAction={handleDownloadReport}
+              />
+            </div>
+
+            <div>
+              <HeroRevenueChart
+                secureRevenue={submission.current_arr ? submission.current_arr - totalLeak : 0}
+                revenueAtRisk={totalLeak}
+                recoveryPotential={recovery70}
+                formatCurrency={formatCurrency}
+              />
+            </div>
           </div>
-        </div>
+        </ContentSection>
 
-        {/* Strategic CTA Section - Updated to use fresh calculations */}
-        <div className="mb-8">
-          <StrategicCTASection 
-            totalLeak={totalLeak}
-            recovery70={recovery70}
-            leadScore={leadScore}
-            formatCurrency={formatCurrency}
-          />
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-2">
-            {sections.map((section) => {
-              const Icon = section.icon;
-              const isActive = activeSection === section.id;
+        {/* Tabbed Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
               return (
-                <Button
-                  key={section.id}
-                  variant={isActive ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setActiveSection(section.id)}
-                  className="flex items-center gap-2"
-                >
+                <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
                   <Icon className="h-4 w-4" />
-                  {section.label}
-                </Button>
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </TabsTrigger>
               );
             })}
-          </div>
-        </div>
+          </TabsList>
 
-        {/* Content Sections */}
-        {activeSection === 'overview' && (
-          <div className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Strategic Performance Overview
-                </CardTitle>
-                <CardDescription>
-                  Your competitive position and strategic advantage opportunity
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-8">
-                  {/* Performance Zone Indicator - Updated to use fresh calculations */}
-                  <div className="bg-gradient-to-r from-revenue-danger/10 via-revenue-warning/10 to-revenue-success/10 p-6 rounded-xl border">
-                    <div className="text-center mb-4">
-                      <h3 className="text-lg font-semibold mb-2">Performance Zone Analysis</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Position relative to industry averages and best-in-class targets
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="text-center p-4 bg-revenue-danger/10 rounded-lg border border-revenue-danger/20">
-                        <div className="text-xl font-bold text-revenue-danger mb-1">
-                          {formatCurrency(totalLeak)}
-                        </div>
-                        <div className="text-sm font-medium text-revenue-danger">
-                          Below Industry Average
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          Current revenue at risk
-                        </div>
-                      </div>
-                      <div className="text-center p-4 bg-revenue-warning/10 rounded-lg border border-revenue-warning/20">
-                        <div className="text-xl font-bold text-revenue-warning mb-1">
-                          {formatCurrency(recovery70)}
-                        </div>
-                        <div className="text-sm font-medium text-revenue-warning">
-                          Industry Average Target
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          Conservative recovery to industry norms
-                        </div>
-                      </div>
-                      <div className="text-center p-4 bg-revenue-success/10 rounded-lg border border-revenue-success/20">
-                        <div className="text-xl font-bold text-revenue-success mb-1">
-                          {formatCurrency(recovery85)}
-                        </div>
-                        <div className="text-sm font-medium text-revenue-success">
-                          Best-in-Class Opportunity
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          Strategic advantage through superior performance
-                        </div>
-                      </div>
-                    </div>
+          <TabsContent value="overview">
+            <ContentSection 
+              title="Strategic Performance Overview"
+              description="Your competitive position and improvement opportunities"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="text-center p-4 border rounded-lg">
+                  <div className="text-2xl font-bold text-foreground mb-2">
+                    {formatCurrency(submission.current_arr || 0)}
                   </div>
-
-                  {/* Competitive Positioning Metrics - Updated to use fresh calculations */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div className="text-center p-4 border rounded-lg">
-                      <div className="text-xl md:text-2xl font-bold text-foreground mb-2">
-                        {formatCurrency(submission.current_arr || 0)}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Current ARR</div>
-                      <div className="text-xs text-revenue-warning mt-1">
-                        {((totalLeak / (submission.current_arr || 1)) * 100).toFixed(1)}% at risk
-                      </div>
-                    </div>
-                    <div className="text-center p-4 border rounded-lg">
-                      <div className="text-xl md:text-2xl font-bold text-revenue-primary mb-2">
-                        {Math.round((recovery85 / Math.max(totalLeak, 1)) * 100)}%
-                      </div>
-                      <div className="text-sm text-muted-foreground">Strategic Advantage Potential</div>
-                      <div className="text-xs text-revenue-success mt-1">
-                        Best-in-class recovery rate
-                      </div>
-                    </div>
-                    <div className="text-center p-4 border rounded-lg">
-                      <div className="text-xl md:text-2xl font-bold text-revenue-success mb-2">
-                        {submission.monthly_leads || 0}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Monthly Leads</div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Lead response optimization target: 1.5h
-                      </div>
-                    </div>
-                    <div className="text-center p-4 border rounded-lg">
-                      <div className="text-xl md:text-2xl font-bold text-primary mb-2">
-                        {formatCurrency(submission.average_deal_value || 0)}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Average Deal Value</div>
-                      <div className="text-xs text-revenue-primary mt-1">
-                        Conversion rate upside: +50-100%
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Strategic Urgency Alert */}
-                  <div className="bg-gradient-to-r from-revenue-primary/10 to-revenue-success/10 p-6 rounded-xl border border-revenue-primary/20">
-                    <div className="flex items-start gap-4">
-                      <div className="p-2 rounded-lg bg-revenue-primary text-primary-foreground">
-                        <Target className="h-5 w-5" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-revenue-primary mb-2">
-                          Strategic Competitive Opportunity
-                        </h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Your analysis shows significant potential to not just reach industry averages, but to establish 
-                          market-leading performance that creates sustainable competitive advantage.
-                        </p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <div className="font-medium text-foreground">Time to Competitive Advantage:</div>
-                            <div className="text-revenue-primary">6-12 months with aggressive execution</div>
-                          </div>
-                          <div>
-                            <div className="font-medium text-foreground">Market Position Opportunity:</div>
-                            <div className="text-revenue-primary">Top 15% performance tier achievable</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <div className="text-sm text-muted-foreground">Current ARR</div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+                <div className="text-center p-4 border rounded-lg">
+                  <div className="text-2xl font-bold text-revenue-danger mb-2">
+                    {formatCurrency(totalLeak)}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Revenue at Risk</div>
+                </div>
+                <div className="text-center p-4 border rounded-lg">
+                  <div className="text-2xl font-bold text-revenue-success mb-2">
+                    {formatCurrency(recovery70)}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Recovery Potential</div>
+                </div>
+                <div className="text-center p-4 border rounded-lg">
+                  <div className="text-2xl font-bold text-primary mb-2">
+                    {Math.round((recovery70 / Math.max(totalLeak, 1)) * 100)}%
+                  </div>
+                  <div className="text-sm text-muted-foreground">Recovery Rate</div>
+                </div>
+              </div>
+            </ContentSection>
+          </TabsContent>
 
-        {activeSection === 'breakdown' && (
-          <div className="space-y-8">
-            {/* Section CTA */}
-            <SectionCTA type="breakdown" totalLeak={totalLeak} formatCurrency={formatCurrency} />
+          <TabsContent value="breakdown">
+            <div className="space-y-8">
+              <RevenueCharts
+                data={calculatorData}
+                calculations={calculations}
+                formatCurrency={formatCurrency}
+                confidenceFactors={{
+                  companySize: submission.current_arr && submission.current_arr > 10000000 ? 'enterprise' :
+                               submission.current_arr && submission.current_arr > 1000000 ? 'scaleup' : 'startup',
+                  currentMaturity: submission.lead_score && submission.lead_score > 75 ? 'advanced' :
+                                   submission.lead_score && submission.lead_score > 45 ? 'intermediate' : 'basic',
+                  changeManagementCapability: submission.current_arr && submission.current_arr > 5000000 ? 'high' : 'medium',
+                  resourceAvailable: true
+                } as ConfidenceFactors}
+              />
+              
+              <DetailedBreakdown
+                data={calculatorData}
+                calculations={calculations}
+                formatCurrency={formatCurrency}
+              />
+            </div>
+          </TabsContent>
 
-            {/* Enhanced Revenue Charts */}
-            <RevenueCharts
-              data={calculatorData}
-              calculations={calculations}
-              formatCurrency={formatCurrency}
-              confidenceFactors={confidenceFactors}
-            />
-
-            {/* Detailed Breakdown */}
-            <DetailedBreakdown
-              data={calculatorData}
-              calculations={calculations}
-              formatCurrency={formatCurrency}
-            />
-          </div>
-        )}
-
-        {activeSection === 'benchmarking' && (
-          <div className="space-y-8">
-            <IndustryBenchmarking 
-              submission={submission}
-              formatCurrency={formatCurrency}
-              calculations={unifiedCalculations}
-            />
-            <SectionCTA type="benchmarking" totalLeak={totalLeak} formatCurrency={formatCurrency} />
-          </div>
-        )}
-
-        {activeSection === 'actions' && (
-          <div className="space-y-8" id="actions-section">
+          <TabsContent value="actions">
             <PriorityActions 
               submission={submission}
               formatCurrency={formatCurrency}
             />
-            <SectionCTA type="actions" totalLeak={totalLeak} formatCurrency={formatCurrency} />
-          </div>
-        )}
+          </TabsContent>
 
-        {activeSection === 'timeline' && (
-          <div className="space-y-8">
+          <TabsContent value="timeline">
             <ImplementationTimeline 
               submission={submission}
               formatCurrency={formatCurrency}
@@ -634,13 +407,9 @@ const Results = () => {
                 recoveryPotential85: recovery85
               }}
             />
-            <SectionCTA type="timeline" totalLeak={totalLeak} formatCurrency={formatCurrency} />
-          </div>
-        )}
+          </TabsContent>
+        </Tabs>
       </div>
-
-      {/* Floating CTA Bar - Updated to use fresh calculations */}
-      <FloatingCTABar totalLeak={totalLeak} formatCurrency={formatCurrency} />
     </div>
   );
 };

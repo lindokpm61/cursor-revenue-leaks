@@ -1,30 +1,25 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Target, Download, Share2, FileText, Calendar, Lightbulb } from "lucide-react";
+import { Target, Calendar, Lightbulb, FileText, BarChart3 } from "lucide-react";
 
 import { fetchSubmissionData } from "@/lib/submission/submissionDataFetcher";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCTAController } from "@/hooks/useCTAController";
-import { FloatingCTABar } from "@/components/results/FloatingCTABar";
-import { ActionPlanExitIntentModal } from "@/components/calculator/ActionPlanExitIntentModal";
-import { ProgressiveEmailCapture } from "@/components/calculator/ProgressiveEmailCapture";
 import { UnifiedResultsService } from "@/lib/results/UnifiedResultsService";
-import { ImplementationRoadmap } from "@/components/calculator/results/ImplementationRoadmap";
 
-// Import enhanced components
+// Import unified components
+import { UnifiedHeader } from "@/components/navigation/UnifiedHeader";
+import { UnifiedCTA } from "@/components/ui/unified-cta";
+import { ContentSection } from "@/components/ui/content-section";
+
+// Import existing specialized components
 import { PriorityActions } from "@/components/calculator/results/PriorityActions";
-import { ExecutiveSummary } from "@/components/calculator/results/ExecutiveSummary";
-import { UserIntentSelector } from "@/components/results/UserIntentSelector";
 import { ComprehensiveSummary } from "@/components/results/ComprehensiveSummary";
 import { ActionPlanTimeline } from "@/components/ActionPlanTimeline";
 import { ActionPlanScenarioPlanning } from "@/components/ActionPlanScenarioPlanning";
-import type { UserIntent } from "@/components/results/UserIntentSelector";
+import { ImplementationRoadmap } from "@/components/calculator/results/ImplementationRoadmap";
 
 // Import calculation functions
 import { 
@@ -36,16 +31,12 @@ import {
 
 // Import unified navigation
 import { useAnalysisNavigation } from "@/hooks/useAnalysisNavigation";
-import { AnalysisBreadcrumb } from "@/components/navigation/AnalysisBreadcrumb";
-import { AnalysisProgress } from "@/components/navigation/AnalysisProgress";
 
 export default function ActionPlan() {
   const params = useParams();
   const { toast } = useToast();
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [userEmail, setUserEmail] = useState('');
-  const [userIntent, setUserIntent] = useState<UserIntent>('understand-problem');
   const [activeTab, setActiveTab] = useState('priorities');
 
   const submissionId = params.id || null;
@@ -61,7 +52,6 @@ export default function ActionPlan() {
           const submission = await fetchSubmissionData(submissionId);
           if (submission) {
             setData(submission);
-            setUserEmail(submission.email || '');
           } else {
             toast({
               title: "Error",
@@ -79,7 +69,6 @@ export default function ActionPlan() {
           navigation.navigateToDashboard();
         }
       } catch (error) {
-        console.error("Failed to fetch data:", error);
         toast({
           title: "Error",
           description: "Failed to load data. Please try again.",
@@ -94,10 +83,8 @@ export default function ActionPlan() {
     fetchData();
   }, [submissionId, toast]);
 
-  // FIXED: Corrected data transformation with proper field mapping
   const submissionData = useMemo(() => {
     if (!data || !data.calculator_data) return null;
-    
     
     const calcData = data.calculator_data;
     const companyInfo = calcData.companyInfo || {};
@@ -105,19 +92,16 @@ export default function ActionPlan() {
     const selfServe = calcData.selfServe || {};
     const operations = calcData.operations || {};
 
-    // CRITICAL FIX: Proper field mapping with fallbacks
     const transformedData = {
       id: data.temp_id || submissionId,
       company_name: data.company_name || companyInfo.companyName || '',
       contact_email: data.email || '',
       industry: data.industry || companyInfo.industry || '',
-      // FIXED: Ensure these critical values are preserved
       current_arr: companyInfo.currentARR || 0,
       monthly_leads: leadGeneration.monthlyLeads || 0,
       average_deal_value: leadGeneration.averageDealValue || 0,
       lead_response_time: leadGeneration.leadResponseTime || leadGeneration.leadResponseTimeHours || 0,
       monthly_free_signups: selfServe.monthlyFreeSignups || 0,
-      // CRITICAL FIX: Correct field name mapping
       free_to_paid_conversion: selfServe.freeToLaidConversion || selfServe.freeToPaidConversionRate || 0,
       monthly_mrr: selfServe.monthlyMRR || 0,
       failed_payment_rate: selfServe.failedPaymentRate || operations.failedPaymentRate || 0,
@@ -128,12 +112,10 @@ export default function ActionPlan() {
       created_at: data.created_at || new Date().toISOString()
     };
 
-    // FIXED: Calculate unified results with proper data
     const unifiedCalcs = UnifiedResultsService.calculateResults(transformedData);
     
     return {
       ...transformedData,
-      // Add the calculated results to submission for priority actions
       lead_response_loss: unifiedCalcs.leadResponseLoss,
       failed_payment_loss: unifiedCalcs.failedPaymentLoss,
       selfserve_gap_loss: unifiedCalcs.selfServeGap,
@@ -141,7 +123,6 @@ export default function ActionPlan() {
       total_leak: unifiedCalcs.totalLoss,
       recovery_potential_70: unifiedCalcs.conservativeRecovery,
       recovery_potential_85: unifiedCalcs.optimisticRecovery,
-      // Pass through for components
       leadResponseLoss: unifiedCalcs.leadResponseLoss,
       failedPaymentLoss: unifiedCalcs.failedPaymentLoss,
       selfServeGap: unifiedCalcs.selfServeGap,
@@ -152,10 +133,8 @@ export default function ActionPlan() {
     };
   }, [data, submissionId]);
 
-  // Generate timeline and investment calculations
   const { timeline, investment, roiData } = useMemo(() => {
     if (!submissionData) return { timeline: [], investment: null, roiData: null };
-
 
     const inputs: UnifiedCalculationInputs = {
       currentARR: submissionData.current_arr,
@@ -210,107 +189,34 @@ export default function ActionPlan() {
     };
   }, [submissionData]);
 
-  // Recovery data for CTAs
-  const recoveryData = useMemo(() => ({
-    totalLeak: submissionData?.totalLoss || 0,
-    formatCurrency: (amount: number) => UnifiedResultsService.formatCurrency(amount)
-  }), [submissionData]);
-
-  // Initialize CTA controller
-  const ctaController = useCTAController(
-    submissionId,
-    5, // Action plan is final step
-    recoveryData,
-    {
-      enableFloatingBar: true,
-      enableExitIntent: true,
-      enableProgressiveEmail: !userEmail,
-      timeBasedDelay: 180000, // 3 minutes
-    }
-  );
-
-  const handleBack = () => {
-    if (submissionId) {
-      navigation.navigateToResults(submissionId);
-    } else {
-      navigation.navigateToDashboard();
-    }
+  const handleBookCall = () => {
+    toast({
+      title: "Booking System",
+      description: "Redirecting to calendar booking...",
+    });
   };
 
-  const handleExitIntentEmailSubmit = async (email: string) => {
-    if (submissionId) {
-      await ctaController.progressiveEmail.handleEmailCaptured(email);
-      setUserEmail(email);
-    }
-  };
-
-  // FIXED: Modified section expansion handler to prevent tab switching from Summary
-  const handleExpandSection = (sectionId: string) => {
-    // If we're currently in the Summary tab, don't switch to other tabs
-    // Instead, provide contextual information within the Summary
-    if (activeTab === 'summary') {
-      // User requested to expand section from Summary tab
-      // Keep user in Summary tab - TldrSummary will handle the expansion internally
-      // or we could scroll to a specific section within the Summary tab
-      return;
-    }
-    
-    // Only switch tabs if we're not in the Summary tab
-    const sectionToTabMap = {
-      'timeline': 'timeline',
-      'breakdown': 'priorities',
-      'priority-actions': 'priorities',
-      'benchmarking': 'scenarios',
-      'scenarios': 'scenarios'
-    };
-    
-    const targetTab = sectionToTabMap[sectionId as keyof typeof sectionToTabMap] || 'priorities';
-    setActiveTab(targetTab);
-  };
-
-  const getTopPriorityAction = () => {
-    if (!submissionData) return null;
-    
-    const priorities = [
-      { name: "Lead Response Optimization", value: submissionData.leadResponseLoss || 0 },
-      { name: "Self-Serve Optimization", value: submissionData.selfServeGap || 0 },
-      { name: "Payment Recovery", value: submissionData.failedPaymentLoss || 0 },
-      { name: "Process Automation", value: submissionData.processInefficiency || 0 }
-    ];
-    
-    return priorities.sort((a, b) => b.value - a.value)[0]?.name;
+  const handleExportPlan = () => {
+    toast({
+      title: "Export Started",
+      description: "Your action plan is being prepared for download.",
+    });
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-        <header className="bg-white border-b">
-          <div className="container mx-auto py-4 px-4">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={handleBack}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Results
-              </Button>
-              <h1 className="text-2xl font-semibold text-gray-800">
-                Strategic Action Plan
-              </h1>
-            </div>
-          </div>
-        </header>
-
-        <div className="container mx-auto mt-8 px-4">
-          <div className="flex items-center gap-4 mb-6">
-            <Badge variant="outline">Step 5 of 5</Badge>
-            <Skeleton className="h-6 w-48" />
-          </div>
-
+      <div className="min-h-screen bg-background">
+        <UnifiedHeader 
+          title="Loading Action Plan..."
+          context="action-plan"
+        />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-8">
             {[1, 2, 3].map((i) => (
-               <Card key={i} className="border-primary/20">
+              <Card key={i}>
                 <CardContent className="space-y-4 pt-6">
                   <Skeleton className="h-6 w-64" />
                   <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-32 w-full" />
                 </CardContent>
               </Card>
@@ -323,30 +229,24 @@ export default function ActionPlan() {
 
   if (!submissionData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-        <header className="bg-white border-b">
-          <div className="container mx-auto py-4 px-4">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={handleBack}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Results
-              </Button>
-              <h1 className="text-2xl font-semibold text-gray-800">
-                Strategic Action Plan
-              </h1>
-            </div>
-          </div>
-        </header>
-
-        <div className="container mx-auto mt-8 px-4">
-          <Card className="border-destructive/20 bg-destructive/5">
-            <CardContent className="p-6 text-center">
+      <div className="min-h-screen bg-background">
+        <UnifiedHeader 
+          title="Action Plan Unavailable"
+          backTo={`/results/${submissionId}`}
+          context="action-plan"
+        />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Card className="max-w-md mx-auto text-center">
+            <CardContent className="p-8">
               <p className="text-destructive">
                 Unable to generate action plan. Please try again or contact support.
               </p>
-              <Button variant="outline" onClick={handleBack} className="mt-4">
-                Return to Results
-              </Button>
+              <UnifiedCTA
+                variant="secondary"
+                context="action-plan"
+                onPrimaryAction={() => navigation.navigateToResults(submissionId)}
+                className="mt-4"
+              />
             </CardContent>
           </Card>
         </div>
@@ -354,157 +254,119 @@ export default function ActionPlan() {
     );
   }
 
+  const tabs = [
+    { id: 'priorities', label: 'Priorities', icon: Target },
+    { id: 'timeline', label: 'Timeline', icon: Calendar },
+    { id: 'roadmap', label: 'Roadmap', icon: BarChart3 },
+    { id: 'scenarios', label: 'Scenarios', icon: Lightbulb },
+    { id: 'summary', label: 'Summary', icon: FileText }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <header className="bg-white border-b sticky top-0 z-40">
-        <div className="container mx-auto py-4 px-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={handleBack}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Results
-              </Button>
-              <div>
-                <h1 className="text-2xl font-semibold text-gray-800">
-                  Strategic Action Plan
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  {submissionData.company_name}
-                </p>
-              </div>
-            </div>
+    <div className="min-h-screen bg-background">
+      <UnifiedHeader 
+        title="Strategic Action Plan"
+        subtitle={submissionData.company_name}
+        backTo={`/results/${submissionId}`}
+        context="action-plan"
+      />
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Hero CTA Section */}
+        <ContentSection 
+          title="Implementation Ready"
+          badge={`${UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} Recovery Plan`}
+          badgeVariant="outline"
+          priority="high"
+          className="mb-8"
+        >
+          <div className="text-center">
+            <p className="text-lg text-muted-foreground mb-6">
+              Your personalized roadmap to recover {UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} 
+              in revenue through strategic improvements.
+            </p>
             
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export PDF
-              </Button>
-              <Button variant="outline" size="sm">
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
-              </Button>
-            </div>
+            <UnifiedCTA
+              variant="primary"
+              context="action-plan"
+              data={{
+                totalLeak: submissionData.totalLoss,
+                recovery: submissionData.conservativeRecovery,
+                formatCurrency: UnifiedResultsService.formatCurrency
+              }}
+              onPrimaryAction={handleBookCall}
+              onSecondaryAction={handleExportPlan}
+            />
           </div>
-        </div>
-      </header>
+        </ContentSection>
 
-      <div className="container mx-auto py-8 px-4">
-        {/* Navigation Context */}
-        <div className="mb-8 space-y-4">
-          <AnalysisBreadcrumb items={navigation.breadcrumbs} />
-          <AnalysisProgress 
-            current={navigation.progressInfo.current}
-            total={navigation.progressInfo.total}
-            percentage={navigation.progressInfo.percentage}
-            label={`Total Recovery Potential: ${UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)}`}
-          />
-        </div>
+        {/* Tabbed Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
+                  <Icon className="h-4 w-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
 
-        <div className="space-y-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="timeline" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Timeline
-              </TabsTrigger>
-              <TabsTrigger value="priorities" className="flex items-center gap-2">
-                <Target className="h-4 w-4" />
-                Strategic Action Priorities
-              </TabsTrigger>
-              <TabsTrigger value="roadmap" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Implementation Roadmap
-              </TabsTrigger>
-              <TabsTrigger value="scenarios" className="flex items-center gap-2">
-                <Lightbulb className="h-4 w-4" />
-                Scenarios
-              </TabsTrigger>
-              <TabsTrigger value="summary" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Summary
-              </TabsTrigger>
-            </TabsList>
+          <TabsContent value="priorities">
+            <PriorityActions 
+              submission={submissionData as any}
+              formatCurrency={UnifiedResultsService.formatCurrency}
+              calculatorData={submissionData}
+            />
+          </TabsContent>
 
-            <TabsContent value="timeline">
-              <ActionPlanTimeline
-                phases={timeline}
-                totalRecovery={submissionData.conservativeRecovery}
-                totalInvestment={investment?.implementationCost || 0}
-                paybackMonths={investment?.paybackMonths || 12}
-                formatCurrency={UnifiedResultsService.formatCurrency}
-                confidenceLevel="medium"
-              />
-            </TabsContent>
+          <TabsContent value="timeline">
+            <ActionPlanTimeline
+              phases={timeline}
+              totalRecovery={submissionData.conservativeRecovery}
+              totalInvestment={investment?.implementationCost || 0}
+              paybackMonths={investment?.paybackMonths || 12}
+              formatCurrency={UnifiedResultsService.formatCurrency}
+              confidenceLevel="medium"
+            />
+          </TabsContent>
 
-            <TabsContent value="priorities">
-              <PriorityActions 
-                submission={submissionData as any}
-                formatCurrency={UnifiedResultsService.formatCurrency}
-                calculatorData={submissionData}
-              />
-            </TabsContent>
+          <TabsContent value="roadmap">
+            <ImplementationRoadmap
+              phases={timeline}
+              totalRecovery={submissionData.conservativeRecovery}
+              totalInvestment={investment?.implementationCost || 0}
+              formatCurrency={UnifiedResultsService.formatCurrency}
+            />
+          </TabsContent>
 
-            <TabsContent value="roadmap">
-              <ImplementationRoadmap
-                phases={timeline}
-                totalRecovery={submissionData.conservativeRecovery}
-                totalInvestment={investment?.implementationCost || 0}
-                formatCurrency={UnifiedResultsService.formatCurrency}
-              />
-            </TabsContent>
+          <TabsContent value="scenarios">
+            <ActionPlanScenarioPlanning
+              baseRecovery={submissionData.conservativeRecovery}
+              baseInvestment={investment?.implementationCost || 0}
+              formatCurrency={UnifiedResultsService.formatCurrency}
+            />
+          </TabsContent>
 
-            <TabsContent value="scenarios">
-              <ActionPlanScenarioPlanning
-                baseRecovery={submissionData.conservativeRecovery}
-                baseInvestment={investment?.implementationCost || 0}
-                formatCurrency={UnifiedResultsService.formatCurrency}
-              />
-            </TabsContent>
-
-            <TabsContent value="summary">
-              <ComprehensiveSummary
-                submission={submissionData as any}
-                formatCurrency={UnifiedResultsService.formatCurrency}
-                onExpandSection={handleExpandSection}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
+          <TabsContent value="summary">
+            <ComprehensiveSummary
+              submission={submissionData as any}
+              formatCurrency={UnifiedResultsService.formatCurrency}
+              onExpandSection={(sectionId) => {
+                const sectionToTabMap = {
+                  'timeline': 'timeline',
+                  'priorities': 'priorities',
+                  'scenarios': 'scenarios'
+                };
+                const targetTab = sectionToTabMap[sectionId as keyof typeof sectionToTabMap] || 'priorities';
+                setActiveTab(targetTab);
+              }}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <FloatingCTABar
-        totalLeak={recoveryData.totalLeak}
-        formatCurrency={recoveryData.formatCurrency}
-        isVisible={ctaController.activeCTA === 'floating_bar'}
-        onDismiss={ctaController.dismissCTA}
-        context={{
-          timeOnPage: ctaController.timeOnPage,
-          scrollDepth: ctaController.scrollDepth,
-          engagementScore: ctaController.engagementScore
-        }}
-      />
-
-      <ActionPlanExitIntentModal
-        isOpen={ctaController.activeCTA === 'exit_intent'}
-        onClose={ctaController.dismissCTA}
-        recoveryAmount={recoveryData.totalLeak}
-        formatCurrency={recoveryData.formatCurrency}
-        onEmailSubmit={handleExitIntentEmailSubmit}
-        checkedActionsCount={0}
-        topPriorityAction={getTopPriorityAction()}
-      />
-
-      {ctaController.progressiveEmail.isActive && !userEmail && (
-        <ProgressiveEmailCapture
-          isOpen={ctaController.activeCTA === 'progressive_email'}
-          onClose={ctaController.dismissCTA}
-          onSuccess={ctaController.progressiveEmail.handleEmailCaptured}
-          trigger={ctaController.progressiveEmail.activeCapture}
-          context={ctaController.progressiveEmail.captureContext}
-          currentStep={5}
-          tempId={submissionId}
-        />
-      )}
     </div>
   );
 }
