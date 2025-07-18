@@ -182,7 +182,7 @@ export const ActionPlanScenarioPlanning = ({
                   <p className="text-lg font-bold text-purple-700">
                     {scenario.timeframe}
                   </p>
-                  <Badge className={getConfidenceColor(scenario.confidence)} size="sm">
+                  <Badge className={getConfidenceColor(scenario.confidence)}>
                     {scenario.confidence} confidence
                   </Badge>
                 </div>

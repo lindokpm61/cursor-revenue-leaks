@@ -437,7 +437,7 @@ export default function ActionPlan() {
 
             <TabsContent value="priorities">
               <PriorityActions 
-                submission={submissionData}
+                submission={data as any}
                 formatCurrency={UnifiedResultsService.formatCurrency}
                 calculatorData={submissionData}
               />
