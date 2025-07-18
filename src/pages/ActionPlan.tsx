@@ -666,6 +666,24 @@ const ActionPlan = () => {
     }
   };
 
+  const getEffortColor = (effort: string) => {
+    switch (effort?.toLowerCase()) {
+      case 'low': return 'bg-success/10 text-success border-success/20';
+      case 'medium': return 'bg-warning/10 text-warning border-warning/20';
+      case 'high': return 'bg-destructive/10 text-destructive border-destructive/20';
+      default: return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  const getConfidenceColor = (confidence: string) => {
+    switch (confidence?.toLowerCase()) {
+      case 'high': return 'bg-success/10 text-success border-success/20';
+      case 'medium': return 'bg-primary/10 text-primary border-primary/20';
+      case 'low': return 'bg-warning/10 text-warning border-warning/20';
+      default: return 'bg-muted text-muted-foreground';
+    }
+  };
+
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'Quick Win': return <Zap className="h-4 w-4" />;
@@ -1188,13 +1206,17 @@ const ActionPlan = () => {
                               </div>
                               <div className="flex items-center gap-2">
                                 <Users className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm">{action.implementation.effort} effort</span>
+                                <Badge className={getEffortColor(action.implementation.effort)}>
+                                  {action.implementation.effort} effort
+                                </Badge>
                               </div>
                             </>
                           )}
                           <div className="flex items-center gap-2">
                             <Shield className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm capitalize">{action.confidence} confidence</span>
+                            <Badge className={getConfidenceColor(action.confidence)}>
+                              {action.confidence} confidence
+                            </Badge>
                           </div>
                         </div>
                       </div>
