@@ -14,6 +14,7 @@ import { FloatingCTABar } from "@/components/results/FloatingCTABar";
 import { ActionPlanExitIntentModal } from "@/components/calculator/ActionPlanExitIntentModal";
 import { ProgressiveEmailCapture } from "@/components/calculator/ProgressiveEmailCapture";
 import { UnifiedResultsService } from "@/lib/results/UnifiedResultsService";
+import { ImplementationRoadmap } from "@/components/calculator/results/ImplementationRoadmap";
 
 // Import enhanced components
 import { PriorityActions } from "@/components/calculator/results/PriorityActions";
@@ -424,14 +425,9 @@ export default function ActionPlan() {
           </div>
         </div>
 
-        {/* User Intent Selector removed per user request */}
-
         <div className="space-y-8">
-          {/* Executive Summary removed per user request */}
-
-          {/* Main Action Plan Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="timeline" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 Timeline
@@ -439,6 +435,10 @@ export default function ActionPlan() {
               <TabsTrigger value="priorities" className="flex items-center gap-2">
                 <Target className="h-4 w-4" />
                 Strategic Action Priorities
+              </TabsTrigger>
+              <TabsTrigger value="roadmap" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Implementation Roadmap
               </TabsTrigger>
               <TabsTrigger value="scenarios" className="flex items-center gap-2">
                 <Lightbulb className="h-4 w-4" />
@@ -469,6 +469,15 @@ export default function ActionPlan() {
               />
             </TabsContent>
 
+            <TabsContent value="roadmap">
+              <ImplementationRoadmap
+                phases={timeline}
+                totalRecovery={submissionData.conservativeRecovery}
+                totalInvestment={investment?.implementationCost || 0}
+                formatCurrency={UnifiedResultsService.formatCurrency}
+              />
+            </TabsContent>
+
             <TabsContent value="scenarios">
               <ActionPlanScenarioPlanning
                 baseRecovery={submissionData.conservativeRecovery}
@@ -488,7 +497,6 @@ export default function ActionPlan() {
         </div>
       </div>
 
-      {/* CTA Components */}
       <FloatingCTABar
         totalLeak={recoveryData.totalLeak}
         formatCurrency={recoveryData.formatCurrency}
