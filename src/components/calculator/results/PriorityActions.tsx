@@ -21,6 +21,7 @@ import {
 import { type Submission } from "@/lib/supabase";
 import { calculatePriorityActions, PriorityAction } from "@/lib/calculator/priorityCalculations";
 import { StrategicCTASection } from "@/components/results/StrategicCTASection";
+import { UnifiedResultsService } from "@/lib/results/UnifiedResultsService";
 
 interface PriorityActionsProps {
   submission: Submission;
@@ -48,6 +49,9 @@ interface ActionItem {
 
 export const PriorityActions = ({ submission, formatCurrency, calculatorData, variant = 'standard' }: PriorityActionsProps) => {
   const [isContentOpen, setIsContentOpen] = useState(variant === 'condensed' ? true : false);
+
+  // Calculate unified results for accurate CTA values
+  const unifiedCalculations = UnifiedResultsService.calculateResults(submission);
 
   // Use centralized priority calculations
   const priorityActions = calculatePriorityActions(submission);
@@ -225,6 +229,7 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
                   </AlertDescription>
                 </Alert>
               )}
+
               {urgentActions.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-4">
@@ -383,12 +388,11 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
                 </div>
               )}
 
-              {/* Strategic CTA Section */}
               {actions.length > 0 && (
                 <div className="mt-8">
                   <StrategicCTASection
-                    totalLeak={submission.total_leak || 0}
-                    recovery70={submission.recovery_potential_70 || 0}
+                    totalLeak={unifiedCalculations.totalLoss}
+                    recovery70={unifiedCalculations.conservativeRecovery}
                     leadScore={submission.lead_score || 0}
                     formatCurrency={formatCurrency}
                   />
