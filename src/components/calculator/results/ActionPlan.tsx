@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Target, AlertTriangle, Clock, TrendingUp } from "lucide-react";
@@ -16,19 +17,20 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
   
   if (data) {
     const inputs: UnifiedCalculationInputs = {
-      currentARR: data.companyInfo?.currentARR || 0,
-      monthlyMRR: data.selfServe?.monthlyMRR || 0,
-      monthlyLeads: data.leadGeneration?.monthlyLeads || 0,
-      averageDealValue: data.leadGeneration?.averageDealValue || 0,
-      leadResponseTime: data.leadGeneration?.leadResponseTime || 0,
-      monthlyFreeSignups: data.selfServe?.monthlyFreeSignups || 0,
-      freeToLaidConversion: data.selfServe?.freeToLaidConversion || 0,
-      failedPaymentRate: data.selfServe?.failedPaymentRate || 0,
-      manualHours: data.operations?.manualHours || 0,
-      hourlyRate: data.operations?.hourlyRate || 0,
-      industry: data.companyInfo?.industry
+      currentARR: data.calculator_data?.companyInfo?.currentARR || 0,
+      monthlyMRR: data.calculator_data?.selfServe?.monthlyMRR || 0,
+      monthlyLeads: data.calculator_data?.leadGeneration?.monthlyLeads || 0,
+      averageDealValue: data.calculator_data?.leadGeneration?.averageDealValue || 0,
+      leadResponseTime: data.calculator_data?.leadGeneration?.leadResponseTime || 0,
+      monthlyFreeSignups: data.calculator_data?.selfServe?.monthlyFreeSignups || 0,
+      freeToLaidConversion: data.calculator_data?.selfServe?.freeToLaidConversion || 0,
+      failedPaymentRate: data.calculator_data?.selfServe?.failedPaymentRate || 0,
+      manualHours: data.calculator_data?.operations?.manualHours || 0,
+      hourlyRate: data.calculator_data?.operations?.hourlyRate || 0,
+      industry: data.calculator_data?.companyInfo?.industry || data.industry
     };
     
+    console.log("ActionPlan component - calculating with inputs:", inputs);
     unifiedResults = calculateUnifiedResults(inputs);
     timeline = generateRealisticTimeline(unifiedResults, inputs);
   }
@@ -53,12 +55,11 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
 
   const getTopPriority = () => {
     if (unifiedResults) {
-      const { actionRecoveryPotential } = unifiedResults;
       const priorities = [
-        { name: "Lead Response Optimization", value: actionRecoveryPotential.leadResponse },
-        { name: "Self-Serve Optimization", value: actionRecoveryPotential.selfServeOptimization },
-        { name: "Payment Recovery", value: actionRecoveryPotential.paymentRecovery },
-        { name: "Process Automation", value: actionRecoveryPotential.processAutomation }
+        { name: "Lead Response Optimization", value: unifiedResults.leadResponseLoss || 0 },
+        { name: "Self-Serve Optimization", value: unifiedResults.selfServeGap || 0 },
+        { name: "Payment Recovery", value: unifiedResults.failedPaymentLoss || 0 },
+        { name: "Process Automation", value: unifiedResults.processInefficiency || 0 }
       ];
       
       return priorities.sort((a, b) => b.value - a.value)[0];
@@ -81,6 +82,25 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
 
   const topPriority = getTopPriority();
 
+  // Add debug output
+  console.log("ActionPlan rendering with:", {
+    unifiedResults: unifiedResults ? {
+      leadResponseLoss: unifiedResults.leadResponseLoss,
+      failedPaymentLoss: unifiedResults.failedPaymentLoss,
+      selfServeGap: unifiedResults.selfServeGap,
+      processInefficiency: unifiedResults.processInefficiency,
+      actionSpecificRecovery: unifiedResults.actionSpecificRecovery,
+      confidence: unifiedResults.confidenceLevel
+    } : 'None',
+    calculationsInput: {
+      leadResponseLoss: calculations.leadResponseLoss,
+      failedPaymentLoss: calculations.failedPaymentLoss,
+      selfServeGap: calculations.selfServeGap,
+      processLoss: calculations.processLoss
+    },
+    topPriority
+  });
+
   return (
     <Card className="border-primary/20 bg-primary/5">
       <CardHeader>
@@ -88,7 +108,7 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
           <Target className="h-5 w-5 text-primary" />
           Strategic Action Plan
         </CardTitle>
-        {unifiedResults?.confidence === 'low' && (
+        {unifiedResults?.confidenceLevel === 'low' && (
           <div className="flex items-center gap-2 text-sm text-orange-600 mt-2">
             <AlertTriangle className="h-4 w-4" />
             Low confidence estimates - use as directional guidance
@@ -157,7 +177,7 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
             </div>
 
             {/* Warnings */}
-            {unifiedResults?.bounds.warningFlags.length > 0 && (
+            {unifiedResults?.bounds?.warningFlags && unifiedResults.bounds.warningFlags.length > 0 && (
               <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <h6 className="font-medium text-yellow-800 mb-2">Calculation Notes:</h6>
                 <ul className="text-sm text-yellow-700 space-y-1">
