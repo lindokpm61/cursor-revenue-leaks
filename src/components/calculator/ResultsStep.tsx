@@ -237,7 +237,11 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
             </Button>
           ) : (
             <Button
-              onClick={handleSaveClick}
+              onClick={() => {
+                console.log('🔥 BUTTON CLICKED - SIMPLE TEST');
+                alert('Button clicked!');
+                handleSaveClick();
+              }}
               disabled={saving}
               variant="outline"
               size="lg"
