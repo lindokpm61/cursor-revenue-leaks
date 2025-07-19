@@ -1,4 +1,5 @@
 import { Tables } from '@/integrations/supabase/types';
+import { UnifiedResultsService } from '@/lib/results/UnifiedResultsService';
 
 type Submission = Tables<'submissions'>;
 
@@ -194,7 +195,7 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
   };
 
   // Get unified calculations
-  const unifiedCalcs = require('@/lib/results/UnifiedResultsService').UnifiedResultsService.calculateResults(submissionData);
+  const unifiedCalcs = UnifiedResultsService.calculateResults(submissionData);
   
   const currentARR = unifiedCalcs.performanceMetrics.currentARR;
   const leadResponseLoss = unifiedCalcs.leadResponseLoss;
