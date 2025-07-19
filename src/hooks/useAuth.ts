@@ -137,9 +137,7 @@ export const useAuthProvider = () => {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
-          data: metadata || {},
-          // Set email_confirm to false for immediate access
-          email_confirm: false
+          data: metadata || {}
         }
       });
 

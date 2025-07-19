@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader, Save, Dashboard } from "lucide-react";
+import { Loader, Save, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useUserPattern } from "@/hooks/useUserPattern";
@@ -121,7 +121,7 @@ export const SaveResultsRegistrationModal = ({
         <DialogHeader className="text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="p-3 rounded-xl bg-gradient-to-r from-primary to-revenue-primary">
-              <Dashboard className="h-6 w-6 text-primary-foreground" />
+              <LayoutDashboard className="h-6 w-6 text-primary-foreground" />
             </div>
           </div>
           <DialogTitle className="text-xl font-bold">Save to Your Dashboard</DialogTitle>
