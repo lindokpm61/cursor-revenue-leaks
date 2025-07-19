@@ -1,3 +1,4 @@
+
 // Converting temporary submissions to permanent user submissions
 
 import { supabase } from "@/integrations/supabase/client";
@@ -31,7 +32,7 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
     const calculationResults = (tempSubmission.calculator_data as any)?.step_5?.calculation_results;
     console.log('🧮 EXTRACTED CALCULATION RESULTS FROM TEMP SUBMISSION:', calculationResults);
     
-    // Create permanent submission with proper type conversion
+    // Create permanent submission with proper type conversion and CORRECT field name mapping
     const submissionPayload = {
       user_id: userId,
       company_name: tempSubmission.company_name || submissionData.company_name,
@@ -48,14 +49,14 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
       manual_hours: Math.round(Number(submissionData.manual_hours) || 0),
       hourly_rate: Math.round(Number(submissionData.hourly_rate) || 0),
       
-      // Use calculation results from temp submission if available, otherwise use submissionData
+      // Use calculation results from temp submission with CORRECTED field names
       lead_response_loss: Math.round(Number(calculationResults?.leadResponseLoss || submissionData.lead_response_loss) || 0),
       failed_payment_loss: Math.round(Number(calculationResults?.failedPaymentLoss || submissionData.failed_payment_loss) || 0),
-      selfserve_gap_loss: Math.round(Number(calculationResults?.selfServeGap || submissionData.selfserve_gap_loss) || 0),
-      process_inefficiency_loss: Math.round(Number(calculationResults?.processLoss || submissionData.process_inefficiency_loss) || 0),
-      total_leak: Math.round(Number(calculationResults?.totalLeakage || tempSubmission.total_revenue_leak || submissionData.total_leak) || 0),
-      recovery_potential_70: Math.round(Number(calculationResults?.potentialRecovery70 || tempSubmission.recovery_potential || submissionData.recovery_potential_70) || 0),
-      recovery_potential_85: Math.round(Number(calculationResults?.potentialRecovery85 || submissionData.recovery_potential_85) || 0),
+      selfserve_gap_loss: Math.round(Number(calculationResults?.selfServeGapLoss || submissionData.selfserve_gap_loss) || 0),
+      process_inefficiency_loss: Math.round(Number(calculationResults?.processInefficiencyLoss || submissionData.process_inefficiency_loss) || 0),
+      total_leak: Math.round(Number(calculationResults?.totalLeak || tempSubmission.total_revenue_leak || submissionData.total_leak) || 0),
+      recovery_potential_70: Math.round(Number(calculationResults?.recoveryPotential70 || tempSubmission.recovery_potential || submissionData.recovery_potential_70) || 0),
+      recovery_potential_85: Math.round(Number(calculationResults?.recoveryPotential85 || submissionData.recovery_potential_85) || 0),
       lead_score: Math.round(Number(calculationResults?.leadScore || tempSubmission.lead_score || submissionData.lead_score) || 0),
       
       // Keep numeric types for numeric columns
@@ -65,7 +66,7 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
       created_at: tempSubmission.created_at, // Preserve original timestamp
     };
 
-    console.log('💾 FINAL SUBMISSION PAYLOAD WITH TEMP DATA:');
+    console.log('💾 FINAL SUBMISSION PAYLOAD WITH CORRECTED FIELD MAPPING:');
     console.log('Full payload:', submissionPayload);
     console.log('Calculated values in payload:');
     console.log('  lead_response_loss:', submissionPayload.lead_response_loss);
@@ -84,7 +85,7 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
 
     if (submissionError) throw submissionError;
 
-    console.log('✅ SUBMISSION CREATED SUCCESSFULLY WITH TEMP DATA:', submission);
+    console.log('✅ SUBMISSION CREATED SUCCESSFULLY WITH CORRECTED TEMP DATA:', submission);
 
     // Trigger separated CRM integration using new service
     try {
