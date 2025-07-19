@@ -194,7 +194,7 @@ const Results = () => {
           title="Loading Analysis..."
           context="results"
         />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
               <BarChart3 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
@@ -214,7 +214,7 @@ const Results = () => {
           backTo="/dashboard"
           context="results"
         />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Card className="max-w-md mx-auto text-center">
             <CardContent className="p-8">
               <AlertTriangle className="h-12 w-12 text-revenue-warning mx-auto mb-4" />
@@ -252,14 +252,14 @@ const Results = () => {
         context="results"
       />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Simplified Hero Section */}
         <ContentSection 
           title="Revenue Recovery Opportunity"
           badge={`${((totalLeak / (submission.current_arr || 1)) * 100).toFixed(1)}% of ARR at Risk`}
           badgeVariant="destructive"
           priority="high"
-          className="mb-8"
+          className="mb-6"
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="space-y-6">
@@ -365,7 +365,7 @@ const Results = () => {
           </TabsContent>
 
           <TabsContent value="breakdown">
-            <div className="space-y-8">
+            <div className="space-y-6">
               <RevenueCharts
                 data={calculatorData}
                 calculations={calculations}
