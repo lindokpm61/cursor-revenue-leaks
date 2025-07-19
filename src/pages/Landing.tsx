@@ -36,7 +36,7 @@ const Landing = () => {
                   Login
                 </Button>
               </Link>
-              <Link to="/calculator">
+              <Link to="/">
                 <Button 
                   className="bg-gradient-to-r from-primary to-revenue-primary touch-target"
                   aria-label="Start the revenue calculator assessment"
@@ -102,7 +102,7 @@ const Landing = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row justify-center gap-4 items-center">
-                <Link to="/calculator">
+                <Link to="/">
                   <Button 
                     size="lg" 
                     className="bg-gradient-to-r from-primary to-revenue-primary text-h3 px-8 py-6 touch-target shadow-attention-glow animate-attention-pulse"
@@ -387,7 +387,7 @@ const Landing = () => {
                 Your insights will contribute to building the most accurate assessment tool available.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4 items-center">
-                <Link to="/calculator">
+                <Link to="/">
                   <Button 
                     size="lg" 
                     className="bg-gradient-to-r from-primary to-revenue-primary"
@@ -426,7 +426,7 @@ const Landing = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link to="/calculator">
+            <Link to="/">
               <Button size="lg" className="bg-gradient-to-r from-primary to-revenue-primary text-h3 px-8 py-4">
                 Start Your Free Assessment
                 <ArrowRight className="ml-2 h-5 w-5" />
