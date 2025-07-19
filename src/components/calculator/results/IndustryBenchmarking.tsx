@@ -206,10 +206,28 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
     // Calculate progress as percentage towards best-in-class
     if (metric.higherIsBetter) {
       progressValue = Math.min((metric.userValue / metric.bestInClass) * 100, 100);
+      // Ensure a minimum visible progress for non-zero values
+      if (metric.userValue > 0 && progressValue < 5) {
+        progressValue = 5; // Minimum 5% for visibility
+      }
     } else {
       // For "lower is better" metrics, invert the scale
       const maxValue = Math.max(metric.userValue, metric.industryAvg * 2);
       progressValue = Math.max(100 - ((metric.userValue / maxValue) * 100), 0);
+      // Ensure some progress is shown even for poor performance
+      if (progressValue < 5) {
+        progressValue = 5;
+      }
+    }
+
+    // Debug log for conversion rate specifically
+    if (metric.id === 'conversion-rate') {
+      console.log('=== CONVERSION RATE PROGRESS DEBUG ===');
+      console.log('User Value:', metric.userValue);
+      console.log('Best in Class:', metric.bestInClass);
+      console.log('Industry Avg:', metric.industryAvg);
+      console.log('Calculated Progress Value:', progressValue);
+      console.log('Higher is Better:', metric.higherIsBetter);
     }
 
     switch (metric.performance) {
