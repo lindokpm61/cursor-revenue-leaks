@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { CalculatorData, Calculations } from "./useCalculatorData";
-import { Save, Calendar, Share2, Download } from "lucide-react";
+import { Save, Calendar, Share2, CheckCircle, LayoutDashboard } from "lucide-react";
 import { ExecutiveSummary } from "./results/ExecutiveSummary";
 import { RevenueCharts } from "./results/RevenueCharts";
 import { DetailedBreakdown } from "./results/DetailedBreakdown";
@@ -27,7 +27,9 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
     showRegistrationModal, 
     pendingData, 
     handleRegistrationSuccess, 
-    handleCloseRegistrationModal 
+    handleCloseRegistrationModal,
+    isSaved,
+    navigateToDashboard
   } = useSaveResults();
 
   // Create enhanced insights breakdown
@@ -132,15 +134,26 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
         </div>
       </div>
       
-      {/* Optimized CTA Hierarchy - No Registration Barriers */}
+      {/* Optimized CTA Hierarchy - Enhanced with Save Status */}
       <div className="bg-gradient-to-r from-revenue-success/10 via-primary/5 to-revenue-success/10 border-2 border-revenue-success/20 rounded-xl p-8 text-center space-y-6">
         <div className="space-y-4">
           <h3 className="text-h1 font-bold text-foreground">
             Your {formatCurrency(calculations.totalLeakage)} Recovery Plan
           </h3>
           <p className="text-body text-muted-foreground max-w-2xl mx-auto">
-            Complete analysis ready. Choose your next step to start recovering this revenue.
+            {isSaved 
+              ? "Your analysis is saved! Choose your next step to start recovering this revenue."
+              : "Complete analysis ready. Choose your next step to start recovering this revenue."
+            }
           </p>
+          
+          {/* Saved Status Indicator */}
+          {isSaved && (
+            <div className="flex items-center justify-center gap-2 text-revenue-success">
+              <CheckCircle className="h-5 w-5" />
+              <span className="font-medium">Analysis Saved to Your Dashboard</span>
+            </div>
+          )}
         </div>
         
         {/* Primary CTA - No Barriers */}
@@ -160,17 +173,29 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
         </div>
 
         {/* Secondary CTAs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-          <Button
-            onClick={() => handleSave(data, calculations)}
-            disabled={saving}
-            variant="outline"
-            size="lg"
-            className="hover:bg-primary hover:text-primary-foreground"
-          >
-            <Save className="h-4 w-4 mr-2" />
-            {user ? "Save to Dashboard" : "Create Account to Save"}
-          </Button>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+          {isSaved ? (
+            <Button
+              onClick={navigateToDashboard}
+              variant="outline"
+              size="lg"
+              className="hover:bg-primary hover:text-primary-foreground"
+            >
+              <LayoutDashboard className="h-4 w-4 mr-2" />
+              View Dashboard
+            </Button>
+          ) : (
+            <Button
+              onClick={() => handleSave(data, calculations)}
+              disabled={saving}
+              variant="outline"
+              size="lg"
+              className="hover:bg-primary hover:text-primary-foreground"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {user ? "Save to Dashboard" : "Create Account to Save"}
+            </Button>
+          )}
           
           <Button
             onClick={handleShareAnalysis}
@@ -181,10 +206,25 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
             <Share2 className="h-4 w-4 mr-2" />
             Share Analysis
           </Button>
+
+          {isSaved && (
+            <Button
+              onClick={handleBookConsultation}
+              variant="outline"
+              size="lg"
+              className="hover:bg-revenue-success hover:text-white border-revenue-success text-revenue-success"
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              Book Consultation
+            </Button>
+          )}
         </div>
         
         <p className="text-xs text-muted-foreground">
-          No email verification required • Instant access • 100% confidential
+          {isSaved 
+            ? "Your analysis is securely saved • Share with your team • Book priority consultation"
+            : "No email verification required • Instant access • 100% confidential"
+          }
         </p>
       </div>
       
@@ -215,21 +255,41 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
 
       <ActionPlan calculations={calculations} data={data} />
 
-      {/* Floating Value Reminder */}
+      {/* Floating Value Reminder - Updated with Save Status */}
       <div className="sticky bottom-4 mx-auto max-w-md">
         <div className="bg-background/95 backdrop-blur-sm border border-primary/20 rounded-full p-4 shadow-lg">
           <div className="flex items-center justify-between gap-4">
             <div className="text-sm">
-              <span className="font-bold text-revenue-warning">{formatCurrency(calculations.totalLeakage)}</span>
-              <span className="text-muted-foreground"> at risk</span>
+              {isSaved ? (
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-revenue-success" />
+                  <span className="font-bold text-revenue-success">Saved</span>
+                </div>
+              ) : (
+                <>
+                  <span className="font-bold text-revenue-warning">{formatCurrency(calculations.totalLeakage)}</span>
+                  <span className="text-muted-foreground"> at risk</span>
+                </>
+              )}
             </div>
-            <Button
-              onClick={handleBookConsultation}
-              size="sm"
-              className="bg-gradient-to-r from-primary to-revenue-primary"
-            >
-              Book Call
-            </Button>
+            {isSaved ? (
+              <Button
+                onClick={navigateToDashboard}
+                size="sm"
+                variant="outline"
+                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              >
+                Dashboard
+              </Button>
+            ) : (
+              <Button
+                onClick={handleBookConsultation}
+                size="sm"
+                className="bg-gradient-to-r from-primary to-revenue-primary"
+              >
+                Book Call
+              </Button>
+            )}
           </div>
         </div>
       </div>

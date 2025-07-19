@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,6 +13,8 @@ export const useSaveResults = () => {
   const [saving, setSaving] = useState(false);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [pendingData, setPendingData] = useState<{ data: CalculatorData; calculations: Calculations } | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
+  const [savedSubmissionId, setSavedSubmissionId] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -77,15 +80,23 @@ export const useSaveResults = () => {
         response_data: { submission_id: savedSubmission?.id, total_leak: calculations.totalLeakage }
       });
 
+      // Update local state to show saved status
+      setIsSaved(true);
+      setSavedSubmissionId(savedSubmission?.id || null);
+
       toast({
-        title: "Results Saved",
-        description: "Your revenue analysis has been saved successfully",
+        title: "Analysis Saved Successfully! ✓",
+        description: "Your revenue analysis is now saved to your dashboard.",
+        action: savedSubmission?.id ? (
+          <button 
+            onClick={() => navigate("/dashboard")}
+            className="text-primary hover:underline text-sm font-medium"
+          >
+            View Dashboard →
+          </button>
+        ) : undefined
       });
 
-      // Navigate to results page
-      if (savedSubmission?.id) {
-        navigate(`/results/${savedSubmission.id}`);
-      }
     } catch (error) {
       console.error('Error saving submission:', error);
       toast({
@@ -99,20 +110,42 @@ export const useSaveResults = () => {
   };
 
   const handleRegistrationSuccess = (submissionId: string) => {
+    console.log('Registration successful, submission ID:', submissionId);
+    
+    // Close the modal and update state
     setShowRegistrationModal(false);
     setPendingData(null);
+    setIsSaved(true);
+    setSavedSubmissionId(submissionId);
     
+    // Show success toast with dashboard option
     toast({
-      title: "Account Created Successfully",
-      description: "Your revenue analysis has been saved!",
+      title: "Account Created & Analysis Saved! ✓",
+      description: "Welcome! Your revenue analysis is now saved to your dashboard.",
+      action: (
+        <button 
+          onClick={() => navigate("/dashboard")}
+          className="text-primary hover:underline text-sm font-medium"
+        >
+          View Dashboard →
+        </button>
+      )
     });
-    
-    navigate(`/results/${submissionId}`);
   };
 
   const handleCloseRegistrationModal = () => {
     setShowRegistrationModal(false);
     setPendingData(null);
+  };
+
+  const navigateToDashboard = () => {
+    navigate("/dashboard");
+  };
+
+  const navigateToResults = () => {
+    if (savedSubmissionId) {
+      navigate(`/results/${savedSubmissionId}`);
+    }
   };
 
   return { 
@@ -121,6 +154,10 @@ export const useSaveResults = () => {
     showRegistrationModal, 
     pendingData, 
     handleRegistrationSuccess, 
-    handleCloseRegistrationModal 
+    handleCloseRegistrationModal,
+    isSaved,
+    savedSubmissionId,
+    navigateToDashboard,
+    navigateToResults
   };
 };
