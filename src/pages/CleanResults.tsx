@@ -29,10 +29,17 @@ import { useAnalysisNavigation } from "@/hooks/useAnalysisNavigation";
 import { AnalysisBreadcrumb } from "@/components/navigation/AnalysisBreadcrumb";
 import { AnalysisProgress } from "@/components/navigation/AnalysisProgress";
 
+// Import new simplified components
+import { SimplifiedHero } from "@/components/results/SimplifiedHero";
+import { ProgressiveAnalysis } from "@/components/results/ProgressiveAnalysis";
+import { GuidedTour } from "@/components/results/GuidedTour";
+
 const CleanResults = () => {
   const { id } = useParams<{ id: string }>();
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showGuidedTour, setShowGuidedTour] = useState(true);
+  const [viewMode, setViewMode] = useState<'simple' | 'detailed'>('simple');
   const [activeSection, setActiveSection] = useState<string>("overview");
   const { user } = useAuth();
   const { toast } = useToast();
@@ -109,6 +116,18 @@ const CleanResults = () => {
 
   const handleBookCall = () => {
     navigation.openExternalLink('https://calendly.com/your-calendar');
+  };
+
+  const handleShowDetails = () => {
+    setViewMode('detailed');
+  };
+
+  const handleTourComplete = () => {
+    setShowGuidedTour(false);
+  };
+
+  const handleTourSkip = () => {
+    setShowGuidedTour(false);
   };
 
   if (loading) {
@@ -194,122 +213,107 @@ const CleanResults = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Clean Header */}
-      <header className="border-b bg-card">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={navigation.navigateToDashboard}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Dashboard
+      {/* Guided Tour */}
+      {showGuidedTour && (
+        <GuidedTour
+          onComplete={handleTourComplete}
+          onSkip={handleTourSkip}
+        />
+      )}
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {viewMode === 'simple' ? (
+          <>
+            {/* Simplified Hero Section */}
+            <SimplifiedHero
+              companyName={submission.company_name}
+              totalLeak={calculations.totalLoss}
+              recovery70={calculations.conservativeRecovery}
+              formatCurrency={formatCurrency}
+              onGetActionPlan={handleGetActionPlan}
+              onShowDetails={handleShowDetails}
+            />
+          </>
+        ) : (
+          <>
+            {/* Back to Simple View Button */}
+            <div className="mb-8">
+              <Button
+                variant="ghost"
+                onClick={() => setViewMode('simple')}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                ← Back to Summary
               </Button>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary text-primary-foreground">
-                  <Calculator className="h-5 w-5" />
-                </div>
-                <div>
-                  <h1 className="text-lg md:text-xl font-semibold">{submission.company_name}</h1>
-                  <p className="text-sm md:text-base text-muted-foreground">Revenue Analysis Results</p>
-                </div>
-              </div>
             </div>
-            <EnhancedExportCTA />
-          </div>
-        </div>
-      </header>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Navigation Context */}
-        <div className="mb-6 space-y-4">
-          <AnalysisBreadcrumb items={navigation.breadcrumbs} />
-          <AnalysisProgress 
-            current={navigation.progressInfo.current}
-            total={navigation.progressInfo.total}
-            percentage={navigation.progressInfo.percentage}
-            label={`Total Recovery Potential: ${formatCurrency(calculations.conservativeRecovery)}`}
-          />
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-2">
-            {sections.map((section) => {
-              const Icon = section.icon;
-              const isActive = activeSection === section.id;
-              return (
-                <Button
-                  key={section.id}
-                  variant={isActive ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setActiveSection(section.id)}
-                  className="flex items-center gap-2"
-                >
-                  <Icon className="h-4 w-4" />
-                  {section.label}
-                </Button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Content Sections */}
-        {activeSection === 'overview' && (
-          <UnifiedStrategicAnalysis
-            calculations={calculations}
-            companyName={submission.company_name}
-            formatCurrency={formatCurrency}
-            onGetActionPlan={handleGetActionPlan}
-            onQuickWins={handleQuickWins}
-            onBookCall={handleBookCall}
-          />
-        )}
-
-        {activeSection === 'breakdown' && (
-          <UnifiedRevenueCharts
-            calculations={calculations}
-            formatCurrency={formatCurrency}
-          />
-        )}
-
-        {activeSection === 'benchmarking' && (
-          <IndustryBenchmarking 
-            submission={submission}
-            formatCurrency={formatCurrency}
-            calculations={calculations}
-          />
-        )}
-
-        {activeSection === 'actions' && (
-          <div className="space-y-8" id="actions-section">
-            <PriorityActions 
-              submission={submission}
-              formatCurrency={formatCurrency}
-            />
-          </div>
-        )}
-
-        {activeSection === 'timeline' && (
-          <div className="space-y-8">
-            <ImplementationTimeline 
-              submission={submission}
-              formatCurrency={formatCurrency}
-              validatedValues={{
-                totalLeak: calculations.totalLoss,
-                leadResponseLoss: calculations.leadResponseLoss,
-                selfServeLoss: calculations.selfServeGap,
-                recoveryPotential70: calculations.conservativeRecovery,
-                recoveryPotential85: calculations.optimisticRecovery
+            {/* Progressive Analysis with Full Details */}
+            <ProgressiveAnalysis
+              data={{
+                companyInfo: {
+                  companyName: submission.company_name,
+                  email: submission.contact_email,
+                  phone: submission.phone || '',
+                  industry: submission.industry || 'Software & Technology',
+                  currentARR: submission.current_arr || 0
+                },
+                leadGeneration: {
+                  monthlyLeads: submission.monthly_leads || 0,
+                  averageDealValue: submission.average_deal_value || 0,
+                  leadResponseTimeHours: submission.lead_response_time || 24
+                },
+                selfServeMetrics: {
+                  monthlyFreeSignups: submission.monthly_free_signups || 0,
+                  freeToPaidConversionRate: submission.free_to_paid_conversion || 0,
+                  monthlyMRR: submission.monthly_mrr || 0
+                },
+                operationsData: {
+                  failedPaymentRate: submission.failed_payment_rate || 0,
+                  manualHoursPerWeek: submission.manual_hours || 0,
+                  hourlyRate: submission.hourly_rate || 0
+                }
               }}
-            />
-          </div>
+              calculations={{
+                leadResponseLoss: calculations.leadResponseLoss,
+                failedPaymentLoss: calculations.failedPaymentLoss,
+                selfServeGap: calculations.selfServeGap,
+                processLoss: calculations.processInefficiency,
+                totalLeakage: calculations.totalLoss,
+                potentialRecovery70: calculations.conservativeRecovery,
+                potentialRecovery85: calculations.optimisticRecovery,
+                totalLeak: calculations.totalLoss,
+                recoveryPotential70: calculations.conservativeRecovery,
+                recoveryPotential85: calculations.optimisticRecovery,
+              }}
+              formatCurrency={formatCurrency}
+            >
+              <div className="space-y-8">
+                <UnifiedRevenueCharts
+                  calculations={calculations}
+                  formatCurrency={formatCurrency}
+                />
+                
+                <PriorityActions 
+                  submission={submission}
+                  formatCurrency={formatCurrency}
+                />
+
+                <ImplementationTimeline 
+                  submission={submission}
+                  formatCurrency={formatCurrency}
+                  validatedValues={{
+                    totalLeak: calculations.totalLoss,
+                    leadResponseLoss: calculations.leadResponseLoss,
+                    selfServeLoss: calculations.selfServeGap,
+                    recoveryPotential70: calculations.conservativeRecovery,
+                    recoveryPotential85: calculations.optimisticRecovery
+                  }}
+                />
+              </div>
+            </ProgressiveAnalysis>
+          </>
         )}
       </div>
-
-      {/* Floating CTA Bar */}
-      <FloatingCTABar 
-        totalLeak={calculations.totalLoss} 
-        formatCurrency={formatCurrency} 
-      />
     </div>
   );
 };
