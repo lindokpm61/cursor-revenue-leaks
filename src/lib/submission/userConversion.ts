@@ -27,6 +27,10 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
       return await createDirectSubmission(userId, submissionData);
     }
 
+    // Extract calculated values from temporary submission
+    const calculationResults = tempSubmission.calculator_data?.step_5?.calculation_results;
+    console.log('🧮 EXTRACTED CALCULATION RESULTS FROM TEMP SUBMISSION:', calculationResults);
+    
     // Create permanent submission with proper type conversion
     const submissionPayload = {
       user_id: userId,
@@ -43,14 +47,17 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
       monthly_mrr: Math.round(Number(submissionData.monthly_mrr) || 0),
       manual_hours: Math.round(Number(submissionData.manual_hours) || 0),
       hourly_rate: Math.round(Number(submissionData.hourly_rate) || 0),
-      lead_response_loss: Math.round(Number(submissionData.lead_response_loss) || 0),
-      failed_payment_loss: Math.round(Number(submissionData.failed_payment_loss) || 0),
-      selfserve_gap_loss: Math.round(Number(submissionData.selfserve_gap_loss) || 0),
-      process_inefficiency_loss: Math.round(Number(submissionData.process_inefficiency_loss) || 0),
-      total_leak: Math.round(Number(tempSubmission.total_revenue_leak || submissionData.total_leak) || 0),
-      recovery_potential_70: Math.round(Number(tempSubmission.recovery_potential || submissionData.recovery_potential_70) || 0),
-      recovery_potential_85: Math.round(Number(submissionData.recovery_potential_85) || 0),
-      lead_score: Math.round(Number(tempSubmission.lead_score || submissionData.lead_score) || 0),
+      
+      // Use calculation results from temp submission if available, otherwise use submissionData
+      lead_response_loss: Math.round(Number(calculationResults?.leadResponseLoss || submissionData.lead_response_loss) || 0),
+      failed_payment_loss: Math.round(Number(calculationResults?.failedPaymentLoss || submissionData.failed_payment_loss) || 0),
+      selfserve_gap_loss: Math.round(Number(calculationResults?.selfServeGap || submissionData.selfserve_gap_loss) || 0),
+      process_inefficiency_loss: Math.round(Number(calculationResults?.processLoss || submissionData.process_inefficiency_loss) || 0),
+      total_leak: Math.round(Number(calculationResults?.totalLeakage || tempSubmission.total_revenue_leak || submissionData.total_leak) || 0),
+      recovery_potential_70: Math.round(Number(calculationResults?.potentialRecovery70 || tempSubmission.recovery_potential || submissionData.recovery_potential_70) || 0),
+      recovery_potential_85: Math.round(Number(calculationResults?.potentialRecovery85 || submissionData.recovery_potential_85) || 0),
+      lead_score: Math.round(Number(calculationResults?.leadScore || tempSubmission.lead_score || submissionData.lead_score) || 0),
+      
       // Keep numeric types for numeric columns
       free_to_paid_conversion: Number(submissionData.free_to_paid_conversion) || 0,
       failed_payment_rate: Number(submissionData.failed_payment_rate) || 0,
@@ -58,7 +65,16 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
       created_at: tempSubmission.created_at, // Preserve original timestamp
     };
 
-    console.log('Submission payload:', submissionPayload);
+    console.log('💾 FINAL SUBMISSION PAYLOAD WITH TEMP DATA:');
+    console.log('Full payload:', submissionPayload);
+    console.log('Calculated values in payload:');
+    console.log('  lead_response_loss:', submissionPayload.lead_response_loss);
+    console.log('  failed_payment_loss:', submissionPayload.failed_payment_loss);
+    console.log('  selfserve_gap_loss:', submissionPayload.selfserve_gap_loss);
+    console.log('  process_inefficiency_loss:', submissionPayload.process_inefficiency_loss);
+    console.log('  total_leak:', submissionPayload.total_leak);
+    console.log('  recovery_potential_70:', submissionPayload.recovery_potential_70);
+    console.log('  recovery_potential_85:', submissionPayload.recovery_potential_85);
 
     const { data: submission, error: submissionError } = await supabase
       .from('submissions')
@@ -67,6 +83,8 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
       .single();
 
     if (submissionError) throw submissionError;
+
+    console.log('✅ SUBMISSION CREATED SUCCESSFULLY WITH TEMP DATA:', submission);
 
     // Trigger separated CRM integration using new service
     try {
