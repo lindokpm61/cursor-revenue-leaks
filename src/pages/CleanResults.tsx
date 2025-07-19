@@ -25,6 +25,7 @@ import { ImplementationTimeline } from "@/components/calculator/results/Implemen
 import { IndustryBenchmarking } from "@/components/calculator/results/IndustryBenchmarking";
 import { EnhancedExportCTA } from "@/components/results/EnhancedExportCTA";
 import { FloatingCTABar } from "@/components/results/FloatingCTABar";
+import { SaveSummaryButton } from "@/components/results/SaveSummaryButton";
 import { useAnalysisNavigation } from "@/hooks/useAnalysisNavigation";
 import { AnalysisBreadcrumb } from "@/components/navigation/AnalysisBreadcrumb";
 import { AnalysisProgress } from "@/components/navigation/AnalysisProgress";
@@ -254,14 +255,70 @@ const CleanResults = () => {
 
         {/* Content Sections */}
         {activeSection === 'overview' && (
-          <UnifiedStrategicAnalysis
-            calculations={calculations}
-            companyName={submission.company_name}
-            formatCurrency={formatCurrency}
-            onGetActionPlan={handleGetActionPlan}
-            onQuickWins={handleQuickWins}
-            onBookCall={handleBookCall}
-          />
+          <div className="space-y-6">
+            <UnifiedStrategicAnalysis
+              calculations={calculations}
+              companyName={submission.company_name}
+              formatCurrency={formatCurrency}
+              onGetActionPlan={handleGetActionPlan}
+              onQuickWins={handleQuickWins}
+              onBookCall={handleBookCall}
+            />
+            
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Save Executive Summary</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Save this analysis to your dashboard or export as PDF
+                    </p>
+                  </div>
+                  <SaveSummaryButton
+                    data={{
+                      companyInfo: {
+                        companyName: submission.company_name,
+                        email: submission.contact_email,
+                        phone: submission.phone || '',
+                        industry: submission.industry || 'Software & Technology',
+                        currentARR: submission.current_arr || 0
+                      },
+                      leadGeneration: {
+                        monthlyLeads: submission.monthly_leads || 0,
+                        averageDealValue: submission.average_deal_value || 0,
+                        leadResponseTimeHours: submission.lead_response_time || 24
+                      },
+                      selfServeMetrics: {
+                        monthlyFreeSignups: submission.monthly_free_signups || 0,
+                        freeToPaidConversionRate: submission.free_to_paid_conversion || 0,
+                        monthlyMRR: submission.monthly_mrr || 0
+                      },
+                      operationsData: {
+                        failedPaymentRate: submission.failed_payment_rate || 0,
+                        manualHoursPerWeek: submission.manual_hours || 0,
+                        hourlyRate: submission.hourly_rate || 0
+                      }
+                    }}
+                    calculations={{
+                      leadResponseLoss: calculations.leadResponseLoss,
+                      failedPaymentLoss: calculations.failedPaymentLoss,
+                      selfServeGap: calculations.selfServeGap,
+                      processLoss: calculations.processInefficiency,
+                      totalLeakage: calculations.totalLoss,
+                      potentialRecovery70: calculations.conservativeRecovery,
+                      potentialRecovery85: calculations.optimisticRecovery,
+                      totalLeak: calculations.totalLoss,
+                      recoveryPotential70: calculations.conservativeRecovery,
+                      recoveryPotential85: calculations.optimisticRecovery,
+                    }}
+                    submissionId={submission.id}
+                    formatCurrency={formatCurrency}
+                    variant="default"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {activeSection === 'breakdown' && (
