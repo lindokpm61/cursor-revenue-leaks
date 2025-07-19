@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { submissionService, userProfileService, type Submission, type UserProfile } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardHeroSection } from "@/components/DashboardHeroSection";
+import { UnifiedResultsService } from "@/lib/results/UnifiedResultsService";
 
 const Dashboard = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -90,9 +92,35 @@ const Dashboard = () => {
     });
   };
 
+  // Transform submission to UnifiedResultsService format and calculate values
+  const getCalculatedValues = (submission: Submission) => {
+    const submissionData = {
+      id: submission.id,
+      company_name: submission.company_name,
+      contact_email: submission.contact_email,
+      industry: submission.industry || '',
+      current_arr: Number(submission.current_arr || 0),
+      monthly_leads: Number(submission.monthly_leads || 0),
+      average_deal_value: Number(submission.average_deal_value || 0),
+      lead_response_time: Number(submission.lead_response_time || 0),
+      monthly_free_signups: Number(submission.monthly_free_signups || 0),
+      free_to_paid_conversion: Number(submission.free_to_paid_conversion || 0),
+      monthly_mrr: Number(submission.monthly_mrr || 0),
+      failed_payment_rate: Number(submission.failed_payment_rate || 0),
+      manual_hours: Number(submission.manual_hours || 0),
+      hourly_rate: Number(submission.hourly_rate || 0),
+      lead_score: Number(submission.lead_score || 0),
+      user_id: submission.user_id || '',
+      created_at: submission.created_at || ''
+    };
+
+    return UnifiedResultsService.calculateResults(submissionData);
+  };
+
   const calculateROI = (submission: Submission) => {
-    const recoveryPotential = submission.recovery_potential_70 || 0;
-    const totalLeakage = submission.total_leak || 0;
+    const calculations = getCalculatedValues(submission);
+    const recoveryPotential = calculations.conservativeRecovery;
+    const totalLeakage = calculations.totalLoss;
     return totalLeakage > 0 ? Math.round((recoveryPotential / totalLeakage) * 100) : 0;
   };
 
@@ -136,9 +164,10 @@ const Dashboard = () => {
     }
   };
 
-  // Hero Analysis Section
+  // Hero Analysis Section - Updated to use calculated values
   const HeroAnalysisSection = ({ latestAnalysis }: { latestAnalysis: Submission }) => {
-    const isHighValue = (latestAnalysis.recovery_potential_70 || 0) > 100000000;
+    const calculations = getCalculatedValues(latestAnalysis);
+    const isHighValue = calculations.conservativeRecovery > 100000000;
     
     return (
       <div 
@@ -167,7 +196,7 @@ const Dashboard = () => {
               Annual Revenue Leak
             </div>
             <div className="text-h1 font-bold" style={{ color: '#dc2626' }}>
-              {formatCurrency(latestAnalysis.total_leak || 0)}
+              {formatCurrency(calculations.totalLoss)}
             </div>
           </div>
           
@@ -182,7 +211,7 @@ const Dashboard = () => {
               Recovery Potential
             </div>
             <div className="text-h1 font-bold" style={{ color: '#059669' }}>
-              {formatCurrency(latestAnalysis.recovery_potential_70 || 0)}
+              {formatCurrency(calculations.conservativeRecovery)}
             </div>
           </div>
           
@@ -251,7 +280,7 @@ const Dashboard = () => {
             }}
           >
             <p className="text-sm" style={{ color: '#991b1b' }}>
-              ⚡ High-impact opportunity: Every month of delay = {formatCurrency((latestAnalysis.total_leak || 0)/12)} in continued losses
+              ⚡ High-impact opportunity: Every month of delay = {formatCurrency(calculations.totalLoss/12)} in continued losses
             </p>
           </div>
         )}
@@ -259,11 +288,12 @@ const Dashboard = () => {
     );
   };
 
-  // Simplified Summary Cards
+  // Simplified Summary Cards - Updated to use calculated values
   const SimplifiedSummaryCards = () => {
-    const totalRecoveryPotential = submissions.reduce((sum, analysis) => 
-      sum + (analysis.recovery_potential_70 || 0), 0
-    );
+    const totalRecoveryPotential = submissions.reduce((sum, analysis) => {
+      const calculations = getCalculatedValues(analysis);
+      return sum + calculations.conservativeRecovery;
+    }, 0);
     
     const averageRecovery = submissions.length > 0 ? totalRecoveryPotential / submissions.length : 0;
     
@@ -305,7 +335,7 @@ const Dashboard = () => {
     );
   };
 
-  // Simplified Analysis History
+  // Simplified Analysis History - Updated to use calculated values
   const SimplifiedAnalysisHistory = ({ previousAnalyses }: { previousAnalyses: Submission[] }) => {
     if (previousAnalyses.length === 0) {
       return (
@@ -341,139 +371,146 @@ const Dashboard = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {previousAnalyses.map(analysis => (
-            <Card key={analysis.id} className="border-border/50 shadow-sm">
-              <CardContent className="p-5">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-h3 font-semibold text-foreground">
-                    {analysis.company_name}
-                  </h3>
-                  <Badge variant="outline" className="text-xs">
-                    {analysis.industry}
-                  </Badge>
-                </div>
-                
-                <div className="mb-4">
-                  <div className="text-h2 font-bold mb-1" style={{ color: '#059669' }}>
-                    {formatCurrency(analysis.recovery_potential_70 || 0)}
+          {previousAnalyses.map(analysis => {
+            const calculations = getCalculatedValues(analysis);
+            return (
+              <Card key={analysis.id} className="border-border/50 shadow-sm">
+                <CardContent className="p-5">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="text-h3 font-semibold text-foreground">
+                      {analysis.company_name}
+                    </h3>
+                    <Badge variant="outline" className="text-xs">
+                      {analysis.industry}
+                    </Badge>
                   </div>
-                  <div className="text-small text-muted-foreground">
-                    Recovery Potential
+                  
+                  <div className="mb-4">
+                    <div className="text-h2 font-bold mb-1" style={{ color: '#059669' }}>
+                      {formatCurrency(calculations.conservativeRecovery)}
+                    </div>
+                    <div className="text-small text-muted-foreground">
+                      Recovery Potential
+                    </div>
                   </div>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Link to={`/results/${analysis.id}`} className="flex-1">
-                    <Button variant="default" size="sm" className="w-full text-small">
-                      View Results
-                    </Button>
-                  </Link>
-                  {(analysis.recovery_potential_70 || 0) > 50000000 && (
+                  
+                  <div className="flex gap-2">
+                    <Link to={`/results/${analysis.id}`} className="flex-1">
+                      <Button variant="default" size="sm" className="w-full text-small">
+                        View Results
+                      </Button>
+                    </Link>
+                    {calculations.conservativeRecovery > 50000000 && (
+                      <Button 
+                        size="sm"
+                        style={{ background: '#059669', color: 'white' }}
+                        onClick={() => window.open('mailto:support@company.com?subject=Consultation Request', '_self')}
+                      >
+                        Book Call
+                      </Button>
+                    )}
                     <Button 
+                      variant="outline" 
                       size="sm"
-                      style={{ background: '#059669', color: 'white' }}
-                      onClick={() => window.open('mailto:support@company.com?subject=Consultation Request', '_self')}
+                      onClick={() => handleDeleteSubmission(analysis.id, analysis.company_name)}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
-                      Book Call
+                      <Trash2 className="h-3 w-3" />
                     </Button>
-                  )}
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleDeleteSubmission(analysis.id, analysis.company_name)}
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     );
   };
 
-  // Next Steps Section
-  const NextStepsSection = ({ highestValueAnalysis }: { highestValueAnalysis: Submission }) => (
-    <div 
-      className="rounded-2xl p-12 text-center"
-      style={{
-        background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
-      }}
-    >
-      <h2 className="text-h1 font-bold text-foreground mb-4">
-        Ready to Recover Your Revenue?
-      </h2>
-      
-      <p className="text-h3 text-muted-foreground mb-8 max-w-2xl mx-auto">
-        You've identified significant revenue recovery opportunities. 
-        Let's turn this analysis into implementation results.
-      </p>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        <Card className="border-2 border-primary relative">
-          <div 
-            className="absolute -top-2 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold"
-            style={{
-              background: '#3b82f6',
-              color: 'white'
-            }}
-          >
-            RECOMMENDED
-          </div>
-          
-          <CardContent className="p-8">
-            <h3 className="text-h2 font-semibold text-foreground mb-3">
-              Strategy Consultation
-            </h3>
-            
-            <p className="text-small text-muted-foreground mb-5 leading-relaxed">
-              Get expert guidance to implement your {formatCurrency(highestValueAnalysis.recovery_potential_70 || 0)} 
-              recovery opportunity with a personalized strategy session.
-            </p>
-            
-            <Button 
-              className="w-full mb-3"
-              style={{ background: '#3b82f6', color: 'white' }}
-              onClick={() => window.open('mailto:support@company.com?subject=Free Consultation Request', '_self')}
-            >
-              Book Free Consultation
-            </Button>
-            
-            <div className="text-xs text-muted-foreground">
-              Next available: Today or tomorrow
-            </div>
-          </CardContent>
-        </Card>
+  // Next Steps Section - Updated to use calculated values
+  const NextStepsSection = ({ highestValueAnalysis }: { highestValueAnalysis: Submission }) => {
+    const calculations = getCalculatedValues(highestValueAnalysis);
+    
+    return (
+      <div 
+        className="rounded-2xl p-12 text-center"
+        style={{
+          background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+        }}
+      >
+        <h2 className="text-h1 font-bold text-foreground mb-4">
+          Ready to Recover Your Revenue?
+        </h2>
         
-        <Card className="border-border/50">
-          <CardContent className="p-8">
-            <h3 className="text-h2 font-semibold text-foreground mb-3">
-              Implementation Guide
-            </h3>
-            
-            <p className="text-small text-muted-foreground mb-5 leading-relaxed">
-              Download our step-by-step implementation guide to start 
-              recovering revenue independently with proven strategies.
-            </p>
-            
-            <Button 
-              variant="outline" 
-              className="w-full mb-3 border-2"
-              onClick={() => window.open('/implementation-guide.pdf', '_blank')}
+        <p className="text-h3 text-muted-foreground mb-8 max-w-2xl mx-auto">
+          You've identified significant revenue recovery opportunities. 
+          Let's turn this analysis into implementation results.
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <Card className="border-2 border-primary relative">
+            <div 
+              className="absolute -top-2 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold"
+              style={{
+                background: '#3b82f6',
+                color: 'white'
+              }}
             >
-              Download Guide
-            </Button>
-            
-            <div className="text-xs text-muted-foreground">
-              Instant access • PDF format
+              RECOMMENDED
             </div>
-          </CardContent>
-        </Card>
+            
+            <CardContent className="p-8">
+              <h3 className="text-h2 font-semibold text-foreground mb-3">
+                Strategy Consultation
+              </h3>
+              
+              <p className="text-small text-muted-foreground mb-5 leading-relaxed">
+                Get expert guidance to implement your {formatCurrency(calculations.conservativeRecovery)} 
+                recovery opportunity with a personalized strategy session.
+              </p>
+              
+              <Button 
+                className="w-full mb-3"
+                style={{ background: '#3b82f6', color: 'white' }}
+                onClick={() => window.open('mailto:support@company.com?subject=Free Consultation Request', '_self')}
+              >
+                Book Free Consultation
+              </Button>
+              
+              <div className="text-xs text-muted-foreground">
+                Next available: Today or tomorrow
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-border/50">
+            <CardContent className="p-8">
+              <h3 className="text-h2 font-semibold text-foreground mb-3">
+                Implementation Guide
+              </h3>
+              
+              <p className="text-small text-muted-foreground mb-5 leading-relaxed">
+                Download our step-by-step implementation guide to start 
+                recovering revenue independently with proven strategies.
+              </p>
+              
+              <Button 
+                variant="outline" 
+                className="w-full mb-3 border-2"
+                onClick={() => window.open('/implementation-guide.pdf', '_blank')}
+              >
+                Download Guide
+              </Button>
+              
+              <div className="text-xs text-muted-foreground">
+                Instant access • PDF format
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   if (loading) {
     return (
@@ -540,12 +577,7 @@ const Dashboard = () => {
         ) : (
           <>
             {/* Hero Section with Latest Analysis */}
-            <DashboardHeroSection 
-              latestAnalysis={latestAnalysis} 
-              formatCurrency={formatCurrency}
-              formatDate={formatDate}
-              calculateROI={calculateROI}
-            />
+            <HeroAnalysisSection latestAnalysis={latestAnalysis} />
             
             {/* Simplified Summary Cards */}
             <SimplifiedSummaryCards />
