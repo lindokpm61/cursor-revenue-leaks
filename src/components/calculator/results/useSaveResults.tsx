@@ -15,17 +15,19 @@ export const useSaveResults = () => {
   const [pendingData, setPendingData] = useState<{ data: CalculatorData; calculations: Calculations } | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [savedSubmissionId, setSavedSubmissionId] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, session, loading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleSave = async (data: CalculatorData, calculations: Calculations) => {
     console.log('=== SAVE BUTTON CLICKED ===');
-    console.log('Save button clicked, user:', user);
-    console.log('User auth data:', { 
-      id: user?.id, 
-      email: user?.email,
-      isAuthenticated: !!user 
+    console.log('Authentication state check:', { 
+      user: user?.id || 'NO USER', 
+      email: user?.email || 'NO EMAIL',
+      hasSession: !!session,
+      sessionValid: session?.expires_at ? new Date(session.expires_at * 1000) > new Date() : false,
+      loading,
+      isAuthenticated: !!user && !!session
     });
     console.log('Calculator data:', data);
     console.log('Calculations:', calculations);
@@ -39,8 +41,20 @@ export const useSaveResults = () => {
       console.error('Error updating final progress:', error);
     }
     
-    if (!user) {
-      console.log('No user found, showing registration modal');
+    // Enhanced authentication check - ensure we have both user AND valid session
+    const isUserAuthenticated = !loading && user && session && 
+      session.expires_at && new Date(session.expires_at * 1000) > new Date();
+    
+    console.log('Final authentication decision:', {
+      isUserAuthenticated,
+      userExists: !!user,
+      sessionExists: !!session,
+      sessionNotExpired: session?.expires_at ? new Date(session.expires_at * 1000) > new Date() : false,
+      notLoading: !loading
+    });
+
+    if (!isUserAuthenticated) {
+      console.log('User not authenticated - showing registration modal');
       setPendingData({ data, calculations });
       setShowRegistrationModal(true);
       return;

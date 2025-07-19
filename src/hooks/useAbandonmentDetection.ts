@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { scheduleAbandonmentRecovery } from '@/lib/coreDataCapture';
 import { trackEngagement } from '@/lib/submission/engagementTracking';
@@ -62,6 +63,7 @@ export const useAbandonmentDetection = (
   const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const abandonmentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const activityLogRef = useRef<ActivityEvent[]>([]);
+  const startTimeRef = useRef<number>(Date.now());
   
   const [state, setState] = useState<AbandonmentState>({
     isActive: true,
@@ -75,7 +77,7 @@ export const useAbandonmentDetection = (
     isAbandoned: false
   });
 
-  // Track activity
+  // Memoize the record activity function to prevent re-renders
   const recordActivity = useCallback((type: ActivityEvent['type'], data?: any) => {
     const timestamp = Date.now();
     const activity: ActivityEvent = {
@@ -98,12 +100,9 @@ export const useAbandonmentDetection = (
       interactionCount: prev.interactionCount + 1,
       showWarning: false // Reset warning on activity
     }));
-    
-    // Reset timers on activity
-    resetAbandonmentTimers();
-  }, []);
+  }, [currentStep]); // Only depend on currentStep
 
-  // Update scroll depth
+  // Memoize scroll depth update to prevent excessive re-renders
   const updateScrollDepth = useCallback(() => {
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -111,61 +110,33 @@ export const useAbandonmentDetection = (
     
     setState(prev => {
       const newScrollDepth = Math.max(prev.scrollDepth, scrollPercent);
-      if (newScrollDepth > prev.scrollDepth + 5) { // Record significant scroll changes
+      // Only update if there's a significant change (>5%)
+      if (newScrollDepth > prev.scrollDepth + 5) {
         recordActivity('scroll', { scrollPercent: newScrollDepth });
+        return { ...prev, scrollDepth: newScrollDepth };
       }
-      return { ...prev, scrollDepth: newScrollDepth };
+      return prev;
     });
   }, [recordActivity]);
 
-  // Check engagement level
+  // Memoize engagement status check
   const updateEngagementStatus = useCallback(() => {
     setState(prev => {
       const hasMinimumTime = prev.timeOnPage >= mergedConfig.minimumTimeOnPage;
       const hasMinimumScroll = prev.scrollDepth >= mergedConfig.minimumScrollDepth;
       const hasMinimumInteractions = prev.interactionCount >= mergedConfig.minimumInteractions;
       
-      return {
-        ...prev,
-        hasMinimumEngagement: hasMinimumTime && (hasMinimumScroll || hasMinimumInteractions)
-      };
+      const newHasMinimumEngagement = hasMinimumTime && (hasMinimumScroll || hasMinimumInteractions);
+      
+      // Only update if engagement status actually changed
+      if (newHasMinimumEngagement !== prev.hasMinimumEngagement) {
+        return { ...prev, hasMinimumEngagement: newHasMinimumEngagement };
+      }
+      return prev;
     });
-  }, [mergedConfig]);
+  }, [mergedConfig.minimumTimeOnPage, mergedConfig.minimumScrollDepth, mergedConfig.minimumInteractions]);
 
-  // Reset abandonment timers
-  const resetAbandonmentTimers = useCallback(() => {
-    if (warningTimeoutRef.current) {
-      clearTimeout(warningTimeoutRef.current);
-      warningTimeoutRef.current = null;
-    }
-    
-    if (abandonmentTimeoutRef.current) {
-      clearTimeout(abandonmentTimeoutRef.current);
-      abandonmentTimeoutRef.current = null;
-    }
-    
-    if (!state.isAbandoned && state.hasMinimumEngagement) {
-      const stepTimeout = mergedConfig.stepTimeouts[currentStep] || mergedConfig.inactivityTimeout;
-      
-      // Set warning timer
-      warningTimeoutRef.current = setTimeout(() => {
-        setState(prev => ({ ...prev, showWarning: true }));
-        
-        trackEngagement('abandonment_warning_shown', {
-          step: currentStep,
-          time_on_page: Date.now() - (state.lastActivity - state.timeOnPage),
-          interaction_count: state.interactionCount
-        });
-      }, mergedConfig.warningTimeout);
-      
-      // Set abandonment timer
-      abandonmentTimeoutRef.current = setTimeout(() => {
-        handleAbandonment();
-      }, stepTimeout);
-    }
-  }, [currentStep, state.isAbandoned, state.hasMinimumEngagement, state.lastActivity, state.timeOnPage, state.interactionCount, mergedConfig]);
-
-  // Handle abandonment
+  // Handle abandonment with proper memoization
   const handleAbandonment = useCallback(async () => {
     if (state.isAbandoned || !tempId || !state.hasMinimumEngagement) return;
     
@@ -208,30 +179,66 @@ export const useAbandonmentDetection = (
     } catch (error) {
       console.error('Error handling abandonment:', error);
     }
-  }, [tempId, currentStep, calculatorData, state, mergedConfig.criticalSteps]);
+  }, [tempId, currentStep, calculatorData, state.isAbandoned, state.hasMinimumEngagement, state.timeOnPage, state.interactionCount, state.scrollDepth, state.lastActivity, mergedConfig.criticalSteps]);
 
-  // Time tracking
+  // Reset abandonment timers with proper dependencies
+  const resetAbandonmentTimers = useCallback(() => {
+    if (warningTimeoutRef.current) {
+      clearTimeout(warningTimeoutRef.current);
+      warningTimeoutRef.current = null;
+    }
+    
+    if (abandonmentTimeoutRef.current) {
+      clearTimeout(abandonmentTimeoutRef.current);
+      abandonmentTimeoutRef.current = null;
+    }
+    
+    if (!state.isAbandoned && state.hasMinimumEngagement) {
+      const stepTimeout = mergedConfig.stepTimeouts[currentStep] || mergedConfig.inactivityTimeout;
+      
+      // Set warning timer
+      warningTimeoutRef.current = setTimeout(() => {
+        setState(prev => ({ ...prev, showWarning: true }));
+        
+        trackEngagement('abandonment_warning_shown', {
+          step: currentStep,
+          time_on_page: Date.now() - startTimeRef.current,
+          interaction_count: state.interactionCount
+        });
+      }, mergedConfig.warningTimeout);
+      
+      // Set abandonment timer
+      abandonmentTimeoutRef.current = setTimeout(() => {
+        handleAbandonment();
+      }, stepTimeout);
+    }
+  }, [currentStep, state.isAbandoned, state.hasMinimumEngagement, state.interactionCount, mergedConfig.stepTimeouts, mergedConfig.inactivityTimeout, mergedConfig.warningTimeout, handleAbandonment]);
+
+  // Time tracking with proper cleanup
   useEffect(() => {
-    const startTime = Date.now();
     const interval = setInterval(() => {
       setState(prev => ({
         ...prev,
-        timeOnPage: Date.now() - startTime
+        timeOnPage: Date.now() - startTimeRef.current
       }));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, []); // Empty dependency array - only run once
 
-  // Step change tracking
+  // Step change tracking with proper dependencies
   useEffect(() => {
     setState(prev => ({ ...prev, currentStep }));
     recordActivity('step_change', { step: currentStep });
   }, [currentStep, recordActivity]);
 
-  // Engagement tracking
+  // Engagement tracking with debounced updates
   useEffect(() => {
-    updateEngagementStatus();
+    const timeoutId = setTimeout(() => {
+      updateEngagementStatus();
+    }, 100); // Debounce updates
+
+    return () => clearTimeout(timeoutId);
   }, [state.timeOnPage, state.scrollDepth, state.interactionCount, updateEngagementStatus]);
 
   // Reset timers when engagement status changes
@@ -241,14 +248,13 @@ export const useAbandonmentDetection = (
     }
   }, [state.hasMinimumEngagement, state.isActive, resetAbandonmentTimers]);
 
-  // Activity listeners
+  // Activity listeners with proper cleanup
   useEffect(() => {
     const handleClick = () => recordActivity('click');
     const handleKeyPress = () => recordActivity('keypress');
     const handleFocus = () => recordActivity('focus');
     const handleScroll = () => updateScrollDepth();
     
-    // Page visibility change
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         recordActivity('focus', { visibility: 'hidden' });
@@ -270,7 +276,7 @@ export const useAbandonmentDetection = (
       window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [recordActivity, updateScrollDepth]);
+  }, [recordActivity, updateScrollDepth]); // Proper dependencies
 
   // Cleanup on unmount
   useEffect(() => {
