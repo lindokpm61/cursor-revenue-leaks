@@ -32,7 +32,7 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
     navigateToDashboard
   } = useSaveResults();
 
-  // Create enhanced insights breakdown
+  // Enhanced insights breakdown
   const enhancedBreakdown = {
     leadResponse: {
       dealSizeTier: (data.leadGeneration?.averageDealValue || 0) > 100000 ? 'Enterprise' : 
@@ -87,10 +87,9 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
   };
 
   const handleBookConsultation = () => {
-    // Primary CTA - no account required
+    console.log('Book consultation clicked');
     window.open('https://calendly.com/your-consultation', '_blank');
     
-    // Track high-intent action
     toast({
       title: "Consultation Booking",
       description: "Opening calendar to schedule your implementation call",
@@ -98,7 +97,7 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
   };
 
   const handleShareAnalysis = () => {
-    // Copy current URL or create shareable link
+    console.log('Share analysis clicked');
     navigator.clipboard.writeText(window.location.href);
     toast({
       title: "Analysis Shared",
@@ -106,9 +105,28 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
     });
   };
 
+  // Handle save button click with error boundary
+  const handleSaveClick = async () => {
+    console.log('=== SAVE BUTTON HANDLER CALLED ===');
+    console.log('Button clicked with data:', { data, calculations });
+    console.log('Current user state:', { user, isAuthenticated: !!user });
+    console.log('Current save state:', { saving, isSaved });
+    
+    try {
+      await handleSave(data, calculations);
+    } catch (error) {
+      console.error('Save button handler error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while saving. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-8">
-      {/* Enhanced Executive Summary with Immediate Value */}
+      {/* Executive Summary with Immediate Value */}
       <div className="space-y-6">
         <ExecutiveSummary 
           data={data} 
@@ -186,14 +204,14 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
             </Button>
           ) : (
             <Button
-              onClick={() => handleSave(data, calculations)}
+              onClick={handleSaveClick}
               disabled={saving}
               variant="outline"
               size="lg"
-              className="hover:bg-primary hover:text-primary-foreground"
+              className="hover:bg-primary hover:text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="h-4 w-4 mr-2" />
-              {user ? "Save to Dashboard" : "Create Account to Save"}
+              {saving ? "Saving..." : (user ? "Save to Dashboard" : "Create Account to Save")}
             </Button>
           )}
           

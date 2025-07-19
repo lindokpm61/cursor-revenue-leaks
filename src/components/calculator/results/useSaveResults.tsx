@@ -20,11 +20,21 @@ export const useSaveResults = () => {
   const navigate = useNavigate();
 
   const handleSave = async (data: CalculatorData, calculations: Calculations) => {
+    console.log('=== SAVE BUTTON CLICKED ===');
     console.log('Save button clicked, user:', user);
+    console.log('User auth data:', { 
+      id: user?.id, 
+      email: user?.email,
+      isAuthenticated: !!user 
+    });
+    console.log('Calculator data:', data);
+    console.log('Calculations:', calculations);
     
-    // First, save final step data to temporary submission
     try {
+      // First, save final step data to temporary submission
+      console.log('Updating calculator progress...');
       await updateCalculatorProgress(5, {}, calculations);
+      console.log('Calculator progress updated successfully');
     } catch (error) {
       console.error('Error updating final progress:', error);
     }
@@ -36,27 +46,36 @@ export const useSaveResults = () => {
       return;
     }
 
-    console.log('Starting save with user:', user.id);
-    console.log('User auth data:', { id: user.id, email: user.email });
+    console.log('Starting save with authenticated user:', user.id);
     setSaving(true);
     
     try {
+      console.log('Calculating lead score...');
       const leadScore = calculateLeadScore(data, calculations);
+      console.log('Lead score calculated:', leadScore);
+      
+      console.log('Mapping submission data...');
       const submissionData = mapToSubmissionData(data, calculations, leadScore, user.id);
+      console.log('Submission data mapped:', submissionData);
 
       // Use convertToUserSubmission to trigger CRM integration
-      console.log('About to call convertToUserSubmission with submissionData:', submissionData);
-      console.log('Calling convertToUserSubmission with user ID:', user.id);
+      console.log('About to call convertToUserSubmission...');
       const savedSubmission = await convertToUserSubmission(user.id, submissionData);
       console.log('convertToUserSubmission completed, saved submission:', savedSubmission);
-      console.log('CRM integration should have been triggered for submission:', savedSubmission?.id);
+
+      if (!savedSubmission) {
+        throw new Error('Failed to save submission - no submission returned');
+      }
 
       // Track analytics
-      await analyticsService.track('submission_saved', savedSubmission?.id);
+      console.log('Tracking analytics...');
+      await analyticsService.track('submission_saved', savedSubmission.id);
 
       // Update user profile analytics
       try {
+        console.log('Updating user profile analytics...');
         await userProfileService.incrementAnalysis(user.id, calculations.totalLeakage);
+        console.log('User profile updated successfully');
       } catch (profileError) {
         console.warn('User profile error (non-blocking):', profileError);
         // If profile doesn't exist, create it
@@ -67,27 +86,31 @@ export const useSaveResults = () => {
             total_opportunity: calculations.totalLeakage,
             last_analysis_date: new Date().toISOString()
           });
+          console.log('User profile created successfully');
         } catch (createError) {
           console.warn('Failed to create user profile (non-blocking):', createError);
         }
       }
 
       // Log integration activity
+      console.log('Logging integration activity...');
       await integrationLogService.create({
-        submission_id: savedSubmission?.id,
+        submission_id: savedSubmission.id,
         integration_type: 'calculator_save',
         status: 'success',
-        response_data: { submission_id: savedSubmission?.id, total_leak: calculations.totalLeakage }
+        response_data: { submission_id: savedSubmission.id, total_leak: calculations.totalLeakage }
       });
 
       // Update local state to show saved status
+      console.log('Updating local state...');
       setIsSaved(true);
-      setSavedSubmissionId(savedSubmission?.id || null);
+      setSavedSubmissionId(savedSubmission.id);
 
+      console.log('Showing success toast...');
       toast({
         title: "Analysis Saved Successfully! ✓",
         description: "Your revenue analysis is now saved to your dashboard.",
-        action: savedSubmission?.id ? (
+        action: savedSubmission.id ? (
           <button 
             onClick={() => navigate("/dashboard")}
             className="text-primary hover:underline text-sm font-medium"
@@ -97,15 +120,24 @@ export const useSaveResults = () => {
         ) : undefined
       });
 
+      console.log('=== SAVE COMPLETED SUCCESSFULLY ===');
+
     } catch (error) {
+      console.error('=== SAVE FAILED ===');
       console.error('Error saving submission:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      
       toast({
         title: "Save Failed",
-        description: "Failed to save your results. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to save your results. Please try again.",
         variant: "destructive",
       });
     } finally {
       setSaving(false);
+      console.log('Save process completed, saving state set to false');
     }
   };
 
@@ -134,15 +166,18 @@ export const useSaveResults = () => {
   };
 
   const handleCloseRegistrationModal = () => {
+    console.log('Closing registration modal');
     setShowRegistrationModal(false);
     setPendingData(null);
   };
 
   const navigateToDashboard = () => {
+    console.log('Navigating to dashboard');
     navigate("/dashboard");
   };
 
   const navigateToResults = () => {
+    console.log('Navigating to results, savedSubmissionId:', savedSubmissionId);
     if (savedSubmissionId) {
       navigate(`/results/${savedSubmissionId}`);
     }
