@@ -265,6 +265,63 @@ const CleanResults = () => {
               onBookCall={handleBookCall}
             />
             
+            {/* Quick Performance Indicators */}
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  Key Performance Indicators
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">Self-Serve Conversion Rate</span>
+                      <span className="text-xs text-muted-foreground">{submission.free_to_paid_conversion || 0}%</span>
+                    </div>
+                    <div className="w-full bg-background rounded-full h-3">
+                      <div 
+                        className="bg-primary h-3 rounded-full transition-all duration-300" 
+                        style={{ 
+                          width: `${Math.max(5, Math.min((submission.free_to_paid_conversion || 0) / 10 * 100, 100))}%` 
+                        }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Target: 8-12% (Industry best-in-class)
+                    </p>
+                  </div>
+                  
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">Lead Response Time</span>
+                      <span className="text-xs text-muted-foreground">{submission.lead_response_time || 0}h</span>
+                    </div>
+                    <div className="w-full bg-background rounded-full h-3">
+                      <div 
+                        className="bg-revenue-warning h-3 rounded-full transition-all duration-300" 
+                        style={{ 
+                          width: `${Math.max(5, Math.min(100 - (submission.lead_response_time || 0) / 24 * 100, 100))}%` 
+                        }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Target: &lt;1 hour (Best-in-class)
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 text-center">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setActiveSection('benchmarking')}
+                    className="text-xs"
+                  >
+                    View Detailed Benchmarking Analysis →
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+            
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">

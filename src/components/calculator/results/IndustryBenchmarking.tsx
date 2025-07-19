@@ -228,6 +228,8 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
       console.log('Industry Avg:', metric.industryAvg);
       console.log('Calculated Progress Value:', progressValue);
       console.log('Higher is Better:', metric.higherIsBetter);
+      console.log('Revenue Opportunity:', metric.revenueOpportunity);
+      console.log('Performance:', metric.performance);
     }
 
     switch (metric.performance) {
