@@ -1,9 +1,9 @@
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import { AuthProvider } from "./components/auth/AuthProvider";
 import { ExperimentProvider } from "./components/experiments/ExperimentProvider";
 import Dashboard from "./pages/Dashboard";
-import Landing from "./pages/Landing";
 import ActionPlan from "./pages/ActionPlan";
 import Results from "./pages/Results";
 import Admin from "./pages/Admin";
@@ -24,7 +24,8 @@ function App() {
             <div className="min-h-screen bg-background">
               <Routes>
                 <Route path="/" element={<Index />} />
-                <Route path="/landing" element={<Landing />} />
+                {/* Redirect old landing route to main page */}
+                <Route path="/landing" element={<Navigate to="/" replace />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/dashboard" element={<Dashboard />} />
