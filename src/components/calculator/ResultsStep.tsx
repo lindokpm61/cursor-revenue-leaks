@@ -236,29 +236,39 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
               View Dashboard
             </Button>
           ) : (
-            <Button
-              onClick={() => {
-                console.log('🔥 BUTTON CLICKED - SIMPLE TEST');
-                alert('Button clicked!');
-                handleSaveClick();
-              }}
-              disabled={saving}
-              variant="outline"
-              size="lg"
-              className="hover:bg-primary hover:text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  {user ? "Save to Dashboard" : "Create Account to Save"}
-                </>
-              )}
-            </Button>
+            <>
+              {/* SIMPLE TEST BUTTON */}
+              <button 
+                style={{ backgroundColor: 'red', color: 'white', padding: '10px', margin: '10px' }}
+                onClick={() => alert('SIMPLE BUTTON WORKS!')}
+              >
+                TEST BUTTON
+              </button>
+              
+              <Button
+                onClick={() => {
+                  console.log('🔥 BUTTON CLICKED - SIMPLE TEST');
+                  alert('Button clicked!');
+                  handleSaveClick();
+                }}
+                disabled={saving}
+                variant="outline"
+                size="lg"
+                className="hover:bg-primary hover:text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    {user ? "Save to Dashboard" : "Create Account to Save"}
+                  </>
+                )}
+              </Button>
+            </>
           )}
           
           <Button
