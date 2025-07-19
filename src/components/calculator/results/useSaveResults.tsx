@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,29 +8,6 @@ import { CalculatorData, Calculations } from "../useCalculatorData";
 import { convertToUserSubmission, updateCalculatorProgress } from "@/lib/submission";
 import { calculateLeadScore } from "@/lib/calculator/leadScoring";
 import { mapToSubmissionData } from "@/lib/calculator/submissionDataMapper";
-
-// Add manual auth state clearing utility
-const clearAllAuthState = () => {
-  console.log('🧹 Clearing all authentication state...');
-  
-  // Clear localStorage
-  Object.keys(localStorage).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-') || key.startsWith('auth-')) {
-      console.log('Removing localStorage key:', key);
-      localStorage.removeItem(key);
-    }
-  });
-  
-  // Clear sessionStorage
-  Object.keys(sessionStorage).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-') || key.startsWith('auth-')) {
-      console.log('Removing sessionStorage key:', key);
-      sessionStorage.removeItem(key);
-    }
-  });
-  
-  console.log('✅ Auth state cleared');
-};
 
 export const useSaveResults = () => {
   const [saving, setSaving] = useState(false);
@@ -41,16 +19,33 @@ export const useSaveResults = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Add manual modal trigger for debugging
-  const forceShowRegistrationModal = (data: CalculatorData, calculations: Calculations) => {
-    console.log('🔧 FORCING REGISTRATION MODAL - Debug Mode');
-    setPendingData({ data, calculations });
-    setShowRegistrationModal(true);
-  };
-
   const handleSave = async (data: CalculatorData, calculations: Calculations) => {
     console.log('🚀 === SAVE BUTTON CLICKED - STARTING SAVE PROCESS ===');
-    console.log('Button clicked with data:', { data, calculations });
+    console.log('🔍 DETAILED INPUT VALIDATION:');
+    console.log('  Raw data object:', data);
+    console.log('  Raw calculations object:', calculations);
+    console.log('  Calculations type:', typeof calculations);
+    console.log('  Calculations is array:', Array.isArray(calculations));
+    console.log('  Calculations keys:', Object.keys(calculations || {}));
+    
+    // Validate calculations object structure in detail
+    if (!calculations) {
+      console.error('❌ CRITICAL: Calculations object is null/undefined at save time!');
+      toast({
+        title: "Calculation Error",
+        description: "Calculations are missing. Please refresh and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Log each calculation value at save time
+    console.log('📊 CALCULATION VALUES AT SAVE TIME:');
+    const calcKeys = ['leadResponseLoss', 'failedPaymentLoss', 'selfServeGap', 'processLoss', 'totalLeakage', 'potentialRecovery70', 'potentialRecovery85'];
+    calcKeys.forEach(key => {
+      const value = calculations[key as keyof Calculations];
+      console.log(`  ${key}:`, value, `(type: ${typeof value}, isNaN: ${isNaN(Number(value))})`);
+    });
     
     // STEP 1: Set saving state immediately for visual feedback
     setSaving(true);
@@ -61,7 +56,7 @@ export const useSaveResults = () => {
       await updateCalculatorProgress(5, {}, calculations);
       console.log('✅ Calculator progress updated successfully');
       
-      // STEP 3: Comprehensive authentication state check (REMOVED clearAllAuthState)
+      // STEP 3: Comprehensive authentication state check
       console.log('🔍 === DETAILED AUTH STATE CHECK ===');
       console.log('  User object:', user);
       console.log('  Session object:', session);
@@ -136,8 +131,14 @@ export const useSaveResults = () => {
       console.log('  Lead score calculated:', leadScore);
       
       console.log('🗂️ Mapping submission data...');
+      console.log('  About to call mapToSubmissionData with:');
+      console.log('  - data:', data);
+      console.log('  - calculations:', calculations);
+      console.log('  - leadScore:', leadScore);
+      console.log('  - userId:', user.id);
+      
       const submissionData = mapToSubmissionData(data, calculations, leadScore, user.id);
-      console.log('  Submission data mapped:', submissionData);
+      console.log('  Submission data mapped successfully:', submissionData);
 
       console.log('💾 Converting to user submission...');
       const savedSubmission = await convertToUserSubmission(user.id, submissionData);
@@ -271,9 +272,6 @@ export const useSaveResults = () => {
     isSaved,
     savedSubmissionId,
     navigateToDashboard,
-    navigateToResults,
-    // Debug helpers
-    forceShowRegistrationModal,
-    clearAllAuthState
+    navigateToResults
   };
 };

@@ -9,6 +9,13 @@ import { crmIntegration } from "@/lib/crmIntegration";
 export const convertToUserSubmission = async (userId: string, submissionData: any) => {
   const tempId = getTempId();
   
+  console.log('🔄 === CONVERT TO USER SUBMISSION DEBUG ===');
+  console.log('  userId:', userId);
+  console.log('  tempId:', tempId);
+  console.log('  submissionData received:', submissionData);
+  console.log('  submissionData type:', typeof submissionData);
+  console.log('  submissionData keys:', Object.keys(submissionData || {}));
+  
   try {
     // Get temporary submission (if it exists)
     const tempSubmission = await getTemporarySubmission(tempId);
@@ -95,7 +102,37 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
 
 // Create submission directly when no temporary submission exists
 const createDirectSubmission = async (userId: string, submissionData: any) => {
-  console.log('Creating direct submission with data:', submissionData);
+  console.log('💾 === CREATE DIRECT SUBMISSION DEBUG ===');
+  console.log('  userId:', userId);
+  console.log('  submissionData received:', submissionData);
+  console.log('  submissionData type:', typeof submissionData);
+  console.log('  submissionData keys:', Object.keys(submissionData || {}));
+  
+  // Log all calculation values specifically
+  console.log('🧮 CALCULATION VALUES IN SUBMISSION DATA:');
+  console.log('  lead_response_loss:', submissionData.lead_response_loss, typeof submissionData.lead_response_loss);
+  console.log('  failed_payment_loss:', submissionData.failed_payment_loss, typeof submissionData.failed_payment_loss);
+  console.log('  selfserve_gap_loss:', submissionData.selfserve_gap_loss, typeof submissionData.selfserve_gap_loss);
+  console.log('  process_inefficiency_loss:', submissionData.process_inefficiency_loss, typeof submissionData.process_inefficiency_loss);
+  console.log('  total_leak:', submissionData.total_leak, typeof submissionData.total_leak);
+  console.log('  recovery_potential_70:', submissionData.recovery_potential_70, typeof submissionData.recovery_potential_70);
+  console.log('  recovery_potential_85:', submissionData.recovery_potential_85, typeof submissionData.recovery_potential_85);
+  
+  // Validate that we have calculated values
+  const calculationFields = [
+    'lead_response_loss', 'failed_payment_loss', 'selfserve_gap_loss', 
+    'process_inefficiency_loss', 'total_leak', 'recovery_potential_70', 'recovery_potential_85'
+  ];
+  
+  const missingCalcs = calculationFields.filter(field => {
+    const value = submissionData[field];
+    return value === null || value === undefined || isNaN(Number(value));
+  });
+  
+  if (missingCalcs.length > 0) {
+    console.error('❌ CRITICAL: Missing calculation values in direct submission:', missingCalcs);
+    console.error('❌ This will result in NULL values in the database!');
+  }
   
   // Create permanent submission with proper type conversion
   const submissionPayload = {
@@ -127,7 +164,16 @@ const createDirectSubmission = async (userId: string, submissionData: any) => {
     leak_percentage: Number(submissionData.leak_percentage) || 0,
   };
 
-  console.log('Direct submission payload:', submissionPayload);
+  console.log('💾 FINAL SUBMISSION PAYLOAD FOR DATABASE:');
+  console.log('Full payload:', submissionPayload);
+  console.log('Calculated values in payload:');
+  console.log('  lead_response_loss:', submissionPayload.lead_response_loss);
+  console.log('  failed_payment_loss:', submissionPayload.failed_payment_loss);
+  console.log('  selfserve_gap_loss:', submissionPayload.selfserve_gap_loss);
+  console.log('  process_inefficiency_loss:', submissionPayload.process_inefficiency_loss);
+  console.log('  total_leak:', submissionPayload.total_leak);
+  console.log('  recovery_potential_70:', submissionPayload.recovery_potential_70);
+  console.log('  recovery_potential_85:', submissionPayload.recovery_potential_85);
 
   const { data: submission, error: submissionError } = await supabase
     .from('submissions')
@@ -135,7 +181,12 @@ const createDirectSubmission = async (userId: string, submissionData: any) => {
     .select()
     .single();
 
-  if (submissionError) throw submissionError;
+  if (submissionError) {
+    console.error('❌ DATABASE INSERT ERROR:', submissionError);
+    throw submissionError;
+  }
+
+  console.log('✅ SUBMISSION CREATED SUCCESSFULLY:', submission);
 
   // Trigger separated CRM integration for direct submission using new service
   try {
