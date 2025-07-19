@@ -106,6 +106,8 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
   };
 
   const handleSaveClick = async () => {
+    // Immediate alert to test if function is called
+    alert('Save button clicked!');
     console.log('🎯 === SAVE BUTTON HANDLER CALLED ===');
     console.log('Button clicked with data:', { data, calculations });
     console.log('Current user state:', { user, isAuthenticated: !!user });
