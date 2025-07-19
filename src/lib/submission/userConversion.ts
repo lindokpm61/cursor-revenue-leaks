@@ -28,7 +28,7 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
     }
 
     // Extract calculated values from temporary submission
-    const calculationResults = tempSubmission.calculator_data?.step_5?.calculation_results;
+    const calculationResults = (tempSubmission.calculator_data as any)?.step_5?.calculation_results;
     console.log('🧮 EXTRACTED CALCULATION RESULTS FROM TEMP SUBMISSION:', calculationResults);
     
     // Create permanent submission with proper type conversion
