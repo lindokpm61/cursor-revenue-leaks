@@ -262,6 +262,29 @@ export const useSaveResults = () => {
     }
   };
 
+  // Add the missing debug functions
+  const forceShowRegistrationModal = (data: CalculatorData, calculations: Calculations) => {
+    console.log('🐛 DEBUG: Force showing registration modal');
+    setPendingData({ data, calculations });
+    setShowRegistrationModal(true);
+  };
+
+  const clearAllAuthState = () => {
+    console.log('🐛 DEBUG: Clearing all auth state');
+    // Clear local storage
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
+    // Reset local state
+    setIsSaved(false);
+    setSavedSubmissionId(null);
+    setPendingData(null);
+    setShowRegistrationModal(false);
+    setSaving(false);
+  };
+
   return { 
     handleSave, 
     saving, 
@@ -272,6 +295,8 @@ export const useSaveResults = () => {
     isSaved,
     savedSubmissionId,
     navigateToDashboard,
-    navigateToResults
+    navigateToResults,
+    forceShowRegistrationModal,
+    clearAllAuthState
   };
 };
