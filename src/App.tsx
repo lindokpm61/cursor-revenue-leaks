@@ -34,6 +34,7 @@ function App() {
             <div className="min-h-screen bg-background">
               <Routes>
                 <Route path="/" element={<LandingPageABTest />} />
+                <Route path="/calculator" element={<Index />} />
                 <Route path="/landing" element={<Landing />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
