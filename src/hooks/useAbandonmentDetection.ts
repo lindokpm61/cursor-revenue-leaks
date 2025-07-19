@@ -101,7 +101,7 @@ export const useAbandonmentDetection = (
     
     // Reset timers on activity
     resetAbandonmentTimers();
-  }, [currentStep]);
+  }, []);
 
   // Update scroll depth
   const updateScrollDepth = useCallback(() => {
