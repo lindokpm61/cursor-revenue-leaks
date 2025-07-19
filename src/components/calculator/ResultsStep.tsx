@@ -1,6 +1,7 @@
+
 import { Button } from "@/components/ui/button";
 import { CalculatorData, Calculations } from "./useCalculatorData";
-import { Save } from "lucide-react";
+import { Save, Calendar, Share2, Download } from "lucide-react";
 import { ExecutiveSummary } from "./results/ExecutiveSummary";
 import { RevenueCharts } from "./results/RevenueCharts";
 import { DetailedBreakdown } from "./results/DetailedBreakdown";
@@ -9,6 +10,8 @@ import { EnhancedInsights } from "./results/EnhancedInsights";
 import { useSaveResults } from "./results/useSaveResults";
 import { SaveResultsRegistrationModal } from "./SaveResultsRegistrationModal";
 import { validateRecoveryAssumptions, type ConfidenceFactors } from '@/lib/calculator/enhancedCalculations';
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface ResultsStepProps {
   data: CalculatorData;
@@ -16,6 +19,8 @@ interface ResultsStepProps {
 }
 
 export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const { 
     handleSave, 
     saving, 
@@ -36,36 +41,35 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
     failedPayments: {
       recoverySystem: 'Basic System',
       recoveryRate: 0.35,
-      actualLossAfterRecovery: calculations.failedPaymentLoss * 0.65 // 65% actual loss after 35% recovery
+      actualLossAfterRecovery: calculations.failedPaymentLoss * 0.65
     },
     selfServeGap: {
-      industryBenchmark: 15, // default benchmark
+      industryBenchmark: 15,
       industryName: data.companyInfo?.industry || 'Other',
       gapPercentage: Math.max(0, 15 - (data.selfServeMetrics?.freeToPaidConversionRate || 0)),
       currentConversion: data.selfServeMetrics?.freeToPaidConversionRate || 0
     },
     processInefficiency: {
-      revenueGeneratingPotential: calculations.processLoss * 0.3, // 30% could be revenue-generating time
+      revenueGeneratingPotential: calculations.processLoss * 0.3,
       automationPotential: 0.7
     },
     recoveryValidation: (() => {
       const validation = validateRecoveryAssumptions({
         currentARR: data.companyInfo?.currentARR || 0,
-        grossRetention: 85, // default gross retention
-        netRetention: 100, // default net retention
-        customerSatisfaction: 8, // default satisfaction (out of 10)
-        hasRevOps: true // assume basic process exists
+        grossRetention: 85,
+        netRetention: 100,
+        customerSatisfaction: 8,
+        hasRevOps: true
       });
       return {
         canAchieve70: validation.canAchieve70,
         canAchieve85: validation.canAchieve85,
-        limitations: validation.reasons // map reasons to limitations
+        limitations: validation.reasons
       };
     })()
   };
   
   const formatCurrency = (amount: number) => {
-    // Handle invalid numbers
     if (!isFinite(amount) || isNaN(amount)) {
       return '$0';
     }
@@ -80,9 +84,29 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
     }).format(amount);
   };
 
+  const handleBookConsultation = () => {
+    // Primary CTA - no account required
+    window.open('https://calendly.com/your-consultation', '_blank');
+    
+    // Track high-intent action
+    toast({
+      title: "Consultation Booking",
+      description: "Opening calendar to schedule your implementation call",
+    });
+  };
+
+  const handleShareAnalysis = () => {
+    // Copy current URL or create shareable link
+    navigator.clipboard.writeText(window.location.href);
+    toast({
+      title: "Analysis Shared",
+      description: "Link copied to clipboard - you can share this analysis",
+    });
+  };
+
   return (
     <div className="space-y-8">
-      {/* Enhanced Executive Summary with Social Proof */}
+      {/* Enhanced Executive Summary with Immediate Value */}
       <div className="space-y-6">
         <ExecutiveSummary 
           data={data} 
@@ -90,7 +114,7 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
           formatCurrency={formatCurrency} 
         />
         
-        {/* Social Proof & Urgency */}
+        {/* Immediate Value + Urgency Messaging */}
         <div className="flex flex-col md:flex-row gap-4 items-center justify-center p-6 bg-gradient-to-r from-primary/5 via-revenue-primary/5 to-primary/5 rounded-xl border border-primary/20">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <div className="flex -space-x-2">
@@ -100,71 +124,71 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
                 </div>
               ))}
             </div>
-            <span className="font-medium">Join 2,847+ executives who've optimized their revenue</span>
+            <span className="font-medium">Join 2,847+ executives recovering millions in lost revenue</span>
           </div>
           <div className="text-sm text-revenue-warning font-medium">
-            ⏰ Limited consultation spots this month
+            ⏰ Every day of delay costs {formatCurrency(calculations.totalLeakage / 365)}
           </div>
         </div>
       </div>
       
-      {/* Value-First Save Section - Above detailed breakdowns */}
+      {/* Optimized CTA Hierarchy - No Registration Barriers */}
       <div className="bg-gradient-to-r from-revenue-success/10 via-primary/5 to-revenue-success/10 border-2 border-revenue-success/20 rounded-xl p-8 text-center space-y-6">
         <div className="space-y-4">
           <h3 className="text-h1 font-bold text-foreground">
-            Secure Your {formatCurrency(calculations.totalLeakage)} Recovery Plan
+            Your {formatCurrency(calculations.totalLeakage)} Recovery Plan
           </h3>
           <p className="text-body text-muted-foreground max-w-2xl mx-auto">
-            Get instant access to your personalized action plan, implementation timeline, and priority recommendations. 
-            Plus receive ongoing support and quarterly reviews.
+            Complete analysis ready. Choose your next step to start recovering this revenue.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="flex items-center gap-3 p-4 bg-background/50 rounded-lg">
-            <div className="w-10 h-10 rounded-full bg-revenue-success/20 flex items-center justify-center">
-              <Save className="h-5 w-5 text-revenue-success" />
-            </div>
-            <div className="text-left">
-              <div className="font-semibold text-sm">Saved Analysis</div>
-              <div className="text-xs text-muted-foreground">Access anytime</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-4 bg-background/50 rounded-lg">
-            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-              📊
-            </div>
-            <div className="text-left">
-              <div className="font-semibold text-sm">Action Plan</div>
-              <div className="text-xs text-muted-foreground">Step-by-step guide</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-4 bg-background/50 rounded-lg">
-            <div className="w-10 h-10 rounded-full bg-revenue-warning/20 flex items-center justify-center">
-              🎯
-            </div>
-            <div className="text-left">
-              <div className="font-semibold text-sm">Expert Support</div>
-              <div className="text-xs text-muted-foreground">Implementation help</div>
-            </div>
-          </div>
+        {/* Primary CTA - No Barriers */}
+        <div className="space-y-4">
+          <Button
+            onClick={handleBookConsultation}
+            size="lg"
+            className="bg-gradient-to-r from-primary to-revenue-primary text-white font-bold px-8 py-4 h-14 text-lg shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto"
+          >
+            <Calendar className="h-5 w-5 mr-3" />
+            Book Implementation Consultation (Free)
+          </Button>
+          
+          <p className="text-xs text-revenue-success font-medium">
+            ↑ Priority booking - Speak with a revenue optimization expert
+          </p>
         </div>
 
-        <Button
-          onClick={() => handleSave(data, calculations)}
-          disabled={saving}
-          size="lg"
-          className="bg-gradient-to-r from-primary to-revenue-primary text-white font-bold px-8 py-4 h-14 text-lg shadow-lg hover:shadow-xl transition-all duration-300"
-        >
-          <Save className="h-5 w-5 mr-3" />
-          {saving ? "Securing Your Results..." : "Get My Recovery Plan (Free)"}
-        </Button>
+        {/* Secondary CTAs */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+          <Button
+            onClick={() => handleSave(data, calculations)}
+            disabled={saving}
+            variant="outline"
+            size="lg"
+            className="hover:bg-primary hover:text-primary-foreground"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            {user ? "Save to Dashboard" : "Create Account to Save"}
+          </Button>
+          
+          <Button
+            onClick={handleShareAnalysis}
+            variant="outline"
+            size="lg"
+            className="hover:bg-primary hover:text-primary-foreground"
+          >
+            <Share2 className="h-4 w-4 mr-2" />
+            Share Analysis
+          </Button>
+        </div>
         
         <p className="text-xs text-muted-foreground">
-          No credit card required • Instant access • 100% confidential
+          No email verification required • Instant access • 100% confidential
         </p>
       </div>
       
+      {/* Full Results - Always Visible */}
       <RevenueCharts 
         data={data} 
         calculations={calculations} 
@@ -191,7 +215,26 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
 
       <ActionPlan calculations={calculations} data={data} />
 
-      {/* Registration Modal */}
+      {/* Floating Value Reminder */}
+      <div className="sticky bottom-4 mx-auto max-w-md">
+        <div className="bg-background/95 backdrop-blur-sm border border-primary/20 rounded-full p-4 shadow-lg">
+          <div className="flex items-center justify-between gap-4">
+            <div className="text-sm">
+              <span className="font-bold text-revenue-warning">{formatCurrency(calculations.totalLeakage)}</span>
+              <span className="text-muted-foreground"> at risk</span>
+            </div>
+            <Button
+              onClick={handleBookConsultation}
+              size="sm"
+              className="bg-gradient-to-r from-primary to-revenue-primary"
+            >
+              Book Call
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Registration Modal - Only for Save to Dashboard */}
       {showRegistrationModal && pendingData && (
         <SaveResultsRegistrationModal
           isOpen={showRegistrationModal}

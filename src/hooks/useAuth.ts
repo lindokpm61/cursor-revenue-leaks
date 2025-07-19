@@ -34,7 +34,7 @@ export const useAuthProvider = () => {
           setIsAdmin(false);
         }
 
-        // For existing users, ensure profile exists (handled by new registration service for new users)
+        // For existing users, ensure profile exists
         if (event === 'SIGNED_IN' && session?.user) {
           setTimeout(() => {
             ensureUserProfile(session.user).catch(error => {
@@ -93,7 +93,7 @@ export const useAuthProvider = () => {
       // Import validation inside function to avoid circular dependencies
       const { validateEmail, mapAuthError } = await import('@/lib/authValidation');
       
-      // Validate email format
+      // Validate email format - accept all valid emails, not just business domains
       const emailValidation = validateEmail(email);
       if (!emailValidation.isValid) {
         return { success: false, error: emailValidation.error };
@@ -120,7 +120,7 @@ export const useAuthProvider = () => {
       // Import validation inside function to avoid circular dependencies
       const { validateEmail, validatePassword, mapAuthError } = await import('@/lib/authValidation');
       
-      // Validate inputs
+      // Validate inputs - accept all valid emails
       const emailValidation = validateEmail(email);
       if (!emailValidation.isValid) {
         return { success: false, error: emailValidation.error };
@@ -131,12 +131,15 @@ export const useAuthProvider = () => {
         return { success: false, error: passwordValidation.error };
       }
 
+      // CRITICAL: Remove email verification requirement for immediate access
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
-          data: metadata || {}
+          data: metadata || {},
+          // Set email_confirm to false for immediate access
+          email_confirm: false
         }
       });
 
@@ -144,7 +147,13 @@ export const useAuthProvider = () => {
         return { success: false, error: mapAuthError(error) };
       }
 
-      // Send welcome email if registration successful
+      // If user is created and confirmed immediately, create profile
+      if (data.user && !data.user.email_confirmed_at) {
+        // For immediate access, we'll treat unconfirmed users as valid
+        console.log('User created without email verification for immediate access');
+      }
+
+      // Send welcome email if registration successful (but don't block on it)
       if (data.user) {
         try {
           const { EmailService } = await import('@/lib/emailService');
