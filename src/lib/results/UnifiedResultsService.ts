@@ -85,6 +85,7 @@ export class UnifiedResultsService {
     const industryLeadConversionRate = 0.025; // 2.5% typical B2B conversion rate
     const industryResponseTimeOptimal = 1; // 1 hour optimal response time
     const industryConversionRateBenchmark = 3.5; // 3.5% self-serve conversion benchmark
+    const bestInClassConversionRate = 12; // 12% best-in-class self-serve conversion
 
     // Calculate individual losses with realistic, conversion-based formulas
     
@@ -113,8 +114,8 @@ export class UnifiedResultsService {
     // 2. Failed Payment Loss: Direct calculation from MRR and failure rate
     const failedPaymentLoss = monthlyMRR * (failureRate / 100) * 12 * 0.70; // 70% actual loss after recovery attempts
 
-    // 3. Self-Serve Gap: More realistic calculation with better customer value estimation
-    const conversionGap = Math.max(0, industryConversionRateBenchmark - conversionRate);
+    // 3. Self-Serve Gap: FIXED - Compare against best-in-class performance
+    const conversionGap = Math.max(0, bestInClassConversionRate - conversionRate);
     
     // Enhanced self-serve customer value calculation
     let realisticSelfServeValue;
@@ -133,6 +134,16 @@ export class UnifiedResultsService {
     
     const additionalConversionsPerMonth = monthlySignups * (conversionGap / 100);
     const selfServeGap = additionalConversionsPerMonth * realisticSelfServeValue * 12;
+
+    // DEBUG: Log self-serve calculation details
+    console.log('=== SELF-SERVE GAP CALCULATION DEBUG ===');
+    console.log('Current conversion rate:', conversionRate);
+    console.log('Best-in-class rate:', bestInClassConversionRate);
+    console.log('Conversion gap:', conversionGap);
+    console.log('Monthly signups:', monthlySignups);
+    console.log('Additional conversions per month:', additionalConversionsPerMonth);
+    console.log('Realistic self-serve value:', realisticSelfServeValue);
+    console.log('Annual self-serve gap:', selfServeGap);
 
     // 4. Process Inefficiency: Direct cost calculation
     const processInefficiency = manualHours * hourlyRate * 52;
