@@ -172,26 +172,36 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
   console.log("=== PRIORITY ACTIONS CALCULATION DEBUG ===");
   console.log("Input submission:", submission);
 
-  // FIXED: Check if submission has pre-calculated losses or extract from calculator_data
-  let currentARR, leadResponseLoss, selfserveGapLoss, processLoss, failedPaymentLoss, totalRecovery;
+  // FIXED: Use UnifiedResultsService for consistent calculations
+  const submissionData = {
+    id: submission.id,
+    company_name: submission.company_name,
+    contact_email: submission.contact_email,
+    industry: submission.industry,
+    current_arr: submission.current_arr || 0,
+    monthly_leads: submission.monthly_leads || 0,
+    average_deal_value: submission.average_deal_value || 0,
+    lead_response_time: submission.lead_response_time || 24,
+    monthly_free_signups: submission.monthly_free_signups || 0,
+    free_to_paid_conversion: submission.free_to_paid_conversion || 0,
+    monthly_mrr: submission.monthly_mrr || 0,
+    failed_payment_rate: submission.failed_payment_rate || 0,
+    manual_hours: submission.manual_hours || 0,
+    hourly_rate: submission.hourly_rate || 0,
+    lead_score: submission.lead_score || 0,
+    user_id: submission.user_id,
+    created_at: submission.created_at
+  };
 
-  if (submission.lead_response_loss !== undefined) {
-    // Use pre-calculated values (new format)
-    currentARR = safeNumber(submission.current_arr);
-    leadResponseLoss = safeNumber(submission.lead_response_loss);
-    selfserveGapLoss = safeNumber(submission.selfserve_gap_loss);
-    processLoss = safeNumber(submission.process_inefficiency_loss);
-    failedPaymentLoss = safeNumber(submission.failed_payment_loss);
-    totalRecovery = safeNumber(submission.recovery_potential_70);
-  } else {
-    // Extract from raw submission data (fallback)
-    currentARR = safeNumber(submission.current_arr);
-    leadResponseLoss = 0; // Will be calculated below if needed
-    selfserveGapLoss = 0;
-    processLoss = 0;
-    failedPaymentLoss = 0;
-    totalRecovery = safeNumber(submission.recovery_potential_70);
-  }
+  // Get unified calculations
+  const unifiedCalcs = require('@/lib/results/UnifiedResultsService').UnifiedResultsService.calculateResults(submissionData);
+  
+  const currentARR = unifiedCalcs.performanceMetrics.currentARR;
+  const leadResponseLoss = unifiedCalcs.leadResponseLoss;
+  const selfserveGapLoss = unifiedCalcs.selfServeGap;
+  const processLoss = unifiedCalcs.processInefficiency; // FIXED: Use the correct calculation
+  const failedPaymentLoss = unifiedCalcs.failedPaymentLoss;
+  const totalRecovery = unifiedCalcs.conservativeRecovery;
 
   console.log("=== EXTRACTED VALUES ===");
   console.log({
