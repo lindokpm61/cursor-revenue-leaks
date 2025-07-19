@@ -36,6 +36,7 @@ import { IndustryBenchmarking } from "@/components/calculator/results/IndustryBe
 import { DetailedBreakdown } from "@/components/calculator/results/DetailedBreakdown";
 import { RevenueCharts } from "@/components/calculator/results/RevenueCharts";
 import { HeroRevenueChart } from "@/components/results/HeroRevenueChart";
+import { SaveSummaryButton } from "@/components/results/SaveSummaryButton";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { type ConfidenceFactors } from "@/lib/calculator/enhancedCalculations";
@@ -292,17 +293,27 @@ const Results = () => {
                 </div>
               </div>
 
-              <UnifiedCTA
-                variant="primary"
-                context="results"
-                data={{
-                  totalLeak,
-                  recovery: recovery70,
-                  formatCurrency
-                }}
-                onPrimaryAction={handleGetActionPlan}
-                onSecondaryAction={handleDownloadReport}
-              />
+              <div className="space-y-4">
+                <UnifiedCTA
+                  variant="primary"
+                  context="results"
+                  data={{
+                    totalLeak,
+                    recovery: recovery70,
+                    formatCurrency
+                  }}
+                  onPrimaryAction={handleGetActionPlan}
+                  onSecondaryAction={handleDownloadReport}
+                />
+                
+                <SaveSummaryButton
+                  data={calculatorData}
+                  calculations={calculations}
+                  submissionId={submission.id}
+                  formatCurrency={formatCurrency}
+                  variant="outline"
+                />
+              </div>
             </div>
 
             <div>

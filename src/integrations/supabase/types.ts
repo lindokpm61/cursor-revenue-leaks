@@ -495,6 +495,50 @@ export type Database = {
           },
         ]
       }
+      saved_summaries: {
+        Row: {
+          created_at: string
+          id: string
+          is_public: boolean
+          shared_url: string | null
+          submission_id: string
+          summary_data: Json
+          summary_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          shared_url?: string | null
+          submission_id: string
+          summary_data?: Json
+          summary_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          shared_url?: string | null
+          submission_id?: string
+          summary_data?: Json
+          summary_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_summaries_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       security_audit_log: {
         Row: {
           action: string
