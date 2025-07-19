@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -50,98 +49,88 @@ export const useSaveResults = () => {
   };
 
   const handleSave = async (data: CalculatorData, calculations: Calculations) => {
-    console.log('🚀 === SAVE BUTTON CLICKED - ENHANCED DEBUGGING ===');
+    console.log('🚀 === SAVE BUTTON CLICKED - STARTING SAVE PROCESS ===');
+    console.log('Button clicked with data:', { data, calculations });
     
-    // Step 1: Clear any stale auth state first
-    clearAllAuthState();
-    
-    // Step 2: Wait a moment for auth state to settle
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Step 3: Comprehensive authentication state logging
-    console.log('📊 COMPREHENSIVE AUTH STATE CHECK:');
-    console.log('  Raw user object:', user);
-    console.log('  Raw session object:', session);
-    console.log('  Loading state:', loading);
-    console.log('  User ID:', user?.id || 'NO USER ID');
-    console.log('  User email:', user?.email || 'NO EMAIL');
-    console.log('  Session exists:', !!session);
-    console.log('  Session user exists:', !!session?.user);
-    console.log('  Session access token exists:', !!session?.access_token);
-    console.log('  Session refresh token exists:', !!session?.refresh_token);
-    
-    if (session?.expires_at) {
-      const expiresAt = new Date(session.expires_at * 1000);
-      const now = new Date();
-      console.log('  Session expires at:', expiresAt.toISOString());
-      console.log('  Current time:', now.toISOString());
-      console.log('  Session is expired:', expiresAt <= now);
-      console.log('  Session valid for:', Math.round((expiresAt.getTime() - now.getTime()) / 1000 / 60), 'minutes');
-    } else {
-      console.log('  Session has no expiration time');
-    }
-    
-    // Step 4: Check localStorage/sessionStorage for any auth data
-    console.log('🗄️ STORAGE STATE CHECK:');
-    const authKeys = Object.keys(localStorage).filter(key => 
-      key.startsWith('supabase.auth.') || key.includes('sb-') || key.startsWith('auth-')
-    );
-    console.log('  Auth keys in localStorage:', authKeys);
-    authKeys.forEach(key => {
-      console.log(`    ${key}:`, localStorage.getItem(key)?.substring(0, 100) + '...');
-    });
-    
-    // Step 5: Determine authentication status with explicit logic
-    const isLoadingComplete = !loading;
-    const hasValidUser = !!(user && user.id && user.email);
-    const hasValidSession = !!(session && session.access_token);
-    const sessionNotExpired = session?.expires_at ? new Date(session.expires_at * 1000) > new Date() : false;
-    
-    console.log('🔍 AUTH STATUS BREAKDOWN:');
-    console.log('  Loading complete:', isLoadingComplete);
-    console.log('  Has valid user:', hasValidUser);
-    console.log('  Has valid session:', hasValidSession);
-    console.log('  Session not expired:', sessionNotExpired);
-    
-    // CRITICAL: Use stricter authentication check
-    const isAuthenticated = isLoadingComplete && hasValidUser && hasValidSession && sessionNotExpired;
-    
-    console.log('🎯 FINAL AUTHENTICATION DECISION:', {
-      isAuthenticated,
-      reason: !isAuthenticated ? (
-        !isLoadingComplete ? 'Still loading' :
-        !hasValidUser ? 'No valid user' :
-        !hasValidSession ? 'No valid session' :
-        !sessionNotExpired ? 'Session expired' :
-        'Unknown'
-      ) : 'All checks passed'
-    });
-
-    try {
-      // Update calculator progress regardless of auth status
-      console.log('📊 Updating calculator progress...');
-      await updateCalculatorProgress(5, {}, calculations);
-      console.log('✅ Calculator progress updated successfully');
-    } catch (error) {
-      console.error('❌ Error updating final progress:', error);
-    }
-
-    // Decision point: Show registration modal or proceed with save
-    if (!isAuthenticated) {
-      console.log('🚪 USER NOT AUTHENTICATED - SHOWING REGISTRATION MODAL');
-      console.log('  Setting pending data...');
-      setPendingData({ data, calculations });
-      console.log('  Opening registration modal...');
-      setShowRegistrationModal(true);
-      console.log('✅ Registration modal should now be visible');
-      return;
-    }
-
-    console.log('🔓 USER IS AUTHENTICATED - PROCEEDING WITH SAVE');
-    console.log('  User ID for save:', user.id);
+    // STEP 1: Set saving state immediately for visual feedback
     setSaving(true);
     
     try {
+      // STEP 2: Update calculator progress first
+      console.log('📊 Updating calculator progress...');
+      await updateCalculatorProgress(5, {}, calculations);
+      console.log('✅ Calculator progress updated successfully');
+      
+      // STEP 3: Comprehensive authentication state check (REMOVED clearAllAuthState)
+      console.log('🔍 === DETAILED AUTH STATE CHECK ===');
+      console.log('  User object:', user);
+      console.log('  Session object:', session);
+      console.log('  Loading state:', loading);
+      console.log('  User ID:', user?.id || 'NO USER ID');
+      console.log('  User email:', user?.email || 'NO EMAIL');
+      console.log('  Session exists:', !!session);
+      console.log('  Session user exists:', !!session?.user);
+      console.log('  Session access token exists:', !!session?.access_token);
+      
+      // STEP 4: Check session expiration
+      let sessionExpired = false;
+      if (session?.expires_at) {
+        const expiresAt = new Date(session.expires_at * 1000);
+        const now = new Date();
+        sessionExpired = expiresAt <= now;
+        console.log('  Session expires at:', expiresAt.toISOString());
+        console.log('  Current time:', now.toISOString());
+        console.log('  Session is expired:', sessionExpired);
+        console.log('  Session valid for:', Math.round((expiresAt.getTime() - now.getTime()) / 1000 / 60), 'minutes');
+      }
+      
+      // STEP 5: Determine authentication status with explicit logic
+      const isLoadingComplete = !loading;
+      const hasValidUser = !!(user && user.id && user.email);
+      const hasValidSession = !!(session && session.access_token);
+      const sessionNotExpired = !sessionExpired;
+      
+      console.log('🎯 AUTH STATUS BREAKDOWN:');
+      console.log('  Loading complete:', isLoadingComplete);
+      console.log('  Has valid user:', hasValidUser);
+      console.log('  Has valid session:', hasValidSession);
+      console.log('  Session not expired:', sessionNotExpired);
+      
+      const isAuthenticated = isLoadingComplete && hasValidUser && hasValidSession && sessionNotExpired;
+      
+      console.log('🎯 FINAL AUTHENTICATION DECISION:', {
+        isAuthenticated,
+        reason: !isAuthenticated ? (
+          !isLoadingComplete ? 'Still loading' :
+          !hasValidUser ? 'No valid user' :
+          !hasValidSession ? 'No valid session' :
+          !sessionNotExpired ? 'Session expired' :
+          'Unknown'
+        ) : 'All checks passed'
+      });
+
+      // STEP 6: Handle unauthenticated users
+      if (!isAuthenticated) {
+        console.log('🚪 USER NOT AUTHENTICATED - SHOWING REGISTRATION MODAL');
+        console.log('  Setting pending data...');
+        setPendingData({ data, calculations });
+        console.log('  Opening registration modal...');
+        setShowRegistrationModal(true);
+        console.log('✅ Registration modal should now be visible');
+        
+        toast({
+          title: "Account Required",
+          description: "Create a free account to save your analysis to your dashboard.",
+          variant: "default",
+        });
+        
+        return;
+      }
+
+      // STEP 7: Proceed with authenticated save
+      console.log('🔓 USER IS AUTHENTICATED - PROCEEDING WITH SAVE');
+      console.log('  User ID for save:', user.id);
+      
       console.log('📈 Calculating lead score...');
       const leadScore = calculateLeadScore(data, calculations);
       console.log('  Lead score calculated:', leadScore);
@@ -158,11 +147,11 @@ export const useSaveResults = () => {
         throw new Error('Failed to save submission - no submission returned');
       }
 
-      // Track analytics
+      // STEP 8: Track analytics
       console.log('📊 Tracking analytics...');
       await analyticsService.track('submission_saved', savedSubmission.id);
 
-      // Update user profile analytics
+      // STEP 9: Update user profile analytics
       try {
         console.log('👤 Updating user profile analytics...');
         await userProfileService.incrementAnalysis(user.id, calculations.totalLeakage);
@@ -182,7 +171,7 @@ export const useSaveResults = () => {
         }
       }
 
-      // Log integration activity
+      // STEP 10: Log integration activity
       console.log('🔗 Logging integration activity...');
       await integrationLogService.create({
         submission_id: savedSubmission.id,
@@ -191,7 +180,7 @@ export const useSaveResults = () => {
         response_data: { submission_id: savedSubmission.id, total_leak: calculations.totalLeakage }
       });
 
-      // Update local state
+      // STEP 11: Update local state
       console.log('🔄 Updating local state...');
       setIsSaved(true);
       setSavedSubmissionId(savedSubmission.id);
@@ -217,7 +206,8 @@ export const useSaveResults = () => {
       console.error('Error saving submission:', error);
       console.error('Error details:', {
         message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : undefined
       });
       
       toast({

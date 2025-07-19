@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { CalculatorData, Calculations } from "./useCalculatorData";
-import { Save, Calendar, Share2, CheckCircle, LayoutDashboard, Bug } from "lucide-react";
+import { Save, Calendar, Share2, CheckCircle, LayoutDashboard, Bug, Loader2 } from "lucide-react";
 import { ExecutiveSummary } from "./results/ExecutiveSummary";
 import { RevenueCharts } from "./results/RevenueCharts";
 import { DetailedBreakdown } from "./results/DetailedBreakdown";
@@ -111,10 +111,15 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
     console.log('Current user state:', { user, isAuthenticated: !!user });
     console.log('Current save state:', { saving, isSaved });
     
+    if (saving) {
+      console.log('⏳ Save already in progress, ignoring click');
+      return;
+    }
+    
     try {
       await handleSave(data, calculations);
     } catch (error) {
-      console.error('Save button handler error:', error);
+      console.error('💥 Save button handler error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred while saving. Please try again.",
@@ -148,6 +153,9 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
           </Button>
           <div className="text-sm text-red-600">
             Auth State: {user ? `Logged in as ${user.email}` : 'Not logged in'}
+          </div>
+          <div className="text-sm text-red-600">
+            Save Status: {saving ? 'Saving...' : isSaved ? 'Saved' : 'Not saved'}
           </div>
         </div>
       </div>
@@ -233,8 +241,17 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
               size="lg"
               className="hover:bg-primary hover:text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save className="h-4 w-4 mr-2" />
-              {saving ? "Saving..." : (user ? "Save to Dashboard" : "Create Account to Save")}
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  {user ? "Save to Dashboard" : "Create Account to Save"}
+                </>
+              )}
             </Button>
           )}
           
