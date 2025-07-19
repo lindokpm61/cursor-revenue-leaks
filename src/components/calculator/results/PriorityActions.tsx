@@ -24,6 +24,7 @@ interface PriorityActionsProps {
   submission: Submission;
   formatCurrency: (amount: number) => string;
   calculatorData?: any;
+  calculations?: any; // Add this optional prop for unified calculations
   variant?: 'condensed' | 'standard' | 'detailed' | 'competitive';
 }
 

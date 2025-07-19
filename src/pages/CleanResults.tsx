@@ -398,6 +398,7 @@ const CleanResults = () => {
             <PriorityActions 
               submission={submission}
               formatCurrency={formatCurrency}
+              calculations={calculations}
             />
           </div>
         )}
