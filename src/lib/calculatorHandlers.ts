@@ -9,16 +9,10 @@ import {
 } from "./advancedAutomation";
 import { getTemporarySubmission } from "@/lib/submission";
 
-// Email validation utility
+// Email validation utility - Updated to accept all valid emails
 export const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const businessDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com'];
-  
-  if (!emailRegex.test(email)) return false;
-  
-  const domain = email.split('@')[1].toLowerCase();
-  // Prefer business emails over personal ones
-  return !businessDomains.includes(domain);
+  return emailRegex.test(email);
 };
 
 // Calculate preliminary lead score for early qualification
