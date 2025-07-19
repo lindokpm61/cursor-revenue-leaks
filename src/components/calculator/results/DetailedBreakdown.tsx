@@ -46,7 +46,7 @@ export const DetailedBreakdown = ({ data, calculations, formatCurrency }: Detail
   // Calculate three-tier opportunity analysis
   const currentResponseTime = safeData.leadGeneration.leadResponseTimeHours;
   const industryAvgResponseTime = industryBenchmark.leadResponseTimeHours;
-  const bestInClassResponseTime = bestInClass.leadResponseTimeMinutes / 60; // Convert minutes to hours
+  const bestInClassResponseTime = Math.round((bestInClass.leadResponseTimeMinutes / 60) * 10) / 10; // Convert minutes to hours and round to 1 decimal
 
   const currentConversionRate = safeData.selfServeMetrics.freeToPaidConversionRate;
   const industryAvgConversion = industryBenchmark.freeToPaidConversionRate;
@@ -101,7 +101,7 @@ export const DetailedBreakdown = ({ data, calculations, formatCurrency }: Detail
                     <div className="text-revenue-warning">Industry Avg</div>
                   </div>
                   <div className="text-center p-2 bg-revenue-success/10 rounded border border-revenue-success/20">
-                    <div className="font-bold text-revenue-success">{bestInClassResponseTime}h</div>
+                    <div className="font-bold text-revenue-success">{Math.round(bestInClassResponseTime * 10) / 10}h</div>
                     <div className="text-revenue-success">Best-in-Class</div>
                   </div>
                 </div>

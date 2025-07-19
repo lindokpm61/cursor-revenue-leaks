@@ -82,7 +82,7 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
         title: 'Lead Response Time',
         userValue: submission.lead_response_time || 0,
         industryAvg: industryData.leadResponseTimeHours,
-        bestInClass: bestInClassData.leadResponseTimeMinutes / 60, // Convert to hours
+        bestInClass: Math.round((bestInClassData.leadResponseTimeMinutes / 60) * 10) / 10, // Convert to hours and round to 1 decimal
         unit: 'hours',
         icon: Clock,
         higherIsBetter: false,
@@ -390,7 +390,7 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
                                <div>
                                  <div className="text-muted-foreground">Best-in-Class</div>
                                  <div className="font-bold text-lg text-revenue-primary">
-                                   {metric.bestInClass}{metric.unit}
+                                   {Math.round(metric.bestInClass * 10) / 10}{metric.unit}
                                  </div>
                                </div>
                              </div>
