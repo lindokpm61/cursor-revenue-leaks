@@ -20,7 +20,7 @@ export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFa
     
     const leakageData = [
       { name: 'Lead Response', value: calculations.leadResponseLoss, color: '#ef4444' },
-      { name: 'Self-Serve Gap', value: calculations.selfServeGapLoss, color: '#f97316' },
+      { name: 'Self-Serve Gap', value: calculations.selfServeGap, color: '#f97316' },
       { name: 'Process Automation', value: calculations.processLoss, color: '#eab308' },
       { name: 'Payment Recovery', value: calculations.failedPaymentLoss, color: '#84cc16' }
     ];
@@ -46,7 +46,7 @@ export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFa
       currentARR: data.companyInfo.currentARR,
       leakPercentage: ((calculations.totalLeakage / data.companyInfo.currentARR) * 100).toFixed(1)
     };
-  }, [data.companyInfo.currentARR, calculations.leadResponseLoss, calculations.selfServeGapLoss, calculations.processLoss, calculations.failedPaymentLoss, calculations.totalLeakage]);
+  }, [data.companyInfo.currentARR, calculations.leadResponseLoss, calculations.selfServeGap, calculations.processLoss, calculations.failedPaymentLoss, calculations.totalLeakage]);
 
   return (
     <div className="space-y-6">
