@@ -1,7 +1,6 @@
-
 import { Button } from "@/components/ui/button";
 import { CalculatorData, Calculations } from "./useCalculatorData";
-import { Save, Calendar, Share2, CheckCircle, LayoutDashboard } from "lucide-react";
+import { Save, Calendar, Share2, CheckCircle, LayoutDashboard, Bug } from "lucide-react";
 import { ExecutiveSummary } from "./results/ExecutiveSummary";
 import { RevenueCharts } from "./results/RevenueCharts";
 import { DetailedBreakdown } from "./results/DetailedBreakdown";
@@ -29,10 +28,11 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
     handleRegistrationSuccess, 
     handleCloseRegistrationModal,
     isSaved,
-    navigateToDashboard
+    navigateToDashboard,
+    forceShowRegistrationModal,
+    clearAllAuthState
   } = useSaveResults();
 
-  // Enhanced insights breakdown
   const enhancedBreakdown = {
     leadResponse: {
       dealSizeTier: (data.leadGeneration?.averageDealValue || 0) > 100000 ? 'Enterprise' : 
@@ -105,9 +105,8 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
     });
   };
 
-  // Handle save button click with error boundary
   const handleSaveClick = async () => {
-    console.log('=== SAVE BUTTON HANDLER CALLED ===');
+    console.log('🎯 === SAVE BUTTON HANDLER CALLED ===');
     console.log('Button clicked with data:', { data, calculations });
     console.log('Current user state:', { user, isAuthenticated: !!user });
     console.log('Current save state:', { saving, isSaved });
@@ -126,6 +125,33 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
 
   return (
     <div className="space-y-8">
+      {/* DEBUG PANEL - Remove this after testing */}
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-2">
+        <h3 className="font-bold text-red-800">🐛 Debug Panel (Remove after testing)</h3>
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            onClick={() => forceShowRegistrationModal(data, calculations)}
+            variant="outline"
+            size="sm"
+            className="border-red-300 text-red-700 hover:bg-red-100"
+          >
+            <Bug className="h-4 w-4 mr-2" />
+            Force Show Registration Modal
+          </Button>
+          <Button
+            onClick={clearAllAuthState}
+            variant="outline"
+            size="sm"
+            className="border-red-300 text-red-700 hover:bg-red-100"
+          >
+            Clear Auth State
+          </Button>
+          <div className="text-sm text-red-600">
+            Auth State: {user ? `Logged in as ${user.email}` : 'Not logged in'}
+          </div>
+        </div>
+      </div>
+
       {/* Executive Summary with Immediate Value */}
       <div className="space-y-6">
         <ExecutiveSummary 
@@ -165,7 +191,6 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
             }
           </p>
           
-          {/* Saved Status Indicator */}
           {isSaved && (
             <div className="flex items-center justify-center gap-2 text-revenue-success">
               <CheckCircle className="h-5 w-5" />
@@ -174,7 +199,6 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
           )}
         </div>
         
-        {/* Primary CTA - No Barriers */}
         <div className="space-y-4">
           <Button
             onClick={handleBookConsultation}
@@ -190,7 +214,6 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
           </p>
         </div>
 
-        {/* Secondary CTAs */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
           {isSaved ? (
             <Button
