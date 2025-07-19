@@ -86,15 +86,26 @@ export const RevenueCalculator = () => {
   useEffect(() => {
     const initializeCalculator = async () => {
       try {
+        console.log('🔄 Initializing calculator...');
+        
         // Track initial page view
         await trackEngagement('page_view');
         
         // Try to load existing temporary submission
         const existingSubmission = await getTemporarySubmission();
+        console.log('📊 Existing submission found:', existingSubmission);
+        
         if (existingSubmission) {
           setTempId(existingSubmission.temp_id);
           
+          // TEMPORARY FIX: Always start fresh to prevent jumping to results
+          // TODO: Remove this fix once the root cause is identified
+          console.log('🔧 TEMP FIX: Starting fresh instead of restoring saved state');
+          
+          /* Commented out to force fresh start
           if (existingSubmission.calculator_data) {
+            console.log('📋 Restoring calculator data:', existingSubmission.calculator_data);
+            
             // Restore data from temporary submission
             const savedData = existingSubmission.calculator_data as Record<string, any>;
             if (savedData.step_1) {
@@ -112,9 +123,13 @@ export const RevenueCalculator = () => {
             
             // Set current step to where user left off
             if (existingSubmission.current_step) {
+              console.log('🎯 Restoring to step:', existingSubmission.current_step);
               setCurrentStep(existingSubmission.current_step);
             }
           }
+          */
+        } else {
+          console.log('✨ No existing submission - starting fresh');
         }
       } catch (error) {
         console.error('Error initializing calculator:', error);
