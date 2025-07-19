@@ -35,10 +35,10 @@ export class UserRegistrationService {
         return { success: false, error: authResult.error };
       }
 
-      // Step 2: Create user profile (core requirement)
+      // Step 2: Create user profile (core requirement) - now with better error handling
       const profileResult = await this.createUserProfile(authResult.user, data);
       if (!profileResult.success) {
-        console.error('Profile creation failed but auth succeeded - user can still login');
+        console.warn('Profile creation/update had issues but auth succeeded - user can still login:', profileResult.error);
         // Don't fail registration if profile creation fails
       }
 
@@ -102,7 +102,7 @@ export class UserRegistrationService {
   }
 
   /**
-   * Creates user profile with safe data handling
+   * Creates user profile with safe data handling using UPSERT
    */
   private static async createUserProfile(user: User, data: RegistrationData) {
     try {
@@ -136,22 +136,26 @@ export class UserRegistrationService {
         utm_campaign: tempSubmission?.utm_campaign || null
       };
 
-      console.log('Creating user profile with data:', profileData);
+      console.log('Creating/updating user profile with data:', profileData);
 
+      // Use UPSERT to handle cases where profile already exists from database trigger
       const { error } = await supabase
         .from('user_profiles')
-        .upsert(profileData);
+        .upsert(profileData, {
+          onConflict: 'id',
+          ignoreDuplicates: false
+        });
 
       if (error) {
-        console.error('Profile creation failed:', error);
+        console.error('Profile creation/update failed:', error);
         return { success: false, error: error.message };
       }
 
-      console.log('✅ User profile created successfully');
+      console.log('✅ User profile created/updated successfully');
       return { success: true };
 
     } catch (error) {
-      console.error('Profile creation error:', error);
+      console.error('Profile creation/update error:', error);
       return { 
         success: false, 
         error: error instanceof Error ? error.message : 'Profile creation failed' 

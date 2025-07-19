@@ -327,21 +327,26 @@ export const createUserProfile = async (profileData: any) => {
       engagement_score: profileData.engagement_score
     };
 
-    console.log('Creating user profile with cleaned data:', cleanProfileData);
+    console.log('Creating/updating user profile with cleaned data:', cleanProfileData);
 
+    // Use UPSERT to handle cases where profile already exists from database trigger
     const { data, error } = await supabase
       .from('user_profiles')
-      .insert(cleanProfileData);
+      .upsert(cleanProfileData, {
+        onConflict: 'id',
+        ignoreDuplicates: false
+      })
+      .select();
 
     if (error) {
-      console.error('Supabase error creating user profile:', error);
+      console.error('Supabase error creating/updating user profile:', error);
       throw error;
     }
     
-    console.log('User profile created successfully:', data);
+    console.log('User profile created/updated successfully:', data);
     return data;
   } catch (error) {
-    console.error('Error creating user profile:', error);
+    console.error('Error creating/updating user profile:', error);
     throw error;
   }
 };
@@ -375,7 +380,7 @@ export const handleUserRegistration = async (registrationData: any, tempId: stri
     const tempSubmission = await getTemporarySubmission(tempId);
     
     if (tempSubmission) {
-      // 3. Create permanent submission record
+      // 3. Create permanent submission record first (this is the most important part)
       const calculatorData = tempSubmission.calculator_data as Record<string, any> || {};
       
       const permanentSubmission = await createSubmission({
@@ -403,29 +408,26 @@ export const handleUserRegistration = async (registrationData: any, tempId: stri
         lead_score: tempSubmission.lead_score
       });
       
-      // 4. Create enhanced user profile
-      await createUserProfile({
-        user_id: user.id,
-        actual_company_name: registrationData.actualCompany || tempSubmission.company_name,
-        actual_role: registrationData.actualRole,
-        phone: registrationData.phone,
-        user_classification: determineUserClassification(registrationData, tempSubmission),
-        business_model: registrationData.businessModel || 'internal',
-        
-        // Engagement and history tracking
-        first_submission_date: tempSubmission.created_at,
-        total_companies_analyzed: 1,
-        engagement_score: calculateInitialEngagementScore(tempSubmission),
-        
-        // Attribution data
-        attribution_data: {
-          utm_source: tempSubmission.utm_source,
-          utm_medium: tempSubmission.utm_medium,
-          utm_campaign: tempSubmission.utm_campaign,
-          referrer_url: tempSubmission.referrer_url,
-          first_visit: tempSubmission.created_at
-        }
-      });
+      // 4. Create/update enhanced user profile (non-blocking if it fails)
+      try {
+        await createUserProfile({
+          user_id: user.id,
+          actual_company_name: registrationData.actualCompany || tempSubmission.company_name,
+          actual_role: registrationData.actualRole,
+          phone: registrationData.phone,
+          user_classification: determineUserClassification(registrationData, tempSubmission),
+          business_model: registrationData.businessModel || 'internal',
+          
+          // Engagement and history tracking
+          first_submission_date: tempSubmission.created_at,
+          total_companies_analyzed: 1,
+          engagement_score: calculateInitialEngagementScore(tempSubmission)
+        });
+        console.log('✅ User profile created/updated successfully');
+      } catch (profileError) {
+        console.warn('⚠️ User profile creation failed (non-blocking):', profileError);
+        // Don't fail the entire registration if profile update fails
+      }
       
       // 5. Mark temporary submission as converted
       await updateTemporarySubmission(tempId, {
@@ -433,17 +435,21 @@ export const handleUserRegistration = async (registrationData: any, tempId: stri
         conversion_completed_at: new Date().toISOString()
       });
       
-      // 6. Trigger registration completion workflows
-      await triggerEmailSequence('registration_completed', {
-        email: user.email,
-        company: tempSubmission.company_name,
-        temp_id: tempId,
-        user_id: user.id,
-        recovery_potential: tempSubmission.recovery_potential,
-        user_classification: determineUserClassification(registrationData, tempSubmission)
-      });
+      // 6. Trigger registration completion workflows (non-blocking)
+      try {
+        await triggerEmailSequence('registration_completed', {
+          email: user.email,
+          company: tempSubmission.company_name,
+          temp_id: tempId,
+          user_id: user.id,
+          recovery_potential: tempSubmission.recovery_potential,
+          user_classification: determineUserClassification(registrationData, tempSubmission)
+        });
+      } catch (emailError) {
+        console.warn('⚠️ Email sequence trigger failed (non-blocking):', emailError);
+      }
       
-      // 7. Trigger Twenty CRM integration
+      // 7. Trigger Twenty CRM integration (non-blocking)
       try {
         const crmSubmission: any = {
           id: permanentSubmission.id,
@@ -485,7 +491,7 @@ export const handleUserRegistration = async (registrationData: any, tempId: stri
         // Don't fail registration due to CRM integration issues
       }
       
-      // 8. Update CRM with full user data via N8N
+      // 8. Update CRM with full user data via N8N (non-blocking)
       try {
         await triggerN8NWorkflow('crm-integration', {
           action: 'update_contact_registration',
@@ -500,16 +506,22 @@ export const handleUserRegistration = async (registrationData: any, tempId: stri
         // Don't fail registration due to N8N integration issues
       }
       
-      // 9. Cancel any pending abandonment emails
-      await cancelPendingAbandonmentEmails(tempId);
+      // 9. Cancel any pending abandonment emails (non-blocking)
+      try {
+        await cancelPendingAbandonmentEmails(tempId);
+      } catch (emailCleanupError) {
+        console.warn('⚠️ Email cleanup failed (non-blocking):', emailCleanupError);
+      }
       
+      console.log('🎉 Registration completed successfully!');
       return { user, submission: permanentSubmission };
     }
     
+    console.log('⚠️ No temporary submission found, but user created successfully');
     return { user, submission: null };
     
   } catch (error) {
-    console.error('Failed to handle user registration:', error);
+    console.error('💥 Failed to handle user registration:', error);
     throw error;
   }
 };
