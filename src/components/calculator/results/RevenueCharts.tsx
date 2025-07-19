@@ -254,10 +254,10 @@ export const RevenueCharts = ({ data, calculations, formatCurrency, confidenceFa
               <XAxis dataKey="category" />
               <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
               <Tooltip 
-                formatter={(value, name) => [
+                formatter={(value, dataKey) => [
                   formatCurrency(Number(value)), 
-                  name === 'current' ? 'Current Loss' :
-                  name === 'conservative' ? 'Industry Average Recovery' :
+                  dataKey === 'current' ? 'Current Loss' :
+                  dataKey === 'conservative' ? 'Industry Average Recovery' :
                   'Best-in-Class Recovery'
                 ]} 
               />
