@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, Plus, LogOut, Trash2 } from "lucide-react";
+import { Calculator, Plus, LogOut, Trash2, TrendingUp, ArrowRight, Calendar } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { submissionService, userProfileService, type Submission, type UserProfile } from "@/lib/supabase";
@@ -164,7 +164,7 @@ const Dashboard = () => {
     }
   };
 
-  // Hero Analysis Section - Updated to use calculated values
+  // Hero Analysis Section - Updated with View Full Results button
   const HeroAnalysisSection = ({ latestAnalysis }: { latestAnalysis: Submission }) => {
     const calculations = getCalculatedValues(latestAnalysis);
     const isHighValue = calculations.conservativeRecovery > 100000000;
@@ -232,6 +232,27 @@ const Dashboard = () => {
         </div>
         
         <div className="flex gap-4 justify-center flex-wrap">
+          <Link to={`/results/${latestAnalysis.id}`}>
+            <Button 
+              size="lg"
+              className="text-h3 px-8 py-4 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg transform hover:scale-105 transition-all"
+            >
+              <TrendingUp className="h-5 w-5 mr-2" />
+              View Full Results
+              <ArrowRight className="h-5 w-5 ml-2" />
+            </Button>
+          </Link>
+          
+          <Link to={`/action-plan/${latestAnalysis.id}`}>
+            <Button 
+              variant="outline" 
+              size="lg"
+              className="text-h3 px-8 py-4 border-2"
+            >
+              📋 View Detailed Action Plan
+            </Button>
+          </Link>
+          
           {isHighValue ? (
             <Button 
               size="lg"
@@ -243,6 +264,7 @@ const Dashboard = () => {
               }}
               onClick={() => window.open('mailto:support@company.com?subject=Priority Strategy Call Request', '_self')}
             >
+              <Calendar className="h-5 w-5 mr-2" />
               🚀 Book Priority Strategy Call
             </Button>
           ) : (
@@ -256,19 +278,10 @@ const Dashboard = () => {
               }}
               onClick={() => window.open('mailto:support@company.com?subject=Strategy Consultation Request', '_self')}
             >
+              <Calendar className="h-5 w-5 mr-2" />
               📞 Book Strategy Consultation
             </Button>
           )}
-          
-          <Link to={`/action-plan/${latestAnalysis.id}`}>
-            <Button 
-              variant="outline" 
-              size="lg"
-              className="text-h3 px-8 py-4 border-2"
-            >
-              📋 View Detailed Action Plan
-            </Button>
-          </Link>
         </div>
         
         {isHighValue && (
