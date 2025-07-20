@@ -88,6 +88,13 @@ export const RevenueCalculator = () => {
       try {
         console.log('🔄 Initializing calculator...');
         
+        // Force clear invalid temp_id from localStorage immediately
+        const currentTempId = localStorage.getItem('calculator_temp_id');
+        if (currentTempId && !currentTempId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)) {
+          console.log('🧹 Clearing invalid temp_id from localStorage:', currentTempId);
+          localStorage.removeItem('calculator_temp_id');
+        }
+        
         // Track initial page view
         await trackEngagement('page_view');
         
