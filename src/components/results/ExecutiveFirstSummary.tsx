@@ -265,14 +265,15 @@ export const ExecutiveFirstSummary = ({
             <Button 
               onClick={onGetActionPlan}
               size="lg" 
-              className="w-full text-xs sm:text-sm md:text-base font-semibold h-12 md:h-14 bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl touch-manipulation px-3 sm:px-4"
+              className="w-full text-xs sm:text-sm md:text-base font-semibold h-12 md:h-14 bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl touch-manipulation px-2 sm:px-3 md:px-4"
             >
-              <Target className="h-4 w-4 md:h-5 md:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
-              <span className="truncate min-w-0">
-                <span className="hidden sm:inline">Get Strategic Action Plan</span>
-                <span className="sm:hidden">Get Action Plan</span>
+              <Target className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 mr-1 sm:mr-1.5 md:mr-2 flex-shrink-0" />
+              <span className="truncate min-w-0 text-xs sm:text-sm md:text-base">
+                <span className="hidden md:inline">Get Strategic Action Plan</span>
+                <span className="hidden sm:inline md:hidden">Get Action Plan</span>
+                <span className="sm:hidden">Action Plan</span>
               </span>
-              <ArrowRight className="h-3 w-3 md:h-4 md:w-4 ml-1.5 sm:ml-2 flex-shrink-0" />
+              <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 md:h-4 md:w-4 ml-1 sm:ml-1.5 md:ml-2 flex-shrink-0" />
             </Button>
             
             <Button 
