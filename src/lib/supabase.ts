@@ -14,34 +14,38 @@ export const userPatternService = {
 };
 
 export const submissionService = {
-  async create(data: any) { return { data: null, error: { message: 'Service disabled' } }; },
-  async getById(id: string) { 
-    // Return a stub submission for the specific ID to avoid breaking the UI
-    return { 
-      data: {
-        id,
-        company_name: 'Demo Company',
-        contact_email: 'demo@example.com',
-        current_arr: 1000000,
-        lead_response_loss: 50000,
-        failed_payment_loss: 30000,
-        selfserve_gap_loss: 40000,
-        process_inefficiency_loss: 35000,
-        total_leak: 155000,
-        recovery_potential_70: 108500,
-        recovery_potential_85: 131750,
-        lead_score: 75,
-        user_id: 'demo-user',
-        created_at: new Date().toISOString()
-      }, 
-      error: null 
-    }; 
+  async create(data: any) { 
+    const { supabase } = await import('@/integrations/supabase/client');
+    return await supabase.from('calculator_submissions').insert([data]).select().single();
   },
-  async getByUserId(userId: string, limit?: number) { return { data: [], error: null }; },
-  async getAll(limit?: number) { return { data: [], error: null }; },
-  async getAllWithUserData() { return { data: [], error: null }; },
-  async update(id: string, data: any) { return { data: null, error: { message: 'Service disabled' } }; },
-  async delete(id: string) { return { error: { message: 'Service disabled' } }; },
+  async getById(id: string) { 
+    const { supabase } = await import('@/integrations/supabase/client');
+    return await supabase.from('calculator_submissions').select('*').eq('id', id).single();
+  },
+  async getByUserId(userId: string, limit?: number) { 
+    const { supabase } = await import('@/integrations/supabase/client');
+    let query = supabase.from('calculator_submissions').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+    if (limit) query = query.limit(limit);
+    return await query;
+  },
+  async getAll(limit?: number) { 
+    const { supabase } = await import('@/integrations/supabase/client');
+    let query = supabase.from('calculator_submissions').select('*').order('created_at', { ascending: false });
+    if (limit) query = query.limit(limit);
+    return await query;
+  },
+  async getAllWithUserData() { 
+    const { supabase } = await import('@/integrations/supabase/client');
+    return await supabase.from('calculator_submissions').select('*, profiles(*)').order('created_at', { ascending: false });
+  },
+  async update(id: string, data: any) { 
+    const { supabase } = await import('@/integrations/supabase/client');
+    return await supabase.from('calculator_submissions').update(data).eq('id', id).select().single();
+  },
+  async delete(id: string) { 
+    const { supabase } = await import('@/integrations/supabase/client');
+    return await supabase.from('calculator_submissions').delete().eq('id', id);
+  },
   async incrementAnalysis(id: string) { return { data: null, error: null }; }
 };
 
@@ -80,10 +84,22 @@ export const leadScoringService = {
 };
 
 export const userProfileService = {
-  async create(data: any) { return { data: null, error: { message: 'Service disabled' } }; },
-  async getByUserId(userId: string) { return { data: null, error: null }; },
-  async update(userId: string, data: any) { return { data: null, error: { message: 'Service disabled' } }; },
-  async delete(userId: string) { return { error: { message: 'Service disabled' } }; },
+  async create(data: any) { 
+    const { supabase } = await import('@/integrations/supabase/client');
+    return await supabase.from('profiles').insert([data]).select().single();
+  },
+  async getByUserId(userId: string) { 
+    const { supabase } = await import('@/integrations/supabase/client');
+    return await supabase.from('profiles').select('*').eq('id', userId).single();
+  },
+  async update(userId: string, data: any) { 
+    const { supabase } = await import('@/integrations/supabase/client');
+    return await supabase.from('profiles').update(data).eq('id', userId).select().single();
+  },
+  async delete(userId: string) { 
+    const { supabase } = await import('@/integrations/supabase/client');
+    return await supabase.from('profiles').delete().eq('id', userId);
+  },
   async incrementAnalysis(userId: string, value?: any) { return { data: null, error: null }; },
   async getUsersWithAnalytics(filters?: any) { return { data: [], error: null }; }
 };
