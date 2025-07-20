@@ -537,7 +537,7 @@ export const RevenueCalculator = () => {
             
             <Button
               onClick={nextStep}
-              className="flex items-center gap-3 bg-gradient-to-r from-primary via-revenue-primary to-accent hover:opacity-90 shadow-attention-glow touch-target font-semibold text-body transition-all duration-300 hover:scale-105"
+              className="flex items-center gap-3 bg-gradient-to-r from-primary via-revenue-primary to-accent hover:opacity-90 shadow-attention-glow touch-target font-semibold text-body transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               disabled={currentStep === 1 && (!data.companyInfo.companyName?.trim() || !data.companyInfo.email?.trim())}
             >
               {currentStep === 4 ? (
