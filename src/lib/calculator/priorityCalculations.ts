@@ -1,5 +1,5 @@
 import { Tables } from '@/integrations/supabase/types';
-import { UnifiedResultsService } from '@/lib/results/UnifiedResultsService';
+import { calculateUnifiedResults, type UnifiedCalculationInputs } from './unifiedCalculations';
 
 type Submission = Tables<'calculator_submissions'>;
 
@@ -173,38 +173,32 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
   console.log("=== PRIORITY ACTIONS CALCULATION DEBUG ===");
   console.log("Input submission:", submission);
 
-  // FIXED: Use UnifiedResultsService for consistent calculations
-  const submissionData = {
-    id: submission.id,
-    company_name: submission.company_name,
-    contact_email: submission.contact_email,
-    industry: submission.industry,
-    current_arr: submission.current_arr || 0,
-    monthly_leads: submission.monthly_leads || 0,
-    average_deal_value: submission.average_deal_value || 0,
-    lead_response_time: submission.lead_response_time || 24,
-    monthly_free_signups: submission.monthly_free_signups || 0,
-    free_to_paid_conversion: submission.free_to_paid_conversion || 0,
-    monthly_mrr: submission.monthly_mrr || 0,
-    failed_payment_rate: submission.failed_payment_rate || 0,
-    manual_hours: submission.manual_hours || 0,
-    hourly_rate: submission.hourly_rate || 0,
-    lead_score: submission.lead_score || 0,
-    user_id: submission.user_id,
-    created_at: submission.created_at
+  // FIXED: Use unified calculation system for consistent results
+  const unifiedInputs: UnifiedCalculationInputs = {
+    currentARR: submission.current_arr || 0,
+    monthlyMRR: submission.monthly_mrr || 0,
+    monthlyLeads: submission.monthly_leads || 0,
+    averageDealValue: submission.average_deal_value || 0,
+    leadResponseTime: submission.lead_response_time || 24,
+    monthlyFreeSignups: submission.monthly_free_signups || 0,
+    freeToLaidConversion: submission.free_to_paid_conversion || 0,
+    failedPaymentRate: submission.failed_payment_rate || 0,
+    manualHours: submission.manual_hours || 0,
+    hourlyRate: submission.hourly_rate || 0,
+    industry: submission.industry || undefined
   };
 
-  // Get unified calculations
-  const unifiedCalcs = UnifiedResultsService.calculateResults(submissionData);
+  // Get unified calculations - same system as dashboard
+  const unifiedCalcs = calculateUnifiedResults(unifiedInputs);
   
-  const currentARR = unifiedCalcs.performanceMetrics.currentARR;
+  const currentARR = unifiedInputs.currentARR;
   const leadResponseLoss = unifiedCalcs.leadResponseLoss;
-  const selfserveGapLoss = unifiedCalcs.selfServeGap;
-  const processLoss = unifiedCalcs.processInefficiency; // FIXED: Use the correct calculation
+  const selfserveGapLoss = unifiedCalcs.selfServeGapLoss;
+  const processLoss = unifiedCalcs.processInefficiencyLoss;
   const failedPaymentLoss = unifiedCalcs.failedPaymentLoss;
-  const totalRecovery = unifiedCalcs.conservativeRecovery;
+  const totalRecovery = unifiedCalcs.recovery70Percent;
 
-  console.log("=== EXTRACTED VALUES ===");
+  console.log("=== UNIFIED CALCULATION VALUES ===");
   console.log({
     currentARR,
     leadResponseLoss,
@@ -214,24 +208,24 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
     totalRecovery
   });
 
-  // Calculate realistic action-specific recoveries (conservative estimates)
-  const leadResponseRecovery = leadResponseLoss * 0.5; // 50% recovery potential
-  const selfserveRecovery = selfserveGapLoss * 0.4; // 40% recovery potential
-  const processRecovery = processLoss * 0.6; // 60% recovery potential
-  const paymentRecovery = failedPaymentLoss * 0.7; // 70% recovery potential
+  // Use action-specific recovery amounts from unified calculations
+  const leadResponseRecovery = unifiedCalcs.actionSpecificRecovery.leadResponse;
+  const selfserveRecovery = unifiedCalcs.actionSpecificRecovery.selfServe;
+  const processRecovery = unifiedCalcs.actionSpecificRecovery.processAutomation;
+  const paymentRecovery = unifiedCalcs.actionSpecificRecovery.paymentRecovery;
 
   // Calculate total potential recovery for impact percentages
   const totalActionRecovery = leadResponseRecovery + selfserveRecovery + processRecovery + paymentRecovery;
   
   const actions: PriorityAction[] = [];
 
-  // CRITICAL FIX: Much lower thresholds - virtually any loss should trigger actions
-  const leadResponseThreshold = Math.max(currentARR * 0.0001, 1000); // 0.01% of ARR or $1K minimum
-  const selfserveThreshold = Math.max(currentARR * 0.0001, 500); // 0.01% of ARR or $500 minimum
-  const processThreshold = Math.max(currentARR * 0.0001, 1000); // 0.01% of ARR or $1K minimum
-  const paymentThreshold = Math.max(currentARR * 0.0001, 500); // 0.01% of ARR or $500 minimum
+  // Lower thresholds - virtually any loss should trigger actions
+  const leadResponseThreshold = Math.max(currentARR * 0.0001, 1000);
+  const selfserveThreshold = Math.max(currentARR * 0.0001, 500);
+  const processThreshold = Math.max(currentARR * 0.0001, 1000);
+  const paymentThreshold = Math.max(currentARR * 0.0001, 500);
 
-  console.log('=== ULTRA-LOW PRIORITY ACTION THRESHOLDS ===');
+  console.log('=== PRIORITY ACTION THRESHOLDS ===');
   console.log({
     currentARR,
     leadResponseLoss,
@@ -246,67 +240,39 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
     totalRecovery
   });
 
-  // Lead Response Optimization (if ANY significant loss)
+  // Lead Response Optimization
   if (leadResponseLoss > leadResponseThreshold) {
     console.log("Adding lead response action - loss:", leadResponseLoss, "threshold:", leadResponseThreshold);
     actions.push(createLeadResponseAction(leadResponseRecovery, totalActionRecovery, currentARR, leadResponseLoss));
-  } else {
-    console.log("Skipping lead response action - loss:", leadResponseLoss, "threshold:", leadResponseThreshold);
   }
 
-  // Self-Serve Gap (if ANY significant loss)
+  // Self-Serve Gap
   if (selfserveGapLoss > selfserveThreshold) {
     console.log("Adding self-serve action - loss:", selfserveGapLoss, "threshold:", selfserveThreshold);
     actions.push(createSelfServeAction(selfserveRecovery, totalActionRecovery, currentARR, selfserveGapLoss));
-  } else {
-    console.log("Skipping self-serve action - loss:", selfserveGapLoss, "threshold:", selfserveThreshold);
   }
 
-  // Process Inefficiency (if ANY significant loss)
+  // Process Inefficiency
   if (processLoss > processThreshold) {
     console.log("Adding process action - loss:", processLoss, "threshold:", processThreshold);
     actions.push(createProcessAction(processRecovery, totalActionRecovery, currentARR, processLoss));
-  } else {
-    console.log("Skipping process action - loss:", processLoss, "threshold:", processThreshold);
   }
 
-  // Payment Recovery (if ANY significant loss)
+  // Payment Recovery
   if (failedPaymentLoss > paymentThreshold) {
     console.log("Adding payment action - loss:", failedPaymentLoss, "threshold:", paymentThreshold);
     actions.push(createPaymentAction(paymentRecovery, totalActionRecovery, currentARR, failedPaymentLoss));
-  } else {
-    console.log("Skipping payment action - loss:", failedPaymentLoss, "threshold:", paymentThreshold);
   }
 
-  // ENHANCED: Always ensure we have 4 actions if data is available
+  // Ensure we have actions if data is available
   console.log("Current actions count:", actions.length);
   
-  // Check for any meaningful data and create corresponding actions if missing
   const hasLeadData = (submission.monthly_leads || 0) > 0 && (submission.average_deal_value || 0) > 0;
   const hasSelfServeData = (submission.monthly_free_signups || 0) > 0;
   const hasProcessData = (submission.manual_hours || 0) > 0 && (submission.hourly_rate || 0) > 0;
   const hasPaymentData = (submission.monthly_mrr || 0) > 0 && (submission.failed_payment_rate || 0) > 0;
 
-  console.log("Data availability check:", {
-    hasLeadData,
-    hasSelfServeData,
-    hasProcessData,
-    hasPaymentData
-  });
-
-  // Add self-serve action if data is available but action wasn't created
-  if (hasSelfServeData && !actions.find(a => a.id === 'selfserve-optimization')) {
-    console.log("Adding self-serve action based on signup data");
-    const monthlySignups = safeNumber(submission.monthly_free_signups);
-    const conversionRate = safeNumber(submission.free_to_paid_conversion);
-    const dealValue = safeNumber(submission.average_deal_value);
-    // Calculate potential recovery from improving conversion rate by 1.5%
-    const improvementPotential = Math.max(1.5, conversionRate * 0.5);
-    const annualRecovery = monthlySignups * (improvementPotential / 100) * dealValue * 12;
-    actions.push(createSelfServeAction(annualRecovery * 0.4, totalActionRecovery, currentARR, annualRecovery));
-  }
-
-  // If still no actions, create fallback actions with minimal values
+  // Add fallback actions if no actions met thresholds but data exists
   if (actions.length === 0) {
     console.log("No actions met thresholds, creating fallback actions");
     
@@ -377,11 +343,29 @@ export function calculateTotalPotentialRecovery(actions: PriorityAction[]): numb
 }
 
 export function calculateExecutiveSummary(submission: Submission): ExecutiveSummary {
+  // FIXED: Use unified calculation system for consistent results
+  const unifiedInputs: UnifiedCalculationInputs = {
+    currentARR: submission.current_arr || 0,
+    monthlyMRR: submission.monthly_mrr || 0,
+    monthlyLeads: submission.monthly_leads || 0,
+    averageDealValue: submission.average_deal_value || 0,
+    leadResponseTime: submission.lead_response_time || 24,
+    monthlyFreeSignups: submission.monthly_free_signups || 0,
+    freeToLaidConversion: submission.free_to_paid_conversion || 0,
+    failedPaymentRate: submission.failed_payment_rate || 0,
+    manualHours: submission.manual_hours || 0,
+    hourlyRate: submission.hourly_rate || 0,
+    industry: submission.industry || undefined
+  };
+
+  const unifiedCalcs = calculateUnifiedResults(unifiedInputs);
   const currentARR = safeNumber(submission.current_arr);
-  const totalLeak = safeNumber(submission.total_leak);
+  
+  // Map unified calculation results to executive summary format
+  const totalLeak = unifiedCalcs.totalLoss; // Maps totalLoss to totalLeakage
   const priorityActions = calculatePriorityActions(submission);
   const quickWins = calculateQuickWins(submission);
-  const realisticRecovery = calculateTotalPotentialRecovery(priorityActions);
+  const realisticRecovery = unifiedCalcs.recovery70Percent; // Maps recovery70Percent to realisticRecovery
   
   // Determine urgency level based on leak percentage
   const leakPercentage = currentARR > 0 ? (totalLeak / currentARR) * 100 : 0;
@@ -391,9 +375,10 @@ export function calculateExecutiveSummary(submission: Submission): ExecutiveSumm
   else if (leakPercentage > 8) urgencyLevel = 'Medium';
   else urgencyLevel = 'Low';
   
-  // Determine confidence level based on data quality
-  const confidenceLevel: 'High' | 'Medium' | 'Low' = priorityActions.length >= 3 ? 'High' : 
-                                                     priorityActions.length >= 2 ? 'Medium' : 'Low';
+  // Use unified calculation confidence level
+  const confidenceLevel: 'High' | 'Medium' | 'Low' = 
+    unifiedCalcs.confidenceLevel === 'high' ? 'High' :
+    unifiedCalcs.confidenceLevel === 'medium' ? 'Medium' : 'Low';
   
   // Calculate time to value based on quick wins
   const timeToValue = quickWins.length > 0 ? 
@@ -408,8 +393,8 @@ export function calculateExecutiveSummary(submission: Submission): ExecutiveSumm
     'Low-impact opportunity with incremental revenue gains';
   
   return {
-    totalLeakage: totalLeak,
-    realisticRecovery,
+    totalLeakage: totalLeak, // Now using unified calculation
+    realisticRecovery, // Now using unified calculation
     priorityActions,
     quickWins,
     urgencyLevel,
