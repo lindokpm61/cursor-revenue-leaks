@@ -478,6 +478,7 @@ export type Database = {
           lead_score: number | null
           n8n_workflow_status: Json | null
           page_views: number | null
+          phone: string | null
           recovery_potential: number | null
           referrer_url: string | null
           return_visits: number | null
@@ -511,6 +512,7 @@ export type Database = {
           lead_score?: number | null
           n8n_workflow_status?: Json | null
           page_views?: number | null
+          phone?: string | null
           recovery_potential?: number | null
           referrer_url?: string | null
           return_visits?: number | null
@@ -544,6 +546,7 @@ export type Database = {
           lead_score?: number | null
           n8n_workflow_status?: Json | null
           page_views?: number | null
+          phone?: string | null
           recovery_potential?: number | null
           referrer_url?: string | null
           return_visits?: number | null
