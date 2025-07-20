@@ -8,13 +8,13 @@ export type UserProfile = any;
 
 // Add missing services that other files expect
 export const userPatternService = {
-  async getPattern() { return { data: null, error: null }; },
-  async getSubmissionsByEmail() { return { data: [], error: null }; },
-  async analyzeUserPattern() { return { data: null, error: null }; }
+  async getPattern(userId: string) { return { data: null, error: null }; },
+  async getSubmissionsByEmail(email: string) { return { data: [], error: null }; },
+  async analyzeUserPattern(email: string) { return { data: null, error: null }; }
 };
 
 export const submissionService = {
-  async create() { return { data: null, error: { message: 'Service disabled' } }; },
+  async create(data: any) { return { data: null, error: { message: 'Service disabled' } }; },
   async getById(id: string) { 
     // Return a stub submission for the specific ID to avoid breaking the UI
     return { 
@@ -37,50 +37,53 @@ export const submissionService = {
       error: null 
     }; 
   },
-  async getByUserId() { return { data: [], error: null }; },
+  async getByUserId(userId: string) { return { data: [], error: null }; },
   async getAll() { return { data: [], error: null }; },
   async getAllWithUserData() { return { data: [], error: null }; },
-  async update() { return { data: null, error: { message: 'Service disabled' } }; },
-  async delete() { return { error: { message: 'Service disabled' } }; },
-  async incrementAnalysis() { return { data: null, error: null }; }
+  async update(id: string, data: any) { return { data: null, error: { message: 'Service disabled' } }; },
+  async delete(id: string) { return { error: { message: 'Service disabled' } }; },
+  async incrementAnalysis(id: string) { return { data: null, error: null }; }
 };
 
 export const analyticsService = {
-  async track() { return { data: null, error: null }; },
-  async getEvents() { return { data: [], error: null }; }
+  async track(event: string, data?: any) { return { data: null, error: null }; },
+  async getEvents() { return { data: [], error: null }; },
+  async getDashboardMetrics(userId: string) { return { data: { total_submissions: 0, avg_score: 0 }, error: null }; }
 };
 
 export const userService = {
   async getCurrentUser() { return { data: null, error: null }; },
   async signOut() { return { error: null }; },
   async getUsersWithAnalytics() { return { data: [], error: null }; },
-  async deleteUser() { return { data: null, error: { message: 'Service disabled' } }; }
+  async deleteUser(userId: string) { return { data: null, error: { message: 'Service disabled' } }; }
 };
 
 export const emailSequenceService = {
-  async create() { return { data: null, error: { message: 'Service disabled' } }; },
-  async getBySubmissionId() { return { data: [], error: null }; },
-  async updateStatus() { return { data: null, error: { message: 'Service disabled' } }; }
+  async create(data: any) { return { data: null, error: { message: 'Service disabled' } }; },
+  async getBySubmissionId(submissionId: string) { return { data: [], error: null }; },
+  async updateStatus(id: string, status: string) { return { data: null, error: { message: 'Service disabled' } }; },
+  async update(id: string, data: any) { return { data: null, error: { message: 'Service disabled' } }; }
 };
 
 export const integrationLogService = {
-  async create() { return { data: null, error: { message: 'Service disabled' } }; },
-  async getByType() { return { data: [], error: null }; },
-  async getBySubmissionId() { return { data: [], error: null }; }
+  async create(type: string, data: any) { return { data: null, error: { message: 'Service disabled' } }; },
+  async getByType(type: string, limit?: number) { return { data: [], error: null }; },
+  async getBySubmissionId(submissionId: string) { return { data: [], error: null }; }
 };
 
-export const calculateLeadScore = () => 0;
+export const calculateLeadScore = (data: any) => 0;
 
 export const leadScoringService = {
   async recalculateAllScores() { return { data: { updated: 0 }, error: null }; },
-  async recalculateScore() { return { data: null, error: { message: 'Service disabled' } }; },
+  async recalculateScore(submissionId: string) { return { data: null, error: { message: 'Service disabled' } }; },
   async getScoreStats() { return { data: { total: 0, scored: 0, unscored: 0 }, error: null }; }
 };
 
 export const userProfileService = {
-  async create() { return { data: null, error: { message: 'Service disabled' } }; },
-  async getByUserId() { return { data: null, error: null }; },
-  async update() { return { data: null, error: { message: 'Service disabled' } }; },
-  async delete() { return { error: { message: 'Service disabled' } }; },
-  async incrementAnalysis() { return { data: null, error: null }; }
+  async create(data: any) { return { data: null, error: { message: 'Service disabled' } }; },
+  async getByUserId(userId: string) { return { data: null, error: null }; },
+  async update(userId: string, data: any) { return { data: null, error: { message: 'Service disabled' } }; },
+  async delete(userId: string) { return { error: { message: 'Service disabled' } }; },
+  async incrementAnalysis(userId: string) { return { data: null, error: null }; },
+  async getUsersWithAnalytics() { return { data: [], error: null }; }
 };

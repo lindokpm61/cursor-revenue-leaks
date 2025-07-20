@@ -104,7 +104,11 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
     await supabase
       .from('temporary_submissions')
       .update({
-        calculator_data: { ...tempSubmission.calculator_data, converted: true, converted_at: new Date().toISOString() }
+        calculator_data: { 
+          ...(tempSubmission.calculator_data as Record<string, any> || {}), 
+          converted: true, 
+          converted_at: new Date().toISOString() 
+        }
       })
       .eq('temp_id', tempId);
 
