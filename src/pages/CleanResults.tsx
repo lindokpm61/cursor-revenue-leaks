@@ -244,9 +244,15 @@ const CleanResults = () => {
               <BarChart3 className="h-3 w-3 mr-1" />
               Analysis Complete
             </Badge>
-            <span className="text-xs text-muted-foreground">
-              {formatCurrency(calculations.conservativeRecovery)} Recovery Potential
-            </span>
+            <div className="flex items-center gap-2">
+              {/* Current Section Indicator - Mobile Only */}
+              <span className="text-xs text-muted-foreground sm:hidden">
+                {currentSectionLabel}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {formatCurrency(calculations.conservativeRecovery)} Recovery Potential
+              </span>
+            </div>
           </div>
           <div className="w-full bg-secondary rounded-full h-2">
             <div className="bg-primary h-2 rounded-full w-full"></div>

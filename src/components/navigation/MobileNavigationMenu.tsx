@@ -38,15 +38,7 @@ export const MobileNavigationMenu = ({
   };
 
   return (
-    <div className="sm:hidden flex items-center justify-between w-full">
-      {/* Current Section Indicator - Left Side */}
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-muted-foreground">
-          {currentSectionLabel}
-        </span>
-      </div>
-
-      {/* Hamburger Menu - Right Side */}
+    <div className="sm:hidden">
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="sm" className="p-2">
