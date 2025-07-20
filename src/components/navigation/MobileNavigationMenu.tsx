@@ -38,7 +38,15 @@ export const MobileNavigationMenu = ({
   };
 
   return (
-    <div className="sm:hidden">
+    <div className="sm:hidden flex items-center justify-between w-full">
+      {/* Current Section Indicator - Left Side */}
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium text-muted-foreground">
+          {currentSectionLabel}
+        </span>
+      </div>
+
+      {/* Hamburger Menu - Right Side */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="sm" className="p-2">
@@ -47,7 +55,7 @@ export const MobileNavigationMenu = ({
           </Button>
         </SheetTrigger>
         
-        <SheetContent side="left" className="w-72">
+        <SheetContent side="right" className="w-72">
           <SheetHeader className="text-left">
             <SheetTitle className="text-lg font-semibold">
               Analysis Sections
@@ -80,13 +88,6 @@ export const MobileNavigationMenu = ({
           </div>
         </SheetContent>
       </Sheet>
-      
-      {/* Current Section Indicator */}
-      <div className="flex items-center gap-2 ml-2">
-        <span className="text-sm font-medium text-muted-foreground">
-          {currentSectionLabel}
-        </span>
-      </div>
     </div>
   );
 };

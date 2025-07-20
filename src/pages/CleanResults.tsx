@@ -199,26 +199,18 @@ const CleanResults = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Enhanced Mobile-First Header with Hamburger Menu */}
+      {/* Enhanced Mobile-First Header with Right-Side Hamburger Menu */}
       <header className="border-b bg-card">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16">
             <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-              <Button variant="ghost" size="sm" onClick={navigation.navigateToDashboard} className="p-2 sm:px-3">
+              <Button variant="ghost" size="sm" onClick={navigation.navigateToDashboard} className="p-2 sm:px-3 flex-shrink-0">
                 <ArrowLeft className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Dashboard</span>
               </Button>
               
-              {/* Mobile Hamburger Menu */}
-              <MobileNavigationMenu
-                sections={sections}
-                activeSection={activeSection}
-                onSectionChange={setActiveSection}
-                currentSectionLabel={currentSectionLabel}
-              />
-              
               <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                <div className="p-1.5 sm:p-2 rounded-lg bg-primary text-primary-foreground">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-primary text-primary-foreground flex-shrink-0">
                   <Calculator className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -227,6 +219,16 @@ const CleanResults = () => {
                 </div>
               </div>
             </div>
+            
+            {/* Mobile Navigation Menu - Right Side */}
+            <MobileNavigationMenu
+              sections={sections}
+              activeSection={activeSection}
+              onSectionChange={setActiveSection}
+              currentSectionLabel={currentSectionLabel}
+            />
+
+            {/* Desktop Export CTA */}
             <div className="hidden sm:block">
               <EnhancedExportCTA />
             </div>
