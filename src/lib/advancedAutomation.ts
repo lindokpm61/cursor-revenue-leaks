@@ -388,7 +388,7 @@ export const handleUserRegistration = async (registrationData: any, tempId: stri
         // Migrate all calculator data
         company_name: tempSubmission.company_name,
         contact_email: tempSubmission.email,
-        phone: registrationData.phone || tempSubmission.phone,
+        // Note: phone field doesn't exist in temporary_submissions table
         industry: tempSubmission.industry,
         current_arr: calculatorData.step_1?.currentARR || 0,
         monthly_leads: calculatorData.step_2?.monthlyLeads || 0,

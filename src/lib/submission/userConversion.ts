@@ -37,7 +37,7 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
       user_id: userId,
       company_name: tempSubmission.company_name || submissionData.company_name,
       contact_email: tempSubmission.email || submissionData.contact_email,
-      phone: tempSubmission.phone || submissionData.phone,
+      // Note: phone field doesn't exist in temporary_submissions table
       industry: tempSubmission.industry || submissionData.industry,
       // Convert all numeric values to integers for bigint columns
       current_arr: Math.round(Number(submissionData.current_arr) || 0),
@@ -78,7 +78,7 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
     console.log('  recovery_potential_85:', submissionPayload.recovery_potential_85);
 
     const { data: submission, error: submissionError } = await supabase
-      .from('submissions')
+      .from('calculator_submissions')
       .insert([submissionPayload])
       .select()
       .single();
@@ -99,12 +99,12 @@ export const convertToUserSubmission = async (userId: string, submissionData: an
       // Don't fail the entire conversion if CRM integration fails
     }
 
-    // Mark temporary submission as converted
+    // Note: converted_to_user_id and conversion_completed_at fields don't exist in temporary_submissions
+    // Clean up temporary submission or mark as processed via calculator_data
     await supabase
       .from('temporary_submissions')
       .update({
-        converted_to_user_id: userId,
-        conversion_completed_at: new Date().toISOString(),
+        calculator_data: { ...tempSubmission.calculator_data, converted: true, converted_at: new Date().toISOString() }
       })
       .eq('temp_id', tempId);
 
@@ -158,7 +158,7 @@ const createDirectSubmission = async (userId: string, submissionData: any) => {
     user_id: userId,
     company_name: submissionData.company_name,
     contact_email: submissionData.contact_email,
-    phone: submissionData.phone,
+    // Note: phone field doesn't exist in calculator_submissions table
     industry: submissionData.industry,
     // Convert all numeric values to integers for bigint columns
     current_arr: Math.round(Number(submissionData.current_arr) || 0),
@@ -195,7 +195,7 @@ const createDirectSubmission = async (userId: string, submissionData: any) => {
   console.log('  recovery_potential_85:', submissionPayload.recovery_potential_85);
 
   const { data: submission, error: submissionError } = await supabase
-    .from('submissions')
+    .from('calculator_submissions')
     .insert([submissionPayload])
     .select()
     .single();

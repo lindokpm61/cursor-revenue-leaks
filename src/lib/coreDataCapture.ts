@@ -215,14 +215,13 @@ const recordTriggeredSequence = async (tempId: string, sequenceType: string, n8n
     
     // Also add to email sequence queue for tracking
     await supabase
-      .from('email_sequence_queue')
+      .from('email_sequence_analytics')
       .insert([{
-        temp_id: tempId,
+        temp_submission_id: tempId,
         sequence_type: sequenceType,
-        scheduled_for: new Date().toISOString(),
-        contact_email: existing.email,
-        contact_data: { n8n_result: n8nResult },
-        status: 'sent',
+        sent_at: new Date().toISOString(),
+        recipient_email: existing.email,
+        engagement_score: 0,
         n8n_execution_id: n8nResult?.execution_id
       }]);
   } catch (error) {
@@ -254,14 +253,13 @@ const scheduleFollowUpSequences = async (initialSequenceType: string, contactDat
       const scheduledFor = new Date(Date.now() + followUp.delay).toISOString();
       
       await supabase
-        .from('email_sequence_queue')
+        .from('email_sequence_analytics')
         .insert([{
-          temp_id: contactData.temp_id,
+          temp_submission_id: contactData.temp_id,
           sequence_type: followUp.sequence,
-          scheduled_for: scheduledFor,
-          contact_email: contactData.email,
-          contact_data: contactData,
-          status: 'pending'
+          sent_at: scheduledFor,
+          recipient_email: contactData.email,
+          engagement_score: 0
         }]);
     }
   } catch (error) {
@@ -373,8 +371,8 @@ const getExistingIndustry = async (tempId: string) => {
 
 const getExistingPhone = async (tempId: string) => {
   try {
-    const existing = await getTemporarySubmission(tempId);
-    return existing?.phone || null;
+    // Note: phone field doesn't exist in temporary_submissions table
+    return null;
   } catch (error) {
     return null;
   }

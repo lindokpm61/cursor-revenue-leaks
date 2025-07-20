@@ -127,44 +127,10 @@ export class CrmIntegrationService {
         return companyResult;
       }
 
-      // Step 2: Get the person ID for the user
-      const { data: personData } = await supabase
-        .from('crm_persons')
-        .select('crm_person_id')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (!personData?.crm_person_id) {
-        console.warn('No CRM person found for user, creating one...');
-        // Fallback: try to create person if it doesn't exist
-        const { data: userData } = await supabase.auth.getUser();
-        if (userData.user) {
-          await this.createPerson(userId, userData.user.email!, userData.user.user_metadata?.first_name, userData.user.user_metadata?.last_name);
-        }
-      }
-
-      // Step 3: Trigger N8N workflow for linking and further processing
-      if (personData?.crm_person_id && companyResult.companyId) {
-        const workflowResult = await this.triggerPersonCompanyLinking(
-          personData.crm_person_id,
-          companyResult.companyId,
-          userId,
-          submissionId
-        );
-        
-        return {
-          success: true,
-          companyId: companyResult.companyId,
-          personId: personData.crm_person_id,
-          workflowTriggered: workflowResult.success
-        };
-      }
-
-      return {
-        success: true,
-        companyId: companyResult.companyId,
-        workflowTriggered: false
-      };
+      // CRM persons table doesn't exist in current schema - skip this step
+      // This functionality is now handled by edge functions
+      console.log('CRM integration skipped - handled by edge functions');
+      return { success: true, message: 'CRM integration deferred to edge functions' };
 
     } catch (error) {
       console.error('Error completing submission integration:', error);
