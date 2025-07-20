@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -158,24 +157,48 @@ const Dashboard = () => {
     }
   };
 
-  // Summary Cards - Updated to use unified calculations
+  // Summary Cards - Updated to be more contextual
   const SummaryCards = () => {
+    if (submissions.length === 0) return null;
+    
     const totalRecoveryPotential = submissions.reduce((sum, analysis) => {
       const calculations = getCalculatedValues(analysis);
       return sum + calculations.recovery70Percent;
     }, 0);
     
+    const totalAnnualLeak = submissions.reduce((sum, analysis) => {
+      const calculations = getCalculatedValues(analysis);
+      return sum + calculations.totalLoss;
+    }, 0);
+    
     const averageRecovery = submissions.length > 0 ? totalRecoveryPotential / submissions.length : 0;
     
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
-        <Card className="border-border/50 shadow-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8">
+        <Card className="border-border/50 shadow-sm bg-gradient-to-br from-background to-muted/20">
           <CardContent className="p-4 sm:p-6 text-center">
             <div className="text-sm text-muted-foreground mb-2">
               Companies Analyzed
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-foreground">
               {submissions.length}
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Revenue assessments completed
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-destructive/20 bg-gradient-to-br from-background to-destructive/5 shadow-sm">
+          <CardContent className="p-4 sm:p-6 text-center">
+            <div className="text-sm text-destructive/80 mb-2">
+              Total Annual Revenue at Risk
+            </div>
+            <div className="text-2xl sm:text-3xl font-bold text-destructive">
+              {formatCurrency(totalAnnualLeak)}
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Across all analyzed companies
             </div>
           </CardContent>
         </Card>
@@ -188,16 +211,8 @@ const Dashboard = () => {
             <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">
               {formatCurrency(totalRecoveryPotential)}
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-primary/20 bg-gradient-to-br from-background to-primary/5 shadow-sm sm:col-span-2 lg:col-span-1">
-          <CardContent className="p-4 sm:p-6 text-center">
-            <div className="text-sm text-primary/80 mb-2">
-              Average Opportunity
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-primary">
-              {formatCurrency(averageRecovery)}
+            <div className="text-xs text-muted-foreground mt-1">
+              Recoverable with 70% confidence
             </div>
           </CardContent>
         </Card>
@@ -205,37 +220,19 @@ const Dashboard = () => {
     );
   };
 
-  // Analysis History - Updated to use unified calculations
+  // Analysis History - Simplified and more focused
   const AnalysisHistory = ({ previousAnalyses }: { previousAnalyses: Submission[] }) => {
-    if (previousAnalyses.length === 0) {
-      return (
-        <div className="mb-12">
-          <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">
-            Your Analysis History
-          </h2>
-          <Card className="border-border/50 shadow-sm">
-            <CardContent className="p-8 text-center">
-              <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Ready for Another Analysis?</h3>
-              <p className="text-muted-foreground mb-6">
-                This is your first revenue analysis. Discover opportunities in another company.
-              </p>
-              <Link to="/calculator">
-                <Button className="bg-primary text-primary-foreground">
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Assessment
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      );
-    }
+    if (previousAnalyses.length === 0) return null;
     
     return (
       <div className="mb-12">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <h2 className="text-xl sm:text-2xl font-semibold">Previous Analyses</h2>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-semibold">Previous Analyses</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Your historical revenue assessments and their current status
+            </p>
+          </div>
           <Link to="/calculator">
             <Button className="bg-primary text-primary-foreground">
               <Plus className="h-4 w-4 mr-2" />
@@ -250,7 +247,7 @@ const Dashboard = () => {
             const isHighValue = calculations.recovery70Percent > 50000000;
             
             return (
-              <Card key={analysis.id} className="border-border/50 shadow-sm hover:shadow-md transition-shadow">
+              <Card key={analysis.id} className="border-border/50 shadow-sm hover:shadow-md hover:border-primary/20 transition-all">
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="min-w-0 flex-1">
@@ -263,22 +260,22 @@ const Dashboard = () => {
                         </Badge>
                         {isHighValue && (
                           <Badge variant="default" className="text-xs bg-green-500">
-                            High Value
+                            High Impact
                           </Badge>
                         )}
                       </div>
                     </div>
                   </div>
                   
-                  <div className="mb-4">
+                  <div className="mb-4 space-y-2">
                     <div className="text-xl sm:text-2xl font-bold mb-1 text-green-600 dark:text-green-400">
                       {formatCurrency(calculations.recovery70Percent)}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      Recovery Potential
+                      Recovery potential identified
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {formatDate(analysis.created_at || '')}
+                    <div className="text-xs text-muted-foreground">
+                      Analyzed {formatDate(analysis.created_at || '')}
                     </div>
                   </div>
                   
@@ -286,18 +283,9 @@ const Dashboard = () => {
                     <Link to={`/results/${analysis.id}`} className="flex-1">
                       <Button variant="default" size="sm" className="w-full">
                         <TrendingUp className="h-3 w-3 mr-1" />
-                        Results
+                        View Results
                       </Button>
                     </Link>
-                    {isHighValue && (
-                      <Button 
-                        size="sm"
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                        onClick={() => window.open('mailto:support@company.com?subject=Consultation Request', '_self')}
-                      >
-                        Call
-                      </Button>
-                    )}
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -343,7 +331,7 @@ const Dashboard = () => {
               <div>
                 <span className="text-xl font-bold">Revenue Dashboard</span>
                 <p className="text-xs text-muted-foreground hidden sm:block">
-                  Professional Revenue Analysis Platform
+                  Strategic Revenue Analysis Platform
                 </p>
               </div>
             </div>
@@ -387,7 +375,7 @@ const Dashboard = () => {
           </div>
         ) : (
           <>
-            {/* Hero Section with Latest Analysis */}
+            {/* Strategic Hero Section with Latest Analysis */}
             <DashboardHeroSection 
               latestAnalysis={latestAnalysis} 
               formatCurrency={formatCurrency}
@@ -395,7 +383,7 @@ const Dashboard = () => {
               calculateROI={calculateROI}
             />
             
-            {/* Summary Cards */}
+            {/* Portfolio Summary Cards */}
             <SummaryCards />
             
             {/* Analysis History */}
