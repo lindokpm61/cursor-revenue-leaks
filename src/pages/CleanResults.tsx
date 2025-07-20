@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,6 +29,7 @@ import { useAnalysisNavigation } from "@/hooks/useAnalysisNavigation";
 import { AnalysisBreadcrumb } from "@/components/navigation/AnalysisBreadcrumb";
 import { AnalysisProgress } from "@/components/navigation/AnalysisProgress";
 import { ExecutiveFirstSummary } from "@/components/results/ExecutiveFirstSummary";
+import { MobileNavigationMenu } from "@/components/navigation/MobileNavigationMenu";
 
 const CleanResults = () => {
   const { id } = useParams<{ id: string }>();
@@ -194,9 +194,12 @@ const CleanResults = () => {
     { id: 'timeline', label: 'Implementation', icon: CheckCircle }
   ];
 
+  // Get current section label for display
+  const currentSectionLabel = sections.find(s => s.id === activeSection)?.label || 'Overview';
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Clean Mobile-First Header */}
+      {/* Enhanced Mobile-First Header with Hamburger Menu */}
       <header className="border-b bg-card">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16">
@@ -205,6 +208,15 @@ const CleanResults = () => {
                 <ArrowLeft className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Dashboard</span>
               </Button>
+              
+              {/* Mobile Hamburger Menu */}
+              <MobileNavigationMenu
+                sections={sections}
+                activeSection={activeSection}
+                onSectionChange={setActiveSection}
+                currentSectionLabel={currentSectionLabel}
+              />
+              
               <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                 <div className="p-1.5 sm:p-2 rounded-lg bg-primary text-primary-foreground">
                   <Calculator className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -239,9 +251,9 @@ const CleanResults = () => {
           </div>
         </div>
 
-        {/* Simplified Mobile Navigation */}
-        <div className="mb-6 sm:mb-8">
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+        {/* Desktop Navigation - Hidden on Mobile */}
+        <div className="mb-6 sm:mb-8 hidden sm:block">
+          <div className="flex flex-wrap gap-2">
             {sections.map((section) => {
               const Icon = section.icon;
               const isActive = activeSection === section.id;
@@ -251,10 +263,10 @@ const CleanResults = () => {
                   variant={isActive ? "default" : "outline"}
                   size="sm"
                   onClick={() => setActiveSection(section.id)}
-                  className="flex items-center gap-1.5 sm:gap-2 justify-center text-xs sm:text-sm h-10 sm:h-auto"
+                  className="flex items-center gap-2"
                 >
-                  <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="truncate">{section.label}</span>
+                  <Icon className="h-4 w-4" />
+                  <span>{section.label}</span>
                 </Button>
               );
             })}
