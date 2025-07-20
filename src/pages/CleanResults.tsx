@@ -29,6 +29,7 @@ import { SaveSummaryButton } from "@/components/results/SaveSummaryButton";
 import { useAnalysisNavigation } from "@/hooks/useAnalysisNavigation";
 import { AnalysisBreadcrumb } from "@/components/navigation/AnalysisBreadcrumb";
 import { AnalysisProgress } from "@/components/navigation/AnalysisProgress";
+import { ExecutiveFirstSummary } from "@/components/results/ExecutiveFirstSummary";
 
 const CleanResults = () => {
   const { id } = useParams<{ id: string }>();
@@ -255,127 +256,12 @@ const CleanResults = () => {
 
         {/* Content Sections */}
         {activeSection === 'overview' && (
-          <div className="space-y-6">
-            <UnifiedStrategicAnalysis
-              calculations={calculations}
-              companyName={submission.company_name}
-              formatCurrency={formatCurrency}
-              onGetActionPlan={handleGetActionPlan}
-              onQuickWins={handleQuickWins}
-              onBookCall={handleBookCall}
-            />
-            
-            {/* Quick Performance Indicators */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                  Key Performance Indicators
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-muted/30 rounded-lg">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Self-Serve Conversion Rate</span>
-                      <span className="text-xs text-muted-foreground">{submission.free_to_paid_conversion || 0}%</span>
-                    </div>
-                    <div className="w-full bg-background rounded-full h-3">
-                      <div 
-                        className="bg-primary h-3 rounded-full transition-all duration-300" 
-                        style={{ 
-                          width: `${Math.max(5, Math.min((submission.free_to_paid_conversion || 0) / 10 * 100, 100))}%` 
-                        }}
-                      ></div>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Target: 8-12% (Industry best-in-class)
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 bg-muted/30 rounded-lg">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Lead Response Time</span>
-                      <span className="text-xs text-muted-foreground">{submission.lead_response_time || 0}h</span>
-                    </div>
-                    <div className="w-full bg-background rounded-full h-3">
-                      <div 
-                        className="bg-revenue-warning h-3 rounded-full transition-all duration-300" 
-                        style={{ 
-                          width: `${Math.max(5, Math.min(100 - (submission.lead_response_time || 0) / 24 * 100, 100))}%` 
-                        }}
-                      ></div>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Target: &lt;1 hour (Best-in-class)
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-4 text-center">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setActiveSection('benchmarking')}
-                    className="text-xs"
-                  >
-                    View Detailed Benchmarking Analysis →
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Save Executive Summary</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Save this analysis to your dashboard or export as PDF
-                    </p>
-                  </div>
-                  <SaveSummaryButton
-                    data={{
-                      companyInfo: {
-                        companyName: submission.company_name,
-                        email: submission.contact_email,
-                        phone: submission.phone || '',
-                        industry: submission.industry || 'Software & Technology',
-                        currentARR: submission.current_arr || 0
-                      },
-                      leadGeneration: {
-                        monthlyLeads: submission.monthly_leads || 0,
-                        averageDealValue: submission.average_deal_value || 0,
-                        leadResponseTimeHours: submission.lead_response_time || 24
-                      },
-                      selfServeMetrics: {
-                        monthlyFreeSignups: submission.monthly_free_signups || 0,
-                        freeToPaidConversionRate: submission.free_to_paid_conversion || 0,
-                        monthlyMRR: submission.monthly_mrr || 0
-                      },
-                      operationsData: {
-                        failedPaymentRate: submission.failed_payment_rate || 0,
-                        manualHoursPerWeek: submission.manual_hours || 0,
-                        hourlyRate: submission.hourly_rate || 0
-                      }
-                    }}
-                    calculations={{
-                      leadResponseLoss: calculations.leadResponseLoss,
-                      failedPaymentLoss: calculations.failedPaymentLoss,
-                      selfServeGap: calculations.selfServeGap,
-                      processLoss: calculations.processInefficiency,
-                      totalLeakage: calculations.totalLoss,
-                      potentialRecovery70: calculations.conservativeRecovery,
-                      potentialRecovery85: calculations.optimisticRecovery,
-                      totalLeak: calculations.totalLoss,
-                      recoveryPotential70: calculations.conservativeRecovery,
-                      recoveryPotential85: calculations.optimisticRecovery,
-                    }}
-                    submissionId={submission.id}
-                    formatCurrency={formatCurrency}
-                    variant="default"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <ExecutiveFirstSummary
+            submission={submission}
+            formatCurrency={formatCurrency}
+            onGetActionPlan={handleGetActionPlan}
+            onViewFullAnalysis={() => setActiveSection('breakdown')}
+          />
         )}
 
         {activeSection === 'breakdown' && (
