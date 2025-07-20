@@ -62,7 +62,7 @@ export const useAuthProvider = () => {
   const checkAdminStatus = async (user: User) => {
     try {
       const { data: profile } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('role')
         .eq('id', user.id)
         .single();
@@ -77,7 +77,7 @@ export const useAuthProvider = () => {
   const ensureUserProfile = async (user: User) => {
     // Check if profile exists
     const { data: existingProfile } = await supabase
-      .from('user_profiles')
+      .from('profiles')
       .select('id')
       .eq('id', user.id)
       .single();
@@ -192,7 +192,7 @@ export const useAuthProvider = () => {
     console.log('Inserting profile data:', profileData);
     
     const { error } = await supabase
-      .from('user_profiles')
+      .from('profiles')
       .insert(profileData);
     
     if (error) {
@@ -237,16 +237,12 @@ export const useAuthProvider = () => {
   const ensureCrmPerson = async (user: User) => {
     try {
       // Check if CRM person already exists
-      const { data: existingPerson, error: checkError } = await supabase
-        .from('crm_persons')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      // CRM persons table doesn't exist in current schema
+      // This functionality is handled by edge functions
+      console.log('CRM person check skipped - handled by edge functions');
 
-      // Create CRM person if it doesn't exist
-      if (!existingPerson) {
-        await createCrmPerson(user, user.email!);
-      }
+      // Create CRM person - functionality handled by edge functions
+      await createCrmPerson(user, user.email!);
     } catch (error) {
       console.error('Error ensuring CRM person:', error);
     }

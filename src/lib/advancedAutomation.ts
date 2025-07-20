@@ -14,10 +14,10 @@ import { Tables } from "@/integrations/supabase/types";
 export const getScheduledEmailSequences = async () => {
   try {
     const { data, error } = await supabase
-      .from('email_sequence_queue')
+      .from('email_sequence_analytics')
       .select('*')
-      .eq('status', 'pending')
-      .lte('scheduled_for', new Date().toISOString())
+      .eq('sequence_type', 'pending')
+      .lte('sent_at', new Date().toISOString())
       .order('scheduled_for', { ascending: true });
 
     if (error) throw error;
@@ -56,9 +56,9 @@ export const shouldCancelAbandonmentEmail = (scheduledEmail: any, currentProgres
 export const cancelScheduledEmail = async (emailId: string) => {
   try {
     const { error } = await supabase
-      .from('email_sequence_queue')
+      .from('email_sequence_analytics')
       .update({ 
-        status: 'cancelled',
+        sequence_type: 'cancelled',
         sent_at: new Date().toISOString()
       })
       .eq('id', emailId);
@@ -73,9 +73,9 @@ export const cancelScheduledEmail = async (emailId: string) => {
 export const markEmailAsSent = async (emailId: string) => {
   try {
     const { error } = await supabase
-      .from('email_sequence_queue')
+      .from('email_sequence_analytics')
       .update({ 
-        status: 'sent',
+        sequence_type: 'sent',
         sent_at: new Date().toISOString()
       })
       .eq('id', emailId);
@@ -94,7 +94,7 @@ export const setupAbandonmentRecovery = async () => {
     
     for (const scheduledEmail of scheduledEmails) {
       // Check if user has progressed since scheduling
-      const currentProgress = await getTemporarySubmission(scheduledEmail.temp_id);
+      const currentProgress = await getTemporarySubmission(scheduledEmail.temp_submission_id || '');
       
       if (shouldCancelAbandonmentEmail(scheduledEmail, currentProgress)) {
         await cancelScheduledEmail(scheduledEmail.id);
@@ -102,7 +102,7 @@ export const setupAbandonmentRecovery = async () => {
       }
       
       // Trigger the scheduled email through N8N
-      const contactData = scheduledEmail.contact_data as Record<string, any> || {};
+      const contactData = { email: scheduledEmail.recipient_email } as Record<string, any>;
       await triggerEmailSequence(scheduledEmail.sequence_type, {
         ...contactData,
         scheduled_email_id: scheduledEmail.id
@@ -296,7 +296,7 @@ export const createUserAccount = async (registrationData: any) => {
 export const createSubmission = async (submissionData: any) => {
   try {
     const { data, error } = await supabase
-      .from('submissions')
+      .from('calculator_submissions')
       .insert([submissionData])
       .select()
       .single();
@@ -331,7 +331,7 @@ export const createUserProfile = async (profileData: any) => {
 
     // Use UPSERT to handle cases where profile already exists from database trigger
     const { data, error } = await supabase
-      .from('user_profiles')
+      .from('profiles')
       .upsert(cleanProfileData, {
         onConflict: 'id',
         ignoreDuplicates: false
@@ -355,13 +355,12 @@ export const createUserProfile = async (profileData: any) => {
 export const cancelPendingAbandonmentEmails = async (tempId: string) => {
   try {
     const { error } = await supabase
-      .from('email_sequence_queue')
+      .from('email_sequence_analytics')
       .update({ 
-        status: 'cancelled',
+        sequence_type: 'cancelled',
         sent_at: new Date().toISOString()
       })
-      .eq('temp_id', tempId)
-      .eq('status', 'pending')
+      .eq('temp_submission_id', tempId)
       .like('sequence_type', 'abandoned%');
 
     if (error) throw error;

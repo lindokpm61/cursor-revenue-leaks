@@ -60,7 +60,7 @@ export const AbandonmentAnalytics: React.FC = () => {
   const loadEmailSequences = async () => {
     try {
       const { data, error } = await supabase
-        .from('email_sequence_queue')
+        .from('email_sequence_analytics')
         .select('*')
         .like('sequence_type', 'abandonment_%')
         .order('created_at', { ascending: false })

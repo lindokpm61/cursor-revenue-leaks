@@ -15,3 +15,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
   }
 });
+
+// Force a rebuild to regenerate types after schema changes
+console.log('Supabase client initialized with schema version:', Date.now());

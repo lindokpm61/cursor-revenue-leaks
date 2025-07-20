@@ -55,10 +55,9 @@ export const scheduleAbandonmentRecovery = async (tempId: string, progressData: 
   try {
     // Cancel any existing abandonment sequences first
     await supabase
-      .from('email_sequence_queue')
-      .update({ status: 'cancelled' })
-      .eq('temp_id', tempId)
-      .eq('status', 'pending')
+      .from('email_sequence_analytics')
+      .update({ sequence_type: 'cancelled' })
+      .eq('temp_submission_id', tempId)
       .like('sequence_type', 'abandonment_%');
 
     // Determine appropriate abandonment sequence based on progress

@@ -1,7 +1,7 @@
 import { Tables } from '@/integrations/supabase/types';
 import { UnifiedResultsService } from '@/lib/results/UnifiedResultsService';
 
-type Submission = Tables<'submissions'>;
+type Submission = Tables<'calculator_submissions'>;
 
 export interface PriorityAction {
   id: string;
