@@ -101,6 +101,33 @@ export type Database = {
         }
         Relationships: []
       }
+      email_engagement_events: {
+        Row: {
+          created_at: string
+          engagement_score_delta: number | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          temp_id: string
+        }
+        Insert: {
+          created_at?: string
+          engagement_score_delta?: number | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          temp_id: string
+        }
+        Update: {
+          created_at?: string
+          engagement_score_delta?: number | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          temp_id?: string
+        }
+        Relationships: []
+      }
       email_sequence_analytics: {
         Row: {
           bounce_type: string | null
@@ -150,6 +177,45 @@ export type Database = {
             referencedColumns: ["temp_id"]
           },
         ]
+      }
+      email_sequence_queue: {
+        Row: {
+          contact_data: Json | null
+          contact_email: string
+          created_at: string
+          id: string
+          scheduled_for: string
+          sent_at: string | null
+          sequence_type: string
+          status: string
+          temp_id: string
+          updated_at: string
+        }
+        Insert: {
+          contact_data?: Json | null
+          contact_email: string
+          created_at?: string
+          id?: string
+          scheduled_for: string
+          sent_at?: string | null
+          sequence_type: string
+          status?: string
+          temp_id: string
+          updated_at?: string
+        }
+        Update: {
+          contact_data?: Json | null
+          contact_email?: string
+          created_at?: string
+          id?: string
+          scheduled_for?: string
+          sent_at?: string | null
+          sequence_type?: string
+          status?: string
+          temp_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       experiment_assignments: {
         Row: {
