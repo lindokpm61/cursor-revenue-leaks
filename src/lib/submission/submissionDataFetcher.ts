@@ -6,7 +6,7 @@ import { getTemporarySubmission } from "./submissionStorage";
 export const getSubmissionById = async (id: string) => {
   try {
     const { data, error } = await supabase
-      .from('submissions')
+      .from('calculator_submissions')
       .select('*')
       .eq('id', id)
       .single();

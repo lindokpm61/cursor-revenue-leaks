@@ -22,17 +22,9 @@ class IntegrationLogger {
   // Log integration activities
   async logIntegration(data: IntegrationLogData): Promise<void> {
     try {
-      const { error } = await supabase
-        .from('integration_logs')
-        .insert([{
-          ...data,
-          created_at: new Date().toISOString()
-        }]);
-
-      if (error) {
-        console.error('Failed to log integration:', error);
-        // Don't throw - logging failures shouldn't break the main flow
-      }
+      // Integration logs table doesn't exist in current schema - logging to console for now
+      console.log('Integration log would be saved:', { ...data, created_at: new Date().toISOString() });
+      // TODO: Implement when integration_logs table is added
     } catch (err) {
       console.error('Exception in logIntegration:', err);
     }
@@ -41,16 +33,9 @@ class IntegrationLogger {
   // Log analytics events
   async logAnalytics(data: AnalyticsEventData): Promise<void> {
     try {
-      const { error } = await supabase
-        .from('analytics_events')
-        .insert([{
-          ...data,
-          created_at: new Date().toISOString()
-        }]);
-
-      if (error) {
-        console.error('Failed to log analytics:', error);
-      }
+      // Analytics events table doesn't exist in current schema - logging to console for now
+      console.log('Analytics event would be saved:', { ...data, created_at: new Date().toISOString() });
+      // TODO: Implement when analytics_events table is added
     } catch (err) {
       console.error('Exception in logAnalytics:', err);
     }
@@ -65,21 +50,17 @@ class IntegrationLogger {
     executionId?: string
   ): Promise<void> {
     try {
-      const { error: logError } = await supabase
-        .from('automation_logs')
-        .insert([{
-          workflow_type: workflowType,
-          data_sent: data,
-          status,
-          error: error || null,
-          n8n_execution_id: executionId || null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }]);
-
-      if (logError) {
-        console.error('Failed to log N8N trigger:', logError);
-      }
+      // Automation logs table doesn't exist in current schema - logging to console for now
+      console.log('N8N trigger would be logged:', {
+        workflow_type: workflowType,
+        data_sent: data,
+        status,
+        error: error || null,
+        n8n_execution_id: executionId || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+      // TODO: Implement when automation_logs table is added
     } catch (err) {
       console.error('Exception in logN8NTrigger:', err);
     }

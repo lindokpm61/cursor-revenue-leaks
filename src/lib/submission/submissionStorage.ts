@@ -63,23 +63,22 @@ export const saveTemporarySubmission = async (data: Partial<TemporarySubmissionD
 // Track high-value leads for sales team
 const trackHighValueLead = async (submission: any) => {
   try {
-    // Track in analytics for sales alerts
-    await supabase
-      .from('analytics_events')
-      .insert({
-        event_type: 'high_value_lead_qualified',
-        user_id: null, // Anonymous lead
-        submission_id: null,
-        properties: {
-          temp_id: submission.temp_id,
-          company_name: submission.company_name,
-          email: submission.email,
-          total_revenue_leak: submission.total_revenue_leak,
-          recovery_potential: submission.recovery_potential,
-          lead_score: submission.lead_score,
-          qualification_source: 'calculator_completion'
-        }
-      });
+    // Analytics events table doesn't exist in current schema - logging to console for now
+    console.log('High-value lead would be tracked:', {
+      event_type: 'high_value_lead_qualified',
+      user_id: null, // Anonymous lead
+      submission_id: null,
+      properties: {
+        temp_id: submission.temp_id,
+        company_name: submission.company_name,
+        email: submission.email,
+        total_revenue_leak: submission.total_revenue_leak,
+        recovery_potential: submission.recovery_potential,
+        lead_score: submission.lead_score,
+        qualification_source: 'calculator_completion'
+      }
+    });
+    // TODO: Implement when analytics_events table is added
   } catch (error) {
     console.warn('Failed to track high-value lead:', error);
   }
