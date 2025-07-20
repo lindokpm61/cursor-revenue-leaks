@@ -203,19 +203,19 @@ const CleanResults = () => {
       <header className="border-b bg-card">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16">
-            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-              <Button variant="ghost" size="sm" onClick={navigation.navigateToDashboard} className="p-2 sm:px-3 flex-shrink-0">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <Button variant="ghost" size="sm" onClick={navigation.navigateToDashboard} className="p-2 flex-shrink-0">
                 <ArrowLeft className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Dashboard</span>
               </Button>
               
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                <div className="p-1.5 sm:p-2 rounded-lg bg-primary text-primary-foreground flex-shrink-0">
-                  <Calculator className="h-4 w-4 sm:h-5 sm:w-5" />
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="p-2 rounded-lg bg-primary text-primary-foreground flex-shrink-0">
+                  <Calculator className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-base sm:text-lg md:text-xl font-semibold truncate">{submission.company_name}</h1>
-                  <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Revenue Analysis Results</p>
+                  <h1 className="text-lg font-semibold truncate leading-tight">{submission.company_name}</h1>
+                  <p className="text-xs text-muted-foreground hidden sm:block">Revenue Analysis Results</p>
                 </div>
               </div>
             </div>
