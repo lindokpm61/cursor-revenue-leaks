@@ -37,8 +37,8 @@ export const submissionService = {
       error: null 
     }; 
   },
-  async getByUserId(userId: string) { return { data: [], error: null }; },
-  async getAll() { return { data: [], error: null }; },
+  async getByUserId(userId: string, limit?: number) { return { data: [], error: null }; },
+  async getAll(limit?: number) { return { data: [], error: null }; },
   async getAllWithUserData() { return { data: [], error: null }; },
   async update(id: string, data: any) { return { data: null, error: { message: 'Service disabled' } }; },
   async delete(id: string) { return { error: { message: 'Service disabled' } }; },
@@ -54,7 +54,7 @@ export const analyticsService = {
 export const userService = {
   async getCurrentUser() { return { data: null, error: null }; },
   async signOut() { return { error: null }; },
-  async getUsersWithAnalytics() { return { data: [], error: null }; },
+  async getUsersWithAnalytics(filters?: any) { return { data: [], error: null }; },
   async deleteUser(userId: string) { return { data: null, error: { message: 'Service disabled' } }; }
 };
 
@@ -66,7 +66,7 @@ export const emailSequenceService = {
 };
 
 export const integrationLogService = {
-  async create(type: string, data: any) { return { data: null, error: { message: 'Service disabled' } }; },
+  async create(data: any) { return { data: null, error: { message: 'Service disabled' } }; },
   async getByType(type: string, limit?: number) { return { data: [], error: null }; },
   async getBySubmissionId(submissionId: string) { return { data: [], error: null }; }
 };
@@ -76,7 +76,7 @@ export const calculateLeadScore = (data: any) => 0;
 export const leadScoringService = {
   async recalculateAllScores() { return { data: { updated: 0 }, error: null }; },
   async recalculateScore(submissionId: string) { return { data: null, error: { message: 'Service disabled' } }; },
-  async getScoreStats() { return { data: { total: 0, scored: 0, unscored: 0 }, error: null }; }
+  async getScoreStats(filters?: any) { return { data: { total: 0, scored: 0, unscored: 0 }, error: null }; }
 };
 
 export const userProfileService = {
@@ -84,6 +84,6 @@ export const userProfileService = {
   async getByUserId(userId: string) { return { data: null, error: null }; },
   async update(userId: string, data: any) { return { data: null, error: { message: 'Service disabled' } }; },
   async delete(userId: string) { return { error: { message: 'Service disabled' } }; },
-  async incrementAnalysis(userId: string) { return { data: null, error: null }; },
+  async incrementAnalysis(userId: string, value?: any) { return { data: null, error: null }; },
   async getUsersWithAnalytics(filters?: any) { return { data: [], error: null }; }
 };
