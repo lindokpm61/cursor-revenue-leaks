@@ -1,15 +1,25 @@
+
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Calendar, TrendingUp } from "lucide-react";
+import { calculateUnifiedResults, type UnifiedCalculationInputs } from "@/lib/calculator/unifiedCalculations";
 
 interface DashboardHeroSectionProps {
   latestAnalysis: {
     id: string;
     company_name: string;
     created_at: string | null;
-    total_leak: number | null;
-    recovery_potential_70: number | null;
     current_arr: number | null;
+    monthly_mrr: number | null;
+    monthly_leads: number | null;
+    average_deal_value: number | null;
+    lead_response_time: number | null;
+    monthly_free_signups: number | null;
+    free_to_paid_conversion: number | null;
+    failed_payment_rate: number | null;
+    manual_hours: number | null;
+    hourly_rate: number | null;
+    industry: string | null;
   };
   formatCurrency: (amount: number) => string;
   formatDate: (dateString: string) => string;
@@ -23,6 +33,27 @@ export const DashboardHeroSection = ({
   calculateROI 
 }: DashboardHeroSectionProps) => {
   const navigate = useNavigate();
+
+  // Transform submission to unified calculation format
+  const getCalculatedValues = (analysis: typeof latestAnalysis) => {
+    const calculationInputs: UnifiedCalculationInputs = {
+      currentARR: Number(analysis.current_arr || 0),
+      monthlyMRR: Number(analysis.monthly_mrr || 0),
+      monthlyLeads: Number(analysis.monthly_leads || 0),
+      averageDealValue: Number(analysis.average_deal_value || 0),
+      leadResponseTime: Number(analysis.lead_response_time || 24),
+      monthlyFreeSignups: Number(analysis.monthly_free_signups || 0),
+      freeToLaidConversion: Number(analysis.free_to_paid_conversion || 0),
+      failedPaymentRate: Number(analysis.failed_payment_rate || 0),
+      manualHours: Number(analysis.manual_hours || 0),
+      hourlyRate: Number(analysis.hourly_rate || 0),
+      industry: analysis.industry || ''
+    };
+
+    return calculateUnifiedResults(calculationInputs);
+  };
+
+  const calculations = getCalculatedValues(latestAnalysis);
 
   const handleViewResults = () => {
     navigate(`/results/${latestAnalysis.id}`);
@@ -54,7 +85,7 @@ export const DashboardHeroSection = ({
             Annual Revenue Leak
           </div>
           <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-destructive">
-            {formatCurrency(latestAnalysis.total_leak || 0)}
+            {formatCurrency(calculations.totalLoss)}
           </div>
         </div>
         
@@ -63,7 +94,7 @@ export const DashboardHeroSection = ({
             Recovery Potential
           </div>
           <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-green-600 dark:text-green-400">
-            {formatCurrency(latestAnalysis.recovery_potential_70 || 0)}
+            {formatCurrency(calculations.recovery70Percent)}
           </div>
         </div>
         

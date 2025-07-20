@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { submissionService, userProfileService, type Submission, type UserProfile } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardHeroSection } from "@/components/DashboardHeroSection";
-import { UnifiedResultsService } from "@/lib/results/UnifiedResultsService";
+import { calculateUnifiedResults, type UnifiedCalculationInputs } from "@/lib/calculator/unifiedCalculations";
 
 const Dashboard = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -92,34 +92,28 @@ const Dashboard = () => {
     });
   };
 
-  // Transform submission to UnifiedResultsService format and calculate values
+  // Transform submission to unified calculation format and calculate values
   const getCalculatedValues = (submission: Submission) => {
-    const submissionData = {
-      id: submission.id,
-      company_name: submission.company_name,
-      contact_email: submission.contact_email,
-      industry: submission.industry || '',
-      current_arr: Number(submission.current_arr || 0),
-      monthly_leads: Number(submission.monthly_leads || 0),
-      average_deal_value: Number(submission.average_deal_value || 0),
-      lead_response_time: Number(submission.lead_response_time || 0),
-      monthly_free_signups: Number(submission.monthly_free_signups || 0),
-      free_to_paid_conversion: Number(submission.free_to_paid_conversion || 0),
-      monthly_mrr: Number(submission.monthly_mrr || 0),
-      failed_payment_rate: Number(submission.failed_payment_rate || 0),
-      manual_hours: Number(submission.manual_hours || 0),
-      hourly_rate: Number(submission.hourly_rate || 0),
-      lead_score: Number(submission.lead_score || 0),
-      user_id: submission.user_id || '',
-      created_at: submission.created_at || ''
+    const calculationInputs: UnifiedCalculationInputs = {
+      currentARR: Number(submission.current_arr || 0),
+      monthlyMRR: Number(submission.monthly_mrr || 0),
+      monthlyLeads: Number(submission.monthly_leads || 0),
+      averageDealValue: Number(submission.average_deal_value || 0),
+      leadResponseTime: Number(submission.lead_response_time || 24),
+      monthlyFreeSignups: Number(submission.monthly_free_signups || 0),
+      freeToLaidConversion: Number(submission.free_to_paid_conversion || 0),
+      failedPaymentRate: Number(submission.failed_payment_rate || 0),
+      manualHours: Number(submission.manual_hours || 0),
+      hourlyRate: Number(submission.hourly_rate || 0),
+      industry: submission.industry || ''
     };
 
-    return UnifiedResultsService.calculateResults(submissionData);
+    return calculateUnifiedResults(calculationInputs);
   };
 
   const calculateROI = (submission: Submission) => {
     const calculations = getCalculatedValues(submission);
-    const recoveryPotential = calculations.conservativeRecovery;
+    const recoveryPotential = calculations.recovery70Percent;
     const totalLeakage = calculations.totalLoss;
     return totalLeakage > 0 ? Math.round((recoveryPotential / totalLeakage) * 100) : 0;
   };
@@ -164,10 +158,10 @@ const Dashboard = () => {
     }
   };
 
-  // Hero Analysis Section - Updated with View Full Results button
+  // Hero Analysis Section - Updated with unified calculations
   const HeroAnalysisSection = ({ latestAnalysis }: { latestAnalysis: Submission }) => {
     const calculations = getCalculatedValues(latestAnalysis);
-    const isHighValue = calculations.conservativeRecovery > 100000000;
+    const isHighValue = calculations.recovery70Percent > 100000000;
     
     return (
       <div 
@@ -211,7 +205,7 @@ const Dashboard = () => {
               Recovery Potential
             </div>
             <div className="text-h1 font-bold" style={{ color: '#059669' }}>
-              {formatCurrency(calculations.conservativeRecovery)}
+              {formatCurrency(calculations.recovery70Percent)}
             </div>
           </div>
           
@@ -301,11 +295,11 @@ const Dashboard = () => {
     );
   };
 
-  // Simplified Summary Cards - Updated to use calculated values
+  // Simplified Summary Cards - Updated to use unified calculations
   const SimplifiedSummaryCards = () => {
     const totalRecoveryPotential = submissions.reduce((sum, analysis) => {
       const calculations = getCalculatedValues(analysis);
-      return sum + calculations.conservativeRecovery;
+      return sum + calculations.recovery70Percent;
     }, 0);
     
     const averageRecovery = submissions.length > 0 ? totalRecoveryPotential / submissions.length : 0;
@@ -348,7 +342,7 @@ const Dashboard = () => {
     );
   };
 
-  // Simplified Analysis History - Updated to use calculated values
+  // Simplified Analysis History - Updated to use unified calculations
   const SimplifiedAnalysisHistory = ({ previousAnalyses }: { previousAnalyses: Submission[] }) => {
     if (previousAnalyses.length === 0) {
       return (
@@ -400,7 +394,7 @@ const Dashboard = () => {
                   
                   <div className="mb-4">
                     <div className="text-h2 font-bold mb-1" style={{ color: '#059669' }}>
-                      {formatCurrency(calculations.conservativeRecovery)}
+                      {formatCurrency(calculations.recovery70Percent)}
                     </div>
                     <div className="text-small text-muted-foreground">
                       Recovery Potential
@@ -413,7 +407,7 @@ const Dashboard = () => {
                         View Results
                       </Button>
                     </Link>
-                    {calculations.conservativeRecovery > 50000000 && (
+                    {calculations.recovery70Percent > 50000000 && (
                       <Button 
                         size="sm"
                         style={{ background: '#059669', color: 'white' }}
@@ -440,7 +434,7 @@ const Dashboard = () => {
     );
   };
 
-  // Next Steps Section - Updated to use calculated values
+  // Next Steps Section - Updated to use unified calculations
   const NextStepsSection = ({ highestValueAnalysis }: { highestValueAnalysis: Submission }) => {
     const calculations = getCalculatedValues(highestValueAnalysis);
     
@@ -478,7 +472,7 @@ const Dashboard = () => {
               </h3>
               
               <p className="text-small text-muted-foreground mb-5 leading-relaxed">
-                Get expert guidance to implement your {formatCurrency(calculations.conservativeRecovery)} 
+                Get expert guidance to implement your {formatCurrency(calculations.recovery70Percent)} 
                 recovery opportunity with a personalized strategy session.
               </p>
               
