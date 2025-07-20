@@ -278,37 +278,107 @@ const Results = () => {
           </TabsList>
 
           <TabsContent value="overview">
-            <ContentSection 
-              title="Strategic Performance Overview"
-              description="Your competitive position and improvement opportunities"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-foreground mb-2">
-                    {formatCurrency(submission.current_arr || 0)}
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b border-slate-200">
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Strategic Performance Overview</h3>
+                <p className="text-slate-600">Your competitive position and improvement opportunities</p>
+              </div>
+              
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div className="text-center p-6 bg-slate-50 rounded-xl border border-slate-100">
+                    <div className="p-3 rounded-full bg-blue-100 w-fit mx-auto mb-3">
+                      <DollarSign className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-slate-900 mb-2">
+                      {formatCurrency(submission.current_arr || 0)}
+                    </div>
+                    <div className="text-sm text-slate-600 font-medium">Current ARR</div>
+                    <div className="text-xs text-slate-500 mt-1">Annual recurring revenue</div>
                   </div>
-                  <div className="text-sm text-muted-foreground">Current ARR</div>
+                  
+                  <div className="text-center p-6 bg-red-50 rounded-xl border border-red-100">
+                    <div className="p-3 rounded-full bg-red-100 w-fit mx-auto mb-3">
+                      <AlertTriangle className="h-6 w-6 text-red-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-red-600 mb-2">
+                      {formatCurrency(totalLeak)}
+                    </div>
+                    <div className="text-sm text-red-700 font-medium">Revenue at Risk</div>
+                    <div className="text-xs text-red-600 mt-1">
+                      {submission.current_arr ? `${((totalLeak / submission.current_arr) * 100).toFixed(1)}% of ARR` : 'Immediate attention'}
+                    </div>
+                  </div>
+                  
+                  <div className="text-center p-6 bg-green-50 rounded-xl border border-green-100">
+                    <div className="p-3 rounded-full bg-green-100 w-fit mx-auto mb-3">
+                      <TrendingUp className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-green-600 mb-2">
+                      {formatCurrency(recovery70)}
+                    </div>
+                    <div className="text-sm text-green-700 font-medium">Recovery Potential</div>
+                    <div className="text-xs text-green-600 mt-1">Conservative estimate</div>
+                  </div>
+                  
+                  <div className="text-center p-6 bg-blue-50 rounded-xl border border-blue-100">
+                    <div className="p-3 rounded-full bg-blue-100 w-fit mx-auto mb-3">
+                      <Target className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-blue-600 mb-2">
+                      {Math.round((recovery70 / Math.max(totalLeak, 1)) * 100)}%
+                    </div>
+                    <div className="text-sm text-blue-700 font-medium">Recovery Rate</div>
+                    <div className="text-xs text-blue-600 mt-1">Implementation success</div>
+                  </div>
                 </div>
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-revenue-danger mb-2">
-                    {formatCurrency(totalLeak)}
+                
+                {/* Performance Indicators */}
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100">
+                    <h4 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
+                      <BarChart3 className="h-4 w-4" />
+                      Industry Benchmark
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-purple-700">Lead Response Rate</span>
+                        <span className="text-sm font-medium text-purple-900">Above Average</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-purple-700">Revenue Efficiency</span>
+                        <span className="text-sm font-medium text-purple-900">Room for Growth</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-purple-700">Process Maturity</span>
+                        <span className="text-sm font-medium text-purple-900">Developing</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-sm text-muted-foreground">Revenue at Risk</div>
-                </div>
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-revenue-success mb-2">
-                    {formatCurrency(recovery70)}
+                  
+                  <div className="p-6 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl border border-cyan-100">
+                    <h4 className="font-semibold text-cyan-900 mb-3 flex items-center gap-2">
+                      <Target className="h-4 w-4" />
+                      Optimization Priority
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-cyan-700">Lead Management</span>
+                        <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded">High</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-cyan-700">Payment Processing</span>
+                        <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded">Medium</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-cyan-700">Self-Service Optimization</span>
+                        <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded">Low</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-sm text-muted-foreground">Recovery Potential</div>
-                </div>
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-primary mb-2">
-                    {Math.round((recovery70 / Math.max(totalLeak, 1)) * 100)}%
-                  </div>
-                  <div className="text-sm text-muted-foreground">Recovery Rate</div>
                 </div>
               </div>
-            </ContentSection>
+            </div>
           </TabsContent>
 
           <TabsContent value="breakdown">

@@ -11,7 +11,10 @@ import {
   ArrowRight,
   AlertTriangle,
   CheckCircle,
-  Building2
+  Building2,
+  BarChart3,
+  Calendar,
+  DollarSign
 } from "lucide-react";
 import { type Submission } from "@/lib/supabase";
 import { calculateExecutiveSummary } from "@/lib/calculator/priorityCalculations";
@@ -41,34 +44,41 @@ export const ExecutiveFirstSummary = ({
     ? Math.max(1, Math.round((totalLeakage * 0.15) / (realisticRecovery / 12)))
     : 12;
 
+  const leakagePercentage = submission.current_arr ? 
+    ((totalLeakage / submission.current_arr) * 100).toFixed(1) : '0';
+
   const urgencyConfig = {
     Critical: { 
       variant: 'destructive' as const, 
       icon: AlertTriangle, 
       color: 'text-red-600',
-      bgGradient: 'from-red-50 to-orange-50',
-      borderColor: 'border-red-200'
+      bgColor: 'bg-red-50',
+      borderColor: 'border-red-200',
+      accentColor: 'bg-red-500'
     },
     High: { 
       variant: 'destructive' as const, 
       icon: TrendingUp, 
       color: 'text-orange-600',
-      bgGradient: 'from-orange-50 to-yellow-50',
-      borderColor: 'border-orange-200'
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-200',
+      accentColor: 'bg-orange-500'
     },
     Medium: { 
       variant: 'outline' as const, 
       icon: Target, 
       color: 'text-blue-600',
-      bgGradient: 'from-blue-50 to-indigo-50',
-      borderColor: 'border-blue-200'
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
+      accentColor: 'bg-blue-500'
     },
     Low: { 
       variant: 'secondary' as const, 
       icon: CheckCircle, 
       color: 'text-green-600',
-      bgGradient: 'from-green-50 to-emerald-50',
-      borderColor: 'border-green-200'
+      bgColor: 'bg-green-50',
+      borderColor: 'border-green-200',
+      accentColor: 'bg-green-500'
     }
   };
 
@@ -77,160 +87,177 @@ export const ExecutiveFirstSummary = ({
 
   return (
     <div className="space-y-8">
-      {/* Executive Authority Header */}
-      <div className="text-center space-y-4 py-6">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="p-3 rounded-full bg-primary/10 border border-primary/20">
-            <Building2 className="h-8 w-8 text-primary" />
-          </div>
-          <div className="text-left">
-            <h1 className="text-2xl font-bold text-foreground">Executive Revenue Analysis</h1>
-            <p className="text-muted-foreground">Powered by 2,800+ revenue optimization cases</p>
-          </div>
+      {/* Executive Hero Section */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-50 to-blue-50 border border-slate-200">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-600" />
         </div>
         
-        {/* Professional Credibility Markers */}
-        <div className="flex flex-wrap justify-center gap-2">
-          <Badge variant="outline" className="text-xs font-medium">
-            <Shield className="h-3 w-3 mr-1" />
-            Enterprise-Grade Analysis
-          </Badge>
-          <Badge variant="outline" className="text-xs font-medium">
-            <Award className="h-3 w-3 mr-1" />
-            Validated Methodology
-          </Badge>
-          <Badge variant="outline" className="text-xs font-medium">
-            <Users className="h-3 w-3 mr-1" />
-            2,800+ Companies Analyzed
-          </Badge>
-        </div>
-      </div>
-
-      {/* Primary Executive Card */}
-      <Card className={`bg-gradient-to-br ${config.bgGradient} ${config.borderColor} border-2 shadow-xl`}>
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`p-3 rounded-xl bg-white/70 border ${config.borderColor}`}>
-                <UrgencyIcon className={`h-8 w-8 ${config.color}`} />
+        <div className="relative p-8 md:p-12">
+          {/* Authority Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="p-4 rounded-2xl bg-white shadow-lg border">
+                <Building2 className="h-8 w-8 text-blue-600" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-foreground">
-                  {submission.company_name}
-                </h2>
-                <p className="text-muted-foreground">Revenue Optimization Assessment</p>
+                <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-1">
+                  Revenue Recovery Analysis
+                </h1>
+                <p className="text-slate-600 flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Enterprise-grade assessment • 2,800+ companies analyzed
+                </p>
               </div>
             </div>
-            <Badge variant={config.variant} className="text-sm font-semibold px-3 py-1">
+            
+            <Badge variant={config.variant} className="hidden md:flex text-sm font-semibold px-4 py-2">
+              <UrgencyIcon className="h-4 w-4 mr-2" />
               {urgencyLevel} Priority
             </Badge>
           </div>
-        </CardHeader>
 
-        <CardContent className="space-y-6">
-          {/* Key Executive Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-6 bg-white/60 rounded-xl border border-white/40">
+          {/* Company Identity */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">{submission.company_name}</h2>
+            <div className="flex flex-wrap gap-3">
+              <Badge variant="outline" className="bg-white/80">
+                <BarChart3 className="h-3 w-3 mr-1" />
+                {submission.industry || 'Technology'}
+              </Badge>
+              <Badge variant="outline" className="bg-white/80">
+                <DollarSign className="h-3 w-3 mr-1" />
+                {formatCurrency(submission.current_arr || 0)} ARR
+              </Badge>
+              <Badge variant="outline" className="bg-white/80">
+                <Calendar className="h-3 w-3 mr-1" />
+                Analyzed today
+              </Badge>
+            </div>
+          </div>
+
+          {/* Key Executive Metrics - Hero Display */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Revenue at Risk */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-red-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-lg bg-red-50">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                </div>
+                <div className="text-sm font-medium text-red-700">Revenue at Risk</div>
+              </div>
               <div className="text-3xl font-bold text-red-600 mb-2">
                 {formatCurrency(totalLeakage)}
               </div>
-              <div className="text-sm font-medium text-muted-foreground mb-1">
-                Annual Revenue at Risk
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {submission.current_arr ? `${((totalLeakage / submission.current_arr) * 100).toFixed(1)}% of ARR` : 'Requires immediate attention'}
+              <div className="text-sm text-slate-600">
+                {leakagePercentage}% of current ARR • Compounds monthly
               </div>
             </div>
 
-            <div className="text-center p-6 bg-white/60 rounded-xl border border-white/40">
+            {/* Recovery Potential */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-green-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-lg bg-green-50">
+                  <TrendingUp className="h-5 w-5 text-green-600" />
+                </div>
+                <div className="text-sm font-medium text-green-700">Recovery Potential</div>
+              </div>
               <div className="text-3xl font-bold text-green-600 mb-2">
                 {formatCurrency(realisticRecovery)}
               </div>
-              <div className="text-sm font-medium text-muted-foreground mb-1">
-                Recoverable Revenue
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {confidenceLevel} confidence level
+              <div className="text-sm text-slate-600">
+                {confidenceLevel} confidence • 12-18 month target
               </div>
             </div>
 
-            <div className="text-center p-6 bg-white/60 rounded-xl border border-white/40">
+            {/* ROI Impact */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-blue-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-lg bg-blue-50">
+                  <Target className="h-5 w-5 text-blue-600" />
+                </div>
+                <div className="text-sm font-medium text-blue-700">ROI Multiplier</div>
+              </div>
               <div className="text-3xl font-bold text-blue-600 mb-2">
                 {roiMultiplier}x
               </div>
-              <div className="text-sm font-medium text-muted-foreground mb-1">
-                ROI Multiplier
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {paybackMonths}-month payback
+              <div className="text-sm text-slate-600">
+                {paybackMonths}-month payback period
               </div>
             </div>
           </div>
 
-          {/* Executive Summary Narrative */}
-          <div className="p-6 bg-white/60 rounded-xl border border-white/40">
-            <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
-              <Target className="h-5 w-5 text-primary" />
+          {/* Executive Summary Statement */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-slate-200 mb-8">
+            <h3 className="text-lg font-semibold text-slate-900 mb-3 flex items-center gap-2">
+              <Target className="h-5 w-5 text-blue-600" />
               Executive Summary
             </h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Our analysis identified <strong className="text-foreground">{formatCurrency(totalLeakage)}</strong> in 
-              annual revenue optimization opportunities for {submission.company_name}. Based on your current 
-              metrics and industry benchmarks, we project a realistic recovery potential of{' '}
-              <strong className="text-green-600">{formatCurrency(realisticRecovery)}</strong> within 
-              12-18 months of implementation. This represents a <strong className="text-blue-600">{roiMultiplier}x ROI</strong> on 
-              optimization investments, with initial returns visible within {paybackMonths} months.
+            <p className="text-slate-700 leading-relaxed text-base">
+              Our comprehensive analysis of {submission.company_name} reveals{' '}
+              <span className="font-semibold text-red-600">{formatCurrency(totalLeakage)}</span> in 
+              annual revenue optimization opportunities. With systematic implementation, we project{' '}
+              <span className="font-semibold text-green-600">{formatCurrency(realisticRecovery)}</span> in 
+              recoverable revenue within 18 months, delivering a{' '}
+              <span className="font-semibold text-blue-600">{roiMultiplier}x ROI</span> on optimization investments.
             </p>
           </div>
 
-          {/* Implementation Timeline for Executives */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-lg bg-green-50 border border-green-200">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                  <span className="text-sm font-bold text-green-700">30</span>
+          {/* Implementation Timeline Preview */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="bg-white rounded-xl p-4 border border-green-200">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                  <span className="text-sm font-bold text-green-700">30d</span>
                 </div>
-                <span className="font-semibold text-green-700">Days</span>
+                <div>
+                  <div className="font-semibold text-green-700 text-sm">Quick Wins</div>
+                  <div className="text-xs text-green-600">{formatCurrency(realisticRecovery * 0.25)}</div>
+                </div>
               </div>
-              <p className="text-sm text-green-700 font-medium">Quick Wins</p>
-              <p className="text-xs text-green-600 mt-1">
-                {formatCurrency(realisticRecovery * 0.25)} potential
-              </p>
+              <div className="w-full bg-green-100 rounded-full h-2">
+                <div className="bg-green-500 h-2 rounded-full w-1/4"></div>
+              </div>
             </div>
 
-            <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                  <span className="text-sm font-bold text-blue-700">90</span>
+            <div className="bg-white rounded-xl p-4 border border-blue-200">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <span className="text-sm font-bold text-blue-700">90d</span>
                 </div>
-                <span className="font-semibold text-blue-700">Days</span>
+                <div>
+                  <div className="font-semibold text-blue-700 text-sm">Core Systems</div>
+                  <div className="text-xs text-blue-600">{formatCurrency(realisticRecovery * 0.65)}</div>
+                </div>
               </div>
-              <p className="text-sm text-blue-700 font-medium">Core Systems</p>
-              <p className="text-xs text-blue-600 mt-1">
-                {formatCurrency(realisticRecovery * 0.65)} target
-              </p>
+              <div className="w-full bg-blue-100 rounded-full h-2">
+                <div className="bg-blue-500 h-2 rounded-full w-2/3"></div>
+              </div>
             </div>
 
-            <div className="p-4 rounded-lg bg-purple-50 border border-purple-200">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-                  <span className="text-sm font-bold text-purple-700">180</span>
+            <div className="bg-white rounded-xl p-4 border border-purple-200">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                  <span className="text-sm font-bold text-purple-700">180d</span>
                 </div>
-                <span className="font-semibold text-purple-700">Days</span>
+                <div>
+                  <div className="font-semibold text-purple-700 text-sm">Full Optimization</div>
+                  <div className="text-xs text-purple-600">{formatCurrency(realisticRecovery)}</div>
+                </div>
               </div>
-              <p className="text-sm text-purple-700 font-medium">Full Optimization</p>
-              <p className="text-xs text-purple-600 mt-1">
-                {formatCurrency(realisticRecovery)} achieved
-              </p>
+              <div className="w-full bg-purple-100 rounded-full h-2">
+                <div className="bg-purple-500 h-2 rounded-full w-full"></div>
+              </div>
             </div>
           </div>
 
-          {/* Executive Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+          {/* Executive Action CTAs */}
+          <div className="flex flex-col sm:flex-row gap-4">
             <Button 
               onClick={onGetActionPlan}
               size="lg" 
-              className="flex-1 text-base font-semibold h-12 shadow-lg hover:shadow-xl transition-all duration-300"
+              className="flex-1 text-base font-semibold h-14 bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
             >
               <Target className="h-5 w-5 mr-2" />
               Get Strategic Action Plan
@@ -241,34 +268,49 @@ export const ExecutiveFirstSummary = ({
               onClick={onViewFullAnalysis}
               variant="outline" 
               size="lg"
-              className="flex-1 text-base font-medium h-12 transition-all duration-300"
+              className="flex-1 text-base font-medium h-14 bg-white hover:bg-slate-50 transition-all duration-300 rounded-xl border-2"
             >
+              <BarChart3 className="h-5 w-5 mr-2" />
               View Detailed Analysis
             </Button>
           </div>
 
-          {/* Time-Sensitive Indicator */}
+          {/* Urgency Indicator */}
           {urgencyLevel === 'Critical' && (
-            <div className="flex items-center justify-center gap-2 p-3 bg-red-100 border border-red-200 rounded-lg">
-              <Clock className="h-4 w-4 text-red-600" />
-              <span className="text-sm font-medium text-red-700">
-                Time-sensitive opportunity - Revenue leak compounds monthly
+            <div className="mt-6 flex items-center justify-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <Clock className="h-5 w-5 text-red-600" />
+              <span className="font-medium text-red-700">
+                Time-sensitive opportunity - Revenue leak compounds {formatCurrency(totalLeakage/12)} monthly
               </span>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Professional Authority Footer */}
-      <div className="text-center py-6 border-t border-muted-foreground/10">
-        <p className="text-sm text-muted-foreground mb-2">
-          This analysis follows enterprise revenue optimization standards
-        </p>
-        <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
-          <span>✓ SOC 2 Compliant Methodology</span>
-          <span>✓ Fortune 500 Validation</span>
-          <span>✓ CRO Best Practices</span>
-          <span>✓ Data-Driven Recommendations</span>
+      <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
+        <div className="text-center">
+          <p className="text-sm font-medium text-slate-700 mb-3">
+            Analysis Standards & Methodology
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-slate-600">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <span>SOC 2 Compliant</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+              <span>Fortune 500 Validated</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+              <span>CRO Best Practices</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+              <span>Data-Driven Insights</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
