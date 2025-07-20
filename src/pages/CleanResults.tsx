@@ -196,45 +196,52 @@ const CleanResults = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Clean Header */}
+      {/* Clean Mobile-First Header */}
       <header className="border-b bg-card">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={navigation.navigateToDashboard}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Dashboard
+          <div className="flex items-center justify-between h-14 sm:h-16">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+              <Button variant="ghost" size="sm" onClick={navigation.navigateToDashboard} className="p-2 sm:px-3">
+                <ArrowLeft className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Dashboard</span>
               </Button>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary text-primary-foreground">
-                  <Calculator className="h-5 w-5" />
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-primary text-primary-foreground">
+                  <Calculator className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
-                <div>
-                  <h1 className="text-lg md:text-xl font-semibold">{submission.company_name}</h1>
-                  <p className="text-sm md:text-base text-muted-foreground">Revenue Analysis Results</p>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-base sm:text-lg md:text-xl font-semibold truncate">{submission.company_name}</h1>
+                  <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Revenue Analysis Results</p>
                 </div>
               </div>
             </div>
-            <EnhancedExportCTA />
+            <div className="hidden sm:block">
+              <EnhancedExportCTA />
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Navigation Context */}
-        <div className="mb-6 space-y-4">
-          <AnalysisBreadcrumb items={navigation.breadcrumbs} />
-          <AnalysisProgress 
-            current={navigation.progressInfo.current}
-            total={navigation.progressInfo.total}
-            percentage={navigation.progressInfo.percentage}
-            label={`Total Recovery Potential: ${formatCurrency(calculations.conservativeRecovery)}`}
-          />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        {/* Mobile-Optimized Progress Indicator */}
+        <div className="mb-4 sm:mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <Badge variant="outline" className="text-xs">
+              <BarChart3 className="h-3 w-3 mr-1" />
+              Analysis Complete
+            </Badge>
+            <span className="text-xs text-muted-foreground">
+              {formatCurrency(calculations.conservativeRecovery)} Recovery Potential
+            </span>
+          </div>
+          <div className="w-full bg-secondary rounded-full h-2">
+            <div className="bg-primary h-2 rounded-full w-full"></div>
+          </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-2">
+        {/* Simplified Mobile Navigation */}
+        <div className="mb-6 sm:mb-8">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
             {sections.map((section) => {
               const Icon = section.icon;
               const isActive = activeSection === section.id;
@@ -244,10 +251,10 @@ const CleanResults = () => {
                   variant={isActive ? "default" : "outline"}
                   size="sm"
                   onClick={() => setActiveSection(section.id)}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-1.5 sm:gap-2 justify-center text-xs sm:text-sm h-10 sm:h-auto"
                 >
-                  <Icon className="h-4 w-4" />
-                  {section.label}
+                  <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="truncate">{section.label}</span>
                 </Button>
               );
             })}
