@@ -178,6 +178,7 @@ export const RevenueCalculator = () => {
             break;
             
           case 2:
+            console.log('Step 2 validation - data:', data.leadGeneration);
             await handleStep2Complete(data.leadGeneration, setCurrentStep);
             
             // Trigger progressive email capture after step 2 completion
@@ -536,7 +537,11 @@ export const RevenueCalculator = () => {
             </div>
             
             <Button
-              onClick={nextStep}
+              onClick={() => {
+                console.log('Continue button clicked, currentStep:', currentStep);
+                console.log('Current data for step 2:', data.leadGeneration);
+                nextStep();
+              }}
               className="flex items-center gap-3 bg-gradient-to-r from-primary via-revenue-primary to-accent hover:opacity-90 shadow-attention-glow touch-target font-semibold text-body transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               disabled={currentStep === 1 && (!data.companyInfo.companyName?.trim() || !data.companyInfo.email?.trim())}
             >
