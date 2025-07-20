@@ -48,7 +48,7 @@ export const submissionService = {
 export const analyticsService = {
   async track(event: string, data?: any) { return { data: null, error: null }; },
   async getEvents() { return { data: [], error: null }; },
-  async getDashboardMetrics(userId: string) { return { data: { total_submissions: 0, avg_score: 0 }, error: null }; }
+  async getDashboardMetrics(userId: string, filters?: any) { return { data: { total_submissions: 0, avg_score: 0 }, error: null }; }
 };
 
 export const userService = {
@@ -85,5 +85,5 @@ export const userProfileService = {
   async update(userId: string, data: any) { return { data: null, error: { message: 'Service disabled' } }; },
   async delete(userId: string) { return { error: { message: 'Service disabled' } }; },
   async incrementAnalysis(userId: string) { return { data: null, error: null }; },
-  async getUsersWithAnalytics() { return { data: [], error: null }; }
+  async getUsersWithAnalytics(filters?: any) { return { data: [], error: null }; }
 };
