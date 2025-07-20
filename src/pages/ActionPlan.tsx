@@ -143,7 +143,7 @@ export default function ActionPlan() {
       averageDealValue: submissionData.average_deal_value,
       leadResponseTime: submissionData.lead_response_time,
       monthlyFreeSignups: submissionData.monthly_free_signups,
-      freeToLaidConversion: submissionData.free_to_paid_conversion,
+      freeToPaidConversion: submissionData.free_to_paid_conversion,
       failedPaymentRate: submissionData.failed_payment_rate,
       manualHours: submissionData.manual_hours,
       hourlyRate: submissionData.hourly_rate,

@@ -20,7 +20,7 @@ export interface UnifiedCalculationInputs {
   averageDealValue: number;
   leadResponseTime: number;
   monthlyFreeSignups: number;
-  freeToLaidConversion: number;
+  freeToPaidConversion: number;
   failedPaymentRate: number;
   manualHours: number;
   hourlyRate: number;
@@ -76,7 +76,7 @@ export const calculateUnifiedResults = (inputs: UnifiedCalculationInputs): Unifi
     leadResponseTimeHours: Math.max(0.1, Math.min(168, inputs.leadResponseTime || 24)),
     averageDealValue: Math.max(100, inputs.averageDealValue || 5000),
     monthlyFreeSignups: Math.max(0, inputs.monthlyFreeSignups || 0),
-    currentConversionRate: Math.max(0, Math.min(25, inputs.freeToLaidConversion || 2)),
+    currentConversionRate: Math.max(0, Math.min(25, inputs.freeToPaidConversion || 2)),
     monthlyMRR: Math.max(0, inputs.monthlyMRR || 0),
     failedPaymentRate: Math.max(0, Math.min(30, inputs.failedPaymentRate || 5)),
     manualHoursPerWeek: Math.max(0, Math.min(80, inputs.manualHours || 10)),

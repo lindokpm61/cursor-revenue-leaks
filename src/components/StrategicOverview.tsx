@@ -31,7 +31,7 @@ export const StrategicOverview = ({ latestAnalysis, formatCurrency }: StrategicO
     averageDealValue: Number(latestAnalysis.average_deal_value || 0),
     leadResponseTime: Number(latestAnalysis.lead_response_time || 24),
     monthlyFreeSignups: Number(latestAnalysis.monthly_free_signups || 0),
-    freeToLaidConversion: Number(latestAnalysis.free_to_paid_conversion || 0),
+    freeToPaidConversion: Number(latestAnalysis.free_to_paid_conversion || 0),
     failedPaymentRate: Number(latestAnalysis.failed_payment_rate || 0),
     manualHours: Number(latestAnalysis.manual_hours || 0),
     hourlyRate: Number(latestAnalysis.hourly_rate || 0),

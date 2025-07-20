@@ -100,7 +100,7 @@ const Dashboard = () => {
       averageDealValue: Number(submission.average_deal_value || 0),
       leadResponseTime: Number(submission.lead_response_time || 24),
       monthlyFreeSignups: Number(submission.monthly_free_signups || 0),
-      freeToLaidConversion: Number(submission.free_to_paid_conversion || 0),
+      freeToPaidConversion: Number(submission.free_to_paid_conversion || 0),
       failedPaymentRate: Number(submission.failed_payment_rate || 0),
       manualHours: Number(submission.manual_hours || 0),
       hourlyRate: Number(submission.hourly_rate || 0),
