@@ -393,6 +393,7 @@ export type Database = {
           created_at: string | null
           engagement_score: number | null
           engagement_tier: string | null
+          first_submission_date: string | null
           id: string
           phone: string | null
           role: string | null
@@ -408,6 +409,7 @@ export type Database = {
           created_at?: string | null
           engagement_score?: number | null
           engagement_tier?: string | null
+          first_submission_date?: string | null
           id: string
           phone?: string | null
           role?: string | null
@@ -423,6 +425,7 @@ export type Database = {
           created_at?: string | null
           engagement_score?: number | null
           engagement_tier?: string | null
+          first_submission_date?: string | null
           id?: string
           phone?: string | null
           role?: string | null
@@ -469,6 +472,7 @@ export type Database = {
           company_name: string | null
           completion_percentage: number | null
           conversion_completed_at: string | null
+          converted_to_user_id: string | null
           created_at: string | null
           current_step: number | null
           email: string | null
@@ -504,6 +508,7 @@ export type Database = {
           company_name?: string | null
           completion_percentage?: number | null
           conversion_completed_at?: string | null
+          converted_to_user_id?: string | null
           created_at?: string | null
           current_step?: number | null
           email?: string | null
@@ -539,6 +544,7 @@ export type Database = {
           company_name?: string | null
           completion_percentage?: number | null
           conversion_completed_at?: string | null
+          converted_to_user_id?: string | null
           created_at?: string | null
           current_step?: number | null
           email?: string | null
