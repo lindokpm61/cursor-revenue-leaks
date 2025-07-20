@@ -474,6 +474,7 @@ export type Database = {
           ip_address: string | null
           last_activity_at: string | null
           last_email_sent_at: string | null
+          last_updated: string | null
           lead_score: number | null
           n8n_workflow_status: Json | null
           page_views: number | null
@@ -506,6 +507,7 @@ export type Database = {
           ip_address?: string | null
           last_activity_at?: string | null
           last_email_sent_at?: string | null
+          last_updated?: string | null
           lead_score?: number | null
           n8n_workflow_status?: Json | null
           page_views?: number | null
@@ -538,6 +540,7 @@ export type Database = {
           ip_address?: string | null
           last_activity_at?: string | null
           last_email_sent_at?: string | null
+          last_updated?: string | null
           lead_score?: number | null
           n8n_workflow_status?: Json | null
           page_views?: number | null
