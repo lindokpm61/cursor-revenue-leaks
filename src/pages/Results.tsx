@@ -37,6 +37,7 @@ import { DetailedBreakdown } from "@/components/calculator/results/DetailedBreak
 import { RevenueCharts } from "@/components/calculator/results/RevenueCharts";
 import { HeroRevenueChart } from "@/components/results/HeroRevenueChart";
 import { SaveSummaryButton } from "@/components/results/SaveSummaryButton";
+import { ExecutiveFirstSummary } from "@/components/results/ExecutiveFirstSummary";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { type ConfidenceFactors } from "@/lib/calculator/enhancedCalculations";
@@ -254,78 +255,13 @@ const Results = () => {
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Simplified Hero Section */}
-        <ContentSection 
-          title="Revenue Recovery Opportunity"
-          badge={`${((totalLeak / (submission.current_arr || 1)) * 100).toFixed(1)}% of ARR at Risk`}
-          badgeVariant="destructive"
-          priority="high"
-          className="mb-6"
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div>
-                <div className="text-3xl md:text-4xl text-revenue-warning font-bold flex items-center gap-3 mb-2">
-                  <ArrowUp className="h-8 w-8" />
-                  {formatCurrency(totalLeak)}
-                </div>
-                <p className="text-lg text-muted-foreground mb-6">
-                  Annual revenue opportunity identified
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-revenue-success/5 border border-revenue-success/20">
-                  <div className="text-xl font-bold text-revenue-success mb-1">
-                    {formatCurrency(recovery70)}
-                  </div>
-                  <div className="text-sm font-medium text-revenue-success/80">
-                    Conservative Recovery
-                  </div>
-                </div>
-                <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
-                  <div className="text-xl font-bold text-primary mb-1">
-                    {formatCurrency(recovery85)}
-                  </div>
-                  <div className="text-sm font-medium text-primary/80">
-                    Optimistic Recovery
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <UnifiedCTA
-                  variant="primary"
-                  context="results"
-                  data={{
-                    totalLeak,
-                    recovery: recovery70,
-                    formatCurrency
-                  }}
-                  onPrimaryAction={handleGetActionPlan}
-                  onSecondaryAction={handleDownloadReport}
-                />
-                
-                <SaveSummaryButton
-                  data={calculatorData}
-                  calculations={calculations}
-                  submissionId={submission.id}
-                  formatCurrency={formatCurrency}
-                  variant="outline"
-                />
-              </div>
-            </div>
-
-            <div>
-              <HeroRevenueChart
-                secureRevenue={submission.current_arr ? submission.current_arr - totalLeak : 0}
-                revenueAtRisk={totalLeak}
-                recoveryPotential={recovery70}
-                formatCurrency={formatCurrency}
-              />
-            </div>
-          </div>
-        </ContentSection>
+        {/* Executive-First Summary */}
+        <ExecutiveFirstSummary
+          submission={submission}
+          formatCurrency={formatCurrency}
+          onGetActionPlan={handleGetActionPlan}
+          onViewFullAnalysis={() => setActiveTab("breakdown")}
+        />
 
         {/* Tabbed Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
