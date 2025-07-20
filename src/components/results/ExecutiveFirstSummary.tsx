@@ -279,10 +279,13 @@ export const ExecutiveFirstSummary = ({
               onClick={onViewFullAnalysis}
               variant="outline" 
               size="lg"
-              className="w-full text-sm md:text-base font-medium h-12 md:h-14 bg-white hover:bg-slate-50 transition-all duration-300 rounded-xl border-2 touch-manipulation"
+              className="w-full text-xs sm:text-sm md:text-base font-medium h-12 md:h-14 bg-white hover:bg-slate-50 transition-all duration-300 rounded-xl border-2 touch-manipulation px-3 sm:px-4"
             >
-              <BarChart3 className="h-4 w-4 md:h-5 md:w-5 mr-2 flex-shrink-0" />
-              <span className="truncate">View Detailed Analysis</span>
+              <BarChart3 className="h-4 w-4 md:h-5 md:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+              <span className="truncate min-w-0">
+                <span className="hidden sm:inline">View Detailed Analysis</span>
+                <span className="sm:hidden">View Analysis</span>
+              </span>
             </Button>
           </div>
 
