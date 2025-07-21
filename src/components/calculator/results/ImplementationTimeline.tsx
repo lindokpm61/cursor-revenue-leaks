@@ -14,7 +14,9 @@ import {
   DollarSign,
   BarChart3,
   ChevronDown,
-  AlertTriangle
+  AlertTriangle,
+  Siren,
+  Timer
 } from "lucide-react";
 import { type Submission } from "@/lib/supabase";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
@@ -81,8 +83,8 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
       const recoveryRate = 0.65; // 65% recovery rate
       phases.push({
         id: 'lead-response',
-        title: 'Lead Response Optimization',
-        description: 'Implement automated lead response and scoring systems',
+        title: 'Lead Response Crisis Containment',
+        description: 'Emergency implementation of automated response systems to stop lead bleeding',
         startMonth: 1,
         endMonth: 3,
         difficulty: 'easy',
@@ -101,8 +103,8 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
       const recoveryRate = 0.55; // 55% recovery rate for self-serve
       phases.push({
         id: 'self-serve',
-        title: 'Self-Serve Conversion Enhancement',
-        description: 'Optimize onboarding flow and conversion triggers',
+        title: 'Conversion Failure Emergency Response',
+        description: 'Immediate onboarding fixes to stop conversion bleeding',
         startMonth: 2,
         endMonth: 5,
         difficulty: 'medium',
@@ -121,8 +123,8 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
       const recoveryRate = 0.70; // 70% recovery rate for payment issues
       phases.push({
         id: 'payment-recovery',
-        title: 'Payment Recovery System',
-        description: 'Implement advanced payment retry and dunning management',
+        title: 'Payment Failure Emergency Protocol',
+        description: 'Critical payment system fixes to stop revenue bleeding',
         startMonth: 3,
         endMonth: 6,
         difficulty: 'medium',
@@ -141,8 +143,8 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
       const recoveryRate = 0.75; // 75% recovery rate for automation
       phases.push({
         id: 'process-automation', 
-        title: 'Process Automation',
-        description: 'Automate manual processes and workflows',
+        title: 'Process Inefficiency Crisis Intervention',
+        description: 'Emergency automation to stop manual process bleeding',
         startMonth: 4,
         endMonth: 8,
         difficulty: 'hard',
@@ -264,10 +266,10 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
   
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'text-revenue-success bg-revenue-success/10';
-      case 'medium': return 'text-revenue-warning bg-revenue-warning/10';
-      case 'hard': return 'text-revenue-danger bg-revenue-danger/10';
-      default: return 'text-muted-foreground bg-muted/10';
+      case 'easy': return 'text-revenue-success bg-revenue-success/10 border-revenue-success/20';
+      case 'medium': return 'text-orange-600 bg-orange-500/10 border-orange-500/20';
+      case 'hard': return 'text-destructive bg-destructive/10 border-destructive/20';
+      default: return 'text-muted-foreground bg-muted/10 border-muted/20';
     }
   };
 
@@ -286,13 +288,16 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
         <Collapsible open={isContentOpen} onOpenChange={setIsContentOpen}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-revenue-primary">
-                <Calendar className="h-6 w-6 text-primary-foreground" />
+              <div className="p-2 rounded-lg bg-gradient-to-r from-destructive to-orange-500">
+                <Siren className="h-6 w-6 text-destructive-foreground animate-pulse" />
               </div>
               <div>
-                <CardTitle className="text-2xl">Implementation Timeline & ROI</CardTitle>
+                <CardTitle className="text-2xl text-destructive flex items-center gap-2">
+                  EMERGENCY REVENUE RECOVERY PROTOCOL
+                  <Badge variant="destructive" className="animate-pulse">URGENT</Badge>
+                </CardTitle>
                 <p className="text-muted-foreground mt-1">
-                  {phases.length}-phase revenue recovery plan with {Math.round(recoveryPercentage)}% leak recovery potential
+                  {phases.length}-phase emergency intervention • Stop {Math.round(recoveryPercentage)}% of revenue bleeding immediately
                 </p>
               </div>
             </div>
@@ -305,66 +310,79 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
 
           <CollapsibleContent>
             <CardContent className="space-y-8 pt-6">
-              {/* Recovery Summary */}
+              {/* Critical Revenue Bleeding Summary */}
               <div className="grid grid-cols-4 gap-4">
-                <div className="p-4 rounded-lg bg-gradient-to-r from-revenue-primary/5 to-revenue-primary/10 border border-revenue-primary/20">
+                <div className="p-4 rounded-lg bg-gradient-to-r from-destructive/10 to-destructive/20 border-2 border-destructive/30">
                   <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="h-5 w-5 text-revenue-primary" />
-                    <span className="text-sm font-medium text-muted-foreground">Recovery Potential</span>
+                    <Siren className="h-5 w-5 text-destructive animate-pulse" />
+                    <span className="text-sm font-medium text-muted-foreground">Emergency Recovery</span>
                   </div>
-                  <div className="text-2xl font-bold text-foreground">
+                  <div className="text-2xl font-bold text-destructive">
                     {formatCurrency(totalRecovery)}
                   </div>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    {Math.round(recoveryPercentage)}% of revenue leak
+                  <div className="text-sm text-orange-600 mt-1">
+                    Stop {Math.round(recoveryPercentage)}% of bleeding
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Daily savings: {formatCurrency(totalRecovery / 365)}
                   </div>
                 </div>
                 
-                <div className="p-4 rounded-lg bg-gradient-to-r from-revenue-secondary/5 to-revenue-secondary/10 border border-revenue-secondary/20">
+                <div className="p-4 rounded-lg bg-gradient-to-r from-orange-500/10 to-orange-500/20 border border-orange-500/30">
                   <div className="flex items-center gap-2 mb-2">
-                    <Target className="h-5 w-5 text-revenue-secondary" />
-                    <span className="text-sm font-medium text-muted-foreground">Timeline</span>
+                    <Timer className="h-5 w-5 text-orange-600" />
+                    <span className="text-sm font-medium text-muted-foreground">Crisis Timeline</span>
                   </div>
-                  <div className="text-2xl font-bold text-foreground">
+                  <div className="text-2xl font-bold text-orange-600">
                     {phases.length > 0 ? Math.max(...phases.map(p => p.endMonth)) : 12} months
                   </div>
                   <div className="text-sm text-muted-foreground mt-1">
-                    {phases.length} implementation phases
+                    {phases.length} emergency phases
+                  </div>
+                  <div className="text-xs text-orange-600 mt-1">
+                    Every day costs: {formatCurrency((unifiedCalcs.totalLoss || 0) / 365)}
                   </div>
                 </div>
                 
-                <div className="p-4 rounded-lg bg-gradient-to-r from-revenue-warning/5 to-revenue-warning/10 border border-revenue-warning/20">
+                <div className="p-4 rounded-lg bg-gradient-to-r from-revenue-warning/10 to-revenue-warning/20 border border-revenue-warning/30">
                   <div className="flex items-center gap-2 mb-2">
                     <DollarSign className="h-5 w-5 text-revenue-warning" />
-                    <span className="text-sm font-medium text-muted-foreground">Investment</span>
+                    <span className="text-sm font-medium text-muted-foreground">Emergency Investment</span>
                   </div>
-                  <div className="text-2xl font-bold text-foreground">
+                  <div className="text-2xl font-bold text-revenue-warning">
                     {formatCurrency(investment.totalAnnualInvestment)}
                   </div>
                   <div className="text-sm text-muted-foreground mt-1">
-                    Annual investment required
+                    Crisis intervention cost
+                  </div>
+                  <div className="text-xs text-revenue-warning mt-1">
+                    vs. bleeding: {formatCurrency((unifiedCalcs.totalLoss || 0) - investment.totalAnnualInvestment)}
                   </div>
                 </div>
                 
-                <div className="p-4 rounded-lg bg-gradient-to-r from-revenue-success/5 to-revenue-success/10 border border-revenue-success/20">
+                <div className="p-4 rounded-lg bg-gradient-to-r from-revenue-success/10 to-revenue-success/20 border border-revenue-success/30">
                   <div className="flex items-center gap-2 mb-2">
                     <BarChart3 className="h-5 w-5 text-revenue-success" />
-                    <span className="text-sm font-medium text-muted-foreground">Expected ROI</span>
+                    <span className="text-sm font-medium text-muted-foreground">Recovery ROI</span>
                   </div>
-                  <div className="text-2xl font-bold text-foreground">
+                  <div className="text-2xl font-bold text-revenue-success">
                     {Math.round(roiData.roi)}%
                   </div>
                   <div className="text-sm text-muted-foreground mt-1">
-                    {investment.paybackMonths} month payback
+                    {investment.paybackMonths} month break-even
+                  </div>
+                  <div className="text-xs text-revenue-success mt-1">
+                    Cost of inaction: {formatCurrency(unifiedCalcs.totalLoss || 0)}
                   </div>
                 </div>
               </div>
 
-              {/* Cumulative Recovery Chart */}
+              {/* Emergency Recovery Timeline Chart */}
               <div>
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Cumulative Revenue Recovery
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-destructive">
+                  <Siren className="h-5 w-5 animate-pulse" />
+                  Emergency Revenue Recovery Timeline
+                  <Badge variant="destructive" className="text-xs">BLEEDING STOPS HERE</Badge>
                 </h3>
                 <div className="h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -373,15 +391,15 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
                       <XAxis dataKey="month" />
                       <YAxis tickFormatter={(value) => formatCurrency(value)} />
                       <Tooltip 
-                        formatter={(value: number) => [formatCurrency(value), 'Recovery']}
-                        labelFormatter={(label) => `Timeline: ${label}`}
+                        formatter={(value: number) => [formatCurrency(value), 'Revenue Bleeding Stopped']}
+                        labelFormatter={(label) => `Crisis Timeline: ${label}`}
                       />
                       <Area 
                         type="monotone" 
                         dataKey="cumulative" 
-                        stroke="hsl(var(--primary))" 
-                        fill="hsl(var(--primary)/0.2)"
-                        strokeWidth={2}
+                        stroke="hsl(var(--destructive))" 
+                        fill="hsl(var(--destructive)/0.2)"
+                        strokeWidth={3}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -390,7 +408,7 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
 
               {/* Implementation Phases */}
               <div>
-                <h3 className="text-lg font-semibold mb-6">Implementation Phases</h3>
+                <h3 className="text-lg font-semibold mb-6 text-destructive">🚨 Emergency Intervention Phases</h3>
                 {phases.length === 0 ? (
                   <div className="p-6 text-center bg-muted/30 rounded-lg">
                     <AlertTriangle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
