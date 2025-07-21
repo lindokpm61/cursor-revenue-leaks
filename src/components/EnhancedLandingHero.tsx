@@ -1,18 +1,20 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   Calculator, 
-  TrendingUp, 
+  TrendingDown, 
   DollarSign, 
-  Target, 
+  AlertTriangle, 
   Clock, 
   CheckCircle,
   ArrowRight,
   PlayCircle,
   Users,
-  BarChart3
+  BarChart3,
+  Zap
 } from "lucide-react";
 
 interface EnhancedLandingHeroProps {
@@ -22,24 +24,33 @@ interface EnhancedLandingHeroProps {
 export const EnhancedLandingHero = ({ onStartCalculator }: EnhancedLandingHeroProps) => {
   const [currentStat, setCurrentStat] = useState(0);
   const [animatedValue, setAnimatedValue] = useState(0);
+  const [lossCounter, setLossCounter] = useState(0);
 
   const calculatorCapabilities = [
-    { label: "Lead Response Analysis", value: 4, prefix: "", suffix: " leak areas", color: "text-primary" },
-    { label: "Industry Benchmark Data", value: 15, prefix: "", suffix: "% avg leak", color: "text-revenue-warning" },
-    { label: "Funnel Analysis Depth", value: 100, prefix: "", suffix: "% coverage", color: "text-revenue-success" },
-    { label: "Action Items Generated", value: 12, prefix: "", suffix: "+ insights", color: "text-revenue-primary" }
+    { label: "Revenue Leak Detection", value: 4, prefix: "", suffix: " critical areas", color: "text-destructive" },
+    { label: "Industry Loss Benchmark", value: 15, prefix: "", suffix: "% avg bleeding", color: "text-revenue-warning" },
+    { label: "Financial Risk Coverage", value: 100, prefix: "", suffix: "% analysis", color: "text-revenue-danger" },
+    { label: "Crisis Points Found", value: 12, prefix: "", suffix: "+ bleeding areas", color: "text-destructive" }
   ];
 
   const industryBenchmarks = [
-    { category: "Lead Response", icon: "🎯", insight: "Industry avg: 23% leak rate" },
-    { category: "Payment Recovery", icon: "💳", insight: "Failed payments: 8-12%" },
-    { category: "Self-Serve Gap", icon: "🔧", insight: "Manual overhead: 15-25%" }
+    { category: "Lead Response", icon: "🩸", insight: "23% revenue bleeding rate" },
+    { category: "Payment Recovery", icon: "💔", insight: "8-12% failed collections" },
+    { category: "Manual Overhead", icon: "⚠️", insight: "15-25% efficiency loss" }
   ];
 
   // Animate counter
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentStat((prev) => (prev + 1) % calculatorCapabilities.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Animate loss counter to show money bleeding away
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLossCounter(prev => prev + 127); // $127 lost every 3 seconds
     }, 3000);
     return () => clearInterval(interval);
   }, []);
@@ -67,11 +78,11 @@ export const EnhancedLandingHero = ({ onStartCalculator }: EnhancedLandingHeroPr
   }, [currentStat]);
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-background via-primary/[0.02] to-accent/[0.03]">
+    <div className="relative overflow-hidden bg-gradient-to-br from-background via-destructive/[0.02] to-revenue-warning/[0.03]">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-l from-primary/5 to-transparent rotate-12 transform"></div>
-        <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-r from-accent/5 to-transparent -rotate-12 transform"></div>
+        <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-l from-destructive/5 to-transparent rotate-12 transform"></div>
+        <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-r from-revenue-warning/5 to-transparent -rotate-12 transform"></div>
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 py-16 sm:py-24">
@@ -81,50 +92,65 @@ export const EnhancedLandingHero = ({ onStartCalculator }: EnhancedLandingHeroPr
             <div className="space-y-6">
               {/* Pre-headline */}
               <div className="flex items-center gap-3">
-                <Badge className="bg-revenue-success/10 text-revenue-success border-revenue-success/20 hover:bg-revenue-success/15">
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  Free Tool
+                <Badge className="bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/15">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  Emergency Analysis
                 </Badge>
-                <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/15">
+                <Badge className="bg-revenue-warning/10 text-revenue-warning border-revenue-warning/20 hover:bg-revenue-warning/15">
                   <Clock className="h-3 w-3 mr-1" />
-                  5-Minute Analysis
+                  5-Minute Crisis Assessment
                 </Badge>
               </div>
 
               {/* Main headline */}
               <h1 className="text-hero leading-tight">
-                <span className="block text-foreground font-black">Find Your</span>
-                <span className="block bg-gradient-to-r from-revenue-danger via-revenue-warning to-revenue-primary bg-clip-text text-transparent font-black">
-                  Hidden Revenue Leaks
+                <span className="block text-foreground font-black">Stop Your</span>
+                <span className="block bg-gradient-to-r from-destructive via-revenue-warning to-revenue-danger bg-clip-text text-transparent font-black">
+                  Revenue Bleeding
                 </span>
-                <span className="block text-foreground font-black">in Minutes</span>
+                <span className="block text-foreground font-black">Right Now</span>
               </h1>
 
               {/* Subheadline */}
               <p className="text-h3 text-muted-foreground leading-relaxed max-w-xl">
-                <span className="font-semibold text-foreground">Our AI-powered calculator</span> analyzes your entire sales funnel 
-                to identify exactly where you're losing revenue — and how to fix it.
+                <span className="font-semibold text-destructive">Your revenue is hemorrhaging</span> through critical gaps 
+                in your sales funnel. Find out exactly where the bleeding is worst.
               </p>
 
-              {/* Product capabilities */}
+              {/* Crisis indicators */}
               <div className="grid sm:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border/50">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Calculator className="h-5 w-5 text-primary" />
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-destructive/5 border border-destructive/20">
+                  <div className="p-2 bg-destructive/10 rounded-lg">
+                    <TrendingDown className="h-5 w-5 text-destructive" />
                   </div>
                   <div>
-                    <div className="font-semibold text-foreground">4 Analysis Areas</div>
-                    <div className="text-small text-muted-foreground">Complete funnel coverage</div>
+                    <div className="font-semibold text-destructive">4 Critical Leak Areas</div>
+                    <div className="text-small text-muted-foreground">Emergency assessment</div>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border/50">
-                  <div className="p-2 bg-revenue-success/10 rounded-lg">
-                    <Target className="h-5 w-5 text-revenue-success" />
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-revenue-warning/5 border border-revenue-warning/20">
+                  <div className="p-2 bg-revenue-warning/10 rounded-lg">
+                    <AlertTriangle className="h-5 w-5 text-revenue-warning" />
                   </div>
                   <div>
-                    <div className="font-semibold text-foreground">Research-Backed</div>
-                    <div className="text-small text-muted-foreground">Industry benchmarks</div>
+                    <div className="font-semibold text-revenue-warning">Time-Critical</div>
+                    <div className="text-small text-muted-foreground">Every hour costs money</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Running loss counter */}
+              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-destructive/20 rounded-lg">
+                    <DollarSign className="h-5 w-5 text-destructive animate-pulse" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-destructive/80">Estimated loss while reading:</div>
+                    <div className="text-lg font-bold text-destructive">
+                      ${lossCounter.toLocaleString()}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -134,33 +160,33 @@ export const EnhancedLandingHero = ({ onStartCalculator }: EnhancedLandingHeroPr
             <div className="space-y-4">
               <Button
                 onClick={onStartCalculator}
-                className="group bg-gradient-to-r from-primary via-revenue-primary to-accent hover:opacity-90 shadow-attention-glow text-h3 font-bold py-6 px-8 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl w-full sm:w-auto"
+                className="group bg-gradient-to-r from-destructive via-revenue-warning to-revenue-danger hover:opacity-90 shadow-attention-glow text-h3 font-bold py-6 px-8 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl w-full sm:w-auto"
               >
                 <Calculator className="h-6 w-6 mr-3 group-hover:rotate-12 transition-transform" />
-                Start Free Analysis Now
+                Stop the Revenue Bleeding
                 <ArrowRight className="h-6 w-6 ml-3 group-hover:translate-x-1 transition-transform" />
               </Button>
 
               <div className="flex items-center gap-6 text-small text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-revenue-success" />
-                  <span>No email required to start</span>
+                  <span>No email required to diagnose</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-revenue-success" />
-                  <span>Instant results</span>
+                  <span>Immediate crisis assessment</span>
                 </div>
               </div>
             </div>
 
-            {/* Industry benchmarks */}
+            {/* Industry crisis benchmarks */}
             <div className="border-t border-border/50 pt-6">
-              <p className="text-small text-muted-foreground mb-4">Based on industry research:</p>
+              <p className="text-small text-muted-foreground mb-4">Industry crisis indicators:</p>
               <div className="grid grid-cols-3 gap-4">
                 {industryBenchmarks.map((benchmark, index) => (
-                  <div key={index} className="text-center p-3 rounded-lg bg-muted/30 border border-border/30">
+                  <div key={index} className="text-center p-3 rounded-lg bg-destructive/5 border border-destructive/20">
                     <div className="text-2xl mb-1">{benchmark.icon}</div>
-                    <div className="text-xs font-medium text-foreground">{benchmark.category}</div>
+                    <div className="text-xs font-medium text-destructive">{benchmark.category}</div>
                     <div className="text-xs text-muted-foreground mt-1">{benchmark.insight}</div>
                   </div>
                 ))}
@@ -168,14 +194,14 @@ export const EnhancedLandingHero = ({ onStartCalculator }: EnhancedLandingHeroPr
             </div>
           </div>
 
-          {/* Right column - Interactive stats */}
+          {/* Right column - Crisis stats */}
           <div className="space-y-6">
             {/* Main animated stat card */}
-            <Card className="border-border/30 shadow-xl bg-gradient-to-br from-card via-card to-card/95 backdrop-blur-sm">
+            <Card className="border-destructive/30 shadow-xl bg-gradient-to-br from-card via-card to-destructive/5 backdrop-blur-sm">
               <CardContent className="p-8 text-center">
                 <div className="space-y-4">
-                  <div className="p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-full w-fit mx-auto">
-                    <BarChart3 className="h-12 w-12 text-primary" />
+                  <div className="p-4 bg-gradient-to-r from-destructive/10 to-revenue-warning/10 rounded-full w-fit mx-auto">
+                    <BarChart3 className="h-12 w-12 text-destructive" />
                   </div>
                   
                   <div>
@@ -194,7 +220,7 @@ export const EnhancedLandingHero = ({ onStartCalculator }: EnhancedLandingHeroPr
                       <div
                         key={index}
                         className={`w-2 h-2 rounded-full transition-colors ${
-                          index === currentStat ? 'bg-primary' : 'bg-muted'
+                          index === currentStat ? 'bg-destructive' : 'bg-muted'
                         }`}
                       />
                     ))}
@@ -203,27 +229,27 @@ export const EnhancedLandingHero = ({ onStartCalculator }: EnhancedLandingHeroPr
               </CardContent>
             </Card>
 
-            {/* How it works preview */}
-            <Card className="border-border/30 shadow-lg">
+            {/* Emergency process */}
+            <Card className="border-destructive/30 shadow-lg">
               <CardContent className="p-6">
                 <h3 className="text-h3 font-semibold text-foreground mb-4 flex items-center gap-2">
-                  <PlayCircle className="h-5 w-5 text-primary" />
-                  How It Works
+                  <Zap className="h-5 w-5 text-destructive" />
+                  Emergency Assessment
                 </h3>
                 <div className="space-y-3">
                   {[
-                    { step: 1, text: "Enter your company metrics", time: "1 min" },
-                    { step: 2, text: "AI analyzes your funnel", time: "30 sec" },
-                    { step: 3, text: "Get actionable insights", time: "instant" }
+                    { step: 1, text: "Identify critical bleeding points", time: "1 min" },
+                    { step: 2, text: "Calculate exact loss amounts", time: "30 sec" },
+                    { step: 3, text: "Get emergency action plan", time: "instant" }
                   ].map((item) => (
-                    <div key={item.step} className="flex items-center gap-4 p-3 rounded-lg bg-muted/20">
-                      <div className="w-8 h-8 bg-gradient-to-r from-primary to-revenue-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
+                    <div key={item.step} className="flex items-center gap-4 p-3 rounded-lg bg-destructive/5 border border-destructive/20">
+                      <div className="w-8 h-8 bg-gradient-to-r from-destructive to-revenue-warning text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
                         {item.step}
                       </div>
                       <div className="flex-1">
                         <span className="text-body text-foreground">{item.text}</span>
                       </div>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs border-destructive/20">
                         {item.time}
                       </Badge>
                     </div>
@@ -232,25 +258,25 @@ export const EnhancedLandingHero = ({ onStartCalculator }: EnhancedLandingHeroPr
               </CardContent>
             </Card>
 
-            {/* Tool capabilities */}
+            {/* Crisis urgency indicators */}
             <div className="grid grid-cols-2 gap-4">
-              <Card className="border-border/30">
+              <Card className="border-destructive/30">
                 <CardContent className="p-4 text-center">
                   <div className="flex items-center justify-center gap-2 mb-2">
-                    <TrendingUp className="h-5 w-5 text-primary" />
-                    <span className="text-h2 font-bold text-primary">100%</span>
+                    <TrendingDown className="h-5 w-5 text-destructive" />
+                    <span className="text-h2 font-bold text-destructive">24/7</span>
                   </div>
-                  <p className="text-small text-muted-foreground">Free analysis</p>
+                  <p className="text-small text-muted-foreground">Revenue bleeding</p>
                 </CardContent>
               </Card>
               
-              <Card className="border-border/30">
+              <Card className="border-destructive/30">
                 <CardContent className="p-4 text-center">
                   <div className="flex items-center justify-center gap-2 mb-2">
-                    <Clock className="h-5 w-5 text-revenue-success" />
-                    <span className="text-h2 font-bold text-revenue-success">5min</span>
+                    <Clock className="h-5 w-5 text-revenue-warning" />
+                    <span className="text-h2 font-bold text-revenue-warning">5min</span>
                   </div>
-                  <p className="text-small text-muted-foreground">Complete assessment</p>
+                  <p className="text-small text-muted-foreground">Crisis diagnosis</p>
                 </CardContent>
               </Card>
             </div>

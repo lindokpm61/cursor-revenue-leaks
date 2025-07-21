@@ -2,7 +2,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Clock, DollarSign, Users, Zap, Target, TrendingUp } from "lucide-react";
+import { ArrowRight, Clock, DollarSign, Users, Zap, Target, TrendingDown, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { calculateUnifiedResults, type UnifiedCalculationInputs } from "@/lib/calculator/unifiedCalculations";
 
@@ -44,45 +44,45 @@ export const PriorityActionCards = ({ latestAnalysis, formatCurrency }: Priority
 
   const calculations = calculateUnifiedResults(calculationInputs);
   
-  // Determine top priorities based on calculations
+  // Determine top emergency actions based on calculations
   const priorities = [
     {
-      id: 'detailed-analysis',
-      title: 'Review Complete Analysis',
-      description: 'Get detailed breakdown of all revenue leaks and opportunities',
-      impact: 'Full Understanding',
-      timeframe: '5 minutes',
+      id: 'emergency-assessment',
+      title: 'Full Crisis Assessment',
+      description: 'Complete analysis of all revenue bleeding points and emergency fixes',
+      impact: 'Stop the Bleeding',
+      timeframe: 'Immediate',
       effort: 'Low',
-      icon: TrendingUp,
-      color: 'primary',
+      icon: AlertTriangle,
+      color: 'destructive',
       action: () => navigate(`/results/${latestAnalysis.id}`),
-      buttonText: 'View Full Analysis',
+      buttonText: 'View Crisis Report',
       priority: 1
     },
     {
-      id: 'action-plan',
-      title: 'Get Implementation Roadmap',
-      description: 'Step-by-step plan to recover your revenue opportunities',
+      id: 'emergency-plan',
+      title: 'Emergency Action Plan',
+      description: 'Step-by-step crisis intervention to stop revenue hemorrhaging',
       impact: formatCurrency(calculations.recovery70Percent),
-      timeframe: '30-90 days',
+      timeframe: '24-48 hours',
       effort: 'Medium',
       icon: Target,
-      color: 'success',
+      color: 'warning',
       action: () => navigate(`/action-plan/${latestAnalysis.id}`),
-      buttonText: 'Get Action Plan',
+      buttonText: 'Get Emergency Plan',
       priority: 2
     },
     {
-      id: 'consultation',
-      title: 'Strategy Consultation',
-      description: 'Expert guidance to accelerate your revenue recovery',
-      impact: 'Accelerated Results',
-      timeframe: '30 minutes',
+      id: 'crisis-consultation',
+      title: 'Crisis Intervention Call',
+      description: 'Emergency consultation to stop critical revenue bleeding',
+      impact: 'Immediate Damage Control',
+      timeframe: 'Within 2 hours',
       effort: 'Low',
       icon: Users,
-      color: 'default',
+      color: 'destructive',
       action: () => window.open('https://calendly.com/your-calendar', '_blank'),
-      buttonText: 'Book Call',
+      buttonText: 'Emergency Call',
       priority: calculations.totalLoss > 1000000 ? 1 : 3
     }
   ].sort((a, b) => a.priority - b.priority);
@@ -99,10 +99,10 @@ export const PriorityActionCards = ({ latestAnalysis, formatCurrency }: Priority
   return (
     <div className="space-y-4">
       <div className="text-center space-y-2 mb-6">
-        <h2 className="text-2xl font-bold text-foreground">Your Next Steps</h2>
+        <h2 className="text-2xl font-bold text-destructive">Emergency Response Required</h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Based on your analysis, here are the most impactful actions you can take right now, 
-          ordered by priority and potential impact.
+          Your revenue is actively bleeding. These emergency actions are ordered by urgency 
+          and potential to stop the financial hemorrhaging.
         </p>
       </div>
 
@@ -113,25 +113,25 @@ export const PriorityActionCards = ({ latestAnalysis, formatCurrency }: Priority
             <Card 
               key={priority.id} 
               className={`relative overflow-hidden transition-all hover:shadow-lg ${
-                index === 0 ? 'border-primary/50 bg-gradient-to-r from-background to-primary/5' : 'hover:border-primary/20'
+                index === 0 ? 'border-destructive/50 bg-gradient-to-r from-background to-destructive/5' : 'hover:border-destructive/20'
               }`}
             >
               {index === 0 && (
-                <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded-bl-lg">
-                  Recommended
+                <div className="absolute top-0 right-0 bg-destructive text-destructive-foreground text-xs font-medium px-2 py-1 rounded-bl-lg animate-pulse">
+                  CRITICAL
                 </div>
               )}
               
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className={`p-3 rounded-lg ${
-                    priority.color === 'primary' ? 'bg-primary/10' :
-                    priority.color === 'success' ? 'bg-green-100 dark:bg-green-900/30' :
+                    priority.color === 'destructive' ? 'bg-destructive/10' :
+                    priority.color === 'warning' ? 'bg-yellow-100 dark:bg-yellow-900/30' :
                     'bg-muted'
                   }`}>
                     <IconComponent className={`h-6 w-6 ${
-                      priority.color === 'primary' ? 'text-primary' :
-                      priority.color === 'success' ? 'text-green-600 dark:text-green-400' :
+                      priority.color === 'destructive' ? 'text-destructive' :
+                      priority.color === 'warning' ? 'text-yellow-600 dark:text-yellow-400' :
                       'text-muted-foreground'
                     }`} />
                   </div>
@@ -148,7 +148,7 @@ export const PriorityActionCards = ({ latestAnalysis, formatCurrency }: Priority
                     
                     <div className="flex flex-wrap gap-2">
                       <Badge variant="outline" className="text-xs">
-                        <DollarSign className="h-3 w-3 mr-1" />
+                        <TrendingDown className="h-3 w-3 mr-1" />
                         {priority.impact}
                       </Badge>
                       <Badge variant="outline" className="text-xs">
@@ -165,7 +165,7 @@ export const PriorityActionCards = ({ latestAnalysis, formatCurrency }: Priority
                       onClick={priority.action}
                       variant={index === 0 ? "default" : "outline"}
                       className={`w-full sm:w-auto ${
-                        index === 0 ? 'bg-primary hover:bg-primary/90' : 'hover:bg-primary hover:text-primary-foreground'
+                        index === 0 ? 'bg-destructive hover:bg-destructive/90' : 'hover:bg-destructive hover:text-destructive-foreground'
                       }`}
                     >
                       {priority.buttonText}

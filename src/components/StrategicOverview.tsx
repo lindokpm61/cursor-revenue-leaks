@@ -1,7 +1,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, TrendingUp, Clock, Target } from "lucide-react";
+import { AlertTriangle, TrendingDown, Clock, Target, Zap } from "lucide-react";
 import { calculateUnifiedResults, type UnifiedCalculationInputs } from "@/lib/calculator/unifiedCalculations";
 
 interface StrategicOverviewProps {
@@ -39,34 +39,34 @@ export const StrategicOverview = ({ latestAnalysis, formatCurrency }: StrategicO
   };
 
   const calculations = calculateUnifiedResults(calculationInputs);
-  const monthlyLeak = calculations.totalLoss / 12;
-  const urgencyLevel = calculations.totalLoss > 1000000 ? 'critical' : calculations.totalLoss > 500000 ? 'high' : 'medium';
+  const monthlyLoss = calculations.totalLoss / 12;
+  const urgencyLevel = calculations.totalLoss > 1000000 ? 'critical' : calculations.totalLoss > 500000 ? 'emergency' : 'urgent';
   
   const getUrgencyConfig = () => {
     switch (urgencyLevel) {
       case 'critical':
         return {
-          title: "Critical Revenue Leak Detected",
-          subtitle: "Immediate action required to prevent significant losses",
-          timeframe: "Next 30 days",
-          impact: "Business critical",
+          title: "CRITICAL: Revenue Hemorrhaging Detected",
+          subtitle: "Financial emergency requiring immediate intervention",
+          timeframe: "Emergency Action Required",
+          impact: "Business Critical Crisis",
           color: "destructive"
         };
-      case 'high':
+      case 'emergency':
         return {
-          title: "Significant Revenue Opportunity",
-          subtitle: "High-impact improvements available for implementation",
-          timeframe: "Next 60 days", 
-          impact: "High priority",
-          color: "default"
+          title: "EMERGENCY: Major Revenue Bleeding",
+          subtitle: "Significant financial losses requiring urgent action",
+          timeframe: "Urgent Response Needed", 
+          impact: "High-Impact Crisis",
+          color: "destructive"
         };
       default:
         return {
-          title: "Revenue Optimization Opportunity",
-          subtitle: "Steady improvements to enhance revenue performance",
-          timeframe: "Next 90 days",
-          impact: "Standard priority",
-          color: "secondary"
+          title: "URGENT: Revenue Leak Detected",
+          subtitle: "Active financial bleeding requiring immediate attention",
+          timeframe: "Time-Sensitive Action",
+          impact: "Critical Issue",
+          color: "destructive"
         };
     }
   };
@@ -75,20 +75,20 @@ export const StrategicOverview = ({ latestAnalysis, formatCurrency }: StrategicO
 
   return (
     <div className="space-y-6">
-      {/* Executive Summary */}
-      <Card className="border-l-4 border-l-primary bg-gradient-to-br from-background via-background to-primary/5">
+      {/* Crisis Alert Banner */}
+      <Card className="border-l-4 border-l-destructive bg-gradient-to-br from-background via-background to-destructive/5">
         <CardContent className="p-6">
           <div className="space-y-4">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <h2 className="text-xl font-semibold text-foreground">
+                <h2 className="text-xl font-semibold text-destructive">
                   {urgencyConfig.title}
                 </h2>
                 <p className="text-muted-foreground max-w-2xl">
                   {urgencyConfig.subtitle}
                 </p>
               </div>
-              <Badge variant={urgencyConfig.color as any} className="ml-4">
+              <Badge variant={urgencyConfig.color as any} className="ml-4 animate-pulse">
                 {urgencyConfig.impact}
               </Badge>
             </div>
@@ -96,35 +96,35 @@ export const StrategicOverview = ({ latestAnalysis, formatCurrency }: StrategicO
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-border/50">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-destructive/10">
-                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                  <TrendingDown className="h-4 w-4 text-destructive" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium">Monthly Loss</div>
+                  <div className="text-sm font-medium text-destructive">Monthly Bleeding</div>
                   <div className="text-lg font-bold text-destructive">
-                    {formatCurrency(monthlyLeak)}
+                    {formatCurrency(monthlyLoss)}
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-                  <Target className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <div className="p-2 rounded-lg bg-revenue-warning/10">
+                  <AlertTriangle className="h-4 w-4 text-revenue-warning" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium">Recovery Target</div>
-                  <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                  <div className="text-sm font-medium text-revenue-warning">Emergency Fix Target</div>
+                  <div className="text-lg font-bold text-revenue-warning">
                     {formatCurrency(calculations.recovery70Percent)}
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Clock className="h-4 w-4 text-primary" />
+                <div className="p-2 rounded-lg bg-destructive/10">
+                  <Clock className="h-4 w-4 text-destructive" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium">Timeframe</div>
-                  <div className="text-sm font-semibold text-primary">
+                  <div className="text-sm font-medium text-destructive">Response Time</div>
+                  <div className="text-sm font-semibold text-destructive">
                     {urgencyConfig.timeframe}
                   </div>
                 </div>
@@ -134,35 +134,32 @@ export const StrategicOverview = ({ latestAnalysis, formatCurrency }: StrategicO
         </CardContent>
       </Card>
 
-      {/* What This Means Section */}
-      <Card className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900/50 dark:to-blue-900/20 border-slate-200 dark:border-slate-700">
+      {/* Crisis Impact Analysis */}
+      <Card className="bg-gradient-to-br from-destructive/5 to-revenue-warning/5 border-destructive/20">
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
-            <div className="p-2 rounded-lg bg-primary/10 mt-1">
-              <TrendingUp className="h-5 w-5 text-primary" />
+            <div className="p-2 rounded-lg bg-destructive/20 mt-1">
+              <Zap className="h-5 w-5 text-destructive" />
             </div>
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-foreground">
-                What This Means for {latestAnalysis.company_name}
+              <h3 className="text-lg font-semibold text-destructive">
+                Financial Crisis Analysis for {latestAnalysis.company_name}
               </h3>
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p>
-                  Your {latestAnalysis.industry} company is currently losing{" "}
-                  <span className="font-semibold text-destructive">
-                    {formatCurrency(monthlyLeak)} every month
-                  </span>{" "}
-                  due to revenue leaks in your current processes.
+                  Your {latestAnalysis.industry} company is <span className="font-semibold text-destructive">actively bleeding{" "}
+                  {formatCurrency(monthlyLoss)} every month</span> through critical gaps in your revenue systems.
                 </p>
                 <p>
-                  Our analysis shows you could recover{" "}
-                  <span className="font-semibold text-green-600 dark:text-green-400">
-                    {formatCurrency(calculations.recovery70Percent)} annually
+                  Emergency intervention could stop{" "}
+                  <span className="font-semibold text-revenue-warning">
+                    {formatCurrency(calculations.recovery70Percent)} in annual losses
                   </span>{" "}
-                  by implementing targeted improvements with 70% confidence.
+                  with immediate corrective action.
                 </p>
-                <p className="text-primary font-medium">
-                  The longer you wait, the more revenue you lose. Each month of delay costs you{" "}
-                  {formatCurrency(monthlyLeak)}.
+                <p className="text-destructive font-medium bg-destructive/10 p-2 rounded border border-destructive/20">
+                  ⚠️ CRITICAL: Every day of delay costs you{" "}
+                  {formatCurrency(monthlyLoss / 30)}. This financial hemorrhaging will worsen without intervention.
                 </p>
               </div>
             </div>

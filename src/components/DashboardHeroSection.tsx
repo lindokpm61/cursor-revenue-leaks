@@ -32,27 +32,27 @@ export const DashboardHeroSection = ({
 }: DashboardHeroSectionProps) => {
   return (
     <div className="space-y-8">
-      {/* Strategic Overview */}
+      {/* Crisis Overview */}
       <StrategicOverview 
         latestAnalysis={latestAnalysis}
         formatCurrency={formatCurrency}
       />
       
-      {/* Priority Actions */}
+      {/* Emergency Actions */}
       <PriorityActionCards 
         latestAnalysis={latestAnalysis}
         formatCurrency={formatCurrency}
       />
 
-      {/* Analysis Context Footer */}
-      <div className="text-center py-6 border-t border-border/30 bg-gradient-to-r from-muted/30 to-muted/10 rounded-lg">
+      {/* Crisis Analysis Context Footer */}
+      <div className="text-center py-6 border-t border-border/30 bg-gradient-to-r from-destructive/5 to-revenue-warning/5 rounded-lg">
         <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground">
-            Analysis completed {formatDate(latestAnalysis.created_at || '')}
+          <p className="text-sm font-medium text-destructive">
+            Crisis Assessment completed {formatDate(latestAnalysis.created_at || '')}
           </p>
           <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
-            This analysis uses proprietary revenue optimization methodology backed by industry benchmarks. 
-            Results are based on your specific business metrics and industry standards.
+            This emergency analysis uses proprietary revenue leak detection methodology with real-time 
+            financial hemorrhaging assessment. Immediate action required to prevent further losses.
           </p>
         </div>
       </div>
