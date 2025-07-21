@@ -242,7 +242,7 @@ const Dashboard = () => {
               Historical revenue crisis assessments and emergency response status
             </p>
           </div>
-          <Link to="/calculator">
+          <Link to="/calculator" state={{ fromDashboard: true }}>
             <Button className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               <Plus className="h-4 w-4 mr-2" />
               New Crisis Assessment
@@ -384,7 +384,7 @@ const Dashboard = () => {
               Detect and respond to revenue hemorrhaging across your business operations. 
               Start your first crisis assessment to identify critical bleeding points.
             </p>
-            <Link to="/calculator">
+            <Link to="/calculator" state={{ fromDashboard: true }}>
               <Button size="lg" className="bg-gradient-to-r from-destructive to-destructive/80 px-8 py-4 text-destructive-foreground hover:from-destructive/90 hover:to-destructive/70">
                 <Plus className="h-5 w-5 mr-2" />
                 Start Crisis Assessment
