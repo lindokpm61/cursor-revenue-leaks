@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -116,7 +115,7 @@ const ActionPlan = () => {
       },
       selfServe: {
         monthlyFreeSignups: submission.monthly_free_signups || 0,
-        freeToLaidConversion: submission.free_to_paid_conversion || 0,
+        freeToPaidConversion: submission.free_to_paid_conversion || 0,
         monthlyMRR: submission.monthly_mrr || 0,
         failedPaymentRate: submission.failed_payment_rate || 0
       },
@@ -149,6 +148,15 @@ const ActionPlan = () => {
   };
 
   const unifiedResults = UnifiedResultsService.calculateResults(submissionDataForResults);
+
+  console.log('=== ACTION PLAN DEBUG - UNIFIED RESULTS ===');
+  console.log('Self-serve gap from UnifiedResultsService:', unifiedResults.selfServeGap);
+  console.log('Total loss:', unifiedResults.totalLoss);
+  console.log('Input data check:', {
+    monthlyFreeSignups: submission.monthly_free_signups,
+    freeToPaidConversion: submission.free_to_paid_conversion,
+    industry: submission.industry
+  });
 
   const inputs: UnifiedCalculationInputs = {
     currentARR: submissionDataForResults.current_arr,

@@ -1,6 +1,4 @@
-
-// Clean unified calculation service - single source of truth
-// Updated with realistic caps and industry-standard impact calculations
+import { industryDefaults, bestInClassTargets } from '@/lib/industryDefaults';
 
 export interface SubmissionData {
   id: string;
@@ -71,6 +69,34 @@ export class UnifiedResultsService {
     const manualHours = Math.max(0, Math.min(80, submission.manual_hours || 10));
     const hourlyRate = Math.max(25, Math.min(500, submission.hourly_rate || 75));
 
+    // Get industry-specific benchmarks
+    const normalizedIndustry = (submission.industry || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-');
+    
+    const industryKeys = Object.keys(industryDefaults);
+    const exactMatch = industryKeys.find(key => key === normalizedIndustry);
+    const partialMatch = !exactMatch ? 
+      industryKeys.find(key => normalizedIndustry.includes(key) || key.includes(normalizedIndustry)) : 
+      null;
+      
+    const industryKey = (exactMatch || partialMatch || 
+      (normalizedIndustry.includes('saas') ? 'saas-software' : 'other')) as keyof typeof industryDefaults;
+      
+    const industryData = industryDefaults[industryKey];
+    const bestInClassData = bestInClassTargets[industryKey];
+
+    console.log('=== UNIFIED RESULTS SERVICE DEBUG ===');
+    console.log('Industry mapping:', {
+      originalIndustry: submission.industry,
+      normalizedIndustry,
+      industryKey,
+      industryData: industryData.freeToPaidConversionRate,
+      bestInClassRate: bestInClassData.freeToPaidConversionRateMax
+    });
+
     // CRITICAL: Check for valid data before warning
     if (currentARR === 0 && monthlyLeads === 0 && monthlyMRR === 0) {
       console.warn('=== WARNING: All key metrics are zero - check data transformation ===');
@@ -84,8 +110,14 @@ export class UnifiedResultsService {
     // Industry benchmarks for realistic calculations
     const industryLeadConversionRate = 0.025; // 2.5% typical B2B conversion rate
     const industryResponseTimeOptimal = 1; // 1 hour optimal response time
-    const industryConversionRateBenchmark = 3.5; // 3.5% self-serve conversion benchmark
-    const bestInClassConversionRate = 12; // 12% best-in-class self-serve conversion
+    const industryConversionRateBenchmark = industryData.freeToPaidConversionRate; // Use industry-specific benchmark
+    const bestInClassConversionRate = bestInClassData.freeToPaidConversionRateMax; // Use industry-specific best-in-class
+
+    console.log('Conversion benchmarks:', {
+      userRate: conversionRate,
+      industryBenchmark: industryConversionRateBenchmark,
+      bestInClass: bestInClassConversionRate
+    });
 
     // Calculate individual losses with realistic, conversion-based formulas
     
@@ -114,7 +146,7 @@ export class UnifiedResultsService {
     // 2. Failed Payment Loss: Direct calculation from MRR and failure rate
     const failedPaymentLoss = monthlyMRR * (failureRate / 100) * 12 * 0.70; // 70% actual loss after recovery attempts
 
-    // 3. Self-Serve Gap: FIXED - Compare against best-in-class performance
+    // 3. Self-Serve Gap: FIXED - Use industry-specific best-in-class performance
     const conversionGap = Math.max(0, bestInClassConversionRate - conversionRate);
     
     // Enhanced self-serve customer value calculation
@@ -135,11 +167,12 @@ export class UnifiedResultsService {
     const additionalConversionsPerMonth = monthlySignups * (conversionGap / 100);
     const selfServeGap = additionalConversionsPerMonth * realisticSelfServeValue * 12;
 
-    // DEBUG: Log self-serve calculation details
-    console.log('=== SELF-SERVE GAP CALCULATION DEBUG ===');
+    // DEBUG: Enhanced self-serve calculation details
+    console.log('=== ENHANCED SELF-SERVE GAP CALCULATION DEBUG ===');
     console.log('Current conversion rate:', conversionRate);
+    console.log('Industry benchmark rate:', industryConversionRateBenchmark);
     console.log('Best-in-class rate:', bestInClassConversionRate);
-    console.log('Conversion gap:', conversionGap);
+    console.log('Conversion gap (best-in-class - current):', conversionGap);
     console.log('Monthly signups:', monthlySignups);
     console.log('Additional conversions per month:', additionalConversionsPerMonth);
     console.log('Realistic self-serve value:', realisticSelfServeValue);
@@ -238,6 +271,10 @@ export class UnifiedResultsService {
       }
     };
 
+    console.log('=== FINAL UNIFIED RESULTS ===');
+    console.log('Self-serve gap final:', cappedSelfServeGap);
+    console.log('Total loss:', totalLoss);
+
     return finalResult;
   }
 
@@ -253,7 +290,6 @@ export class UnifiedResultsService {
       compactDisplay: 'short'
     }).format(amount);
 
-    
     return result;
   }
 }

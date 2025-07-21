@@ -21,11 +21,27 @@ interface SelfServeStepProps {
 
 export const SelfServeStep = ({ data, onUpdate, industry }: SelfServeStepProps) => {
   const industryData = industry ? industryDefaults[industry] : industryDefaults.other;
+  
+  // Add debug logging for self-serve data
+  console.log('=== SELF-SERVE STEP DEBUG ===');
+  console.log('Self-serve data:', {
+    monthlyFreeSignups: data.monthlyFreeSignups,
+    freeToPaidConversionRate: data.freeToPaidConversionRate,
+    monthlyMRR: data.monthlyMRR,
+    industry: industry,
+    industryDefaults: industryData
+  });
+
   // Enhanced auto-save data when it changes with validation
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
       // Only save if we have meaningful data
       if (data.monthlyFreeSignups && data.monthlyFreeSignups > 0) {
+        console.log('Saving self-serve data:', {
+          monthlyFreeSignups: data.monthlyFreeSignups,
+          freeToPaidConversionRate: data.freeToPaidConversionRate || 0,
+          monthlyMRR: data.monthlyMRR || 0
+        });
         try {
           await saveCalculatorProgress({
             monthlyFreeSignups: data.monthlyFreeSignups,
