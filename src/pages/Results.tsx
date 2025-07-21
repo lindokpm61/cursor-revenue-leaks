@@ -274,21 +274,26 @@ const Results = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Strategic Analysis */}
-        <UnifiedStrategicAnalysis
-          calculations={unifiedCalculations}
-          companyName={submission.company_name}
-          formatCurrency={(amount) => new Intl.NumberFormat('en-US', { 
-            style: 'currency', 
-            currency: 'USD',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-            notation: amount >= 1000000 ? 'compact' : 'standard',
-            compactDisplay: 'short'
-          }).format(amount)}
-          onGetActionPlan={handleGetActionPlan}
-          onQuickWins={handleQuickWins}
-          onBookCall={handleBookCall}
-        />
+        <div style={{border: '2px solid red', padding: '10px', margin: '10px 0'}}>
+          <div style={{background: 'yellow', padding: '5px', marginBottom: '10px'}}>
+            DEBUG: NEW UNIFIED STRATEGIC ANALYSIS COMPONENT SHOULD RENDER HERE
+          </div>
+          <UnifiedStrategicAnalysis
+            calculations={unifiedCalculations}
+            companyName={submission.company_name}
+            formatCurrency={(amount) => new Intl.NumberFormat('en-US', { 
+              style: 'currency', 
+              currency: 'USD',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+              notation: amount >= 1000000 ? 'compact' : 'standard',
+              compactDisplay: 'short'
+            }).format(amount)}
+            onGetActionPlan={handleGetActionPlan}
+            onQuickWins={handleQuickWins}
+            onBookCall={handleBookCall}
+          />
+        </div>
 
         {/* Tabbed Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
