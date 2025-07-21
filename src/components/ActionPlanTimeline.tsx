@@ -58,8 +58,9 @@ export const ActionPlanTimeline = ({
   };
 
   const getPhaseProgress = (phase: TimelinePhase) => {
-    const totalActions = phase.actions.length;
-    const completedInPhase = phase.actions.filter(action => 
+    const actions = phase.actions || [];
+    const totalActions = actions.length;
+    const completedInPhase = actions.filter(action => 
       completedActions.has(`${phase.id}-${action.title}`)
     ).length;
     return totalActions > 0 ? (completedInPhase / totalActions) * 100 : 0;
@@ -197,7 +198,7 @@ export const ActionPlanTimeline = ({
                     <div>
                       <h3 className="font-semibold text-foreground">{phase.title}</h3>
                       <p className="text-sm text-muted-foreground">
-                        Months {phase.startMonth}-{phase.endMonth} • {phase.actions.length} actions
+                        Months {phase.startMonth}-{phase.endMonth} • {(phase.actions || []).length} actions
                       </p>
                     </div>
                   </div>
@@ -233,16 +234,16 @@ export const ActionPlanTimeline = ({
                     {phase.difficulty === 'medium' && <Clock className="h-4 w-4 text-yellow-600" />}
                     {phase.difficulty === 'hard' && <AlertCircle className="h-4 w-4 text-red-600" />}
                     <span>Difficulty: {phase.difficulty}</span>
-                    {phase.prerequisites.length > 0 && (
+                    {(phase.prerequisites || []).length > 0 && (
                       <span className="ml-4">
-                        Prerequisites: {phase.prerequisites.join(', ')}
+                        Prerequisites: {(phase.prerequisites || []).join(", ")}
                       </span>
                     )}
                   </div>
 
                   {/* Action Items */}
                   <div className="space-y-3">
-                    {phase.actions.map((action, actionIndex) => (
+                    {(phase.actions || []).map((action, actionIndex) => (
                       <ActionPlanChecklistItem
                         key={actionIndex}
                         id={`${phase.id}-${action.title}`}
@@ -250,10 +251,10 @@ export const ActionPlanTimeline = ({
                         description={`${action.weeks} week implementation • Owner: ${action.owner}`}
                         weeks={action.weeks}
                         owner={action.owner}
-                        recoveryPotential={phase.recoveryPotential / phase.actions.length}
+                        recoveryPotential={phase.recoveryPotential / Math.max((phase.actions || []).length, 1)}
                         difficulty={phase.difficulty}
                         riskLevel={getRiskLevel(phase.difficulty)}
-                        prerequisites={phase.prerequisites}
+                        prerequisites={phase.prerequisites || []}
                         isCompleted={completedActions.has(`${phase.id}-${action.title}`)}
                         onToggle={handleActionToggle}
                         formatCurrency={formatCurrency}
