@@ -7,6 +7,7 @@ import {
   validateRecoveryAssumptions 
 } from '@/lib/calculator/enhancedCalculations';
 import { getBenchmark, bestInClassTargets, industryDefaults } from '@/lib/industryDefaults';
+import { useEffect } from 'react';
 
 interface DetailedBreakdownProps {
   data: CalculatorData;
@@ -15,6 +16,14 @@ interface DetailedBreakdownProps {
 }
 
 export const DetailedBreakdown = ({ data, calculations, formatCurrency }: DetailedBreakdownProps) => {
+  // Debug logging
+  useEffect(() => {
+    console.log('=== DETAILED BREAKDOWN DEBUG ===');
+    console.log('selfServeGap value:', calculations.selfServeGap);
+    console.log('All calculations:', calculations);
+    console.log('Data conversion rate:', data.selfServeMetrics?.freeToPaidConversionRate);
+  }, [calculations, data]);
+
   // Safe access helper
   const safeNumber = (value: any): number => {
     const num = Number(value);
