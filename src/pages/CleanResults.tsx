@@ -188,15 +188,15 @@ const CleanResults = () => {
   console.log('formatCurrency(1230000):', formatCurrency(1230000));
 
   const sections = [
-    { id: 'overview', label: 'Overview', icon: BarChart3 },
-    { id: 'breakdown', label: 'Revenue Analysis', icon: DollarSign },
-    { id: 'benchmarking', label: 'Industry Benchmarks', icon: TrendingUp },
-    { id: 'actions', label: 'Action Plan', icon: Target },
-    { id: 'timeline', label: 'Implementation', icon: CheckCircle }
+    { id: 'overview', label: 'Crisis Assessment', icon: AlertTriangle },
+    { id: 'breakdown', label: 'Damage Report', icon: DollarSign },
+    { id: 'benchmarking', label: 'Failure Analysis', icon: TrendingUp },
+    { id: 'actions', label: 'Emergency Response', icon: Target },
+    { id: 'timeline', label: 'Recovery Protocol', icon: CheckCircle }
   ];
 
   // Get current section label for display
-  const currentSectionLabel = sections.find(s => s.id === activeSection)?.label || 'Overview';
+  const currentSectionLabel = sections.find(s => s.id === activeSection)?.label || 'Crisis Assessment';
 
   return (
     <div className="min-h-screen bg-background">
@@ -214,10 +214,10 @@ const CleanResults = () => {
                 <div className="p-1.5 rounded-md bg-primary text-primary-foreground flex-shrink-0">
                   <Calculator className="h-3.5 w-3.5" />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-sm font-semibold truncate leading-tight">{submission.company_name}</h1>
-                  <p className="text-xs text-muted-foreground hidden sm:block">Revenue Analysis Results</p>
-                </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-sm font-semibold truncate leading-tight text-revenue-critical">{submission.company_name}</h1>
+            <p className="text-xs text-revenue-warning hidden sm:block">⚠️ REVENUE CRISIS DETECTED</p>
+          </div>
               </div>
             </div>
             
@@ -241,17 +241,17 @@ const CleanResults = () => {
         {/* Mobile-Optimized Progress Indicator */}
         <div className="mb-4 sm:mb-6">
           <div className="flex items-center justify-between mb-3">
-            <Badge variant="outline" className="text-xs">
-              <BarChart3 className="h-3 w-3 mr-1" />
-              Analysis Complete
+            <Badge variant="destructive" className="text-xs animate-pulse">
+              <AlertTriangle className="h-3 w-3 mr-1" />
+              CRISIS DETECTED
             </Badge>
             <div className="flex items-center gap-2">
               {/* Current Section Indicator - Mobile Only */}
               <span className="text-xs text-muted-foreground sm:hidden">
                 {currentSectionLabel}
               </span>
-              <span className="text-xs text-muted-foreground">
-                {formatCurrency(calculations.conservativeRecovery)} Recovery Potential
+              <span className="text-xs text-revenue-warning font-medium">
+                ${formatCurrency(calculations.totalLoss)} BLEEDING NOW
               </span>
             </div>
           </div>
