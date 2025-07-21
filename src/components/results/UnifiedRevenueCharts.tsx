@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, Target, Zap } from "lucide-react";
+import { AlertTriangle, Siren, TrendingDown } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { UnifiedCalculations } from "@/lib/results/UnifiedResultsService";
 
@@ -41,14 +42,14 @@ export const UnifiedRevenueCharts = ({ calculations, formatCurrency }: UnifiedRe
   // Revenue composition pie chart data
   const revenueCompositionData = [
     {
-      name: 'Secure Revenue',
+      name: 'Stable Revenue',
       value: calculations.performanceMetrics.secureRevenue,
       color: 'hsl(var(--revenue-success))',
     },
     {
-      name: 'Revenue at Risk',
+      name: 'Revenue Hemorrhaging',
       value: calculations.performanceMetrics.revenueAtRisk,
-      color: 'hsl(var(--revenue-warning))',
+      color: 'hsl(var(--destructive))',
     },
     {
       name: 'Recovery Potential',
@@ -59,28 +60,42 @@ export const UnifiedRevenueCharts = ({ calculations, formatCurrency }: UnifiedRe
 
   return (
     <div className="space-y-8">
-      {/* Strategic Context Header */}
-      <div className="bg-gradient-to-r from-revenue-primary/10 to-revenue-success/10 p-6 rounded-xl border border-revenue-primary/20">
+      {/* Emergency Status Header */}
+      <div className="bg-gradient-to-r from-destructive/20 to-orange-500/20 p-6 rounded-xl border-2 border-destructive/30">
         <div className="text-center">
-          <h3 className="text-xl font-semibold text-revenue-primary mb-2">
-            Revenue Recovery Analysis
-          </h3>
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <Siren className="h-6 w-6 text-destructive animate-pulse" />
+            <h3 className="text-xl font-bold text-destructive">
+              REVENUE CRISIS DAMAGE ASSESSMENT
+            </h3>
+            <Badge variant="destructive" className="animate-pulse">CRITICAL</Badge>
+          </div>
           <p className="text-sm text-muted-foreground">
-            Current performance vs recovery potential across key revenue categories
+            Real-time bleeding analysis across all revenue failure points
           </p>
+          <div className="mt-3 text-sm">
+            <span className="text-destructive font-semibold">
+              Daily Loss: {formatCurrency(calculations.totalLoss / 365)}
+            </span>
+            <span className="text-muted-foreground mx-2">•</span>
+            <span className="text-orange-600 font-semibold">
+              Hourly Bleeding: {formatCurrency(calculations.totalLoss / (365 * 24))}
+            </span>
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Performance Zone Analysis */}
-        <Card>
+        <Card className="border-destructive/20">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-revenue-primary" />
-              Performance Zone Analysis
+              <TrendingDown className="h-5 w-5 text-destructive" />
+              Revenue Hemorrhaging Zones
+              <Badge variant="destructive" className="ml-2">ACTIVE BLEEDING</Badge>
             </CardTitle>
             <CardDescription>
-              Current losses vs recovery potential by category
+              Critical failure points causing immediate revenue loss
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -90,23 +105,24 @@ export const UnifiedRevenueCharts = ({ calculations, formatCurrency }: UnifiedRe
                 <XAxis dataKey="category" />
                 <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
                 <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                <Bar dataKey="current" fill="hsl(var(--revenue-danger))" name="Current Loss" />
-                <Bar dataKey="recovery" fill="hsl(var(--revenue-warning))" name="Conservative Recovery" />
-                <Bar dataKey="bestClass" fill="hsl(var(--revenue-success))" name="Optimistic Recovery" />
+                <Bar dataKey="current" fill="hsl(var(--destructive))" name="Active Bleeding" />
+                <Bar dataKey="recovery" fill="hsl(var(--revenue-warning))" name="Emergency Recovery" />
+                <Bar dataKey="bestClass" fill="hsl(var(--revenue-success))" name="Full Recovery" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         {/* Revenue Composition */}
-        <Card>
+        <Card className="border-orange-500/20">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-revenue-success" />
-              Revenue Composition
+              <AlertTriangle className="h-5 w-5 text-orange-600" />
+              Revenue Security Status
+              <Badge variant="outline" className="ml-2 border-orange-500 text-orange-600">COMPROMISED</Badge>
             </CardTitle>
             <CardDescription>
-              Current revenue security and recovery opportunity
+              Critical assessment of revenue stability and hemorrhaging
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -130,10 +146,15 @@ export const UnifiedRevenueCharts = ({ calculations, formatCurrency }: UnifiedRe
               </PieChart>
             </ResponsiveContainer>
             <div className="mt-4 text-center">
-              <div className="text-sm text-muted-foreground">
-                <span className="font-semibold text-revenue-primary">
-                  {calculations.lossPercentageOfARR.toFixed(1)}% of ARR at risk
-                </span> - {calculations.recoveryPercentageOfLoss.toFixed(0)}% recoverable
+              <div className="text-sm space-y-1">
+                <div>
+                  <span className="font-bold text-destructive">
+                    {calculations.lossPercentageOfARR.toFixed(1)}% of ARR hemorrhaging
+                  </span>
+                </div>
+                <div className="text-orange-600 font-semibold">
+                  {calculations.recoveryPercentageOfLoss.toFixed(0)}% emergency recoverable
+                </div>
               </div>
             </div>
           </CardContent>
@@ -141,14 +162,15 @@ export const UnifiedRevenueCharts = ({ calculations, formatCurrency }: UnifiedRe
       </div>
 
       {/* Loss Breakdown Chart */}
-      <Card>
+      <Card className="border-destructive/30">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-revenue-success" />
-            Revenue Loss Breakdown
+            <Siren className="h-5 w-5 text-destructive animate-pulse" />
+            Critical Revenue Bleeding Sources
+            <Badge variant="destructive">EMERGENCY ASSESSMENT</Badge>
           </CardTitle>
           <CardDescription>
-            Detailed analysis of revenue leakage by category
+            Immediate intervention required - every hour costs more revenue
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -158,19 +180,22 @@ export const UnifiedRevenueCharts = ({ calculations, formatCurrency }: UnifiedRe
               <XAxis dataKey="title" />
               <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
               <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-              <Bar dataKey="amount" fill="hsl(var(--revenue-primary))" />
+              <Bar dataKey="amount" fill="hsl(var(--destructive))" />
             </BarChart>
           </ResponsiveContainer>
           <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
             {calculations.lossBreakdown.map((item, index) => (
-              <div key={index} className="p-4 bg-muted/30 rounded-lg border">
-                <div className="text-sm font-medium mb-1">{item.title}</div>
-                <div className="text-lg font-bold text-foreground">
+              <div key={index} className="p-4 bg-destructive/5 rounded-lg border border-destructive/20">
+                <div className="text-sm font-medium mb-1 text-destructive">{item.title}</div>
+                <div className="text-lg font-bold text-destructive">
                   {formatCurrency(item.amount)}
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  {item.percentage.toFixed(1)}% of total
+                <div className="text-xs text-muted-foreground mb-2">
+                  {item.percentage.toFixed(1)}% of bleeding
                 </div>
+                <Badge variant="outline" className="text-xs border-orange-500 text-orange-600">
+                  {formatCurrency(item.amount / 365)}/day
+                </Badge>
               </div>
             ))}
           </div>
