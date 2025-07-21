@@ -1,12 +1,6 @@
+
 import { useState, useMemo } from "react";
-import {
-  calculateLeadResponseImpact,
-  calculateFailedPaymentLoss,
-  calculateSelfServeGap,
-  calculateProcessInefficiency,
-  INDUSTRY_BENCHMARKS,
-  RECOVERY_SYSTEMS
-} from '@/lib/calculator/enhancedCalculations';
+import { UnifiedResultsService, type SubmissionData } from '@/lib/results/UnifiedResultsService';
 
 export interface CompanyInfo {
   companyName: string;
@@ -98,87 +92,55 @@ export const useCalculatorData = () => {
   };
 
   const calculations = useMemo((): Calculations => {
-    const { companyInfo, leadGeneration, selfServeMetrics, operationsData } = data;
+    console.log('=== CALCULATOR DATA HOOK DEBUG ===');
+    console.log('Raw calculator data:', data);
 
-
-    // Ensure all values are numbers and not null/undefined
-    const safeNumber = (value: any): number => {
-      const num = Number(value);
-      return isNaN(num) ? 0 : num;
+    // Transform calculator data to SubmissionData format for UnifiedResultsService
+    const submissionData: SubmissionData = {
+      id: 'temp-id',
+      company_name: data.companyInfo.companyName || '',
+      contact_email: data.companyInfo.email || '',
+      industry: data.companyInfo.industry || '',
+      current_arr: data.companyInfo.currentARR || 0,
+      monthly_leads: data.leadGeneration.monthlyLeads || 0,
+      average_deal_value: data.leadGeneration.averageDealValue || 0,
+      lead_response_time: data.leadGeneration.leadResponseTimeHours || 0,
+      monthly_free_signups: data.selfServeMetrics.monthlyFreeSignups || 0,
+      free_to_paid_conversion: data.selfServeMetrics.freeToPaidConversionRate || 0,
+      monthly_mrr: data.selfServeMetrics.monthlyMRR || 0,
+      failed_payment_rate: data.operationsData.failedPaymentRate || 0,
+      manual_hours: data.operationsData.manualHoursPerWeek || 0,
+      hourly_rate: data.operationsData.hourlyRate || 0,
+      lead_score: 0,
+      user_id: undefined,
+      created_at: new Date().toISOString()
     };
 
-    // Extract and validate data
-    const monthlyLeads = safeNumber(leadGeneration?.monthlyLeads);
-    const averageDealValue = safeNumber(leadGeneration?.averageDealValue);
-    const leadResponseTimeHours = safeNumber(leadGeneration?.leadResponseTimeHours);
-    const monthlyFreeSignups = safeNumber(selfServeMetrics?.monthlyFreeSignups);
-    const freeToPaidConversionRate = safeNumber(selfServeMetrics?.freeToPaidConversionRate);
-    const monthlyMRR = safeNumber(selfServeMetrics?.monthlyMRR);
-    const failedPaymentRate = safeNumber(operationsData?.failedPaymentRate);
-    const manualHoursPerWeek = safeNumber(operationsData?.manualHoursPerWeek);
-    const hourlyRate = safeNumber(operationsData?.hourlyRate);
-    const currentARR = safeNumber(companyInfo?.currentARR);
-    const industry = companyInfo?.industry || 'other';
+    console.log('Transformed submissionData for UnifiedResultsService:', submissionData);
 
-    // Helper function to determine recovery system type
-    const determineRecoverySystemType = (arr: number, mrr: number): keyof typeof RECOVERY_SYSTEMS => {
-      if (arr > 10000000 || mrr > 500000) return 'best-in-class';
-      if (arr > 1000000 || mrr > 50000) return 'advanced';
-      return 'basic';
-    };
-
-    // Enhanced lead response loss calculation with realistic bounds
-    const responseImpact = calculateLeadResponseImpact(leadResponseTimeHours, averageDealValue);
-    const rawLeadResponseLoss = monthlyLeads * averageDealValue * (1 - responseImpact) * 12;
-    // Apply realistic bounds: max 8% of ARR for lead response loss
-    const leadResponseLoss = Math.min(rawLeadResponseLoss, currentARR * 0.08);
-
-    // Enhanced failed payment loss calculation (with recovery rates)
-    const recoverySystemType = determineRecoverySystemType(currentARR, monthlyMRR);
-    const failedPaymentLoss = calculateFailedPaymentLoss(monthlyMRR, failedPaymentRate, recoverySystemType);
-
-    // Enhanced self-serve gap calculation with realistic bounds
-    const rawSelfServeGap = calculateSelfServeGap(
-      monthlyFreeSignups,
-      freeToPaidConversionRate,
-      monthlyMRR,
-      industry
-    );
-    // Apply realistic bounds: max 12% of ARR for self-serve gap
-    const selfServeGap = Math.min(rawSelfServeGap, currentARR * 0.12);
-
-    // Enhanced process inefficiency calculation with realistic bounds
-    const rawProcessLoss = calculateProcessInefficiency(manualHoursPerWeek, hourlyRate);
-    // Apply realistic bounds: max 5% of ARR for process inefficiency
-    const processLoss = Math.min(rawProcessLoss, currentARR * 0.05);
-
-    // Total calculations with realistic final bounds check
-    const rawTotalLeakage = leadResponseLoss + failedPaymentLoss + selfServeGap + processLoss;
-    // Cap total leakage at 20% of ARR (realistic industry standard)
-    const totalLeakage = Math.min(rawTotalLeakage, currentARR * 0.20);
+    // Use UnifiedResultsService for calculations
+    const unifiedResults = UnifiedResultsService.calculateResults(submissionData);
     
-    // Recovery potential with realistic bounds
-    const potentialRecovery70 = Math.min(totalLeakage * 0.7, currentARR * 0.14);
-    const potentialRecovery85 = Math.min(totalLeakage * 0.85, currentARR * 0.17);
+    console.log('UnifiedResultsService results:', unifiedResults);
 
-    // Ensure all values are valid numbers
-    const validatedCalculations = {
-      leadResponseLoss: isFinite(leadResponseLoss) ? leadResponseLoss : 0,
-      failedPaymentLoss: isFinite(failedPaymentLoss) ? failedPaymentLoss : 0,
-      selfServeGap: isFinite(selfServeGap) ? selfServeGap : 0,
-      processLoss: isFinite(processLoss) ? processLoss : 0,
-      totalLeakage: isFinite(totalLeakage) ? totalLeakage : 0,
-      potentialRecovery70: isFinite(potentialRecovery70) ? potentialRecovery70 : 0,
-      potentialRecovery85: isFinite(potentialRecovery85) ? potentialRecovery85 : 0,
-    };
-
-    return {
-      ...validatedCalculations,
+    // Transform results to match legacy Calculations interface
+    const legacyCalculations: Calculations = {
+      leadResponseLoss: unifiedResults.leadResponseLoss,
+      failedPaymentLoss: unifiedResults.failedPaymentLoss,
+      selfServeGap: unifiedResults.selfServeGap,
+      processLoss: unifiedResults.processInefficiency,
+      totalLeakage: unifiedResults.totalLoss,
+      potentialRecovery70: unifiedResults.conservativeRecovery,
+      potentialRecovery85: unifiedResults.optimisticRecovery,
       // Legacy property names for backward compatibility
-      totalLeak: validatedCalculations.totalLeakage,
-      recoveryPotential70: validatedCalculations.potentialRecovery70,
-      recoveryPotential85: validatedCalculations.potentialRecovery85,
+      totalLeak: unifiedResults.totalLoss,
+      recoveryPotential70: unifiedResults.conservativeRecovery,
+      recoveryPotential85: unifiedResults.optimisticRecovery,
     };
+
+    console.log('Final legacy calculations for backward compatibility:', legacyCalculations);
+
+    return legacyCalculations;
   }, [data]);
 
   return {

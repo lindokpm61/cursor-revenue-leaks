@@ -18,6 +18,8 @@ interface DashboardHeroSectionProps {
     manual_hours: number | null;
     hourly_rate: number | null;
     industry: string | null;
+    contact_email: string | null;
+    user_id?: string | null;
   };
   formatCurrency: (amount: number) => string;
   formatDate: (dateString: string) => string;

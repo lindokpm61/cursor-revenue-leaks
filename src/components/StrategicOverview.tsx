@@ -2,7 +2,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, TrendingDown, Clock, Target, Zap } from "lucide-react";
-import { calculateUnifiedResults, type UnifiedCalculationInputs } from "@/lib/calculator/unifiedCalculations";
+import { UnifiedResultsService, type SubmissionData } from "@/lib/results/UnifiedResultsService";
 
 interface StrategicOverviewProps {
   latestAnalysis: {
@@ -19,26 +19,43 @@ interface StrategicOverviewProps {
     manual_hours: number | null;
     hourly_rate: number | null;
     industry: string | null;
+    created_at: string | null;
+    contact_email: string | null;
+    user_id?: string | null;
   };
   formatCurrency: (amount: number) => string;
 }
 
 export const StrategicOverview = ({ latestAnalysis, formatCurrency }: StrategicOverviewProps) => {
-  const calculationInputs: UnifiedCalculationInputs = {
-    currentARR: Number(latestAnalysis.current_arr || 0),
-    monthlyMRR: Number(latestAnalysis.monthly_mrr || 0),
-    monthlyLeads: Number(latestAnalysis.monthly_leads || 0),
-    averageDealValue: Number(latestAnalysis.average_deal_value || 0),
-    leadResponseTime: Number(latestAnalysis.lead_response_time || 24),
-    monthlyFreeSignups: Number(latestAnalysis.monthly_free_signups || 0),
-    freeToPaidConversion: Number(latestAnalysis.free_to_paid_conversion || 0),
-    failedPaymentRate: Number(latestAnalysis.failed_payment_rate || 0),
-    manualHours: Number(latestAnalysis.manual_hours || 0),
-    hourlyRate: Number(latestAnalysis.hourly_rate || 0),
-    industry: latestAnalysis.industry || ''
+  console.log('=== STRATEGIC OVERVIEW DEBUG ===');
+  console.log('latestAnalysis prop:', latestAnalysis);
+
+  // Transform to SubmissionData format for UnifiedResultsService
+  const submissionData: SubmissionData = {
+    id: latestAnalysis.id,
+    company_name: latestAnalysis.company_name || '',
+    contact_email: latestAnalysis.contact_email || '',
+    industry: latestAnalysis.industry || '',
+    current_arr: Number(latestAnalysis.current_arr || 0),
+    monthly_leads: Number(latestAnalysis.monthly_leads || 0),
+    average_deal_value: Number(latestAnalysis.average_deal_value || 0),
+    lead_response_time: Number(latestAnalysis.lead_response_time || 24),
+    monthly_free_signups: Number(latestAnalysis.monthly_free_signups || 0),
+    free_to_paid_conversion: Number(latestAnalysis.free_to_paid_conversion || 0),
+    monthly_mrr: Number(latestAnalysis.monthly_mrr || 0),
+    failed_payment_rate: Number(latestAnalysis.failed_payment_rate || 0),
+    manual_hours: Number(latestAnalysis.manual_hours || 0),
+    hourly_rate: Number(latestAnalysis.hourly_rate || 0),
+    lead_score: 0,
+    user_id: latestAnalysis.user_id,
+    created_at: latestAnalysis.created_at || new Date().toISOString()
   };
 
-  const calculations = calculateUnifiedResults(calculationInputs);
+  console.log('Transformed submissionData for UnifiedResultsService:', submissionData);
+
+  const calculations = UnifiedResultsService.calculateResults(submissionData);
+  console.log('UnifiedResultsService calculations in StrategicOverview:', calculations);
+
   const monthlyLoss = calculations.totalLoss / 12;
   const urgencyLevel = calculations.totalLoss > 1000000 ? 'critical' : calculations.totalLoss > 500000 ? 'emergency' : 'urgent';
   
@@ -113,7 +130,7 @@ export const StrategicOverview = ({ latestAnalysis, formatCurrency }: StrategicO
                 <div>
                   <div className="text-sm font-medium text-revenue-warning">Emergency Fix Target</div>
                   <div className="text-lg font-bold text-revenue-warning">
-                    {formatCurrency(calculations.recovery70Percent)}
+                    {formatCurrency(calculations.conservativeRecovery)}
                   </div>
                 </div>
               </div>
@@ -153,7 +170,7 @@ export const StrategicOverview = ({ latestAnalysis, formatCurrency }: StrategicO
                 <p>
                   Emergency intervention could stop{" "}
                   <span className="font-semibold text-revenue-warning">
-                    {formatCurrency(calculations.recovery70Percent)} in annual losses
+                    {formatCurrency(calculations.conservativeRecovery)} in annual losses
                   </span>{" "}
                   with immediate corrective action.
                 </p>

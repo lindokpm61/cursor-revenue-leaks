@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { submissionService, userProfileService, type Submission, type UserProfile } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardHeroSection } from "@/components/DashboardHeroSection";
-import { calculateUnifiedResults, type UnifiedCalculationInputs } from "@/lib/calculator/unifiedCalculations";
+import { UnifiedResultsService, type SubmissionData } from "@/lib/results/UnifiedResultsService";
 
 const Dashboard = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -92,28 +91,46 @@ const Dashboard = () => {
     });
   };
 
-  // Transform submission to unified calculation format and calculate values
-  const getCalculatedValues = (submission: Submission) => {
-    const calculationInputs: UnifiedCalculationInputs = {
-      currentARR: Number(submission.current_arr || 0),
-      monthlyMRR: Number(submission.monthly_mrr || 0),
-      monthlyLeads: Number(submission.monthly_leads || 0),
-      averageDealValue: Number(submission.average_deal_value || 0),
-      leadResponseTime: Number(submission.lead_response_time || 24),
-      monthlyFreeSignups: Number(submission.monthly_free_signups || 0),
-      freeToPaidConversion: Number(submission.free_to_paid_conversion || 0),
-      failedPaymentRate: Number(submission.failed_payment_rate || 0),
-      manualHours: Number(submission.manual_hours || 0),
-      hourlyRate: Number(submission.hourly_rate || 0),
-      industry: submission.industry || ''
+  // Transform submission to UnifiedResultsService format and calculate values
+  const transformSubmissionToUnifiedFormat = (submission: Submission): SubmissionData => {
+    console.log('=== DASHBOARD SUBMISSION TRANSFORMATION DEBUG ===');
+    console.log('Original submission:', submission);
+
+    const transformed: SubmissionData = {
+      id: submission.id,
+      company_name: submission.company_name || '',
+      contact_email: submission.contact_email || '',
+      industry: submission.industry || '',
+      current_arr: Number(submission.current_arr || 0),
+      monthly_leads: Number(submission.monthly_leads || 0),
+      average_deal_value: Number(submission.average_deal_value || 0),
+      lead_response_time: Number(submission.lead_response_time || 24),
+      monthly_free_signups: Number(submission.monthly_free_signups || 0),
+      free_to_paid_conversion: Number(submission.free_to_paid_conversion || 0),
+      monthly_mrr: Number(submission.monthly_mrr || 0),
+      failed_payment_rate: Number(submission.failed_payment_rate || 0),
+      manual_hours: Number(submission.manual_hours || 0),
+      hourly_rate: Number(submission.hourly_rate || 0),
+      lead_score: Number(submission.lead_score || 0),
+      user_id: submission.user_id,
+      created_at: submission.created_at || new Date().toISOString()
     };
 
-    return calculateUnifiedResults(calculationInputs);
+    console.log('Transformed submission for UnifiedResultsService:', transformed);
+    return transformed;
+  };
+
+  const getCalculatedValues = (submission: Submission) => {
+    const submissionData = transformSubmissionToUnifiedFormat(submission);
+    const results = UnifiedResultsService.calculateResults(submissionData);
+    console.log('=== DASHBOARD CALCULATED VALUES DEBUG ===');
+    console.log('UnifiedResultsService results for submission', submission.id, ':', results);
+    return results;
   };
 
   const calculateROI = (submission: Submission) => {
     const calculations = getCalculatedValues(submission);
-    const recoveryPotential = calculations.recovery70Percent;
+    const recoveryPotential = calculations.conservativeRecovery;
     const totalLeakage = calculations.totalLoss;
     return totalLeakage > 0 ? Math.round((recoveryPotential / totalLeakage) * 100) : 0;
   };
@@ -166,13 +183,13 @@ const Dashboard = () => {
     return diffDays;
   };
 
-  // Summary Cards - Updated to crisis language
+  // Summary Cards - Updated to use UnifiedResultsService
   const SummaryCards = () => {
     if (submissions.length === 0) return null;
     
     const totalCrisisValue = submissions.reduce((sum, analysis) => {
       const calculations = getCalculatedValues(analysis);
-      return sum + calculations.recovery70Percent;
+      return sum + calculations.conservativeRecovery;
     }, 0);
     
     const totalAnnualBleeding = submissions.reduce((sum, analysis) => {
@@ -229,7 +246,7 @@ const Dashboard = () => {
     );
   };
 
-  // Crisis History - Updated terminology and crisis indicators
+  // Crisis History - Updated to use UnifiedResultsService
   const CrisisHistory = ({ crisisLog }: { crisisLog: Submission[] }) => {
     if (crisisLog.length === 0) return null;
     
@@ -255,7 +272,7 @@ const Dashboard = () => {
             const calculations = getCalculatedValues(analysis);
             const daysSinceCrisis = calculateDaysSinceCrisis(analysis.created_at || '');
             const dailyLoss = calculations.totalLoss / 365;
-            const isHighCrisis = calculations.recovery70Percent > 50000000;
+            const isHighCrisis = calculations.conservativeRecovery > 50000000;
             
             return (
               <Card key={analysis.id} className="border-destructive/20 shadow-sm hover:shadow-md hover:border-destructive/30 transition-all">
@@ -284,7 +301,7 @@ const Dashboard = () => {
                   
                   <div className="mb-4 space-y-2">
                     <div className="text-h2 text-destructive">
-                      {formatCurrency(calculations.recovery70Percent)}
+                      {formatCurrency(calculations.conservativeRecovery)}
                     </div>
                     <div className="text-small text-destructive/80">
                       Emergency recovery potential

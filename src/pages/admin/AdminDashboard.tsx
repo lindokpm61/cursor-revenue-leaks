@@ -13,6 +13,7 @@ import IntegrationStatusWidget from "@/components/admin/IntegrationStatusWidget"
 import QuickActionsPanel from "@/components/admin/QuickActionsPanel";
 import DataFreshnessIndicator from "@/components/admin/DataFreshnessIndicator";
 import ActivityLogWidget from "@/components/admin/ActivityLogWidget";
+import { UnifiedResultsService, type SubmissionData } from "@/lib/results/UnifiedResultsService";
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -40,19 +41,47 @@ const AdminDashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Transform submission to UnifiedResultsService format
+  const transformSubmissionToUnifiedFormat = (submission: any): SubmissionData => {
+    return {
+      id: submission.id,
+      company_name: submission.company_name || '',
+      contact_email: submission.contact_email || '',
+      industry: submission.industry || '',
+      current_arr: Number(submission.current_arr || 0),
+      monthly_leads: Number(submission.monthly_leads || 0),
+      average_deal_value: Number(submission.average_deal_value || 0),
+      lead_response_time: Number(submission.lead_response_time || 24),
+      monthly_free_signups: Number(submission.monthly_free_signups || 0),
+      free_to_paid_conversion: Number(submission.free_to_paid_conversion || 0),
+      monthly_mrr: Number(submission.monthly_mrr || 0),
+      failed_payment_rate: Number(submission.failed_payment_rate || 0),
+      manual_hours: Number(submission.manual_hours || 0),
+      hourly_rate: Number(submission.hourly_rate || 0),
+      lead_score: Number(submission.lead_score || 0),
+      user_id: submission.user_id,
+      created_at: submission.created_at || new Date().toISOString()
+    };
+  };
+
+  const getCalculatedValues = (submission: any) => {
+    const submissionData = transformSubmissionToUnifiedFormat(submission);
+    return UnifiedResultsService.calculateResults(submissionData);
+  };
+
   const loadDashboardData = async () => {
     try {
-      console.log('Loading dashboard data...');
+      console.log('Loading admin dashboard data...');
       const [submissionsResponse] = await Promise.all([
         submissionService.getAll(20),
       ]);
 
-      console.log('Submissions response:', submissionsResponse);
+      console.log('Admin submissions response:', submissionsResponse);
       if (submissionsResponse.data) {
         const submissions = submissionsResponse.data;
         setRecentSubmissions(submissions.slice(0, 5));
         
-        // Calculate metrics
+        // Calculate metrics using UnifiedResultsService
         const weekAgo = new Date();
         weekAgo.setDate(weekAgo.getDate() - 7);
         
@@ -60,14 +89,21 @@ const AdminDashboard = () => {
           new Date(s.created_at!) > weekAgo
         ).length;
         
-        const totalLeakage = submissions.reduce((acc, s) => acc + (s.total_leak || 0), 0);
+        let totalLeakage = 0;
+        let totalPipeline = 0;
+        let highValueLeads = 0;
+
+        submissions.forEach(submission => {
+          const calculations = getCalculatedValues(submission);
+          totalLeakage += calculations.totalLoss;
+          totalPipeline += calculations.conservativeRecovery;
+          
+          if ((submission.lead_score || 0) >= 80) {
+            highValueLeads++;
+          }
+        });
+
         const averageLeakage = submissions.length > 0 ? totalLeakage / submissions.length : 0;
-        
-        const totalPipeline = submissions.reduce((acc, s) => 
-          acc + (s.recovery_potential_70 || 0), 0
-        );
-        
-        const highValueLeads = submissions.filter(s => (s.lead_score || 0) >= 80).length;
 
         setMetrics({
           totalSubmissions: submissions.length,
@@ -76,8 +112,17 @@ const AdminDashboard = () => {
           totalPipeline,
           highValueLeads,
         });
+
+        console.log('Admin dashboard metrics calculated:', {
+          totalSubmissions: submissions.length,
+          weeklySubmissions,
+          averageLeakage,
+          totalPipeline,
+          highValueLeads,
+        });
       }
     } catch (error) {
+      console.error('Admin dashboard load error:', error);
       toast({
         title: "Error",
         description: "Failed to load dashboard data",
@@ -237,7 +282,7 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      {/* Recent Submissions - Moved up */}
+      {/* Recent Submissions - Updated to use UnifiedResultsService */}
       <Card className="border-border/50 shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -253,44 +298,47 @@ const AdminDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {recentSubmissions.map((submission) => (
-              <div key={submission.id} className="flex items-center justify-between p-4 border border-border/50 rounded-lg">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="font-medium">{submission.company_name}</p>
-                      <p className="text-sm text-muted-foreground">{submission.contact_email}</p>
+            {recentSubmissions.map((submission) => {
+              const calculations = getCalculatedValues(submission);
+              return (
+                <div key={submission.id} className="flex items-center justify-between p-4 border border-border/50 rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <p className="font-medium">{submission.company_name}</p>
+                        <p className="text-sm text-muted-foreground">{submission.contact_email}</p>
+                      </div>
+                      {submission.industry && (
+                        <Badge variant="outline" className="capitalize">
+                          {submission.industry}
+                        </Badge>
+                      )}
                     </div>
-                    {submission.industry && (
-                      <Badge variant="outline" className="capitalize">
-                        {submission.industry}
-                      </Badge>
-                    )}
                   </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Revenue Leak</p>
+                    <p className="font-medium text-revenue-danger">
+                      {formatCurrency(calculations.totalLoss)}
+                    </p>
+                  </div>
+                  <div className="text-right ml-4">
+                    <p className="text-sm text-muted-foreground">Lead Score</p>
+                    <p className={`font-bold ${
+                      (submission.lead_score || 0) >= 80 ? 'text-revenue-danger' :
+                      (submission.lead_score || 0) >= 60 ? 'text-revenue-warning' :
+                      'text-revenue-success'
+                    }`}>
+                      {submission.lead_score || 0}
+                    </p>
+                  </div>
+                  <Link to={`/results/${submission.id}`}>
+                    <Button variant="outline" size="sm">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </Link>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Revenue Leak</p>
-                  <p className="font-medium text-revenue-danger">
-                    {formatCurrency(submission.total_leak || 0)}
-                  </p>
-                </div>
-                <div className="text-right ml-4">
-                  <p className="text-sm text-muted-foreground">Lead Score</p>
-                  <p className={`font-bold ${
-                    (submission.lead_score || 0) >= 80 ? 'text-revenue-danger' :
-                    (submission.lead_score || 0) >= 60 ? 'text-revenue-warning' :
-                    'text-revenue-success'
-                  }`}>
-                    {submission.lead_score || 0}
-                  </p>
-                </div>
-                <Link to={`/results/${submission.id}`}>
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
