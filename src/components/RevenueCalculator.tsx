@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ChevronRight, ChevronLeft, Calculator, TrendingUp, AlertTriangle } from "lucide-react";
+import { ChevronRight, ChevronLeft, Calculator, TrendingUp, AlertTriangle, AlertCircle } from "lucide-react";
 import { CompanyInfoStep } from "./calculator/CompanyInfoStep";
 import { LeadGenerationStep } from "./calculator/LeadGenerationStep";
 import { SelfServeStep } from "./calculator/SelfServeStep";
@@ -353,40 +353,40 @@ export const RevenueCalculator = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-6">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary to-revenue-primary rounded-xl blur-sm opacity-60"></div>
-              <div className="relative p-4 rounded-xl bg-gradient-to-r from-primary to-revenue-primary shadow-attention-glow">
-                <Calculator className="h-10 w-10 text-primary-foreground" />
+              <div className="absolute inset-0 bg-gradient-to-r from-revenue-danger to-revenue-warning rounded-xl blur-sm opacity-60"></div>
+              <div className="relative p-4 rounded-xl bg-gradient-to-r from-revenue-danger to-revenue-warning shadow-attention-glow">
+                <AlertCircle className="h-10 w-10 text-white animate-pulse" />
               </div>
             </div>
             <div>
-              <h1 className="text-hero bg-gradient-to-r from-primary via-revenue-primary to-accent bg-clip-text text-transparent font-black">
-                SaaS Revenue Leak Calculator
+              <h1 className="text-hero bg-gradient-to-r from-revenue-danger via-revenue-warning to-revenue-danger bg-clip-text text-transparent font-black tracking-tight">
+                REVENUE BLEEDING CRISIS ANALYZER
               </h1>
               <div className="flex items-center justify-center gap-2 mt-2">
-                <div className="w-2 h-2 bg-revenue-success rounded-full animate-pulse"></div>
-                <span className="text-small text-revenue-success font-medium">Free Analysis</span>
-                <div className="w-2 h-2 bg-revenue-success rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-revenue-danger rounded-full animate-pulse"></div>
+                <span className="text-small text-revenue-danger font-bold uppercase tracking-wider">EMERGENCY ASSESSMENT</span>
+                <div className="w-2 h-2 bg-revenue-danger rounded-full animate-pulse"></div>
               </div>
             </div>
           </div>
           <p className="text-h3 text-muted-foreground max-w-2xl mx-auto text-center leading-relaxed">
-            <span className="font-semibold text-foreground">Discover hidden revenue opportunities</span><br/>
-            Get a personalized analysis of your sales funnel leaks in under 5 minutes
+            <span className="font-bold text-revenue-danger uppercase tracking-wide">STOP YOUR REVENUE HEMORRHAGING</span><br/>
+            Get an emergency diagnosis of where your revenue is bleeding most critically - every minute counts
           </p>
           
-          {/* Trust indicators */}
-          <div className="flex items-center justify-center gap-6 mt-6 text-small text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-revenue-success rounded-full"></div>
-              <span>No signup required</span>
+          {/* Crisis indicators */}
+          <div className="flex items-center justify-center gap-6 mt-6 text-small">
+            <div className="flex items-center gap-2 text-revenue-danger">
+              <AlertTriangle className="w-4 h-4 animate-pulse" />
+              <span className="font-semibold">No delay - instant crisis diagnosis</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-revenue-success rounded-full"></div>
-              <span>Instant results</span>
+            <div className="flex items-center gap-2 text-revenue-warning">
+              <AlertTriangle className="w-4 h-4 animate-pulse" />
+              <span className="font-semibold">Emergency action plan</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-revenue-success rounded-full"></div>
-              <span>Used by 1000+ SaaS companies</span>
+            <div className="flex items-center gap-2 text-revenue-danger">
+              <AlertTriangle className="w-4 h-4 animate-pulse" />
+              <span className="font-semibold">Critical for revenue-bleeding companies</span>
             </div>
           </div>
         </div>
