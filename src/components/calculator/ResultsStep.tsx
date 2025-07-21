@@ -106,21 +106,14 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
   };
 
   const handleSaveClick = async () => {
-    alert('Save button clicked!');
-    console.log('🎯 === SAVE BUTTON HANDLER CALLED ===');
-    console.log('Button clicked with data:', { data, calculations });
-    console.log('Current user state:', { user, isAuthenticated: !!user });
-    console.log('Current save state:', { saving, isSaved });
-    
     if (saving) {
-      console.log('⏳ Save already in progress, ignoring click');
       return;
     }
     
     try {
       await handleSave(data, calculations);
     } catch (error) {
-      console.error('💥 Save button handler error:', error);
+      console.error('Save button handler error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred while saving. Please try again.",
@@ -215,10 +208,7 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
             </Button>
           ) : (
             <Button
-              onClick={() => {
-                console.log('🔥 SAVE BUTTON CLICKED');
-                handleSaveClick();
-              }}
+              onClick={handleSaveClick}
               disabled={saving}
               variant="outline"
               size="lg"
