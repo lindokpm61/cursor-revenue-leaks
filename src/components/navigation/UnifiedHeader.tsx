@@ -69,30 +69,30 @@ export const UnifiedHeader = ({
   return (
     <header className={headerClasses}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between min-h-[60px] py-2">
+          <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
             {backTo && (
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={handleBack}
-                className={isSolutionContext ? "text-green-700 hover:bg-green-100" : ""}
+                className={`shrink-0 ${isSolutionContext ? "text-green-700 hover:bg-green-100" : ""}`}
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
+                <ArrowLeft className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Back</span>
               </Button>
             )}
             
-            <div className="flex items-center gap-3">
-              <div className={iconClasses}>
+            <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+              <div className={`${iconClasses} shrink-0`}>
                 <ContextIcon className={iconColorClasses} />
               </div>
-              <div>
-                <h1 className={`text-lg md:text-xl font-semibold ${isSolutionContext ? 'text-green-800' : ''}`}>
+              <div className="min-w-0 flex-1">
+                <h1 className={`text-h3 md:text-h2 font-semibold truncate ${isSolutionContext ? 'text-green-800' : ''}`}>
                   {title}
                 </h1>
                 {subtitle && (
-                  <p className={`text-sm ${isSolutionContext ? 'text-green-700' : 'text-muted-foreground'}`}>
+                  <p className={`text-small truncate ${isSolutionContext ? 'text-green-700' : 'text-muted-foreground'}`}>
                     {subtitle}
                   </p>
                 )}
@@ -100,11 +100,13 @@ export const UnifiedHeader = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4 shrink-0">
             {showProgress && currentStep && totalSteps && (
-              <Badge variant={isSolutionContext ? "outline" : "outline"} 
-                     className={isSolutionContext ? "border-green-300 text-green-700" : ""}>
-                Step {currentStep} of {totalSteps}
+              <Badge 
+                variant={isSolutionContext ? "outline" : "outline"} 
+                className={`hidden sm:inline-flex ${isSolutionContext ? "border-green-300 text-green-700" : ""}`}
+              >
+                {currentStep}/{totalSteps}
               </Badge>
             )}
             
@@ -113,10 +115,10 @@ export const UnifiedHeader = ({
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  className={isSolutionContext ? "text-green-700 hover:bg-green-100" : ""}
+                  className={`shrink-0 ${isSolutionContext ? "text-green-700 hover:bg-green-100" : ""}`}
                 >
-                  <User className="h-4 w-4 mr-2" />
-                  Dashboard
+                  <User className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Dashboard</span>
                 </Button>
               </Link>
             )}
