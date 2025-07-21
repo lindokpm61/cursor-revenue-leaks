@@ -151,8 +151,8 @@ const ActionPlan = () => {
         {/* Action Plan Modules */}
         <div className="space-y-8">
           {(() => {
-            // Calculate unified results and timeline for all modules
-            if (!submission?.calculator_data) {
+            // Check if we have submission data
+            if (!submission) {
               return (
                 <div className="text-center py-12">
                   <p className="text-body text-muted-foreground">
@@ -162,25 +162,28 @@ const ActionPlan = () => {
               );
             }
 
+            // Transform database submission to expected format
             const submissionData = {
-              id: submission.temp_id || '',
+              id: submission.id || '',
               company_name: submission.company_name || '',
-              contact_email: submission.email || '',
-              industry: submission.industry || submission.calculator_data.companyInfo?.industry,
-              current_arr: submission.calculator_data.companyInfo?.currentARR || 0,
-              monthly_leads: submission.calculator_data.leadGeneration?.monthlyLeads || 0,
-              average_deal_value: submission.calculator_data.leadGeneration?.averageDealValue || 0,
-              lead_response_time: submission.calculator_data.leadGeneration?.leadResponseTime || 0,
-              monthly_free_signups: submission.calculator_data.selfServe?.monthlyFreeSignups || 0,
-              free_to_paid_conversion: submission.calculator_data.selfServe?.freeToLaidConversion || 0,
-              monthly_mrr: submission.calculator_data.selfServe?.monthlyMRR || 0,
-              failed_payment_rate: submission.calculator_data.selfServe?.failedPaymentRate || 0,
-              manual_hours: submission.calculator_data.operations?.manualHours || 0,
-              hourly_rate: submission.calculator_data.operations?.hourlyRate || 0,
+              contact_email: submission.contact_email || '',
+              industry: submission.industry || 'technology',
+              current_arr: submission.current_arr || 0,
+              monthly_leads: submission.monthly_leads || 0,
+              average_deal_value: submission.average_deal_value || 0,
+              lead_response_time: submission.lead_response_time || 0,
+              monthly_free_signups: submission.monthly_free_signups || 0,
+              free_to_paid_conversion: submission.free_to_paid_conversion || 0,
+              monthly_mrr: submission.monthly_mrr || 0,
+              failed_payment_rate: submission.failed_payment_rate || 0,
+              manual_hours: submission.manual_hours || 0,
+              hourly_rate: submission.hourly_rate || 0,
               lead_score: submission.lead_score || 50,
-              user_id: submission.converted_to_user_id,
+              user_id: submission.user_id,
               created_at: submission.created_at || new Date().toISOString()
             };
+
+            console.log('ActionPlan: Processing submission data:', submissionData);
 
             // Use both calculation services for complete data
             const legacyResults = UnifiedResultsService.calculateResults(submissionData);
@@ -211,7 +214,30 @@ const ActionPlan = () => {
                 {/* Strategic Overview */}
                 <ActionPlanComponent 
                   calculations={calculations} 
-                  data={submission}
+                  data={{
+                    ...submission,
+                    calculator_data: {
+                      companyInfo: {
+                        currentARR: submissionData.current_arr,
+                        industry: submissionData.industry
+                      },
+                      leadGeneration: {
+                        monthlyLeads: submissionData.monthly_leads,
+                        averageDealValue: submissionData.average_deal_value,
+                        leadResponseTime: submissionData.lead_response_time
+                      },
+                      selfServe: {
+                        monthlyFreeSignups: submissionData.monthly_free_signups,
+                        freeToLaidConversion: submissionData.free_to_paid_conversion,
+                        monthlyMRR: submissionData.monthly_mrr,
+                        failedPaymentRate: submissionData.failed_payment_rate
+                      },
+                      operations: {
+                        manualHours: submissionData.manual_hours,
+                        hourlyRate: submissionData.hourly_rate
+                      }
+                    }
+                  }}
                 />
 
                 {/* Interactive Timeline & Checklist */}
