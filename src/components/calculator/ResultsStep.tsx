@@ -132,35 +132,6 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
 
   return (
     <div className="space-y-8">
-      {/* DEBUG PANEL - Remove this after testing */}
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-2">
-        <h3 className="font-bold text-red-800">🐛 Debug Panel (Remove after testing)</h3>
-        <div className="flex gap-2 flex-wrap">
-          <Button
-            onClick={() => forceShowRegistrationModal(data, calculations)}
-            variant="outline"
-            size="sm"
-            className="border-red-300 text-red-700 hover:bg-red-100"
-          >
-            <Bug className="h-4 w-4 mr-2" />
-            Force Show Registration Modal
-          </Button>
-          <Button
-            onClick={clearAllAuthState}
-            variant="outline"
-            size="sm"
-            className="border-red-300 text-red-700 hover:bg-red-100"
-          >
-            Clear Auth State
-          </Button>
-          <div className="text-sm text-red-600">
-            Auth State: {user ? `Logged in as ${user.email}` : 'Not logged in'}
-          </div>
-          <div className="text-sm text-red-600">
-            Save Status: {saving ? 'Saving...' : isSaved ? 'Saved' : 'Not saved'}
-          </div>
-        </div>
-      </div>
 
       {/* Executive Summary with Immediate Value */}
       <div className="space-y-6">
