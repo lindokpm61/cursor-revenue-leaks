@@ -45,9 +45,9 @@ export interface ExecutiveSummary {
 // Helper function to transform submission to SubmissionData format
 function transformSubmissionToSubmissionData(submission: Submission): SubmissionData {
   return {
-    id: submission.temp_id || '',
+    id: submission.id || '',
     company_name: submission.company_name || '',
-    contact_email: submission.email || '',
+    contact_email: submission.contact_email || '',
     industry: submission.industry,
     current_arr: submission.current_arr || 0,
     monthly_leads: submission.monthly_leads || 0,
@@ -60,7 +60,7 @@ function transformSubmissionToSubmissionData(submission: Submission): Submission
     manual_hours: submission.manual_hours || 0,
     hourly_rate: submission.hourly_rate || 0,
     lead_score: submission.lead_score || 50,
-    user_id: submission.converted_to_user_id,
+    user_id: submission.user_id,
     created_at: submission.created_at || new Date().toISOString()
   };
 }
