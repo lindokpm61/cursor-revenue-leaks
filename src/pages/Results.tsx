@@ -321,10 +321,10 @@ const Results = () => {
 
           <TabsContent value="breakdown">
             <div className="space-y-6">
-              <div className="bg-destructive/5 border-2 border-destructive/20 rounded-xl p-4">
-                <h3 className="text-lg font-bold text-destructive mb-2">⚠️ DAMAGE ASSESSMENT REPORT</h3>
-                <p className="text-sm text-destructive/80">
-                  Critical analysis of revenue hemorrhaging across all systems
+              <div className="bg-primary/5 border-2 border-primary/20 rounded-xl p-4">
+                <h3 className="text-lg font-bold text-primary mb-2">📊 REVENUE ANALYSIS REPORT</h3>
+                <p className="text-sm text-primary/80">
+                  Comprehensive analysis of revenue optimization opportunities across all systems
                 </p>
               </div>
               
@@ -352,10 +352,10 @@ const Results = () => {
 
           <TabsContent value="actions">
             <div className="space-y-6">
-              <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4">
-                <h3 className="text-lg font-bold text-amber-800 mb-2">🚨 EMERGENCY RESPONSE PLAN</h3>
-                <p className="text-sm text-amber-700">
-                  Immediate actions required to stop revenue bleeding
+              <div className="bg-revenue-growth/10 border-2 border-revenue-growth/20 rounded-xl p-4">
+                <h3 className="text-lg font-bold text-revenue-growth mb-2">🎯 STRATEGIC ACTION PLAN</h3>
+                <p className="text-sm text-revenue-growth/80">
+                  Priority actions to maximize revenue optimization opportunities
                 </p>
               </div>
               
@@ -368,10 +368,10 @@ const Results = () => {
 
           <TabsContent value="recovery">
             <div className="space-y-6">
-              <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
-                <h3 className="text-lg font-bold text-green-800 mb-2">🏥 RECOVERY PROTOCOL</h3>
-                <p className="text-sm text-green-700">
-                  Step-by-step crisis recovery implementation timeline
+              <div className="bg-revenue-success/10 border-2 border-revenue-success/20 rounded-xl p-4">
+                <h3 className="text-lg font-bold text-revenue-success mb-2">🚀 IMPLEMENTATION ROADMAP</h3>
+                <p className="text-sm text-revenue-success/80">
+                  Step-by-step strategic implementation timeline for revenue growth
                 </p>
               </div>
               
@@ -390,32 +390,32 @@ const Results = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Crisis Action Footer */}
-        <div className="mt-8 bg-gradient-to-r from-destructive/10 to-destructive/5 rounded-xl border-2 border-destructive/20 p-6">
+        {/* Strategic Action Footer */}
+        <div className="mt-8 bg-gradient-to-r from-primary/10 to-revenue-growth/10 rounded-xl border-2 border-primary/20 p-6">
           <div className="text-center">
-            <h3 className="text-xl font-bold text-destructive mb-2">
-              STOP THE BLEEDING NOW
+            <h3 className="text-xl font-bold text-primary mb-2">
+              UNLOCK YOUR REVENUE POTENTIAL
             </h3>
-            <p className="text-destructive/80 mb-4">
-              Every moment of delay costs your business {formatCurrency(dailyLoss)} daily
+            <p className="text-primary/80 mb-4">
+              Capture {formatCurrency(recovery70)} in strategic revenue opportunities
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button 
                 onClick={handleGetActionPlan}
                 size="lg"
-                className="bg-destructive hover:bg-destructive/90"
+                className="bg-primary hover:bg-primary/90"
               >
                 <Target className="h-4 w-4 mr-2" />
-                GET EMERGENCY ACTION PLAN
+                GET STRATEGIC ACTION PLAN
               </Button>
               <Button 
-                onClick={() => window.open('https://calendly.com/crisis-intervention', '_blank')}
+                onClick={handleBookCall}
                 variant="outline"
                 size="lg"
-                className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
               >
                 <Calendar className="h-4 w-4 mr-2" />
-                SCHEDULE CRISIS INTERVENTION
+                BOOK STRATEGY CONSULTATION
               </Button>
             </div>
           </div>
