@@ -181,9 +181,16 @@ const ActionPlan = () => {
     },
     implementationFactors: {},
     riskAdjustments: {},
-    confidenceLevel: unifiedResults.confidenceLevel,
-    confidenceBounds: unifiedResults.confidenceBounds,
-    recoveryTimeline: unifiedResults.recoveryTimeline
+    confidenceLevel: 'medium' as const,
+    confidenceBounds: {
+      lower: unifiedResults.conservativeRecovery * 0.75,
+      upper: unifiedResults.optimisticRecovery * 1.15
+    },
+    recoveryTimeline: {
+      year1: unifiedResults.conservativeRecovery * 0.25,
+      year2: unifiedResults.conservativeRecovery * 0.70,
+      year3: unifiedResults.conservativeRecovery
+    }
   }, inputs);
 
   const investment = calculateRealisticInvestment(timeline, inputs);
@@ -267,7 +274,7 @@ const ActionPlan = () => {
               totalInvestment={investment.implementationCost}
               paybackMonths={investment.paybackMonths}
               formatCurrency={UnifiedResultsService.formatCurrency}
-              confidenceLevel={unifiedResults.confidenceLevel}
+              confidenceLevel="medium"
             />
           </TabsContent>
 
