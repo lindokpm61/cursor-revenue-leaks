@@ -111,11 +111,11 @@ export const ExecutiveFirstSummary = ({
               </div>
               <div className="flex-1">
                 <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 mb-1 leading-tight">
-                  Revenue Recovery Analysis
+                  ⚠️ Revenue Crisis Assessment
                 </h1>
                 <p className="text-sm md:text-base text-slate-600 flex flex-wrap sm:flex-nowrap items-center gap-2">
-                  <Shield className="h-3 w-3 md:h-4 md:w-4 flex-shrink-0" />
-                  <span className="break-words">Enterprise-grade assessment • 2,800+ companies analyzed</span>
+                  <AlertTriangle className="h-3 w-3 md:h-4 md:w-4 flex-shrink-0 text-revenue-warning" />
+                  <span className="break-words">🚨 URGENT: Revenue hemorrhaging detected • 2,800+ companies analyzed</span>
                 </p>
               </div>
             </div>
@@ -153,13 +153,13 @@ export const ExecutiveFirstSummary = ({
                 <div className="p-2 rounded-lg bg-red-50">
                   <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 text-red-600" />
                 </div>
-                <div className="text-sm font-medium text-red-700">Revenue at Risk</div>
+                <div className="text-sm font-medium text-red-700">💸 Revenue Hemorrhaging</div>
               </div>
               <div className="text-2xl md:text-3xl font-bold text-red-600 mb-2">
                 {formatCurrency(totalLeakage)}
               </div>
               <div className="text-sm text-slate-600">
-                {leakagePercentage}% of current ARR • Compounds monthly
+                {leakagePercentage}% of current ARR • ⚠️ BLEEDING NOW
               </div>
             </div>
 
@@ -169,13 +169,13 @@ export const ExecutiveFirstSummary = ({
                 <div className="p-2 rounded-lg bg-green-50">
                   <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-green-600" />
                 </div>
-                <div className="text-sm font-medium text-green-700">Recovery Potential</div>
+                <div className="text-sm font-medium text-green-700">🩹 Recovery Potential</div>
               </div>
               <div className="text-2xl md:text-3xl font-bold text-green-600 mb-2">
                 {formatCurrency(realisticRecovery)}
               </div>
               <div className="text-sm text-slate-600">
-                {confidenceLevel} confidence • 12-18 month target
+                {confidenceLevel} confidence • IF you act now
               </div>
             </div>
 
@@ -197,18 +197,17 @@ export const ExecutiveFirstSummary = ({
           </div>
 
           {/* Executive Summary Statement */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6 border border-slate-200 mb-6 md:mb-8">
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6 border border-red-200 mb-6 md:mb-8">
             <h3 className="text-base md:text-lg font-semibold text-slate-900 mb-3 flex items-center gap-2">
-              <Target className="h-4 w-4 md:h-5 md:w-5 text-blue-600" />
-              Executive Summary
+              <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 text-revenue-warning" />
+              🚨 Crisis Summary
             </h3>
             <p className="text-slate-700 leading-relaxed text-sm md:text-base">
-              Our comprehensive analysis of {submission.company_name} reveals{' '}
+              <strong>URGENT:</strong> Our crisis analysis of {submission.company_name} reveals{' '}
               <span className="font-semibold text-red-600">{formatCurrency(totalLeakage)}</span> in 
-              annual revenue optimization opportunities. With systematic implementation, we project{' '}
-              <span className="font-semibold text-green-600">{formatCurrency(realisticRecovery)}</span> in 
-              recoverable revenue within 18 months, delivering a{' '}
-              <span className="font-semibold text-blue-600">{roiMultiplier}x ROI</span> on optimization investments.
+              annual revenue hemorrhaging that's getting worse daily. Immediate intervention can recover{' '}
+              <span className="font-semibold text-green-600">{formatCurrency(realisticRecovery)}</span> within 
+              18 months, but <strong>every day of delay costs your company money.</strong>
             </p>
           </div>
 
@@ -269,9 +268,9 @@ export const ExecutiveFirstSummary = ({
             >
               <Target className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 mr-1 sm:mr-1.5 md:mr-2 flex-shrink-0" />
               <span className="truncate min-w-0 text-xs sm:text-sm md:text-base">
-                <span className="hidden md:inline">Get Strategic Action Plan</span>
-                <span className="hidden sm:inline md:hidden">Get Action Plan</span>
-                <span className="sm:hidden">Action Plan</span>
+                <span className="hidden md:inline">🚨 GET EMERGENCY ACTION PLAN</span>
+                <span className="hidden sm:inline md:hidden">EMERGENCY PLAN</span>
+                <span className="sm:hidden">STOP BLEEDING</span>
               </span>
               <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 md:h-4 md:w-4 ml-1 sm:ml-1.5 md:ml-2 flex-shrink-0" />
             </Button>
@@ -295,7 +294,7 @@ export const ExecutiveFirstSummary = ({
             <div className="mt-4 md:mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-center gap-2 sm:gap-3 p-3 md:p-4 bg-red-50 border border-red-200 rounded-xl">
               <Clock className="h-4 w-4 md:h-5 md:w-5 text-red-600 flex-shrink-0" />
               <span className="text-sm md:text-base font-medium text-red-700 leading-tight">
-                Time-sensitive opportunity - Revenue leak compounds {formatCurrency(totalLeakage/12)} monthly
+                ⚠️ CRITICAL: Revenue hemorrhaging {formatCurrency(totalLeakage/365)} daily - Each hour of delay costs money
               </span>
             </div>
           )}
