@@ -59,19 +59,21 @@ export const ExecutiveSummary = ({ data, calculations, formatCurrency }: Executi
       </div>
 
       {/* Crisis Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-br from-white to-destructive/10 border-destructive/30 border-2 shadow-lg animate-attention-pulse">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <TrendingDown className="h-5 w-5 text-destructive animate-pulse" />
-              🩸 BLEEDING NOW
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <TrendingDown className="h-4 w-4 text-destructive animate-pulse" />
+              <span className="text-sm font-bold">🩸 BLEEDING NOW</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-destructive leading-none mb-2">
+          <CardContent className="pt-0">
+            <p className="text-2xl font-bold text-destructive leading-tight mb-1">
               {formatCurrency(calculations.totalLeakage)}
             </p>
-            <p className="text-sm text-destructive/80 font-medium">revenue hemorrhaging annually</p>
+            <p className="text-xs text-destructive/80 font-medium leading-tight">
+              revenue hemorrhaging annually
+            </p>
             <p className="text-xs text-destructive/70 mt-1">
               Daily loss: {formatCurrency(dailyBleed)}
             </p>
@@ -79,17 +81,19 @@ export const ExecutiveSummary = ({ data, calculations, formatCurrency }: Executi
         </Card>
 
         <Card className="bg-gradient-to-br from-white to-revenue-warning/10 border-revenue-warning/30 border-2 shadow-lg">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Target className="h-5 w-5 text-revenue-warning" />
-              🚑 Emergency Stoppage
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Target className="h-4 w-4 text-revenue-warning" />
+              <span className="text-sm font-bold">🚑 Emergency Stoppage</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-revenue-warning leading-none mb-2">
+          <CardContent className="pt-0">
+            <p className="text-2xl font-bold text-revenue-warning leading-tight mb-1">
               {formatCurrency(calculations.potentialRecovery70)}
             </p>
-            <p className="text-sm text-muted-foreground">immediate bleeding control</p>
+            <p className="text-xs text-muted-foreground leading-tight">
+              immediate bleeding control
+            </p>
             <p className="text-xs text-revenue-warning/80 mt-1 font-medium">
               70% crisis recovery rate
             </p>
@@ -97,17 +101,19 @@ export const ExecutiveSummary = ({ data, calculations, formatCurrency }: Executi
         </Card>
 
         <Card className="bg-gradient-to-br from-white to-primary/10 border-primary/30 border-2 shadow-lg">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Zap className="h-5 w-5 text-primary" />
-              ⚡ Maximum Recovery
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Zap className="h-4 w-4 text-primary" />
+              <span className="text-sm font-bold">⚡ Maximum Recovery</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-primary leading-none mb-2">
+          <CardContent className="pt-0">
+            <p className="text-2xl font-bold text-primary leading-tight mb-1">
               {formatCurrency(calculations.potentialRecovery85)}
             </p>
-            <p className="text-sm text-muted-foreground">full crisis intervention</p>
+            <p className="text-xs text-muted-foreground leading-tight">
+              full crisis intervention
+            </p>
             <p className="text-xs text-primary/80 mt-1 font-medium">
               85% emergency success rate
             </p>
@@ -115,19 +121,21 @@ export const ExecutiveSummary = ({ data, calculations, formatCurrency }: Executi
         </Card>
 
         <Card className="bg-gradient-to-br from-white to-revenue-success/10 border-revenue-success/30 border-2 shadow-lg">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-revenue-success" />
-              📈 Crisis Impact
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-revenue-success" />
+              <span className="text-sm font-bold">📈 Crisis Impact</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-revenue-success leading-none mb-2">
+          <CardContent className="pt-0">
+            <p className="text-2xl font-bold text-revenue-success leading-tight mb-1">
               {currentARR > 0 
                 ? Math.round((potentialRecovery70 / currentARR) * 100)
                 : 0}%
             </p>
-            <p className="text-sm text-muted-foreground">of current ARR at risk</p>
+            <p className="text-xs text-muted-foreground leading-tight">
+              of current ARR at risk
+            </p>
             <p className="text-xs text-revenue-success/80 mt-1 font-medium">
               Recoverable with intervention
             </p>
