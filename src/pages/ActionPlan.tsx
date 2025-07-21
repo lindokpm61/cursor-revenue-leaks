@@ -7,7 +7,11 @@ import { ArrowLeft, Calculator, Target, Download, ChevronRight } from "lucide-re
 import { submissionService, type Submission } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { ActionPlan as ActionPlanComponent } from "@/components/calculator/results/ActionPlan";
+import { ActionPlanTimeline } from "@/components/ActionPlanTimeline";
+import { ActionPlanScenarioPlanning } from "@/components/ActionPlanScenarioPlanning";
 import { useCalculatorData } from "@/components/calculator/useCalculatorData";
+import { generateRealisticTimeline, calculateRealisticInvestment, UnifiedCalculationInputs, calculateUnifiedResults } from "@/lib/calculator/unifiedCalculations";
+import { UnifiedResultsService } from "@/lib/results/UnifiedResultsService";
 import { UnifiedHeader } from "@/components/navigation/UnifiedHeader";
 
 const ActionPlan = () => {
@@ -144,12 +148,91 @@ const ActionPlan = () => {
           </div>
         </div>
 
-        {/* Action Plan Component */}
+        {/* Action Plan Modules */}
         <div className="space-y-8">
-          <ActionPlanComponent 
-            calculations={calculations} 
-            data={submission}
-          />
+          {(() => {
+            // Calculate unified results and timeline for all modules
+            if (!submission?.calculator_data) {
+              return (
+                <div className="text-center py-12">
+                  <p className="text-body text-muted-foreground">
+                    No calculation data available for this action plan.
+                  </p>
+                </div>
+              );
+            }
+
+            const submissionData = {
+              id: submission.temp_id || '',
+              company_name: submission.company_name || '',
+              contact_email: submission.email || '',
+              industry: submission.industry || submission.calculator_data.companyInfo?.industry,
+              current_arr: submission.calculator_data.companyInfo?.currentARR || 0,
+              monthly_leads: submission.calculator_data.leadGeneration?.monthlyLeads || 0,
+              average_deal_value: submission.calculator_data.leadGeneration?.averageDealValue || 0,
+              lead_response_time: submission.calculator_data.leadGeneration?.leadResponseTime || 0,
+              monthly_free_signups: submission.calculator_data.selfServe?.monthlyFreeSignups || 0,
+              free_to_paid_conversion: submission.calculator_data.selfServe?.freeToLaidConversion || 0,
+              monthly_mrr: submission.calculator_data.selfServe?.monthlyMRR || 0,
+              failed_payment_rate: submission.calculator_data.selfServe?.failedPaymentRate || 0,
+              manual_hours: submission.calculator_data.operations?.manualHours || 0,
+              hourly_rate: submission.calculator_data.operations?.hourlyRate || 0,
+              lead_score: submission.lead_score || 50,
+              user_id: submission.converted_to_user_id,
+              created_at: submission.created_at || new Date().toISOString()
+            };
+
+            // Use both calculation services for complete data
+            const legacyResults = UnifiedResultsService.calculateResults(submissionData);
+            
+            const inputs: UnifiedCalculationInputs = {
+              currentARR: submissionData.current_arr,
+              monthlyMRR: submissionData.monthly_mrr,
+              monthlyLeads: submissionData.monthly_leads,
+              averageDealValue: submissionData.average_deal_value,
+              leadResponseTime: submissionData.lead_response_time,
+              monthlyFreeSignups: submissionData.monthly_free_signups,
+              freeToPaidConversion: submissionData.free_to_paid_conversion,
+              failedPaymentRate: submissionData.failed_payment_rate,
+              manualHours: submissionData.manual_hours,
+              hourlyRate: submissionData.hourly_rate,
+              industry: submissionData.industry
+            };
+
+            // Calculate unified results
+            const unifiedResults = calculateUnifiedResults(inputs);
+
+            const timeline = generateRealisticTimeline(unifiedResults, inputs);
+
+            const investment = calculateRealisticInvestment(timeline, inputs);
+
+            return (
+              <>
+                {/* Strategic Overview */}
+                <ActionPlanComponent 
+                  calculations={calculations} 
+                  data={submission}
+                />
+
+                {/* Interactive Timeline & Checklist */}
+                <ActionPlanTimeline
+                  phases={timeline}
+                  totalRecovery={legacyResults.conservativeRecovery}
+                  totalInvestment={investment.implementationCost}
+                  paybackMonths={investment.paybackMonths}
+                  formatCurrency={UnifiedResultsService.formatCurrency}
+                  confidenceLevel={unifiedResults.confidenceLevel}
+                />
+
+                {/* Scenario Planning */}
+                <ActionPlanScenarioPlanning
+                  baseRecovery={legacyResults.conservativeRecovery}
+                  baseInvestment={investment.implementationCost}
+                  formatCurrency={UnifiedResultsService.formatCurrency}
+                />
+              </>
+            );
+          })()}
         </div>
 
         {/* Footer Actions */}
