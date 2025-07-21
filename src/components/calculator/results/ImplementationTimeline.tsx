@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,9 +19,7 @@ import {
 } from "lucide-react";
 import { type Submission } from "@/lib/supabase";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { validateCalculationResults, getCalculationConfidenceLevel } from '@/lib/calculator/validationHelpers';
-import { calculateUnifiedResults, generateRealisticTimeline, UnifiedCalculationInputs } from '@/lib/calculator/unifiedCalculations';
-import { UnifiedResultsService } from '@/lib/results/UnifiedResultsService';
+import { UnifiedResultsService, type SubmissionData } from '@/lib/results/UnifiedResultsService';
 
 interface ImplementationTimelineProps {
   submission: Submission;
@@ -52,12 +49,33 @@ interface TimelinePhase {
 export const ImplementationTimeline = ({ submission, formatCurrency, validatedValues, calculatorData, variant = 'standard' }: ImplementationTimelineProps) => {
   const [isContentOpen, setIsContentOpen] = useState(true);
 
+  // Transform submission to SubmissionData format for UnifiedResultsService
+  const submissionData: SubmissionData = {
+    id: submission.temp_id || '',
+    company_name: submission.company_name || '',
+    contact_email: submission.email || '',
+    industry: submission.industry,
+    current_arr: submission.current_arr || 0,
+    monthly_leads: submission.monthly_leads || 0,
+    average_deal_value: submission.average_deal_value || 0,
+    lead_response_time: submission.lead_response_time || 0,
+    monthly_free_signups: submission.monthly_free_signups || 0,
+    free_to_paid_conversion: submission.free_to_paid_conversion || 0,
+    monthly_mrr: submission.monthly_mrr || 0,
+    failed_payment_rate: submission.failed_payment_rate || 0,
+    manual_hours: submission.manual_hours || 0,
+    hourly_rate: submission.hourly_rate || 0,
+    lead_score: submission.lead_score || 50,
+    user_id: submission.converted_to_user_id,
+    created_at: submission.created_at || new Date().toISOString()
+  };
+
   // Use unified calculations consistently
-  const unifiedCalcs = UnifiedResultsService.calculateResults(submission);
+  const unifiedCalcs = UnifiedResultsService.calculateResults(submissionData);
   
   // Generate realistic timeline phases using unified calculations
   const generateTimelinePhases = (): TimelinePhase[] => {
-    const currentARR = submission.current_arr || 0;
+    const currentARR = submissionData.current_arr;
     
     // Use more relaxed thresholds - lower percentage OR absolute minimum
     const percentageThreshold = currentARR * 0.003; // 0.3% of ARR (reduced from 0.5%)
@@ -172,7 +190,7 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
   
   // Calculate realistic investment with proper scaling
   const calculateInvestment = () => {
-    const baseInvestment = Math.min(Math.max(15000, (submission.current_arr || 0) * 0.003), 35000);
+    const baseInvestment = Math.min(Math.max(15000, (submissionData.current_arr || 0) * 0.003), 35000);
     const phaseMultiplier = phases.length;
     const complexityFactor = phases.some(p => p.difficulty === 'hard') ? 1.3 : 1.1;
     
@@ -198,7 +216,7 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
     const basicROI = ((totalRecovery - investment.totalAnnualInvestment) / investment.totalAnnualInvestment) * 100;
     
     // Apply confidence multiplier based on data quality
-    const currentARR = submission.current_arr || 0;
+    const currentARR = submissionData.current_arr || 0;
     const confidenceMultiplier = currentARR > 2000000 ? 0.85 : 
                                 currentARR > 500000 ? 0.75 : 0.65;
     
@@ -336,14 +354,14 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
                   <div className="text-2xl font-bold text-orange-600">
                     {phases.length > 0 ? Math.max(...phases.map(p => p.endMonth)) : 12} months
                   </div>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    {phases.length} emergency phases
+                  <div className="text-sm text-orange-600 mt-1">
+                    {phases.length} critical phases
                   </div>
-                  <div className="text-xs text-orange-600 mt-1">
-                    Every day costs: {formatCurrency((unifiedCalcs.totalLoss || 0) / 365)}
+                  <div className="text-xs text-muted-foreground mt-1">
+                    First results: Month 2-3
                   </div>
                 </div>
-                
+
                 <div className="p-4 rounded-lg bg-gradient-to-r from-revenue-warning/10 to-revenue-warning/20 border border-revenue-warning/30">
                   <div className="flex items-center gap-2 mb-2">
                     <DollarSign className="h-5 w-5 text-revenue-warning" />

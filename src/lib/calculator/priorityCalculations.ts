@@ -1,5 +1,6 @@
+
 import { Tables } from '@/integrations/supabase/types';
-import { calculateUnifiedResults, type UnifiedCalculationInputs } from './unifiedCalculations';
+import { UnifiedResultsService, type SubmissionData } from '@/lib/results/UnifiedResultsService';
 
 type Submission = Tables<'calculator_submissions'>;
 
@@ -41,10 +42,28 @@ export interface ExecutiveSummary {
   businessImpact: string;
 }
 
-const safeNumber = (value: any): number => {
-  const num = Number(value);
-  return isNaN(num) ? 0 : num;
-};
+// Helper function to transform submission to SubmissionData format
+function transformSubmissionToSubmissionData(submission: Submission): SubmissionData {
+  return {
+    id: submission.temp_id || '',
+    company_name: submission.company_name || '',
+    contact_email: submission.email || '',
+    industry: submission.industry,
+    current_arr: submission.current_arr || 0,
+    monthly_leads: submission.monthly_leads || 0,
+    average_deal_value: submission.average_deal_value || 0,
+    lead_response_time: submission.lead_response_time || 0,
+    monthly_free_signups: submission.monthly_free_signups || 0,
+    free_to_paid_conversion: submission.free_to_paid_conversion || 0,
+    monthly_mrr: submission.monthly_mrr || 0,
+    failed_payment_rate: submission.failed_payment_rate || 0,
+    manual_hours: submission.manual_hours || 0,
+    hourly_rate: submission.hourly_rate || 0,
+    lead_score: submission.lead_score || 50,
+    user_id: submission.converted_to_user_id,
+    created_at: submission.created_at || new Date().toISOString()
+  };
+}
 
 // Dynamic confidence scoring based on loss amount and company size
 function getConfidenceLevel(lossAmount: number, currentARR: number, actionType: string): 'High' | 'Medium' | 'Low' {
@@ -173,32 +192,18 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
   console.log("=== PRIORITY ACTIONS CALCULATION DEBUG ===");
   console.log("Input submission:", submission);
 
-  // FIXED: Use unified calculation system for consistent results
-  const unifiedInputs: UnifiedCalculationInputs = {
-    currentARR: submission.current_arr || 0,
-    monthlyMRR: submission.monthly_mrr || 0,
-    monthlyLeads: submission.monthly_leads || 0,
-    averageDealValue: submission.average_deal_value || 0,
-    leadResponseTime: submission.lead_response_time || 24,
-    monthlyFreeSignups: submission.monthly_free_signups || 0,
-    freeToPaidConversion: submission.free_to_paid_conversion || 0,
-    failedPaymentRate: submission.failed_payment_rate || 0,
-    manualHours: submission.manual_hours || 0,
-    hourlyRate: submission.hourly_rate || 0,
-    industry: submission.industry || undefined
-  };
-
-  // Get unified calculations - same system as dashboard
-  const unifiedCalcs = calculateUnifiedResults(unifiedInputs);
+  // FIXED: Use UnifiedResultsService for consistent results
+  const submissionData = transformSubmissionToSubmissionData(submission);
+  const unifiedResults = UnifiedResultsService.calculateResults(submissionData);
   
-  const currentARR = unifiedInputs.currentARR;
-  const leadResponseLoss = unifiedCalcs.leadResponseLoss;
-  const selfserveGapLoss = unifiedCalcs.selfServeGapLoss;
-  const processLoss = unifiedCalcs.processInefficiencyLoss;
-  const failedPaymentLoss = unifiedCalcs.failedPaymentLoss;
-  const totalRecovery = unifiedCalcs.recovery70Percent;
+  const currentARR = submissionData.current_arr;
+  const leadResponseLoss = unifiedResults.leadResponseLoss;
+  const selfserveGapLoss = unifiedResults.selfServeGap;
+  const processLoss = unifiedResults.processInefficiency;
+  const failedPaymentLoss = unifiedResults.failedPaymentLoss;
+  const totalRecovery = unifiedResults.conservativeRecovery;
 
-  console.log("=== UNIFIED CALCULATION VALUES ===");
+  console.log("=== UNIFIED RESULTS VALUES ===");
   console.log({
     currentARR,
     leadResponseLoss,
@@ -208,11 +213,11 @@ export function calculatePriorityActions(submission: Submission): PriorityAction
     totalRecovery
   });
 
-  // Use action-specific recovery amounts from unified calculations
-  const leadResponseRecovery = unifiedCalcs.actionSpecificRecovery.leadResponse;
-  const selfserveRecovery = unifiedCalcs.actionSpecificRecovery.selfServe;
-  const processRecovery = unifiedCalcs.actionSpecificRecovery.processAutomation;
-  const paymentRecovery = unifiedCalcs.actionSpecificRecovery.paymentRecovery;
+  // Use realistic recovery rates
+  const leadResponseRecovery = leadResponseLoss * 0.65;
+  const selfserveRecovery = selfserveGapLoss * 0.55;
+  const processRecovery = processLoss * 0.75;
+  const paymentRecovery = failedPaymentLoss * 0.70;
 
   // Calculate total potential recovery for impact percentages
   const totalActionRecovery = leadResponseRecovery + selfserveRecovery + processRecovery + paymentRecovery;
@@ -343,29 +348,16 @@ export function calculateTotalPotentialRecovery(actions: PriorityAction[]): numb
 }
 
 export function calculateExecutiveSummary(submission: Submission): ExecutiveSummary {
-  // FIXED: Use unified calculation system for consistent results
-  const unifiedInputs: UnifiedCalculationInputs = {
-    currentARR: submission.current_arr || 0,
-    monthlyMRR: submission.monthly_mrr || 0,
-    monthlyLeads: submission.monthly_leads || 0,
-    averageDealValue: submission.average_deal_value || 0,
-    leadResponseTime: submission.lead_response_time || 24,
-    monthlyFreeSignups: submission.monthly_free_signups || 0,
-    freeToPaidConversion: submission.free_to_paid_conversion || 0,
-    failedPaymentRate: submission.failed_payment_rate || 0,
-    manualHours: submission.manual_hours || 0,
-    hourlyRate: submission.hourly_rate || 0,
-    industry: submission.industry || undefined
-  };
-
-  const unifiedCalcs = calculateUnifiedResults(unifiedInputs);
-  const currentARR = safeNumber(submission.current_arr);
+  // FIXED: Use UnifiedResultsService for consistent results
+  const submissionData = transformSubmissionToSubmissionData(submission);
+  const unifiedResults = UnifiedResultsService.calculateResults(submissionData);
+  const currentARR = submission.current_arr || 0;
   
   // Map unified calculation results to executive summary format
-  const totalLeak = unifiedCalcs.totalLoss; // Maps totalLoss to totalLeakage
+  const totalLeak = unifiedResults.totalLoss;
   const priorityActions = calculatePriorityActions(submission);
   const quickWins = calculateQuickWins(submission);
-  const realisticRecovery = unifiedCalcs.recovery70Percent; // Maps recovery70Percent to realisticRecovery
+  const realisticRecovery = unifiedResults.conservativeRecovery;
   
   // Determine urgency level based on leak percentage
   const leakPercentage = currentARR > 0 ? (totalLeak / currentARR) * 100 : 0;
@@ -377,8 +369,8 @@ export function calculateExecutiveSummary(submission: Submission): ExecutiveSumm
   
   // Use unified calculation confidence level
   const confidenceLevel: 'High' | 'Medium' | 'Low' = 
-    unifiedCalcs.confidenceLevel === 'high' ? 'High' :
-    unifiedCalcs.confidenceLevel === 'medium' ? 'Medium' : 'Low';
+    unifiedResults.lossPercentageOfARR > 15 ? 'High' :
+    unifiedResults.lossPercentageOfARR > 8 ? 'Medium' : 'Low';
   
   // Calculate time to value based on quick wins
   const timeToValue = quickWins.length > 0 ? 
@@ -393,8 +385,8 @@ export function calculateExecutiveSummary(submission: Submission): ExecutiveSumm
     'Low-impact opportunity with incremental revenue gains';
   
   return {
-    totalLeakage: totalLeak, // Now using unified calculation
-    realisticRecovery, // Now using unified calculation
+    totalLeakage: totalLeak,
+    realisticRecovery,
     priorityActions,
     quickWins,
     urgencyLevel,

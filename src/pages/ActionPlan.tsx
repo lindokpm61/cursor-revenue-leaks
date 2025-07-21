@@ -1,7 +1,7 @@
+
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Calculator, Target, Download, ChevronRight, TrendingUp, Clock, BarChart3 } from "lucide-react";
 import { submissionService, type Submission } from "@/lib/supabase";
@@ -11,8 +11,7 @@ import { ActionPlanTimeline } from "@/components/ActionPlanTimeline";
 import { ActionPlanScenarioPlanning } from "@/components/ActionPlanScenarioPlanning";
 import { useCalculatorData } from "@/components/calculator/useCalculatorData";
 import { UnifiedHeader } from "@/components/navigation/UnifiedHeader";
-import { UnifiedResultsService } from "@/lib/results/UnifiedResultsService";
-import { generateRealisticTimeline, calculateRealisticInvestment, UnifiedCalculationInputs } from "@/lib/calculator/unifiedCalculations";
+import { UnifiedResultsService, type SubmissionData } from "@/lib/results/UnifiedResultsService";
 
 const ActionPlan = () => {
   const { id } = useParams<{ id: string }>();
@@ -100,7 +99,7 @@ const ActionPlan = () => {
     );
   }
 
-  // Transform submission data for components
+  // Transform submission data for components using UnifiedResultsService format
   const transformedData = {
     ...submission,
     calculator_data: {
@@ -126,8 +125,8 @@ const ActionPlan = () => {
     }
   };
 
-  // Calculate unified results and timeline
-  const submissionDataForResults = {
+  // Calculate unified results using UnifiedResultsService
+  const submissionDataForResults: SubmissionData = {
     id: submission.temp_id || '',
     company_name: submission.company_name || '',
     contact_email: submission.email || '',
@@ -158,50 +157,101 @@ const ActionPlan = () => {
     industry: submission.industry
   });
 
-  const inputs: UnifiedCalculationInputs = {
-    currentARR: submissionDataForResults.current_arr,
-    monthlyMRR: submissionDataForResults.monthly_mrr,
-    monthlyLeads: submissionDataForResults.monthly_leads,
-    averageDealValue: submissionDataForResults.average_deal_value,
-    leadResponseTime: submissionDataForResults.lead_response_time,
-    monthlyFreeSignups: submissionDataForResults.monthly_free_signups,
-    freeToPaidConversion: submissionDataForResults.free_to_paid_conversion,
-    failedPaymentRate: submissionDataForResults.failed_payment_rate,
-    manualHours: submissionDataForResults.manual_hours,
-    hourlyRate: submissionDataForResults.hourly_rate,
-    industry: submissionDataForResults.industry
+  // Simple timeline generation using unified results
+  const generateSimpleTimeline = () => {
+    const phases = [];
+    const currentARR = submissionDataForResults.current_arr;
+    const threshold = Math.max(currentARR * 0.003, 15000);
+
+    if (unifiedResults.leadResponseLoss > threshold) {
+      phases.push({
+        id: 'lead-response',
+        title: 'Lead Response Optimization',
+        description: 'Implement automated response systems',
+        startMonth: 1,
+        endMonth: 3,
+        difficulty: 'easy' as const,
+        recoveryPotential: unifiedResults.leadResponseLoss * 0.65,
+        actions: [
+          { title: 'Audit current response processes', weeks: 2, owner: 'Sales Ops' },
+          { title: 'Implement lead automation tools', weeks: 3, owner: 'Marketing' }
+        ]
+      });
+    }
+
+    if (unifiedResults.selfServeGap > threshold) {
+      phases.push({
+        id: 'self-serve',
+        title: 'Self-Serve Optimization',
+        description: 'Optimize onboarding and conversion flow',
+        startMonth: 2,
+        endMonth: 5,
+        difficulty: 'medium' as const,
+        recoveryPotential: unifiedResults.selfServeGap * 0.55,
+        actions: [
+          { title: 'Analyze conversion funnel', weeks: 2, owner: 'Product' },
+          { title: 'Optimize onboarding flow', weeks: 4, owner: 'Product' }
+        ]
+      });
+    }
+
+    if (unifiedResults.failedPaymentLoss > threshold) {
+      phases.push({
+        id: 'payment-recovery',
+        title: 'Payment Recovery System',
+        description: 'Implement payment retry and recovery systems',
+        startMonth: 3,
+        endMonth: 6,
+        difficulty: 'medium' as const,
+        recoveryPotential: unifiedResults.failedPaymentLoss * 0.70,
+        actions: [
+          { title: 'Analyze payment failure patterns', weeks: 2, owner: 'Finance' },
+          { title: 'Implement payment retry logic', weeks: 4, owner: 'Engineering' }
+        ]
+      });
+    }
+
+    if (unifiedResults.processInefficiency > threshold) {
+      phases.push({
+        id: 'process-automation',
+        title: 'Process Automation',
+        description: 'Automate manual processes and workflows',
+        startMonth: 4,
+        endMonth: 8,
+        difficulty: 'hard' as const,
+        recoveryPotential: unifiedResults.processInefficiency * 0.75,
+        actions: [
+          { title: 'Map current workflows', weeks: 2, owner: 'Operations' },
+          { title: 'Configure automation tools', weeks: 4, owner: 'Operations' }
+        ]
+      });
+    }
+
+    return phases;
   };
 
-  const timeline = generateRealisticTimeline({
-    leadResponseLoss: unifiedResults.leadResponseLoss,
-    selfServeGapLoss: unifiedResults.selfServeGap,
-    processInefficiencyLoss: unifiedResults.processInefficiency,
-    failedPaymentLoss: unifiedResults.failedPaymentLoss,
-    totalLoss: unifiedResults.totalLoss,
-    recovery70Percent: unifiedResults.conservativeRecovery,
-    recovery85Percent: unifiedResults.optimisticRecovery,
-    recoveryBestCase: unifiedResults.optimisticRecovery,
-    actionSpecificRecovery: {
-      leadResponse: unifiedResults.leadResponseLoss * 0.6,
-      selfServe: unifiedResults.selfServeGap * 0.5,
-      processAutomation: unifiedResults.processInefficiency * 0.7,
-      paymentRecovery: unifiedResults.failedPaymentLoss * 0.8
-    },
-    implementationFactors: {},
-    riskAdjustments: {},
-    confidenceLevel: 'medium' as const,
-    confidenceBounds: {
-      lower: unifiedResults.conservativeRecovery * 0.75,
-      upper: unifiedResults.optimisticRecovery * 1.15
-    },
-    recoveryTimeline: {
-      year1: unifiedResults.conservativeRecovery * 0.25,
-      year2: unifiedResults.conservativeRecovery * 0.70,
-      year3: unifiedResults.conservativeRecovery
-    }
-  }, inputs);
+  const timeline = generateSimpleTimeline();
+  const totalRecovery = timeline.reduce((sum, phase) => sum + phase.recoveryPotential, 0);
 
-  const investment = calculateRealisticInvestment(timeline, inputs);
+  // Simple investment calculation
+  const calculateInvestment = () => {
+    const baseInvestment = Math.min(Math.max(15000, (submission.current_arr || 0) * 0.003), 35000);
+    const phaseMultiplier = timeline.length;
+    const complexityFactor = timeline.some(p => p.difficulty === 'hard') ? 1.3 : 1.1;
+    
+    const implementationCost = baseInvestment * phaseMultiplier * complexityFactor;
+    const ongoingCost = implementationCost * 0.15;
+    const totalAnnualInvestment = (implementationCost / 2.5) + ongoingCost;
+    
+    return {
+      implementationCost,
+      ongoingCost,
+      totalAnnualInvestment,
+      paybackMonths: totalRecovery > 0 ? Math.min(Math.ceil(implementationCost / (totalRecovery / 12)), 24) : 24
+    };
+  };
+
+  const investment = calculateInvestment();
 
   return (
     <div className="min-h-screen bg-background">
