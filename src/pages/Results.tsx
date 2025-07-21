@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -5,17 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  BarChart3, 
+  AlertTriangle, 
   Target,
-  AlertTriangle,
-  TrendingUp,
+  TrendingDown,
+  Activity,
   Calendar,
   FileText,
-  ArrowUp,
+  ArrowDown,
   Users,
   CreditCard,
   Settings,
-  DollarSign
+  DollarSign,
+  Clock,
+  Zap
 } from "lucide-react";
 
 import { submissionService, type Submission } from "@/lib/supabase";
@@ -47,7 +50,7 @@ const Results = () => {
   const { id } = useParams<{ id: string }>();
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>("overview");
+  const [activeTab, setActiveTab] = useState<string>("crisis");
   const { user } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -174,7 +177,7 @@ const Results = () => {
     if (!user) {
       toast({
         title: "Authentication Required",
-        description: "Please log in to access your action plan.",
+        description: "Please log in to access your emergency action plan.",
         variant: "destructive",
       });
       return;
@@ -184,8 +187,8 @@ const Results = () => {
 
   const handleDownloadReport = () => {
     toast({
-      title: "Download Started",
-      description: "Your comprehensive report is being prepared.",
+      title: "Crisis Report Download",
+      description: "Your revenue crisis assessment is being prepared.",
     });
   };
 
@@ -193,14 +196,14 @@ const Results = () => {
     return (
       <div className="min-h-screen bg-background">
         <UnifiedHeader 
-          title="Loading Analysis..."
+          title="Loading Crisis Assessment..."
           context="results"
         />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
-              <BarChart3 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-              <p className="text-body text-muted-foreground">Loading your results...</p>
+              <Activity className="h-12 w-12 animate-pulse text-destructive mx-auto mb-4" />
+              <p className="text-body text-muted-foreground">Analyzing your revenue crisis...</p>
             </div>
           </div>
         </div>
@@ -212,20 +215,20 @@ const Results = () => {
     return (
       <div className="min-h-screen bg-background">
         <UnifiedHeader 
-          title="Results Not Found"
+          title="Crisis Assessment Not Found"
           backTo="/dashboard"
           context="results"
         />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Card className="max-w-md mx-auto text-center">
             <CardContent className="p-8">
-              <AlertTriangle className="h-12 w-12 text-revenue-warning mx-auto mb-4" />
-              <h2 className="text-h1 mb-2">Results Not Found</h2>
+              <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <h2 className="text-h1 mb-2">Crisis Assessment Not Found</h2>
               <p className="text-body text-muted-foreground mb-6">
-                The requested results could not be found or you don't have access to them.
+                The requested crisis assessment could not be found or you don't have access to it.
               </p>
-              <Button onClick={() => navigate("/dashboard")}>
-                Back to Dashboard
+              <Button onClick={() => navigate("/dashboard")} variant="destructive">
+                Back to Crisis Dashboard
               </Button>
             </CardContent>
           </Card>
@@ -237,39 +240,78 @@ const Results = () => {
   const totalLeak = calculations.totalLeakage;
   const recovery70 = calculations.potentialRecovery70;
   const recovery85 = calculations.potentialRecovery85;
+  const dailyLoss = totalLeak / 365;
+  const weeklyLoss = totalLeak / 52;
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: BarChart3 },
-    { id: 'breakdown', label: 'Analysis', icon: DollarSign },
-    { id: 'actions', label: 'Action Plan', icon: Target },
-    { id: 'timeline', label: 'Implementation', icon: Calendar }
+    { id: 'crisis', label: 'Crisis Overview', icon: AlertTriangle },
+    { id: 'damage', label: 'Damage Report', icon: TrendingDown },
+    { id: 'emergency', label: 'Emergency Response', icon: Target },
+    { id: 'recovery', label: 'Recovery Protocol', icon: Activity }
   ];
 
   return (
     <div className="min-h-screen bg-background">
       <UnifiedHeader 
         title={submission.company_name}
-        subtitle="Revenue Recovery Analysis"
+        subtitle="Revenue Crisis Assessment"
         backTo="/dashboard"
         context="results"
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Crisis Alert Banner */}
+        <div className="mb-6 bg-gradient-to-r from-destructive/10 via-destructive/5 to-destructive/10 border-2 border-destructive/20 rounded-xl p-4 md:p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-full bg-destructive/20 animate-pulse">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-destructive">CRITICAL: Revenue Hemorrhaging Detected</h3>
+              <p className="text-sm text-destructive/80">Immediate intervention required to stop financial bleeding</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-destructive" />
+              <span className="text-destructive font-medium">
+                Daily loss: {formatCurrency(dailyLoss)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <TrendingDown className="h-4 w-4 text-destructive" />
+              <span className="text-destructive font-medium">
+                Weekly loss: {formatCurrency(weeklyLoss)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-destructive" />
+              <span className="text-destructive font-medium">
+                Status: Critical intervention needed
+              </span>
+            </div>
+          </div>
+        </div>
+
         {/* Executive-First Summary */}
         <ExecutiveFirstSummary
           submission={submission}
           formatCurrency={formatCurrency}
           onGetActionPlan={handleGetActionPlan}
-          onViewFullAnalysis={() => setActiveTab("breakdown")}
+          onViewFullAnalysis={() => setActiveTab("damage")}
         />
 
         {/* Tabbed Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-4 bg-destructive/5 border border-destructive/20">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
-                <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
+                <TabsTrigger 
+                  key={tab.id} 
+                  value={tab.id} 
+                  className="flex items-center gap-2 data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground"
+                >
                   <Icon className="h-4 w-4" />
                   <span className="hidden sm:inline">{tab.label}</span>
                 </TabsTrigger>
@@ -277,11 +319,11 @@ const Results = () => {
             })}
           </TabsList>
 
-          <TabsContent value="overview">
-            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b border-slate-200">
-                <h3 className="text-xl font-bold text-slate-900 mb-2">Strategic Performance Overview</h3>
-                <p className="text-slate-600">Your competitive position and improvement opportunities</p>
+          <TabsContent value="crisis">
+            <div className="bg-white rounded-2xl border-2 border-destructive/20 overflow-hidden">
+              <div className="bg-gradient-to-r from-destructive/10 to-destructive/5 p-6 border-b-2 border-destructive/20">
+                <h3 className="text-xl font-bold text-destructive mb-2">Revenue Crisis Status Report</h3>
+                <p className="text-destructive/80">Financial emergency assessment and immediate threat analysis</p>
               </div>
               
               <div className="p-6">
@@ -294,85 +336,118 @@ const Results = () => {
                       {formatCurrency(submission.current_arr || 0)}
                     </div>
                     <div className="text-sm text-slate-600 font-medium">Current ARR</div>
-                    <div className="text-xs text-slate-500 mt-1">Annual recurring revenue</div>
+                    <div className="text-xs text-slate-500 mt-1">Before crisis intervention</div>
                   </div>
                   
-                  <div className="text-center p-6 bg-red-50 rounded-xl border border-red-100">
-                    <div className="p-3 rounded-full bg-red-100 w-fit mx-auto mb-3">
+                  <div className="text-center p-6 bg-red-50 rounded-xl border-2 border-red-200">
+                    <div className="p-3 rounded-full bg-red-100 w-fit mx-auto mb-3 animate-pulse">
                       <AlertTriangle className="h-6 w-6 text-red-600" />
                     </div>
                     <div className="text-2xl font-bold text-red-600 mb-2">
                       {formatCurrency(totalLeak)}
                     </div>
-                    <div className="text-sm text-red-700 font-medium">Revenue at Risk</div>
+                    <div className="text-sm text-red-700 font-medium">Revenue Hemorrhaging</div>
                     <div className="text-xs text-red-600 mt-1">
-                      {submission.current_arr ? `${((totalLeak / submission.current_arr) * 100).toFixed(1)}% of ARR` : 'Immediate attention'}
+                      {submission.current_arr ? `${((totalLeak / submission.current_arr) * 100).toFixed(1)}% of ARR bleeding` : 'Critical emergency'}
                     </div>
                   </div>
                   
-                  <div className="text-center p-6 bg-green-50 rounded-xl border border-green-100">
-                    <div className="p-3 rounded-full bg-green-100 w-fit mx-auto mb-3">
-                      <TrendingUp className="h-6 w-6 text-green-600" />
+                  <div className="text-center p-6 bg-amber-50 rounded-xl border border-amber-200">
+                    <div className="p-3 rounded-full bg-amber-100 w-fit mx-auto mb-3">
+                      <Target className="h-6 w-6 text-amber-600" />
                     </div>
-                    <div className="text-2xl font-bold text-green-600 mb-2">
+                    <div className="text-2xl font-bold text-amber-600 mb-2">
                       {formatCurrency(recovery70)}
                     </div>
-                    <div className="text-sm text-green-700 font-medium">Recovery Potential</div>
-                    <div className="text-xs text-green-600 mt-1">Conservative estimate</div>
+                    <div className="text-sm text-amber-700 font-medium">Emergency Recovery</div>
+                    <div className="text-xs text-amber-600 mt-1">IF you act immediately</div>
                   </div>
                   
-                  <div className="text-center p-6 bg-blue-50 rounded-xl border border-blue-100">
-                    <div className="p-3 rounded-full bg-blue-100 w-fit mx-auto mb-3">
-                      <Target className="h-6 w-6 text-blue-600" />
+                  <div className="text-center p-6 bg-red-50 rounded-xl border border-red-200">
+                    <div className="p-3 rounded-full bg-red-100 w-fit mx-auto mb-3">
+                      <Clock className="h-6 w-6 text-red-600" />
                     </div>
-                    <div className="text-2xl font-bold text-blue-600 mb-2">
+                    <div className="text-2xl font-bold text-red-600 mb-2">
                       {Math.round((recovery70 / Math.max(totalLeak, 1)) * 100)}%
                     </div>
-                    <div className="text-sm text-blue-700 font-medium">Recovery Rate</div>
-                    <div className="text-xs text-blue-600 mt-1">Implementation success</div>
+                    <div className="text-sm text-red-700 font-medium">Crisis Recovery Rate</div>
+                    <div className="text-xs text-red-600 mt-1">Time-sensitive window</div>
                   </div>
                 </div>
                 
-                {/* Performance Indicators */}
+                {/* Crisis Indicators */}
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100">
-                    <h4 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
-                      <BarChart3 className="h-4 w-4" />
-                      Industry Benchmark
+                  <div className="p-6 bg-gradient-to-r from-red-50 to-red-100 rounded-xl border-2 border-red-200">
+                    <h4 className="font-semibold text-red-900 mb-3 flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      Crisis Severity Assessment
                     </h4>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-purple-700">Lead Response Rate</span>
-                        <span className="text-sm font-medium text-purple-900">Above Average</span>
+                        <span className="text-sm text-red-700">Revenue Bleeding Rate</span>
+                        <span className="text-sm font-medium text-red-900 bg-red-200 px-2 py-1 rounded">Critical</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-purple-700">Revenue Efficiency</span>
-                        <span className="text-sm font-medium text-purple-900">Room for Growth</span>
+                        <span className="text-sm text-red-700">Financial Emergency Level</span>
+                        <span className="text-sm font-medium text-red-900 bg-red-200 px-2 py-1 rounded">High Alert</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-purple-700">Process Maturity</span>
-                        <span className="text-sm font-medium text-purple-900">Developing</span>
+                        <span className="text-sm text-red-700">Intervention Urgency</span>
+                        <span className="text-sm font-medium text-red-900 bg-red-200 px-2 py-1 rounded">Immediate</span>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="p-6 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl border border-cyan-100">
-                    <h4 className="font-semibold text-cyan-900 mb-3 flex items-center gap-2">
+                  <div className="p-6 bg-gradient-to-r from-amber-50 to-amber-100 rounded-xl border-2 border-amber-200">
+                    <h4 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
                       <Target className="h-4 w-4" />
-                      Optimization Priority
+                      Emergency Response Priority
                     </h4>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-cyan-700">Lead Management</span>
-                        <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded">High</span>
+                        <span className="text-sm text-amber-700">Lead Response Crisis</span>
+                        <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded">CRITICAL</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-cyan-700">Payment Processing</span>
-                        <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded">Medium</span>
+                        <span className="text-sm text-amber-700">Payment Recovery Emergency</span>
+                        <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-700 rounded">HIGH</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-cyan-700">Self-Service Optimization</span>
-                        <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded">Low</span>
+                        <span className="text-sm text-amber-700">Process Bleeding</span>
+                        <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded">MEDIUM</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Time-Sensitive Warning */}
+                <div className="mt-8 p-6 bg-gradient-to-r from-destructive/10 to-destructive/5 rounded-xl border-2 border-destructive/20">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Clock className="h-6 w-6 text-destructive animate-pulse" />
+                    <div>
+                      <h4 className="font-bold text-destructive">TIME-SENSITIVE CRISIS</h4>
+                      <p className="text-sm text-destructive/80">Revenue bleeding continues while you read this report</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-destructive">Money lost today:</span>
+                        <span className="font-bold text-destructive">{formatCurrency(dailyLoss)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-destructive">Money lost this week:</span>
+                        <span className="font-bold text-destructive">{formatCurrency(weeklyLoss)}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-destructive">Days since crisis detected:</span>
+                        <span className="font-bold text-destructive">1</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-destructive">Emergency window:</span>
+                        <span className="font-bold text-destructive">72 hours</span>
                       </div>
                     </div>
                   </div>
@@ -381,8 +456,15 @@ const Results = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="breakdown">
+          <TabsContent value="damage">
             <div className="space-y-6">
+              <div className="bg-destructive/5 border-2 border-destructive/20 rounded-xl p-4">
+                <h3 className="text-lg font-bold text-destructive mb-2">⚠️ DAMAGE ASSESSMENT REPORT</h3>
+                <p className="text-sm text-destructive/80">
+                  Critical analysis of revenue hemorrhaging across all systems
+                </p>
+              </div>
+              
               <RevenueCharts
                 data={calculatorData}
                 calculations={calculations}
@@ -405,27 +487,76 @@ const Results = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="actions">
-            <PriorityActions 
-              submission={submission}
-              formatCurrency={formatCurrency}
-            />
+          <TabsContent value="emergency">
+            <div className="space-y-6">
+              <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4">
+                <h3 className="text-lg font-bold text-amber-800 mb-2">🚨 EMERGENCY RESPONSE PLAN</h3>
+                <p className="text-sm text-amber-700">
+                  Immediate actions required to stop revenue bleeding
+                </p>
+              </div>
+              
+              <PriorityActions 
+                submission={submission}
+                formatCurrency={formatCurrency}
+              />
+            </div>
           </TabsContent>
 
-          <TabsContent value="timeline">
-            <ImplementationTimeline 
-              submission={submission}
-              formatCurrency={formatCurrency}
-              validatedValues={{
-                totalLeak,
-                leadResponseLoss: calculations.leadResponseLoss,
-                selfServeLoss: calculations.selfServeGap,
-                recoveryPotential70: recovery70,
-                recoveryPotential85: recovery85
-              }}
-            />
+          <TabsContent value="recovery">
+            <div className="space-y-6">
+              <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
+                <h3 className="text-lg font-bold text-green-800 mb-2">🏥 RECOVERY PROTOCOL</h3>
+                <p className="text-sm text-green-700">
+                  Step-by-step crisis recovery implementation timeline
+                </p>
+              </div>
+              
+              <ImplementationTimeline 
+                submission={submission}
+                formatCurrency={formatCurrency}
+                validatedValues={{
+                  totalLeak,
+                  leadResponseLoss: calculations.leadResponseLoss,
+                  selfServeLoss: calculations.selfServeGap,
+                  recoveryPotential70: recovery70,
+                  recoveryPotential85: recovery85
+                }}
+              />
+            </div>
           </TabsContent>
         </Tabs>
+
+        {/* Crisis Action Footer */}
+        <div className="mt-8 bg-gradient-to-r from-destructive/10 to-destructive/5 rounded-xl border-2 border-destructive/20 p-6">
+          <div className="text-center">
+            <h3 className="text-xl font-bold text-destructive mb-2">
+              STOP THE BLEEDING NOW
+            </h3>
+            <p className="text-destructive/80 mb-4">
+              Every moment of delay costs your business {formatCurrency(dailyLoss)} daily
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button 
+                onClick={handleGetActionPlan}
+                size="lg"
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                <Target className="h-4 w-4 mr-2" />
+                GET EMERGENCY ACTION PLAN
+              </Button>
+              <Button 
+                onClick={() => window.open('https://calendly.com/crisis-intervention', '_blank')}
+                variant="outline"
+                size="lg"
+                className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                SCHEDULE CRISIS INTERVENTION
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
