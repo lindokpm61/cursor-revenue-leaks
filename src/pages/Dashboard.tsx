@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, Plus, LogOut, Trash2, TrendingUp, Building2 } from "lucide-react";
+import { Calculator, Plus, LogOut, Trash2, AlertTriangle, Building2, Clock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { submissionService, userProfileService, type Submission, type UserProfile } from "@/lib/supabase";
@@ -120,7 +120,7 @@ const Dashboard = () => {
   const handleDeleteSubmission = async (submissionId: string, companyName: string) => {
     console.log('Delete button clicked for:', submissionId, companyName);
     
-    if (!confirm(`Are you sure you want to delete the assessment for ${companyName}? This action cannot be undone.`)) {
+    if (!confirm(`Are you sure you want to delete the crisis assessment for ${companyName}? This action cannot be undone.`)) {
       console.log('Delete cancelled by user');
       return;
     }
@@ -135,7 +135,7 @@ const Dashboard = () => {
         console.error('Delete failed with error:', error);
         toast({
           title: "Error",
-          description: "Failed to delete assessment",
+          description: "Failed to delete crisis assessment",
           variant: "destructive",
         });
         return;
@@ -144,75 +144,83 @@ const Dashboard = () => {
       setSubmissions(prev => prev.filter(s => s.id !== submissionId));
       toast({
         title: "Success",
-        description: "Assessment deleted successfully",
+        description: "Crisis assessment deleted successfully",
       });
       console.log('Delete successful, UI updated');
     } catch (error) {
       console.error('Delete error:', error);
       toast({
         title: "Error",
-        description: "Failed to delete assessment",
+        description: "Failed to delete crisis assessment",
         variant: "destructive",
       });
     }
   };
 
-  // Summary Cards - Updated to be more contextual
+  const calculateDaysSinceCrisis = (dateString: string) => {
+    const crisisDate = new Date(dateString);
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - crisisDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  // Summary Cards - Updated to crisis language
   const SummaryCards = () => {
     if (submissions.length === 0) return null;
     
-    const totalRecoveryPotential = submissions.reduce((sum, analysis) => {
+    const totalCrisisValue = submissions.reduce((sum, analysis) => {
       const calculations = getCalculatedValues(analysis);
       return sum + calculations.recovery70Percent;
     }, 0);
     
-    const totalAnnualLeak = submissions.reduce((sum, analysis) => {
+    const totalAnnualBleeding = submissions.reduce((sum, analysis) => {
       const calculations = getCalculatedValues(analysis);
       return sum + calculations.totalLoss;
     }, 0);
     
-    const averageRecovery = submissions.length > 0 ? totalRecoveryPotential / submissions.length : 0;
+    const totalDailyLoss = totalAnnualBleeding / 365;
     
     return (
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8">
-        <Card className="border-border/50 shadow-sm bg-gradient-to-br from-background to-muted/20">
-          <CardContent className="p-4 sm:p-6 text-center">
-            <div className="text-sm text-muted-foreground mb-2">
-              Companies Analyzed
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-foreground">
-              {submissions.length}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Revenue assessments completed
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-destructive/20 bg-gradient-to-br from-background to-destructive/5 shadow-sm">
+        <Card className="border-destructive/20 shadow-sm bg-gradient-to-br from-background to-destructive/5">
           <CardContent className="p-4 sm:p-6 text-center">
             <div className="text-sm text-destructive/80 mb-2">
-              Total Annual Revenue at Risk
+              Companies in Crisis
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-destructive">
-              {formatCurrency(totalAnnualLeak)}
+              {submissions.length}
             </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Across all analyzed companies
+            <div className="text-xs text-destructive/60 mt-1">
+              Crisis assessments completed
             </div>
           </CardContent>
         </Card>
         
-        <Card className="border-green-200 bg-gradient-to-br from-background to-green-50 dark:border-green-800/30 dark:to-green-950/20 shadow-sm">
+        <Card className="border-destructive/30 bg-gradient-to-br from-background to-destructive/10 shadow-sm">
           <CardContent className="p-4 sm:p-6 text-center">
-            <div className="text-sm text-green-700 dark:text-green-300 mb-2">
-              Total Recovery Potential
+            <div className="text-sm text-destructive/80 mb-2">
+              Total Revenue Hemorrhaging
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">
-              {formatCurrency(totalRecoveryPotential)}
+            <div className="text-2xl sm:text-3xl font-bold text-destructive">
+              {formatCurrency(totalAnnualBleeding)}
             </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Recoverable with 70% confidence
+            <div className="text-xs text-destructive/60 mt-1">
+              Annual bleeding across all companies
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-amber-200 bg-gradient-to-br from-background to-amber-50 dark:border-amber-800/30 dark:to-amber-950/20 shadow-sm">
+          <CardContent className="p-4 sm:p-6 text-center">
+            <div className="text-sm text-amber-700 dark:text-amber-300 mb-2">
+              Emergency Recovery Potential
+            </div>
+            <div className="text-2xl sm:text-3xl font-bold text-amber-600 dark:text-amber-400">
+              {formatCurrency(totalCrisisValue)}
+            </div>
+            <div className="text-xs text-amber-600/80 mt-1">
+              IF immediate action is taken
             </div>
           </CardContent>
         </Card>
@@ -220,70 +228,79 @@ const Dashboard = () => {
     );
   };
 
-  // Analysis History - Simplified and more focused
-  const AnalysisHistory = ({ previousAnalyses }: { previousAnalyses: Submission[] }) => {
-    if (previousAnalyses.length === 0) return null;
+  // Crisis History - Updated terminology and crisis indicators
+  const CrisisHistory = ({ crisisLog }: { crisisLog: Submission[] }) => {
+    if (crisisLog.length === 0) return null;
     
     return (
       <div className="mb-12">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-xl sm:text-2xl font-semibold">Previous Analyses</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Your historical revenue assessments and their current status
+            <h2 className="text-xl sm:text-2xl font-semibold text-destructive">Crisis History Log</h2>
+            <p className="text-sm text-destructive/80 mt-1">
+              Historical revenue crisis assessments and emergency response status
             </p>
           </div>
           <Link to="/calculator">
-            <Button className="bg-primary text-primary-foreground">
+            <Button className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               <Plus className="h-4 w-4 mr-2" />
-              New Assessment
+              New Crisis Assessment
             </Button>
           </Link>
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {previousAnalyses.map(analysis => {
+          {crisisLog.map(analysis => {
             const calculations = getCalculatedValues(analysis);
-            const isHighValue = calculations.recovery70Percent > 50000000;
+            const daysSinceCrisis = calculateDaysSinceCrisis(analysis.created_at || '');
+            const dailyLoss = calculations.totalLoss / 365;
+            const isHighCrisis = calculations.recovery70Percent > 50000000;
             
             return (
-              <Card key={analysis.id} className="border-border/50 shadow-sm hover:shadow-md hover:border-primary/20 transition-all">
+              <Card key={analysis.id} className="border-destructive/20 shadow-sm hover:shadow-md hover:border-destructive/30 transition-all">
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-foreground mb-1 truncate">
+                      <h3 className="font-semibold text-destructive mb-1 truncate">
                         {analysis.company_name}
                       </h3>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant="outline" className="text-xs border-destructive/20">
                           {analysis.industry}
                         </Badge>
-                        {isHighValue && (
-                          <Badge variant="default" className="text-xs bg-green-500">
-                            High Impact
+                        {isHighCrisis && (
+                          <Badge variant="destructive" className="text-xs">
+                            Critical Crisis
                           </Badge>
                         )}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-destructive/80">
+                        <Clock className="h-3 w-3" />
+                        <span>Day {daysSinceCrisis} since crisis detected</span>
                       </div>
                     </div>
                   </div>
                   
                   <div className="mb-4 space-y-2">
-                    <div className="text-xl sm:text-2xl font-bold mb-1 text-green-600 dark:text-green-400">
+                    <div className="text-xl sm:text-2xl font-bold mb-1 text-destructive">
                       {formatCurrency(calculations.recovery70Percent)}
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      Recovery potential identified
+                    <div className="text-sm text-destructive/80">
+                      Emergency recovery potential
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      Analyzed {formatDate(analysis.created_at || '')}
+                    <div className="text-xs text-destructive/60">
+                      Bleeding: {formatCurrency(dailyLoss)}/day
+                    </div>
+                    <div className="text-xs text-destructive/60">
+                      Crisis detected {formatDate(analysis.created_at || '')}
                     </div>
                   </div>
                   
                   <div className="flex gap-2">
                     <Link to={`/results/${analysis.id}`} className="flex-1">
-                      <Button variant="default" size="sm" className="w-full">
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                        View Results
+                      <Button variant="destructive" size="sm" className="w-full">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        View Crisis
                       </Button>
                     </Link>
                     <Button 
@@ -308,45 +325,45 @@ const Dashboard = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <Calculator className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading your dashboard...</p>
+          <Calculator className="h-12 w-12 animate-spin text-destructive mx-auto mb-4" />
+          <p className="text-destructive">Loading crisis control center...</p>
         </div>
       </div>
     );
   }
 
-  const latestAnalysis = submissions[0];
-  const previousAnalyses = submissions.slice(1);
+  const latestCrisis = submissions[0];
+  const crisisLog = submissions.slice(1);
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Enhanced Navigation */}
-      <nav className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+      {/* Crisis Control Center Navigation */}
+      <nav className="border-b border-destructive/20 bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-primary/80">
-                <Calculator className="h-6 w-6 text-primary-foreground" />
+              <div className="p-2 rounded-lg bg-gradient-to-r from-destructive to-destructive/80">
+                <AlertTriangle className="h-6 w-6 text-destructive-foreground" />
               </div>
               <div>
-                <span className="text-xl font-bold">Revenue Dashboard</span>
-                <p className="text-xs text-muted-foreground hidden sm:block">
-                  Strategic Revenue Analysis Platform
+                <span className="text-xl font-bold text-destructive">Crisis Control Center</span>
+                <p className="text-xs text-destructive/80 hidden sm:block">
+                  Revenue Emergency Management Platform
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground hidden sm:block">
-                Welcome, {user?.email}
+              <span className="text-sm text-destructive/80 hidden sm:block">
+                Emergency Officer: {user?.email}
               </span>
               {isAdmin && (
                 <Link to="/admin">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="border-destructive/20 text-destructive hover:bg-destructive/10">
                     Admin Panel
                   </Button>
                 </Link>
               )}
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="text-destructive hover:bg-destructive/10">
                 <LogOut className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Logout</span>
               </Button>
@@ -358,36 +375,36 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {submissions.length === 0 ? (
           <div className="text-center py-16">
-            <div className="p-4 rounded-full bg-primary/10 w-20 h-20 mx-auto mb-6 flex items-center justify-center">
-              <Calculator className="h-10 w-10 text-primary" />
+            <div className="p-4 rounded-full bg-destructive/10 w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+              <AlertTriangle className="h-10 w-10 text-destructive" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-4">Welcome to Your Revenue Dashboard</h1>
-            <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Start your first revenue leak analysis to discover hidden opportunities 
-              and unlock your company's growth potential.
+            <h1 className="text-2xl sm:text-3xl font-bold text-destructive mb-4">Revenue Crisis Control Center</h1>
+            <p className="text-destructive/80 mb-8 max-w-2xl mx-auto">
+              Detect and respond to revenue hemorrhaging across your business operations. 
+              Start your first crisis assessment to identify critical bleeding points.
             </p>
             <Link to="/calculator">
-              <Button size="lg" className="bg-gradient-to-r from-primary to-primary/80 px-8 py-4">
+              <Button size="lg" className="bg-gradient-to-r from-destructive to-destructive/80 px-8 py-4 text-destructive-foreground hover:from-destructive/90 hover:to-destructive/70">
                 <Plus className="h-5 w-5 mr-2" />
-                Create Your First Assessment
+                Start Crisis Assessment
               </Button>
             </Link>
           </div>
         ) : (
           <>
-            {/* Strategic Hero Section with Latest Analysis */}
+            {/* Latest Crisis Hero Section */}
             <DashboardHeroSection 
-              latestAnalysis={latestAnalysis} 
+              latestAnalysis={latestCrisis} 
               formatCurrency={formatCurrency}
               formatDate={formatDate}
               calculateROI={calculateROI}
             />
             
-            {/* Portfolio Summary Cards */}
+            {/* Crisis Portfolio Summary */}
             <SummaryCards />
             
-            {/* Analysis History */}
-            <AnalysisHistory previousAnalyses={previousAnalyses} />
+            {/* Crisis History Log */}
+            <CrisisHistory crisisLog={crisisLog} />
           </>
         )}
       </div>

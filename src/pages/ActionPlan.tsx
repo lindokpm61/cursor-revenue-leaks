@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Target, Calendar, Lightbulb, FileText, BarChart3 } from "lucide-react";
+import { AlertTriangle, Calendar, Zap, FileText, Activity, Clock } from "lucide-react";
 
 import { fetchSubmissionData } from "@/lib/submission/submissionDataFetcher";
 import { useToast } from "@/hooks/use-toast";
@@ -37,7 +37,7 @@ export default function ActionPlan() {
   const { toast } = useToast();
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('priorities');
+  const [activeTab, setActiveTab] = useState('emergency');
 
   const submissionId = params.id || null;
   
@@ -189,17 +189,19 @@ export default function ActionPlan() {
     };
   }, [submissionData]);
 
-  const handleBookCall = () => {
+  const handleStopBleeding = () => {
     toast({
-      title: "Booking System",
-      description: "Redirecting to calendar booking...",
+      title: "🚨 EMERGENCY CONSULTATION",
+      description: "Connecting you to crisis intervention team...",
+      variant: "destructive",
     });
   };
 
-  const handleExportPlan = () => {
+  const handleExportProtocol = () => {
     toast({
-      title: "Export Started",
-      description: "Your action plan is being prepared for download.",
+      title: "📋 CRISIS PROTOCOL EXPORT",
+      description: "Your emergency recovery protocol is being prepared...",
+      variant: "destructive",
     });
   };
 
@@ -207,13 +209,13 @@ export default function ActionPlan() {
     return (
       <div className="min-h-screen bg-background">
         <UnifiedHeader 
-          title="Loading Action Plan..."
+          title="⚠️ Loading Emergency Protocol..."
           context="action-plan"
         />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-8">
             {[1, 2, 3].map((i) => (
-              <Card key={i}>
+              <Card key={i} className="border-destructive/20">
                 <CardContent className="space-y-4 pt-6">
                   <Skeleton className="h-6 w-64" />
                   <Skeleton className="h-4 w-full" />
@@ -231,21 +233,23 @@ export default function ActionPlan() {
     return (
       <div className="min-h-screen bg-background">
         <UnifiedHeader 
-          title="Action Plan Unavailable"
+          title="🚨 Emergency Protocol Unavailable"
           backTo={`/results/${submissionId}`}
           context="action-plan"
         />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-md mx-auto text-center">
+          <Card className="max-w-md mx-auto text-center border-destructive/20">
             <CardContent className="p-8">
-              <p className="text-destructive">
-                Unable to generate action plan. Please try again or contact support.
+              <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4 animate-pulse" />
+              <h2 className="text-xl font-bold text-destructive mb-2">CRISIS PROTOCOL UNAVAILABLE</h2>
+              <p className="text-destructive/80 mb-4">
+                Unable to generate emergency recovery protocol. Revenue bleeding continues.
               </p>
               <UnifiedCTA
                 variant="secondary"
                 context="action-plan"
                 onPrimaryAction={() => navigation.navigateToResults(submissionId)}
-                className="mt-4"
+                className="mt-4 bg-destructive text-destructive-foreground hover:bg-destructive/90"
               />
             </CardContent>
           </Card>
@@ -254,59 +258,113 @@ export default function ActionPlan() {
     );
   }
 
+  const dailyLoss = submissionData.totalLoss / 365;
+  const weeklyLoss = submissionData.totalLoss / 52;
+
   const tabs = [
-    { id: 'priorities', label: 'Priorities', icon: Target },
-    { id: 'timeline', label: 'Timeline', icon: Calendar },
-    { id: 'roadmap', label: 'Roadmap', icon: BarChart3 },
-    { id: 'scenarios', label: 'Scenarios', icon: Lightbulb },
-    { id: 'summary', label: 'Summary', icon: FileText }
+    { id: 'emergency', label: 'Emergency Triage', icon: AlertTriangle },
+    { id: 'bleeding', label: 'Stop Bleeding', icon: Zap },
+    { id: 'stabilization', label: 'Stabilization', icon: Activity },
+    { id: 'recovery', label: 'Recovery Protocol', icon: Calendar },
+    { id: 'monitoring', label: 'Crisis Monitoring', icon: FileText }
   ];
 
   return (
     <div className="min-h-screen bg-background">
       <UnifiedHeader 
-        title="Strategic Action Plan"
-        subtitle={submissionData.company_name}
+        title="🚨 Emergency Revenue Recovery Protocol"
+        subtitle={`${submissionData.company_name} • CRISIS INTERVENTION REQUIRED`}
         backTo={`/results/${submissionId}`}
         context="action-plan"
       />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero CTA Section */}
+        {/* Crisis Alert Banner */}
+        <div className="mb-8 bg-gradient-to-r from-destructive/20 to-destructive/10 border-2 border-destructive/30 rounded-xl p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-3 rounded-full bg-destructive/20 animate-pulse">
+              <AlertTriangle className="h-8 w-8 text-destructive" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-destructive">FINANCIAL EMERGENCY IN PROGRESS</h2>
+              <p className="text-destructive/80 text-lg">
+                {UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} recovery protocol activated
+              </p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-lg">
+              <Clock className="h-4 w-4 text-destructive" />
+              <div>
+                <span className="font-medium text-destructive">Bleeding Rate:</span>
+                <div className="text-destructive/80">{UnifiedResultsService.formatCurrency(dailyLoss)}/day</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-lg">
+              <Zap className="h-4 w-4 text-destructive" />
+              <div>
+                <span className="font-medium text-destructive">Weekly Loss:</span>
+                <div className="text-destructive/80">{UnifiedResultsService.formatCurrency(weeklyLoss)}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-lg">
+              <Activity className="h-4 w-4 text-destructive" />
+              <div>
+                <span className="font-medium text-destructive">Crisis Status:</span>
+                <div className="text-destructive/80">IMMEDIATE ACTION REQUIRED</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Emergency CTA Section */}
         <ContentSection 
-          title="Implementation Ready"
-          badge={`${UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} Recovery Plan`}
-          badgeVariant="outline"
+          title="🚨 STOP THE BLEEDING NOW"
+          badge={`${UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} Emergency Recovery`}
+          badgeVariant="destructive"
           priority="high"
-          className="mb-8"
+          className="mb-8 border-destructive/20"
         >
           <div className="text-center">
-            <p className="text-lg text-muted-foreground mb-6">
-              Your personalized roadmap to recover {UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} 
-              in revenue through strategic improvements.
+            <p className="text-lg text-destructive/80 mb-6">
+              Your business is hemorrhaging {UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} 
+              annually. Every moment of delay costs {UnifiedResultsService.formatCurrency(dailyLoss)} per day.
             </p>
             
-            <UnifiedCTA
-              variant="primary"
-              context="action-plan"
-              data={{
-                totalLeak: submissionData.totalLoss,
-                recovery: submissionData.conservativeRecovery,
-                formatCurrency: UnifiedResultsService.formatCurrency
-              }}
-              onPrimaryAction={handleBookCall}
-              onSecondaryAction={handleExportPlan}
-            />
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <UnifiedCTA
+                variant="primary"
+                context="action-plan"
+                data={{
+                  totalLeak: submissionData.totalLoss,
+                  recovery: submissionData.conservativeRecovery,
+                  formatCurrency: UnifiedResultsService.formatCurrency
+                }}
+                onPrimaryAction={handleStopBleeding}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              />
+              <UnifiedCTA
+                variant="secondary"
+                context="action-plan"
+                onSecondaryAction={handleExportProtocol}
+                className="border-destructive/20 text-destructive hover:bg-destructive/10"
+              />
+            </div>
           </div>
         </ContentSection>
 
-        {/* Tabbed Content */}
+        {/* Crisis Protocol Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-5 bg-destructive/5 border-2 border-destructive/20">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
-                <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
+                <TabsTrigger 
+                  key={tab.id} 
+                  value={tab.id} 
+                  className="flex items-center gap-2 data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground"
+                >
                   <Icon className="h-4 w-4" />
                   <span className="hidden sm:inline">{tab.label}</span>
                 </TabsTrigger>
@@ -314,15 +372,16 @@ export default function ActionPlan() {
             })}
           </TabsList>
 
-          <TabsContent value="priorities">
+          <TabsContent value="emergency">
             <PriorityActions 
               submission={submissionData as any}
               formatCurrency={UnifiedResultsService.formatCurrency}
               calculatorData={submissionData}
+              variant="competitive"
             />
           </TabsContent>
 
-          <TabsContent value="timeline">
+          <TabsContent value="bleeding">
             <ActionPlanTimeline
               phases={timeline}
               totalRecovery={submissionData.conservativeRecovery}
@@ -333,7 +392,7 @@ export default function ActionPlan() {
             />
           </TabsContent>
 
-          <TabsContent value="roadmap">
+          <TabsContent value="stabilization">
             <ImplementationRoadmap
               phases={timeline}
               totalRecovery={submissionData.conservativeRecovery}
@@ -342,7 +401,7 @@ export default function ActionPlan() {
             />
           </TabsContent>
 
-          <TabsContent value="scenarios">
+          <TabsContent value="recovery">
             <ActionPlanScenarioPlanning
               baseRecovery={submissionData.conservativeRecovery}
               baseInvestment={investment?.implementationCost || 0}
@@ -350,22 +409,48 @@ export default function ActionPlan() {
             />
           </TabsContent>
 
-          <TabsContent value="summary">
+          <TabsContent value="monitoring">
             <ComprehensiveSummary
               submission={submissionData as any}
               formatCurrency={UnifiedResultsService.formatCurrency}
               onExpandSection={(sectionId) => {
                 const sectionToTabMap = {
-                  'timeline': 'timeline',
-                  'priorities': 'priorities',
-                  'scenarios': 'scenarios'
+                  'timeline': 'bleeding',
+                  'priorities': 'emergency',
+                  'scenarios': 'recovery'
                 };
-                const targetTab = sectionToTabMap[sectionId as keyof typeof sectionToTabMap] || 'priorities';
+                const targetTab = sectionToTabMap[sectionId as keyof typeof sectionToTabMap] || 'emergency';
                 setActiveTab(targetTab);
               }}
             />
           </TabsContent>
         </Tabs>
+
+        {/* Emergency Footer */}
+        <div className="mt-8 bg-gradient-to-r from-destructive/10 to-destructive/5 rounded-xl border-2 border-destructive/20 p-6">
+          <div className="text-center">
+            <h3 className="text-xl font-bold text-destructive mb-2">
+              ⏰ TIME-SENSITIVE CRISIS
+            </h3>
+            <p className="text-destructive/80 mb-4">
+              Revenue bleeding continues: {UnifiedResultsService.formatCurrency(dailyLoss)} lost daily
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button 
+                onClick={handleStopBleeding}
+                className="px-6 py-3 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 font-medium"
+              >
+                🚨 EMERGENCY CONSULTATION
+              </button>
+              <button 
+                onClick={handleExportProtocol}
+                className="px-6 py-3 border-2 border-destructive/20 text-destructive rounded-lg hover:bg-destructive/10 font-medium"
+              >
+                📋 EXPORT CRISIS PROTOCOL
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

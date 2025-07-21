@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
-  TrendingUp, 
+  AlertTriangle, 
   Clock, 
-  Target, 
+  Zap, 
   CreditCard, 
   Settings,
-  Zap,
+  Target,
   ChevronDown,
   Info
 } from "lucide-react";
@@ -24,7 +24,7 @@ interface PriorityActionsProps {
   submission: Submission;
   formatCurrency: (amount: number) => string;
   calculatorData?: any;
-  calculations?: any; // Add this optional prop for unified calculations
+  calculations?: any;
   variant?: 'condensed' | 'standard' | 'detailed' | 'competitive';
 }
 
@@ -48,6 +48,7 @@ interface ActionItem {
   whyItMatters: string;
   complexity: string;
   paybackPeriod: string;
+  dailyLoss: number;
 }
 
 export const PriorityActions = ({ submission, formatCurrency, calculatorData, variant = 'standard' }: PriorityActionsProps) => {
@@ -59,18 +60,21 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
   // Use centralized priority calculations
   const priorityActions = calculatePriorityActions(submission);
 
-  // Convert PriorityAction to ActionItem format with enhanced details
+  // Convert PriorityAction to ActionItem format with crisis language
   const getActionItems = (): ActionItem[] => {
     return priorityActions.map((action: PriorityAction) => {
-      // Map icons
+      // Map icons for emergency context
       const iconMap: Record<string, any> = {
-        'lead-response': Clock,
-        'selfserve-optimization': Target, 
-        'process-automation': Zap,
+        'lead-response': AlertTriangle,
+        'selfserve-optimization': Zap, 
+        'process-automation': Settings,
         'payment-recovery': CreditCard
       };
 
-      // Enhanced implementation steps based on action type
+      // Calculate daily loss for each action
+      const dailyLoss = action.recoveryAmount / 365;
+
+      // Enhanced implementation steps with crisis language
       let implementationSteps: string[] = [];
       let dependencies: string[] = [];
       let whyItMatters = '';
@@ -79,90 +83,90 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
       switch (action.id) {
         case 'lead-response':
           implementationSteps = [
-            'Audit current lead routing workflow and identify bottlenecks',
-            'Set up automated lead assignment rules in CRM (round-robin or lead scoring)',
-            'Configure instant email/SMS auto-responses for new leads',
-            'Create response time tracking dashboard and alerts',
-            'Train sales team on new 1-hour response SLA',
-            'Implement escalation procedures for missed responses',
-            'Set up automated follow-up sequences for unresponded leads',
-            'Monitor and optimize response times weekly'
+            '🚨 EMERGENCY: Audit current lead hemorrhaging workflow',
+            '⚡ IMMEDIATE: Set up emergency lead triage system',
+            '📱 URGENT: Configure instant crisis response alerts',
+            '📊 CRITICAL: Implement bleeding tracking dashboard',
+            '👥 ESSENTIAL: Train team on 1-hour emergency SLA',
+            '🔄 VITAL: Set up automatic escalation for missed leads',
+            '💉 LIFESAVING: Deploy automated follow-up sequences',
+            '📈 ONGOING: Monitor and stop bleeding weekly'
           ];
           dependencies = [
-            'CRM system with automation capabilities',
-            'Sales team training and buy-in',
-            'Lead scoring model setup',
-            'Integration with email/SMS providers'
+            'Emergency CRM system with crisis automation',
+            'Crisis response team training',
+            'Lead bleeding scoring model',
+            'Emergency notification systems'
           ];
-          whyItMatters = 'Research shows that contacting leads within 1 hour makes you 7x more likely to qualify them. Every hour of delay reduces your odds of contact by 10x. This is your highest-impact opportunity.';
-          complexity = 'Moderate - requires CRM configuration and process changes';
+          whyItMatters = `💥 REVENUE CRISIS: Every hour of delay costs you ${formatCurrency(dailyLoss/24)} and makes you 7x less likely to stop the bleeding. This is your most critical hemorrhaging point.`;
+          complexity = 'High Crisis Priority - immediate emergency response required';
           break;
 
         case 'selfserve-optimization':
           implementationSteps = [
-            'Conduct user journey mapping and identify friction points',
-            'Analyze signup-to-activation conversion funnel',
-            'A/B test simplified onboarding flows',
-            'Implement in-app guidance and tooltips',
-            'Optimize trial experience with quick wins',
-            'Add progress indicators and achievement badges',
-            'Create self-service support resources',
-            'Test and optimize pricing page conversion'
+            '🔍 EMERGENCY: Map user journey bleeding points',
+            '📉 CRITICAL: Analyze conversion hemorrhaging funnel',
+            '🧪 URGENT: A/B test emergency conversion fixes',
+            '🚀 VITAL: Deploy emergency user guidance system',
+            '⚡ IMMEDIATE: Optimize trial bleeding experience',
+            '🎯 ESSENTIAL: Add emergency progress indicators',
+            '📚 CRITICAL: Create emergency self-service resources',
+            '💰 ONGOING: Test and stop pricing page bleeding'
           ];
           dependencies = [
-            'Product/UX team collaboration',
-            'Analytics and A/B testing tools',
-            'Customer feedback and user research',
-            'Development resources for implementation'
+            'Emergency UX crisis team',
+            'Crisis testing and analytics tools',
+            'User bleeding feedback systems',
+            'Emergency development resources'
           ];
-          whyItMatters = 'Self-serve optimization reduces customer acquisition costs and improves user experience. A 1% improvement in conversion can yield significant recurring revenue gains.';
-          complexity = 'High - requires product development and UX optimization';
+          whyItMatters = `🩸 CONVERSION CRISIS: Your conversion is bleeding ${formatCurrency(dailyLoss)} daily. Every 1% improvement stops significant revenue hemorrhaging.`;
+          complexity = 'Critical Crisis - requires immediate emergency development';
           break;
 
         case 'process-automation':
           implementationSteps = [
-            'Map all manual processes and time spent',
-            'Identify repetitive tasks suitable for automation',
-            'Select and implement workflow automation tools',
-            'Create templates and standardized procedures',
-            'Set up automated reporting and notifications',
-            'Train team on new automated workflows',
-            'Monitor efficiency gains and adjust processes',
-            'Scale automation to additional areas'
+            '📋 EMERGENCY: Map all manual bleeding processes',
+            '🔴 CRITICAL: Identify emergency automation opportunities',
+            '🛠️ URGENT: Deploy crisis workflow automation',
+            '📄 VITAL: Create emergency standardized procedures',
+            '🔔 IMMEDIATE: Set up emergency automated alerts',
+            '👥 ESSENTIAL: Train team on crisis automation',
+            '📊 CRITICAL: Monitor emergency efficiency gains',
+            '🔄 ONGOING: Scale automation to stop all bleeding'
           ];
           dependencies = [
-            'Workflow automation platform (Zapier, Make, etc.)',
-            'Team training on new processes',
-            'Integration capabilities with existing tools',
-            'Process documentation and SOPs'
+            'Emergency automation platform',
+            'Crisis process training',
+            'Emergency integration capabilities',
+            'Crisis documentation systems'
           ];
-          whyItMatters = 'Automation eliminates human error, reduces operational costs, and frees up valuable team time for strategic work. ROI is typically realized within 30 days.';
-          complexity = 'Low to Medium - implementation depends on existing tool stack';
+          whyItMatters = `⚙️ EFFICIENCY CRISIS: Manual processes are bleeding ${formatCurrency(dailyLoss)} daily. Automation stops this hemorrhaging within 30 days.`;
+          complexity = 'Medium Crisis - emergency implementation required';
           break;
 
         case 'payment-recovery':
           implementationSteps = [
-            'Implement smart payment retry logic',
-            'Set up automated dunning email sequences',
-            'Add in-app payment failure notifications',
-            'Configure multiple payment method options',
-            'Implement account pause vs. cancellation options',
-            'Set up win-back campaigns for churned customers',
-            'Monitor recovery rates and optimize messaging',
-            'Add proactive payment health monitoring'
+            '🆘 EMERGENCY: Implement smart payment crisis recovery',
+            '📧 CRITICAL: Set up emergency dunning sequences',
+            '📱 URGENT: Add payment failure emergency alerts',
+            '💳 VITAL: Configure multiple emergency payment methods',
+            '⏸️ IMMEDIATE: Implement account pause crisis options',
+            '🔄 ESSENTIAL: Set up emergency win-back campaigns',
+            '📈 CRITICAL: Monitor crisis recovery rates',
+            '🎯 ONGOING: Add proactive payment crisis monitoring'
           ];
           dependencies = [
-            'Payment processor with retry capabilities',
-            'Email automation platform',
-            'Customer success team involvement',
-            'Billing system integrations'
+            'Emergency payment processor',
+            'Crisis email automation',
+            'Emergency customer success team',
+            'Crisis billing integrations'
           ];
-          whyItMatters = 'Failed payment recovery directly impacts revenue retention and reduces involuntary churn. Most failed payments are due to temporary issues and can be recovered with proper systems.';
-          complexity = 'Low - mostly configuration of existing payment systems';
+          whyItMatters = `💸 PAYMENT CRISIS: Failed payments are bleeding ${formatCurrency(dailyLoss)} daily. Emergency recovery systems can stop 80% of this hemorrhaging.`;
+          complexity = 'Low Crisis - mostly emergency configuration';
           break;
       }
 
-      // Calculate current/target metrics and progress
+      // Calculate current/target metrics with crisis context
       let currentMetric = '';
       let targetMetric = '';
       let currentProgress = 50;
@@ -170,29 +174,29 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
 
       switch (action.id) {
         case 'lead-response':
-          currentMetric = `${submission.lead_response_time || 0}h avg response time`;
-          targetMetric = '< 1h response time (industry best practice)';
+          currentMetric = `⚠️ ${submission.lead_response_time || 0}h bleeding response time`;
+          targetMetric = '✅ < 1h emergency response (crisis stopped)';
           currentProgress = Math.max(0, Math.min(100, 100 - ((submission.lead_response_time || 0) - 1.0) * 20));
           targetProgress = 95;
           break;
         case 'selfserve-optimization':
           const targetConversion = Math.min(15, (submission.free_to_paid_conversion || 0) * 2.5);
-          currentMetric = `${submission.free_to_paid_conversion || 0}% trial-to-paid conversion`;
-          targetMetric = `${targetConversion.toFixed(1)}% conversion (optimized funnel)`;
+          currentMetric = `🩸 ${submission.free_to_paid_conversion || 0}% bleeding conversion`;
+          targetMetric = `🚀 ${targetConversion.toFixed(1)}% emergency recovery rate`;
           currentProgress = ((submission.free_to_paid_conversion || 0) / targetConversion) * 100;
           targetProgress = 90;
           break;
         case 'process-automation':
           const targetHours = Math.max(5, (submission.manual_hours || 0) * 0.2);
-          currentMetric = `${submission.manual_hours || 0}h/week manual processes`;
-          targetMetric = `${targetHours}h/week (80% automated)`;
+          currentMetric = `⚙️ ${submission.manual_hours || 0}h/week bleeding processes`;
+          targetMetric = `⚡ ${targetHours}h/week (crisis automated)`;
           currentProgress = Math.max(0, 100 - (((submission.manual_hours || 0) / 40) * 100));
           targetProgress = 80;
           break;
         case 'payment-recovery':
           const targetFailure = Math.max(0.8, (submission.failed_payment_rate || 0) * 0.25);
-          currentMetric = `${submission.failed_payment_rate || 0}% payment failure rate`;
-          targetMetric = `${targetFailure.toFixed(1)}% failure rate (optimized recovery)`;
+          currentMetric = `💸 ${submission.failed_payment_rate || 0}% payment bleeding`;
+          targetMetric = `💰 ${targetFailure.toFixed(1)}% emergency recovery`;
           currentProgress = Math.max(0, 100 - (((submission.failed_payment_rate || 0) - 0.8) * 15));
           targetProgress = 92;
           break;
@@ -200,14 +204,14 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
 
       return {
         id: action.id,
-        title: action.title,
-        description: action.description,
+        title: `🚨 ${action.title.replace('Optimization', 'Emergency Recovery')}`,
+        description: action.description.replace('Optimize', 'STOP BLEEDING in').replace('Improve', 'EMERGENCY FIX for'),
         currentMetric,
         targetMetric,
         potentialRecovery: action.recoveryAmount,
         difficulty: action.effort as 'Easy' | 'Medium' | 'Hard',
-        timeframe: action.timeframe,
-        icon: iconMap[action.id] || Target,
+        timeframe: action.timeframe.replace('weeks', 'weeks (EMERGENCY)'),
+        icon: iconMap[action.id] || AlertTriangle,
         priority: action.urgency === 'Critical' || action.urgency === 'High' ? 'urgent' : 'medium',
         currentProgress,
         targetProgress,
@@ -217,7 +221,8 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
         dependencies,
         whyItMatters,
         complexity,
-        paybackPeriod: action.paybackPeriod
+        paybackPeriod: action.paybackPeriod,
+        dailyLoss
       };
     });
   };
@@ -239,11 +244,11 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
         return {
           urgent: urgentActions.map(action => ({
             ...action,
-            description: `${action.description} • Competitive advantage opportunity`
+            description: `${action.description} • COMPETITORS ARE GAINING WHILE YOU BLEED`
           })),
           medium: mediumActions.map(action => ({
             ...action,
-            description: `${action.description} • Industry benchmark alignment`
+            description: `${action.description} • INDUSTRY EMERGENCY STANDARD`
           }))
         };
       default:
@@ -253,21 +258,21 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
 
   const { urgent: urgentActions, medium: mediumActions } = getFilteredActions();
 
-  // Determine overall confidence based on actions
-  const overallConfidence = { level: actions.length > 2 ? 'high' : actions.length > 0 ? 'medium' : 'low' };
-  
+  // Calculate total daily bleeding
+  const totalDailyLoss = actions.reduce((sum, action) => sum + action.dailyLoss, 0);
+
   if (actions.length === 0) {
     return (
-      <Card className="border-border/50 shadow-lg">
+      <Card className="border-destructive/20 shadow-lg">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-revenue-primary">
-              <TrendingUp className="h-6 w-6 text-primary-foreground" />
+            <div className="p-2 rounded-lg bg-gradient-to-r from-destructive to-destructive/80">
+              <AlertTriangle className="h-6 w-6 text-destructive-foreground" />
             </div>
             <div>
-              <CardTitle className="text-2xl">Strategic Action Priorities</CardTitle>
-              <p className="text-muted-foreground mt-1">
-                Your operations appear well-optimized. Continue monitoring key metrics.
+              <CardTitle className="text-2xl text-destructive">🚨 EMERGENCY INTERVENTION PRIORITIES</CardTitle>
+              <p className="text-destructive/80 mt-1">
+                No critical bleeding detected. Continue crisis monitoring.
               </p>
             </div>
           </div>
@@ -277,23 +282,23 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
   }
 
   return (
-    <Card className="border-border/50 shadow-lg">
+    <Card className="border-destructive/20 shadow-lg">
       <CardHeader>
         <Collapsible open={isContentOpen} onOpenChange={setIsContentOpen}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-revenue-primary">
-                <TrendingUp className="h-6 w-6 text-primary-foreground" />
+              <div className="p-2 rounded-lg bg-gradient-to-r from-destructive to-destructive/80 animate-pulse">
+                <AlertTriangle className="h-6 w-6 text-destructive-foreground" />
               </div>
               <div>
-                <CardTitle className="text-2xl">Strategic Action Priorities</CardTitle>
-                <p className="text-muted-foreground mt-1">
-                  Detailed implementation roadmap with specific tasks, timelines, and resource requirements
+                <CardTitle className="text-2xl text-destructive">🚨 EMERGENCY INTERVENTION PRIORITIES</CardTitle>
+                <p className="text-destructive/80 mt-1">
+                  Critical bleeding points requiring immediate emergency response
                 </p>
               </div>
             </div>
             <Collapsible asChild>
-              <Button variant="ghost" size="sm" className="ml-4">
+              <Button variant="ghost" size="sm" className="ml-4 text-destructive hover:bg-destructive/10">
                 <ChevronDown className={`h-4 w-4 transition-transform ${isContentOpen ? 'rotate-180' : ''}`} />
               </Button>
             </Collapsible>
@@ -301,46 +306,39 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
 
           <CollapsibleContent>
             <CardContent className="space-y-8 pt-6">
-              {overallConfidence.level === 'low' && (
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    Recommendations are based on available data. Consider these as directional guidance and validate with your specific business context and constraints.
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {/* Implementation Overview */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-                <h3 className="font-semibold text-blue-900 mb-3">Implementation Overview</h3>
+              {/* Crisis Alert */}
+              <div className="bg-gradient-to-r from-destructive/20 to-destructive/10 border-2 border-destructive/30 rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Clock className="h-6 w-6 text-destructive animate-pulse" />
+                  <div>
+                    <h3 className="font-semibold text-destructive text-lg">⏰ REVENUE BLEEDING IN PROGRESS</h3>
+                    <p className="text-destructive/80">Every moment of delay increases your financial hemorrhaging</p>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                   <div>
-                    <span className="font-medium text-blue-800">Total Actions:</span>
-                    <div className="text-blue-900 font-bold">{actions.length} priorities</div>
+                    <span className="font-medium text-destructive">Daily Bleeding:</span>
+                    <div className="text-destructive font-bold">{formatCurrency(totalDailyLoss)}</div>
                   </div>
                   <div>
-                    <span className="font-medium text-blue-800">Expected Recovery:</span>
-                    <div className="text-green-600 font-bold">
-                      {formatCurrency(actions.reduce((sum, a) => sum + a.potentialRecovery, 0))}
-                    </div>
+                    <span className="font-medium text-destructive">Emergency Actions:</span>
+                    <div className="text-destructive font-bold">{actions.length} critical</div>
                   </div>
                   <div>
-                    <span className="font-medium text-blue-800">Implementation Time:</span>
-                    <div className="text-blue-900 font-bold">8-16 weeks total</div>
+                    <span className="font-medium text-destructive">Crisis Window:</span>
+                    <div className="text-destructive font-bold">72 hours</div>
                   </div>
                   <div>
-                    <span className="font-medium text-blue-800">Success Probability:</span>
-                    <div className="text-green-600 font-bold">
-                      {overallConfidence.level === 'high' ? '85%' : overallConfidence.level === 'medium' ? '70%' : '55%'}
-                    </div>
+                    <span className="font-medium text-destructive">Recovery Rate:</span>
+                    <div className="text-destructive font-bold">85% if immediate</div>
                   </div>
                 </div>
               </div>
 
-              {/* Priority Action Sections */}
+              {/* Emergency Priority Sections */}
               {urgentActions.length > 0 && (
                 <PriorityActionSection
-                  title="URGENT PRIORITIES (Immediate Impact)"
+                  title="🚨 CRITICAL EMERGENCY (Stop Bleeding NOW)"
                   actions={urgentActions}
                   formatCurrency={formatCurrency}
                   sectionType="urgent"
@@ -349,22 +347,31 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
 
               {mediumActions.length > 0 && (
                 <PriorityActionSection
-                  title="MEDIUM PRIORITIES (Strategic Improvements)"
+                  title="⚠️ SECONDARY EMERGENCY (Crisis Stabilization)"
                   actions={mediumActions}
                   formatCurrency={formatCurrency}
                   sectionType="medium"
                 />
               )}
 
-              {/* Strategic CTA Section */}
+              {/* Emergency CTA Section */}
               {actions.length > 0 && (
-                <div className="mt-8">
-                  <StrategicCTASection
-                    totalLeak={unifiedCalculations.totalLoss}
-                    recovery70={unifiedCalculations.conservativeRecovery}
-                    leadScore={submission.lead_score || 0}
-                    formatCurrency={formatCurrency}
-                  />
+                <div className="mt-8 bg-gradient-to-r from-destructive/10 to-destructive/5 border-2 border-destructive/20 rounded-lg p-6">
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold text-destructive mb-2">
+                      🩸 STOP THE BLEEDING NOW
+                    </h3>
+                    <p className="text-destructive/80 mb-4">
+                      Your business is hemorrhaging {formatCurrency(totalDailyLoss)} daily. 
+                      Every hour of delay costs you {formatCurrency(totalDailyLoss/24)}.
+                    </p>
+                    <StrategicCTASection
+                      totalLeak={unifiedCalculations.totalLoss}
+                      recovery70={unifiedCalculations.conservativeRecovery}
+                      leadScore={submission.lead_score || 0}
+                      formatCurrency={formatCurrency}
+                    />
+                  </div>
                 </div>
               )}
             </CardContent>
