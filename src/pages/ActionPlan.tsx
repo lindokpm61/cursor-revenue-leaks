@@ -17,7 +17,7 @@ const ActionPlan = () => {
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const { data, calculations } = useCalculatorData(submission?.calculator_data);
+  const { data, calculations } = useCalculatorData();
 
   useEffect(() => {
     if (id) {
@@ -98,7 +98,12 @@ const ActionPlan = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <UnifiedHeader />
+      <UnifiedHeader 
+        title="Strategic Action Plan"
+        subtitle={`Implementation roadmap for ${submission.company_name}`}
+        backTo={`/results/${id}`}
+        context="action-plan"
+      />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Navigation Breadcrumb */}

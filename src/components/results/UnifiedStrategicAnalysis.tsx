@@ -97,7 +97,7 @@ export const UnifiedStrategicAnalysis = ({
                   <Zap className="h-4 w-4 mr-2" />
                   Quick Wins
                 </Button>
-                <Button variant="gradient" onClick={onBookCall} className="flex-1">
+                <Button variant="default" onClick={onBookCall} className="flex-1">
                   <Calendar className="h-4 w-4 mr-2" />
                   Book Expert Call
                 </Button>
