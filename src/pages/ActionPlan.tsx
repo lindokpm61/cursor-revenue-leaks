@@ -327,7 +327,7 @@ export default function ActionPlan() {
           title="🎯 Your Strategic Recovery Plan"
           badge={`${UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} Recovery Opportunity`}
           badgeVariant="outline"
-          priority="normal"
+          priority="medium"
           className="mb-8 border-green-200 bg-green-50/30"
         >
           <div className="text-center">
@@ -439,7 +439,7 @@ export default function ActionPlan() {
               submission={submissionData as any}
               formatCurrency={UnifiedResultsService.formatCurrency}
               calculatorData={submissionData}
-              variant="professional"
+              variant="standard"
             />
           </TabsContent>
 
