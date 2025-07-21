@@ -110,7 +110,11 @@ const Results = () => {
   }, [submission]);
 
   const unifiedCalculations = useMemo(() => {
-    return UnifiedResultsService.calculateResults(submissionData);
+    console.log('=== RESULTS PAGE DEBUG ===');
+    console.log('submissionData being passed to UnifiedResultsService:', submissionData);
+    const result = UnifiedResultsService.calculateResults(submissionData);
+    console.log('UnifiedResultsService result:', result);
+    return result;
   }, [submissionData]);
 
   const calculations: Calculations = useMemo(() => ({
