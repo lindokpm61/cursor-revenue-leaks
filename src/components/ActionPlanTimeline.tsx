@@ -27,14 +27,14 @@ interface ActionPlanTimelineProps {
 }
 
 export const ActionPlanTimeline = ({
-  phases,
+  phases = [],
   totalRecovery,
   totalInvestment,
   paybackMonths,
   formatCurrency,
   confidenceLevel
 }: ActionPlanTimelineProps) => {
-  const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set([phases[0]?.id]));
+  const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set(phases.length > 0 ? [phases[0].id] : []));
   const [completedActions, setCompletedActions] = useState<Set<string>>(new Set());
 
   const togglePhase = (phaseId: string) => {
@@ -156,6 +156,19 @@ export const ActionPlanTimeline = ({
       </CardHeader>
 
       <CardContent className="space-y-6">
+        {/* No Phases Message */}
+        {phases.length === 0 && (
+          <div className="text-center py-8">
+            <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
+              <Calendar className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-medium text-foreground mb-2">No Implementation Phases</h3>
+            <p className="text-muted-foreground">
+              Based on the current data, no significant improvement opportunities were identified that meet the implementation threshold.
+            </p>
+          </div>
+        )}
+
         {/* Phases */}
         {phases.map((phase, index) => {
           const isExpanded = expandedPhases.has(phase.id);
