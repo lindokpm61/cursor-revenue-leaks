@@ -88,28 +88,13 @@ export const UnifiedHeader = ({
                 <ContextIcon className={iconColorClasses} />
               </div>
               <div>
-                <div className="flex items-center gap-3">
-                  <h1 className={`text-lg md:text-xl font-semibold ${isSolutionContext ? 'text-green-800' : ''}`}>
-                    {title}
-                  </h1>
-                  {isSolutionContext && data?.recovery && (
-                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
-                      {data.formatCurrency ? data.formatCurrency(data.recovery) : `$${data.recovery?.toLocaleString()}`} Recovery Plan
-                    </Badge>
-                  )}
-                </div>
+                <h1 className={`text-lg md:text-xl font-semibold ${isSolutionContext ? 'text-green-800' : ''}`}>
+                  {title}
+                </h1>
                 {subtitle && (
                   <p className={`text-sm ${isSolutionContext ? 'text-green-700' : 'text-muted-foreground'}`}>
                     {subtitle}
                   </p>
-                )}
-                {isSolutionContext && data && (
-                  <div className="flex items-center gap-2 mt-1">
-                    <TrendingUp className="h-3 w-3 text-green-600" />
-                    <span className="text-xs text-green-700 font-medium">
-                      Strategic Recovery Protocol
-                    </span>
-                  </div>
                 )}
               </div>
             </div>
