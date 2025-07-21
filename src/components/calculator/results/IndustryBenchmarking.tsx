@@ -194,7 +194,7 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
       case 'best-in-class': return '🏆 Best-in-Class';
       case 'above-average': return '✅ Above Average';
       case 'average': return '📊 Industry Average';
-      case 'below-average': return '🚀 Massive Opportunity';
+      case 'below-average': return '🚨 Critical Failure';
       default: return 'Unknown';
     }
   };
@@ -251,7 +251,8 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
         if (metric.performance === 'below-average') {
           const bestInClassMinutes = Math.round(metric.bestInClass * 60);
           const revenueImpact = metric.revenueOpportunity > 0 ? formatCurrency(metric.revenueOpportunity) : '';
-          return `🚀 Reaching ${bestInClassMinutes}-minute response time could unlock ${revenueImpact} annual revenue${confidenceNote}`;
+          const dailyLoss = metric.revenueOpportunity > 0 ? formatCurrency(metric.revenueOpportunity / 365) : '';
+          return `🚨 CRITICAL: Slow response bleeding ${revenueImpact} annually (${dailyLoss}/day). Emergency protocol: ${bestInClassMinutes}-minute response required${confidenceNote}`;
         } else if (metric.performance === 'best-in-class') {
           return `🏆 You've achieved best-in-class response time - massive competitive advantage!`;
         }
@@ -260,7 +261,8 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
       case 'conversion-rate':
         if (metric.performance === 'below-average') {
           const revenueImpact = metric.revenueOpportunity > 0 ? formatCurrency(metric.revenueOpportunity) : '';
-          return `🎯 Reaching ${metric.bestInClass}% conversion (best-in-class) could add ${revenueImpact} annually${confidenceNote}`;
+          const dailyLoss = metric.revenueOpportunity > 0 ? formatCurrency(metric.revenueOpportunity / 365) : '';
+          return `🚨 CRITICAL: Conversion failure bleeding ${revenueImpact} annually (${dailyLoss}/day). Emergency target: ${metric.bestInClass}% conversion rate${confidenceNote}`;
         } else if (metric.performance === 'best-in-class') {
           return `🏆 Best-in-class conversion rate - you're maximizing every signup!`;
         }
@@ -268,7 +270,8 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
       
       case 'payment-failure':
         if (metric.performance === 'below-average') {
-          return `💰 Reducing to ${metric.bestInClass}% failure rate (best-in-class) could save ${formatCurrency(metric.revenueOpportunity)} annually${confidenceNote}`;
+          const dailyLoss = metric.revenueOpportunity > 0 ? formatCurrency(metric.revenueOpportunity / 365) : '';
+          return `🚨 CRITICAL: Payment failures bleeding ${formatCurrency(metric.revenueOpportunity)} annually (${dailyLoss}/day). Emergency target: ${metric.bestInClass}% failure rate${confidenceNote}`;
         } else if (metric.performance === 'best-in-class') {
           return `🏆 Best-in-class payment processing - minimal revenue loss!`;
         }
@@ -277,7 +280,8 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
       case 'process-efficiency':
         if (metric.performance === 'below-average') {
           const hoursSaved = Math.round(metric.userValue - metric.bestInClass);
-          return `⚡ Automating to ${metric.bestInClass} hours/week could save ${hoursSaved} hours weekly and ${formatCurrency(metric.revenueOpportunity)} annually${confidenceNote}`;
+          const dailyLoss = metric.revenueOpportunity > 0 ? formatCurrency(metric.revenueOpportunity / 365) : '';
+          return `🚨 CRITICAL: Manual processes bleeding ${formatCurrency(metric.revenueOpportunity)} annually (${dailyLoss}/day). Emergency automation needed: reduce to ${metric.bestInClass} hours/week${confidenceNote}`;
         } else if (metric.performance === 'best-in-class') {
           return `🏆 Highly automated operations - maximum efficiency achieved!`;
         }
@@ -314,15 +318,19 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
         <Collapsible open={isContentOpen} onOpenChange={setIsContentOpen}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-revenue-primary">
-                <BarChart3 className="h-6 w-6 text-primary-foreground" />
+              <div className="p-2 rounded-lg bg-gradient-to-r from-destructive to-orange-500">
+                <BarChart3 className="h-6 w-6 text-destructive-foreground" />
               </div>
               <div>
-                <CardTitle className="text-2xl">Strategic Performance Analysis</CardTitle>
+                <CardTitle className="text-2xl text-destructive flex items-center gap-2">
+                  <AlertTriangle className="h-6 w-6 animate-pulse" />
+                  REVENUE FAILURE POINT ANALYSIS
+                  <Badge variant="destructive" className="animate-pulse">CRITICAL</Badge>
+                </CardTitle>
                 <p className="text-muted-foreground mt-1">
-                  Your position vs industry average → best-in-class opportunity zones 
+                  Every metric below industry standard is bleeding revenue • Immediate intervention required
                   {confidenceLevel.level !== 'high' && (
-                    <span className="text-revenue-warning"> • {confidenceLevel.level} confidence</span>
+                    <span className="text-orange-600"> • {confidenceLevel.level} confidence</span>
                   )}
                 </p>
               </div>
@@ -336,34 +344,37 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
 
           <CollapsibleContent>
             <CardContent className="space-y-8 pt-6">
-              {/* Strategic Opportunity Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 bg-gradient-to-r from-revenue-primary/5 to-revenue-success/5 rounded-lg border border-revenue-primary/20">
+              {/* Critical Revenue Bleeding Summary */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 bg-gradient-to-r from-destructive/10 to-orange-500/10 rounded-lg border-2 border-destructive/30">
                 <div>
-                  <h3 className="font-semibold text-sm text-revenue-primary mb-1">🚀 Revenue Opportunity</h3>
-                  <p className="text-sm text-muted-foreground">Annual potential from best-in-class performance</p>
-                  <div className="text-xl font-bold text-revenue-primary">
-                    {totalRevenueOpportunity > 0 ? formatCurrency(totalRevenueOpportunity) : 'Optimized'}
+                  <h3 className="font-semibold text-sm text-destructive mb-1">🚨 Revenue Hemorrhaging</h3>
+                  <p className="text-sm text-muted-foreground">Annual losses from failure points</p>
+                  <div className="text-xl font-bold text-destructive">
+                    {totalRevenueOpportunity > 0 ? formatCurrency(totalRevenueOpportunity) : 'No Bleeding'}
+                  </div>
+                  <div className="text-xs text-orange-600 mt-1">
+                    {totalRevenueOpportunity > 0 ? formatCurrency(totalRevenueOpportunity / 365) + '/day' : ''}
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm text-revenue-warning mb-1">⚡ Strategic Opportunities</h3>
-                  <p className="text-sm text-muted-foreground">{strategicOpportunities.length} metrics with massive upside</p>
-                  <div className="text-lg font-bold text-revenue-warning">
-                    {strategicOpportunities.length > 0 ? `${strategicOpportunities.length} breakthrough zones` : 'Fully optimized'}
+                  <h3 className="font-semibold text-sm text-orange-600 mb-1">⚠️ Critical Failure Points</h3>
+                  <p className="text-sm text-muted-foreground">{strategicOpportunities.length} metrics below industry standard</p>
+                  <div className="text-lg font-bold text-orange-600">
+                    {strategicOpportunities.length > 0 ? `${strategicOpportunities.length} emergency zones` : 'No critical issues'}
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm text-revenue-success mb-1">🏆 Competitive Advantages</h3>
-                  <p className="text-sm text-muted-foreground">{competitiveAdvantages.length} best-in-class metrics</p>
+                  <h3 className="font-semibold text-sm text-revenue-success mb-1">✅ Stable Performance</h3>
+                  <p className="text-sm text-muted-foreground">{competitiveAdvantages.length} above-average metrics</p>
                   <div className="text-lg font-bold text-revenue-success">
-                    {competitiveAdvantages.length} market leaders
+                    {competitiveAdvantages.length} secure areas
                   </div>
                 </div>
               </div>
 
               {/* Performance Zones */}
               <div>
-                <h3 className="text-lg font-semibold mb-6">🎯 Performance Zones: Industry Average → Best-in-Class</h3>
+                <h3 className="text-lg font-semibold mb-6 text-destructive">🚨 Revenue Failure Analysis: Below Standard → Emergency Recovery</h3>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {metrics.map((metric) => {
                     const Icon = metric.icon;
