@@ -276,6 +276,11 @@ export default function ActionPlan() {
         subtitle={`${submissionData.company_name} • CRISIS INTERVENTION REQUIRED`}
         backTo={`/results/${submissionId}`}
         context="action-plan"
+        data={{
+          dailyLoss,
+          totalLoss: submissionData.totalLoss,
+          recovery: submissionData.conservativeRecovery
+        }}
       />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
