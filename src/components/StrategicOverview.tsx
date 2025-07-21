@@ -1,7 +1,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, TrendingDown, Clock, Target, Zap } from "lucide-react";
+import { TrendingUp, Target, Clock, Zap, BarChart3 } from "lucide-react";
 import { UnifiedResultsService, type SubmissionData } from "@/lib/results/UnifiedResultsService";
 
 interface StrategicOverviewProps {
@@ -56,93 +56,93 @@ export const StrategicOverview = ({ latestAnalysis, formatCurrency }: StrategicO
   const calculations = UnifiedResultsService.calculateResults(submissionData);
   console.log('UnifiedResultsService calculations in StrategicOverview:', calculations);
 
-  const monthlyLoss = calculations.totalLoss / 12;
-  const urgencyLevel = calculations.totalLoss > 1000000 ? 'critical' : calculations.totalLoss > 500000 ? 'emergency' : 'urgent';
+  const monthlyOpportunity = calculations.totalLoss / 12;
+  const opportunityLevel = calculations.totalLoss > 1000000 ? 'high' : calculations.totalLoss > 500000 ? 'medium' : 'standard';
   
-  const getUrgencyConfig = () => {
-    switch (urgencyLevel) {
-      case 'critical':
+  const getOpportunityConfig = () => {
+    switch (opportunityLevel) {
+      case 'high':
         return {
-          title: "CRITICAL: Revenue Hemorrhaging Detected",
-          subtitle: "Financial emergency requiring immediate intervention",
-          timeframe: "Emergency Action Required",
-          impact: "Business Critical Crisis",
-          color: "destructive"
+          title: "HIGH-IMPACT: Strategic Revenue Opportunities",
+          subtitle: "Significant growth potential identified across key performance areas",
+          timeframe: "Strategic Implementation",
+          impact: "High-Impact Opportunities",
+          color: "primary"
         };
-      case 'emergency':
+      case 'medium':
         return {
-          title: "EMERGENCY: Major Revenue Bleeding",
-          subtitle: "Significant financial losses requiring urgent action",
-          timeframe: "Urgent Response Needed", 
-          impact: "High-Impact Crisis",
-          color: "destructive"
+          title: "STRATEGIC: Revenue Growth Opportunities",
+          subtitle: "Multiple optimization areas with strong ROI potential",
+          timeframe: "Growth Implementation", 
+          impact: "Strategic Opportunities",
+          color: "primary"
         };
       default:
         return {
-          title: "URGENT: Revenue Leak Detected",
-          subtitle: "Active financial bleeding requiring immediate attention",
-          timeframe: "Time-Sensitive Action",
-          impact: "Critical Issue",
-          color: "destructive"
+          title: "OPPORTUNITY: Revenue Optimization Potential",
+          subtitle: "Clear optimization paths identified for revenue growth",
+          timeframe: "Optimization Timeline",
+          impact: "Growth Opportunities",
+          color: "primary"
         };
     }
   };
 
-  const urgencyConfig = getUrgencyConfig();
+  const opportunityConfig = getOpportunityConfig();
 
   return (
     <div className="space-y-6">
-      {/* Crisis Alert Banner */}
-      <Card className="border-l-4 border-l-destructive bg-gradient-to-br from-background via-background to-destructive/5">
+      {/* Strategic Opportunity Banner */}
+      <Card className="border-l-4 border-l-primary bg-gradient-to-br from-background via-background to-primary/5">
         <CardContent className="p-6">
           <div className="space-y-4">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <h2 className="text-xl font-semibold text-destructive">
-                  {urgencyConfig.title}
+                <h2 className="text-xl font-semibold text-primary">
+                  {opportunityConfig.title}
                 </h2>
                 <p className="text-muted-foreground max-w-2xl">
-                  {urgencyConfig.subtitle}
+                  {opportunityConfig.subtitle}
                 </p>
               </div>
-              <Badge variant={urgencyConfig.color as any} className="ml-4 animate-pulse">
-                {urgencyConfig.impact}
+              <Badge variant="outline" className="ml-4 border-primary text-primary">
+                {opportunityConfig.impact}
               </Badge>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-border/50">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-destructive/10">
-                  <TrendingDown className="h-4 w-4 text-destructive" />
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <TrendingUp className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-destructive">Monthly Bleeding</div>
-                  <div className="text-lg font-bold text-destructive">
-                    {formatCurrency(monthlyLoss)}
+                  <div className="text-sm font-medium text-primary">Monthly Opportunity</div>
+                  <div className="text-lg font-bold text-primary">
+                    {formatCurrency(monthlyOpportunity)}
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-revenue-warning/10">
-                  <AlertTriangle className="h-4 w-4 text-revenue-warning" />
+                <div className="p-2 rounded-lg bg-revenue-growth/10">
+                  <Target className="h-4 w-4 text-revenue-growth" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-revenue-warning">Emergency Fix Target</div>
-                  <div className="text-lg font-bold text-revenue-warning">
+                  <div className="text-sm font-medium text-revenue-growth">Recovery Target</div>
+                  <div className="text-lg font-bold text-revenue-growth">
                     {formatCurrency(calculations.conservativeRecovery)}
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-destructive/10">
-                  <Clock className="h-4 w-4 text-destructive" />
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Clock className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-destructive">Response Time</div>
-                  <div className="text-sm font-semibold text-destructive">
-                    {urgencyConfig.timeframe}
+                  <div className="text-sm font-medium text-primary">Implementation</div>
+                  <div className="text-sm font-semibold text-primary">
+                    {opportunityConfig.timeframe}
                   </div>
                 </div>
               </div>
@@ -151,32 +151,33 @@ export const StrategicOverview = ({ latestAnalysis, formatCurrency }: StrategicO
         </CardContent>
       </Card>
 
-      {/* Crisis Impact Analysis */}
-      <Card className="bg-gradient-to-br from-destructive/5 to-revenue-warning/5 border-destructive/20">
+      {/* Strategic Analysis Summary */}
+      <Card className="bg-gradient-to-br from-primary/5 to-revenue-growth/5 border-primary/20">
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
-            <div className="p-2 rounded-lg bg-destructive/20 mt-1">
-              <Zap className="h-5 w-5 text-destructive" />
+            <div className="p-2 rounded-lg bg-primary/20 mt-1">
+              <BarChart3 className="h-5 w-5 text-primary" />
             </div>
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-destructive">
-                Financial Crisis Analysis for {latestAnalysis.company_name}
+              <h3 className="text-lg font-semibold text-primary">
+                Strategic Revenue Analysis for {latestAnalysis.company_name}
               </h3>
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p>
-                  Your {latestAnalysis.industry} company is <span className="font-semibold text-destructive">actively bleeding{" "}
-                  {formatCurrency(monthlyLoss)} every month</span> through critical gaps in your revenue systems.
+                  Your {latestAnalysis.industry} company has <span className="font-semibold text-primary">
+                  {formatCurrency(monthlyOpportunity)} in monthly growth potential</span> through strategic 
+                  optimization of key revenue systems.
                 </p>
                 <p>
-                  Emergency intervention could stop{" "}
-                  <span className="font-semibold text-revenue-warning">
-                    {formatCurrency(calculations.conservativeRecovery)} in annual losses
+                  Strategic implementation could unlock{" "}
+                  <span className="font-semibold text-revenue-growth">
+                    {formatCurrency(calculations.conservativeRecovery)} in annual revenue growth
                   </span>{" "}
-                  with immediate corrective action.
+                  through systematic optimization initiatives.
                 </p>
-                <p className="text-destructive font-medium bg-destructive/10 p-2 rounded border border-destructive/20">
-                  ⚠️ CRITICAL: Every day of delay costs you{" "}
-                  {formatCurrency(monthlyLoss / 30)}. This financial hemorrhaging will worsen without intervention.
+                <p className="text-primary font-medium bg-primary/10 p-2 rounded border border-primary/20">
+                  💡 OPPORTUNITY: Every month of optimization delay represents{" "}
+                  {formatCurrency(monthlyOpportunity / 30)} in daily growth potential.
                 </p>
               </div>
             </div>

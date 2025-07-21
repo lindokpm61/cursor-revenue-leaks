@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,63 +17,63 @@ export const StrategicCTASection = ({
   leadScore,
   formatCurrency 
 }: StrategicCTASectionProps) => {
-  const getUrgencyMessage = () => {
-    if (totalLeak > 500000) {
-      return "High-priority case - limited expert slots available";
-    } else if (totalLeak > 100000) {
-      return "Book your strategy session this week";
-    }
-    return "Schedule your consultation today";
-  };
-
   const getRecommendedAction = () => {
     if (leadScore >= 80) {
-      return "Enterprise Implementation";
+      return "Enterprise Strategy Implementation";
     } else if (leadScore >= 60) {
-      return "Guided Implementation";
+      return "Guided Strategic Implementation";
     }
-    return "Strategic Consultation";
+    return "Strategic Growth Consultation";
+  };
+
+  const getOpportunityMessage = () => {
+    if (totalLeak > 500000) {
+      return "High-impact opportunity - priority consultation slots available";
+    } else if (totalLeak > 100000) {
+      return "Schedule your strategy session this week";
+    }
+    return "Book your strategic consultation today";
   };
 
   return (
-    <Card className="bg-gradient-to-r from-primary/10 to-revenue-primary/10 border-primary/30">
+    <Card className="bg-gradient-to-r from-primary/10 to-revenue-growth/10 border-primary/30">
       <CardContent className="p-8">
         <div className="text-center space-y-6">
           <div>
             <Badge variant="outline" className="border-primary text-primary mb-4">
-              {getUrgencyMessage()}
+              {getOpportunityMessage()}
             </Badge>
             <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-              Ready to Recover {formatCurrency(recovery70)}?
+              Ready to Capture {formatCurrency(recovery70)}?
             </h3>
             <p className="text-lg text-muted-foreground">
-              Book a free strategy session with our revenue optimization experts
+              Book a strategic consultation with our revenue optimization experts
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div className="flex items-center justify-center gap-2 text-muted-foreground">
               <Clock className="h-4 w-4" />
-              <span>30-min consultation</span>
+              <span>30-min strategy session</span>
             </div>
             <div className="flex items-center justify-center gap-2 text-muted-foreground">
               <Users className="h-4 w-4" />
-              <span>Expert revenue strategist</span>
+              <span>Expert growth strategist</span>
             </div>
             <div className="flex items-center justify-center gap-2 text-muted-foreground">
               <Zap className="h-4 w-4" />
-              <span>Customized action plan</span>
+              <span>Custom implementation plan</span>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-            <Button size="lg" className="flex-1">
+            <Button size="lg" className="flex-1 bg-primary hover:bg-primary/90">
               <Calendar className="h-4 w-4 mr-2" />
-              Book Expert Consultation
+              Book Strategy Session
             </Button>
-            <Button variant="outline" size="lg" className="flex-1">
+            <Button variant="outline" size="lg" className="flex-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground">
               <Phone className="h-4 w-4 mr-2" />
-              Call Now
+              Schedule Call
             </Button>
           </div>
 

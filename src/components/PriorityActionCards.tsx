@@ -2,7 +2,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Clock, DollarSign, Users, Zap, Target, TrendingDown, AlertTriangle } from "lucide-react";
+import { ArrowRight, Clock, DollarSign, Users, Zap, Target, TrendingUp, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { UnifiedResultsService, type SubmissionData } from "@/lib/results/UnifiedResultsService";
 
@@ -60,45 +60,45 @@ export const PriorityActionCards = ({ latestAnalysis, formatCurrency }: Priority
   const calculations = UnifiedResultsService.calculateResults(submissionData);
   console.log('UnifiedResultsService calculations in PriorityActionCards:', calculations);
   
-  // Determine top emergency actions based on calculations
+  // Strategic priority actions based on calculations
   const priorities = [
     {
-      id: 'emergency-assessment',
-      title: 'Full Crisis Assessment',
-      description: 'Complete analysis of all revenue bleeding points and emergency fixes',
-      impact: 'Stop the Bleeding',
+      id: 'strategic-assessment',
+      title: 'Complete Strategic Assessment',
+      description: 'Full analysis of revenue optimization opportunities and growth initiatives',
+      impact: 'Growth Analysis',
       timeframe: 'Immediate',
       effort: 'Low',
-      icon: AlertTriangle,
-      color: 'destructive',
+      icon: BarChart3,
+      color: 'primary',
       action: () => navigate(`/results/${latestAnalysis.id}`),
-      buttonText: 'View Crisis Report',
+      buttonText: 'View Strategic Report',
       priority: 1
     },
     {
-      id: 'emergency-plan',
-      title: 'Emergency Action Plan',
-      description: 'Step-by-step crisis intervention to stop revenue hemorrhaging',
+      id: 'implementation-plan',
+      title: 'Strategic Implementation Plan',
+      description: 'Step-by-step roadmap to capture identified revenue opportunities',
       impact: formatCurrency(calculations.conservativeRecovery),
-      timeframe: '24-48 hours',
+      timeframe: '6-12 months',
       effort: 'Medium',
       icon: Target,
-      color: 'warning',
+      color: 'success',
       action: () => navigate(`/action-plan/${latestAnalysis.id}`),
-      buttonText: 'Get Emergency Plan',
+      buttonText: 'Get Implementation Plan',
       priority: 2
     },
     {
-      id: 'crisis-consultation',
-      title: 'Crisis Intervention Call',
-      description: 'Emergency consultation to stop critical revenue bleeding',
-      impact: 'Immediate Damage Control',
-      timeframe: 'Within 2 hours',
+      id: 'strategy-consultation',
+      title: 'Strategy Review Session',
+      description: 'Expert consultation to optimize implementation approach',
+      impact: 'Strategic Guidance',
+      timeframe: 'Within 1 week',
       effort: 'Low',
       icon: Users,
-      color: 'destructive',
-      action: () => window.open('https://calendly.com/your-calendar', '_blank'),
-      buttonText: 'Emergency Call',
+      color: 'primary',
+      action: () => window.open('https://calendly.com/strategy-session', '_blank'),
+      buttonText: 'Book Strategy Session',
       priority: calculations.totalLoss > 1000000 ? 1 : 3
     }
   ].sort((a, b) => a.priority - b.priority);
@@ -115,10 +115,10 @@ export const PriorityActionCards = ({ latestAnalysis, formatCurrency }: Priority
   return (
     <div className="space-y-4">
       <div className="text-center space-y-2 mb-6">
-        <h2 className="text-2xl font-bold text-destructive">Emergency Response Required</h2>
+        <h2 className="text-2xl font-bold text-primary">Strategic Action Priorities</h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Your revenue is actively bleeding. These emergency actions are ordered by urgency 
-          and potential to stop the financial hemorrhaging.
+          Your revenue optimization roadmap prioritized by impact potential and 
+          strategic value to accelerate growth.
         </p>
       </div>
 
@@ -129,25 +129,25 @@ export const PriorityActionCards = ({ latestAnalysis, formatCurrency }: Priority
             <Card 
               key={priority.id} 
               className={`relative overflow-hidden transition-all hover:shadow-lg ${
-                index === 0 ? 'border-destructive/50 bg-gradient-to-r from-background to-destructive/5' : 'hover:border-destructive/20'
+                index === 0 ? 'border-primary/50 bg-gradient-to-r from-background to-primary/5' : 'hover:border-primary/20'
               }`}
             >
               {index === 0 && (
-                <div className="absolute top-0 right-0 bg-destructive text-destructive-foreground text-xs font-medium px-2 py-1 rounded-bl-lg animate-pulse">
-                  CRITICAL
+                <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded-bl-lg">
+                  PRIORITY
                 </div>
               )}
               
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className={`p-3 rounded-lg ${
-                    priority.color === 'destructive' ? 'bg-destructive/10' :
-                    priority.color === 'warning' ? 'bg-yellow-100 dark:bg-yellow-900/30' :
+                    priority.color === 'primary' ? 'bg-primary/10' :
+                    priority.color === 'success' ? 'bg-green-100 dark:bg-green-900/30' :
                     'bg-muted'
                   }`}>
                     <IconComponent className={`h-6 w-6 ${
-                      priority.color === 'destructive' ? 'text-destructive' :
-                      priority.color === 'warning' ? 'text-yellow-600 dark:text-yellow-400' :
+                      priority.color === 'primary' ? 'text-primary' :
+                      priority.color === 'success' ? 'text-green-600 dark:text-green-400' :
                       'text-muted-foreground'
                     }`} />
                   </div>
@@ -164,7 +164,7 @@ export const PriorityActionCards = ({ latestAnalysis, formatCurrency }: Priority
                     
                     <div className="flex flex-wrap gap-2">
                       <Badge variant="outline" className="text-xs">
-                        <TrendingDown className="h-3 w-3 mr-1" />
+                        <TrendingUp className="h-3 w-3 mr-1" />
                         {priority.impact}
                       </Badge>
                       <Badge variant="outline" className="text-xs">
@@ -181,7 +181,7 @@ export const PriorityActionCards = ({ latestAnalysis, formatCurrency }: Priority
                       onClick={priority.action}
                       variant={index === 0 ? "default" : "outline"}
                       className={`w-full sm:w-auto ${
-                        index === 0 ? 'bg-destructive hover:bg-destructive/90' : 'hover:bg-destructive hover:text-destructive-foreground'
+                        index === 0 ? 'bg-primary hover:bg-primary/90' : 'hover:bg-primary hover:text-primary-foreground'
                       }`}
                     >
                       {priority.buttonText}
