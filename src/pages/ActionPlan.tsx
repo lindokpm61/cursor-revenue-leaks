@@ -283,80 +283,37 @@ export default function ActionPlan() {
       />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Recovery Opportunity Banner */}
-        <div className="mb-8 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 rounded-xl p-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 rounded-full bg-green-100">
-              <TrendingUp className="h-8 w-8 text-green-600" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-green-800">Revenue Recovery Opportunity</h2>
-              <p className="text-green-700 text-lg">
-                {UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} annual recovery potential identified
+        {/* Clean Recovery Summary */}
+        <Card className="mb-8">
+          <CardContent className="p-6">
+            <div className="text-center">
+              <h2 className="text-2xl font-semibold mb-2">
+                {UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} Recovery Opportunity
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                Your personalized implementation plan to capture this revenue potential
               </p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="flex items-center gap-2 p-3 bg-green-100 rounded-lg">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <div>
-                <span className="font-medium text-green-800">Daily Potential:</span>
-                <div className="text-green-700">{UnifiedResultsService.formatCurrency(dailyRecovery)}/day</div>
+              
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <UnifiedCTA
+                  variant="primary"
+                  context="action-plan"
+                  data={{
+                    totalLeak: submissionData.totalLoss,
+                    recovery: submissionData.conservativeRecovery,
+                    formatCurrency: UnifiedResultsService.formatCurrency
+                  }}
+                  onPrimaryAction={handleGetStarted}
+                />
+                <UnifiedCTA
+                  variant="secondary"
+                  context="action-plan"
+                  onSecondaryAction={handleExportPlan}
+                />
               </div>
             </div>
-            <div className="flex items-center gap-2 p-3 bg-blue-100 rounded-lg">
-              <Target className="h-4 w-4 text-blue-600" />
-              <div>
-                <span className="font-medium text-blue-800">Monthly Goal:</span>
-                <div className="text-blue-700">{UnifiedResultsService.formatCurrency(monthlyRecovery)}</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 p-3 bg-amber-100 rounded-lg">
-              <Activity className="h-4 w-4 text-amber-600" />
-              <div>
-                <span className="font-medium text-amber-800">Status:</span>
-                <div className="text-amber-700">Ready to Implement</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Strategic CTA Section */}
-        <ContentSection 
-          title="🎯 Your Strategic Recovery Plan"
-          badge={`${UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} Recovery Opportunity`}
-          badgeVariant="outline"
-          priority="medium"
-          className="mb-8 border-green-200 bg-green-50/30"
-        >
-          <div className="text-center">
-            <p className="text-lg text-muted-foreground mb-6">
-              We've identified {UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} 
-              in annual recovery potential. Here's your step-by-step implementation plan to capture this opportunity.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <UnifiedCTA
-                variant="primary"
-                context="action-plan"
-                data={{
-                  totalLeak: submissionData.totalLoss,
-                  recovery: submissionData.conservativeRecovery,
-                  formatCurrency: UnifiedResultsService.formatCurrency
-                }}
-                onPrimaryAction={handleGetStarted}
-                className="bg-gradient-to-r from-green-600 to-blue-600 hover:opacity-90"
-              />
-              <UnifiedCTA
-                variant="secondary"
-                context="action-plan"
-                onSecondaryAction={handleExportPlan}
-                className="border-green-300 text-green-700 hover:bg-green-50"
-              />
-            </div>
-          </div>
-        </ContentSection>
+          </CardContent>
+        </Card>
 
         {/* Professional Action Plan Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
