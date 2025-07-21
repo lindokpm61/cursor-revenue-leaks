@@ -47,7 +47,7 @@ export const DashboardHeroSection = ({
       {/* Crisis Analysis Context Footer */}
       <div className="text-center py-6 border-t border-border/30 bg-gradient-to-r from-destructive/5 to-revenue-warning/5 rounded-lg">
         <div className="space-y-2">
-          <p className="text-sm font-medium text-destructive">
+          <p className="text-small font-medium text-destructive">
             Crisis Assessment completed {formatDate(latestAnalysis.created_at || '')}
           </p>
           <p className="text-xs text-muted-foreground max-w-2xl mx-auto">

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -185,10 +186,10 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8">
         <Card className="border-destructive/20 shadow-sm bg-gradient-to-br from-background to-destructive/5">
           <CardContent className="p-4 sm:p-6 text-center">
-            <div className="text-sm text-destructive/80 mb-2">
+            <div className="text-small text-destructive/80 mb-2">
               Companies in Crisis
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-destructive">
+            <div className="text-h1 text-destructive">
               {submissions.length}
             </div>
             <div className="text-xs text-destructive/60 mt-1">
@@ -199,10 +200,10 @@ const Dashboard = () => {
         
         <Card className="border-destructive/30 bg-gradient-to-br from-background to-destructive/10 shadow-sm">
           <CardContent className="p-4 sm:p-6 text-center">
-            <div className="text-sm text-destructive/80 mb-2">
+            <div className="text-small text-destructive/80 mb-2">
               Total Revenue Hemorrhaging
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-destructive">
+            <div className="text-h1 text-destructive">
               {formatCurrency(totalAnnualBleeding)}
             </div>
             <div className="text-xs text-destructive/60 mt-1">
@@ -213,10 +214,10 @@ const Dashboard = () => {
         
         <Card className="border-amber-200 bg-gradient-to-br from-background to-amber-50 dark:border-amber-800/30 dark:to-amber-950/20 shadow-sm">
           <CardContent className="p-4 sm:p-6 text-center">
-            <div className="text-sm text-amber-700 dark:text-amber-300 mb-2">
+            <div className="text-small text-amber-700 dark:text-amber-300 mb-2">
               Emergency Recovery Potential
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-amber-600 dark:text-amber-400">
+            <div className="text-h1 text-amber-600 dark:text-amber-400">
               {formatCurrency(totalCrisisValue)}
             </div>
             <div className="text-xs text-amber-600/80 mt-1">
@@ -236,8 +237,8 @@ const Dashboard = () => {
       <div className="mb-12">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-xl sm:text-2xl font-semibold text-destructive">Crisis History Log</h2>
-            <p className="text-sm text-destructive/80 mt-1">
+            <h2 className="text-h2 text-destructive">Crisis History Log</h2>
+            <p className="text-small text-destructive/80 mt-1">
               Historical revenue crisis assessments and emergency response status
             </p>
           </div>
@@ -261,7 +262,7 @@ const Dashboard = () => {
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-destructive mb-1 truncate">
+                      <h3 className="text-h3 text-destructive mb-1 truncate">
                         {analysis.company_name}
                       </h3>
                       <div className="flex items-center gap-2 mb-2">
@@ -282,10 +283,10 @@ const Dashboard = () => {
                   </div>
                   
                   <div className="mb-4 space-y-2">
-                    <div className="text-xl sm:text-2xl font-bold mb-1 text-destructive">
+                    <div className="text-h2 text-destructive">
                       {formatCurrency(calculations.recovery70Percent)}
                     </div>
-                    <div className="text-sm text-destructive/80">
+                    <div className="text-small text-destructive/80">
                       Emergency recovery potential
                     </div>
                     <div className="text-xs text-destructive/60">
@@ -326,7 +327,7 @@ const Dashboard = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Calculator className="h-12 w-12 animate-spin text-destructive mx-auto mb-4" />
-          <p className="text-destructive">Loading crisis control center...</p>
+          <p className="text-body text-destructive">Loading crisis control center...</p>
         </div>
       </div>
     );
@@ -346,14 +347,14 @@ const Dashboard = () => {
                 <AlertTriangle className="h-6 w-6 text-destructive-foreground" />
               </div>
               <div>
-                <span className="text-xl font-bold text-destructive">Crisis Control Center</span>
+                <span className="text-h3 text-destructive">Crisis Control Center</span>
                 <p className="text-xs text-destructive/80 hidden sm:block">
                   Revenue Emergency Management Platform
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-destructive/80 hidden sm:block">
+              <span className="text-small text-destructive/80 hidden sm:block">
                 Emergency Officer: {user?.email}
               </span>
               {isAdmin && (
@@ -378,8 +379,8 @@ const Dashboard = () => {
             <div className="p-4 rounded-full bg-destructive/10 w-20 h-20 mx-auto mb-6 flex items-center justify-center">
               <AlertTriangle className="h-10 w-10 text-destructive" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-destructive mb-4">Revenue Crisis Control Center</h1>
-            <p className="text-destructive/80 mb-8 max-w-2xl mx-auto">
+            <h1 className="text-h1 text-destructive mb-4">Revenue Crisis Control Center</h1>
+            <p className="text-body text-destructive/80 mb-8 max-w-2xl mx-auto">
               Detect and respond to revenue hemorrhaging across your business operations. 
               Start your first crisis assessment to identify critical bleeding points.
             </p>
