@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertTriangle, Calendar, Zap, FileText, Activity, Clock } from "lucide-react";
+import { Target, Calendar, Zap, FileText, Activity, TrendingUp, CheckCircle } from "lucide-react";
 
 import { fetchSubmissionData } from "@/lib/submission/submissionDataFetcher";
 import { useToast } from "@/hooks/use-toast";
@@ -37,7 +37,7 @@ export default function ActionPlan() {
   const { toast } = useToast();
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('emergency');
+  const [activeTab, setActiveTab] = useState('overview');
 
   const submissionId = params.id || null;
   
@@ -189,19 +189,19 @@ export default function ActionPlan() {
     };
   }, [submissionData]);
 
-  const handleStopBleeding = () => {
+  const handleGetStarted = () => {
     toast({
-      title: "🚨 EMERGENCY CONSULTATION",
-      description: "Connecting you to crisis intervention team...",
-      variant: "destructive",
+      title: "💚 Expert Consultation",
+      description: "Connecting you with our implementation team...",
+      variant: "default",
     });
   };
 
-  const handleExportProtocol = () => {
+  const handleExportPlan = () => {
     toast({
-      title: "📋 CRISIS PROTOCOL EXPORT",
-      description: "Your emergency recovery protocol is being prepared...",
-      variant: "destructive",
+      title: "📋 Recovery Plan Export",
+      description: "Your strategic action plan is being prepared...",
+      variant: "default",
     });
   };
 
@@ -209,13 +209,13 @@ export default function ActionPlan() {
     return (
       <div className="min-h-screen bg-background">
         <UnifiedHeader 
-          title="⚠️ Loading Emergency Protocol..."
+          title="Loading Strategic Action Plan..."
           context="action-plan"
         />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-8">
             {[1, 2, 3].map((i) => (
-              <Card key={i} className="border-destructive/20">
+              <Card key={i}>
                 <CardContent className="space-y-4 pt-6">
                   <Skeleton className="h-6 w-64" />
                   <Skeleton className="h-4 w-full" />
@@ -233,23 +233,23 @@ export default function ActionPlan() {
     return (
       <div className="min-h-screen bg-background">
         <UnifiedHeader 
-          title="🚨 Emergency Protocol Unavailable"
+          title="Strategic Action Plan Unavailable"
           backTo={`/results/${submissionId}`}
           context="action-plan"
         />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-md mx-auto text-center border-destructive/20">
+          <Card className="max-w-md mx-auto text-center">
             <CardContent className="p-8">
-              <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4 animate-pulse" />
-              <h2 className="text-xl font-bold text-destructive mb-2">CRISIS PROTOCOL UNAVAILABLE</h2>
-              <p className="text-destructive/80 mb-4">
-                Unable to generate emergency recovery protocol. Revenue bleeding continues.
+              <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h2 className="text-xl font-bold mb-2">Plan Unavailable</h2>
+              <p className="text-muted-foreground mb-4">
+                Unable to generate strategic action plan. Please try again.
               </p>
               <UnifiedCTA
                 variant="secondary"
                 context="action-plan"
                 onPrimaryAction={() => navigation.navigateToResults(submissionId)}
-                className="mt-4 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="mt-4"
               />
             </CardContent>
           </Card>
@@ -258,83 +258,82 @@ export default function ActionPlan() {
     );
   }
 
-  const dailyLoss = submissionData.totalLoss / 365;
-  const weeklyLoss = submissionData.totalLoss / 52;
+  const dailyRecovery = submissionData.conservativeRecovery / 365;
+  const monthlyRecovery = submissionData.conservativeRecovery / 12;
 
   const tabs = [
-    { id: 'emergency', label: 'Emergency Triage', icon: AlertTriangle },
-    { id: 'bleeding', label: 'Stop Bleeding', icon: Zap },
-    { id: 'stabilization', label: 'Stabilization', icon: Activity },
-    { id: 'recovery', label: 'Recovery Protocol', icon: Calendar },
-    { id: 'monitoring', label: 'Crisis Monitoring', icon: FileText }
+    { id: 'overview', label: 'Recovery Overview', icon: Target },
+    { id: 'priorities', label: 'Priority Actions', icon: Zap },
+    { id: 'timeline', label: 'Implementation', icon: Calendar },
+    { id: 'scenarios', label: 'Planning', icon: Activity },
+    { id: 'summary', label: 'Full Summary', icon: FileText }
   ];
 
   return (
     <div className="min-h-screen bg-background">
       <UnifiedHeader 
-        title="🚨 Emergency Revenue Recovery Protocol"
-        subtitle={`${submissionData.company_name} • CRISIS INTERVENTION REQUIRED`}
+        title="Strategic Revenue Recovery Plan"
+        subtitle={`${submissionData.company_name} • Professional Implementation Guide`}
         backTo={`/results/${submissionId}`}
         context="action-plan"
         data={{
-          dailyLoss,
-          totalLoss: submissionData.totalLoss,
-          recovery: submissionData.conservativeRecovery
+          recovery: submissionData.conservativeRecovery,
+          formatCurrency: UnifiedResultsService.formatCurrency
         }}
       />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Crisis Alert Banner */}
-        <div className="mb-8 bg-gradient-to-r from-destructive/20 to-destructive/10 border-2 border-destructive/30 rounded-xl p-6">
+        {/* Recovery Opportunity Banner */}
+        <div className="mb-8 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 rounded-xl p-6">
           <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 rounded-full bg-destructive/20 animate-pulse">
-              <AlertTriangle className="h-8 w-8 text-destructive" />
+            <div className="p-3 rounded-full bg-green-100">
+              <TrendingUp className="h-8 w-8 text-green-600" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-destructive">FINANCIAL EMERGENCY IN PROGRESS</h2>
-              <p className="text-destructive/80 text-lg">
-                {UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} recovery protocol activated
+              <h2 className="text-2xl font-bold text-green-800">Revenue Recovery Opportunity</h2>
+              <p className="text-green-700 text-lg">
+                {UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} annual recovery potential identified
               </p>
             </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-lg">
-              <Clock className="h-4 w-4 text-destructive" />
+            <div className="flex items-center gap-2 p-3 bg-green-100 rounded-lg">
+              <CheckCircle className="h-4 w-4 text-green-600" />
               <div>
-                <span className="font-medium text-destructive">Bleeding Rate:</span>
-                <div className="text-destructive/80">{UnifiedResultsService.formatCurrency(dailyLoss)}/day</div>
+                <span className="font-medium text-green-800">Daily Potential:</span>
+                <div className="text-green-700">{UnifiedResultsService.formatCurrency(dailyRecovery)}/day</div>
               </div>
             </div>
-            <div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-lg">
-              <Zap className="h-4 w-4 text-destructive" />
+            <div className="flex items-center gap-2 p-3 bg-blue-100 rounded-lg">
+              <Target className="h-4 w-4 text-blue-600" />
               <div>
-                <span className="font-medium text-destructive">Weekly Loss:</span>
-                <div className="text-destructive/80">{UnifiedResultsService.formatCurrency(weeklyLoss)}</div>
+                <span className="font-medium text-blue-800">Monthly Goal:</span>
+                <div className="text-blue-700">{UnifiedResultsService.formatCurrency(monthlyRecovery)}</div>
               </div>
             </div>
-            <div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-lg">
-              <Activity className="h-4 w-4 text-destructive" />
+            <div className="flex items-center gap-2 p-3 bg-amber-100 rounded-lg">
+              <Activity className="h-4 w-4 text-amber-600" />
               <div>
-                <span className="font-medium text-destructive">Crisis Status:</span>
-                <div className="text-destructive/80">IMMEDIATE ACTION REQUIRED</div>
+                <span className="font-medium text-amber-800">Status:</span>
+                <div className="text-amber-700">Ready to Implement</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Emergency CTA Section */}
+        {/* Strategic CTA Section */}
         <ContentSection 
-          title="🚨 STOP THE BLEEDING NOW"
-          badge={`${UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} Emergency Recovery`}
-          badgeVariant="destructive"
-          priority="high"
-          className="mb-8 border-destructive/20"
+          title="🎯 Your Strategic Recovery Plan"
+          badge={`${UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} Recovery Opportunity`}
+          badgeVariant="outline"
+          priority="normal"
+          className="mb-8 border-green-200 bg-green-50/30"
         >
           <div className="text-center">
-            <p className="text-lg text-destructive/80 mb-6">
-              Your business is hemorrhaging {UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} 
-              annually. Every moment of delay costs {UnifiedResultsService.formatCurrency(dailyLoss)} per day.
+            <p className="text-lg text-muted-foreground mb-6">
+              We've identified {UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} 
+              in annual recovery potential. Here's your step-by-step implementation plan to capture this opportunity.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -346,29 +345,29 @@ export default function ActionPlan() {
                   recovery: submissionData.conservativeRecovery,
                   formatCurrency: UnifiedResultsService.formatCurrency
                 }}
-                onPrimaryAction={handleStopBleeding}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onPrimaryAction={handleGetStarted}
+                className="bg-gradient-to-r from-green-600 to-blue-600 hover:opacity-90"
               />
               <UnifiedCTA
                 variant="secondary"
                 context="action-plan"
-                onSecondaryAction={handleExportProtocol}
-                className="border-destructive/20 text-destructive hover:bg-destructive/10"
+                onSecondaryAction={handleExportPlan}
+                className="border-green-300 text-green-700 hover:bg-green-50"
               />
             </div>
           </div>
         </ContentSection>
 
-        {/* Crisis Protocol Tabs */}
+        {/* Professional Action Plan Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-destructive/5 border-2 border-destructive/20">
+          <TabsList className="grid w-full grid-cols-5 bg-muted/50">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <TabsTrigger 
                   key={tab.id} 
                   value={tab.id} 
-                  className="flex items-center gap-2 data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground"
+                  className="flex items-center gap-2 data-[state=active]:bg-green-100 data-[state=active]:text-green-800"
                 >
                   <Icon className="h-4 w-4" />
                   <span className="hidden sm:inline">{tab.label}</span>
@@ -377,16 +376,74 @@ export default function ActionPlan() {
             })}
           </TabsList>
 
-          <TabsContent value="emergency">
+          <TabsContent value="overview">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-green-800">
+                  <Target className="h-5 w-5" />
+                  Recovery Overview
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-lg">Key Opportunities</h3>
+                    <div className="space-y-3">
+                      <div className="p-3 border border-green-200 rounded-lg bg-green-50">
+                        <div className="font-medium text-green-800">Lead Response Optimization</div>
+                        <div className="text-sm text-green-700">{UnifiedResultsService.formatCurrency(submissionData.leadResponseLoss)} potential</div>
+                      </div>
+                      <div className="p-3 border border-blue-200 rounded-lg bg-blue-50">
+                        <div className="font-medium text-blue-800">Self-Serve Improvements</div>
+                        <div className="text-sm text-blue-700">{UnifiedResultsService.formatCurrency(submissionData.selfServeGap)} potential</div>
+                      </div>
+                      <div className="p-3 border border-amber-200 rounded-lg bg-amber-50">
+                        <div className="font-medium text-amber-800">Process Automation</div>
+                        <div className="text-sm text-amber-700">{UnifiedResultsService.formatCurrency(submissionData.processInefficiency)} potential</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-lg">Implementation Roadmap</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-sm font-medium text-green-600">1</div>
+                        <div>
+                          <div className="font-medium">Quick Wins (Weeks 1-4)</div>
+                          <div className="text-sm text-muted-foreground">Immediate impact opportunities</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-medium text-blue-600">2</div>
+                        <div>
+                          <div className="font-medium">Core Improvements (Months 2-3)</div>
+                          <div className="text-sm text-muted-foreground">System optimizations</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-sm font-medium text-amber-600">3</div>
+                        <div>
+                          <div className="font-medium">Advanced Features (Months 4-6)</div>
+                          <div className="text-sm text-muted-foreground">Long-term strategic gains</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="priorities">
             <PriorityActions 
               submission={submissionData as any}
               formatCurrency={UnifiedResultsService.formatCurrency}
               calculatorData={submissionData}
-              variant="competitive"
+              variant="professional"
             />
           </TabsContent>
 
-          <TabsContent value="bleeding">
+          <TabsContent value="timeline">
             <ActionPlanTimeline
               phases={timeline}
               totalRecovery={submissionData.conservativeRecovery}
@@ -397,16 +454,7 @@ export default function ActionPlan() {
             />
           </TabsContent>
 
-          <TabsContent value="stabilization">
-            <ImplementationRoadmap
-              phases={timeline}
-              totalRecovery={submissionData.conservativeRecovery}
-              totalInvestment={investment?.implementationCost || 0}
-              formatCurrency={UnifiedResultsService.formatCurrency}
-            />
-          </TabsContent>
-
-          <TabsContent value="recovery">
+          <TabsContent value="scenarios">
             <ActionPlanScenarioPlanning
               baseRecovery={submissionData.conservativeRecovery}
               baseInvestment={investment?.implementationCost || 0}
@@ -414,44 +462,44 @@ export default function ActionPlan() {
             />
           </TabsContent>
 
-          <TabsContent value="monitoring">
+          <TabsContent value="summary">
             <ComprehensiveSummary
               submission={submissionData as any}
               formatCurrency={UnifiedResultsService.formatCurrency}
               onExpandSection={(sectionId) => {
                 const sectionToTabMap = {
-                  'timeline': 'bleeding',
-                  'priorities': 'emergency',
-                  'scenarios': 'recovery'
+                  'timeline': 'timeline',
+                  'priorities': 'priorities',
+                  'scenarios': 'scenarios'
                 };
-                const targetTab = sectionToTabMap[sectionId as keyof typeof sectionToTabMap] || 'emergency';
+                const targetTab = sectionToTabMap[sectionId as keyof typeof sectionToTabMap] || 'overview';
                 setActiveTab(targetTab);
               }}
             />
           </TabsContent>
         </Tabs>
 
-        {/* Emergency Footer */}
-        <div className="mt-8 bg-gradient-to-r from-destructive/10 to-destructive/5 rounded-xl border-2 border-destructive/20 p-6">
+        {/* Professional Success Footer */}
+        <div className="mt-8 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border-2 border-green-200 p-6">
           <div className="text-center">
-            <h3 className="text-xl font-bold text-destructive mb-2">
-              ⏰ TIME-SENSITIVE CRISIS
+            <h3 className="text-xl font-bold text-green-800 mb-2">
+              🎯 Ready to Capture This Revenue?
             </h3>
-            <p className="text-destructive/80 mb-4">
-              Revenue bleeding continues: {UnifiedResultsService.formatCurrency(dailyLoss)} lost daily
+            <p className="text-green-700 mb-4">
+              Your recovery potential: {UnifiedResultsService.formatCurrency(submissionData.conservativeRecovery)} annually
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button 
-                onClick={handleStopBleeding}
-                className="px-6 py-3 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 font-medium"
+                onClick={handleGetStarted}
+                className="px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:opacity-90 font-medium shadow-md hover:shadow-lg transition-all"
               >
-                🚨 EMERGENCY CONSULTATION
+                💚 Start Implementation
               </button>
               <button 
-                onClick={handleExportProtocol}
-                className="px-6 py-3 border-2 border-destructive/20 text-destructive rounded-lg hover:bg-destructive/10 font-medium"
+                onClick={handleExportPlan}
+                className="px-6 py-3 border-2 border-green-300 text-green-700 rounded-lg hover:bg-green-50 font-medium transition-all"
               >
-                📋 EXPORT CRISIS PROTOCOL
+                📋 Export Full Plan
               </button>
             </div>
           </div>
