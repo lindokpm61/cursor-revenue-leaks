@@ -101,7 +101,7 @@ const Dashboard = () => {
     
     try {
       setProfileLoading(true);
-      const profile = await userProfileService.getByUserId(user.id);
+      const profile = await userProfileService.getById(user.id);
       setUserProfile(profile);
     } catch (error) {
       console.error('Error loading user profile:', error);
