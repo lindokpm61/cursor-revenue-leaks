@@ -196,7 +196,7 @@ const Results = () => {
   const handleBookCall = () => {
     console.log('Book strategy call clicked from Results page');
     // Updated to use a proper Calendly URL - replace with your actual Calendly link
-    window.open('https://calendly.com/revenuecalculator/strategy-session', '_blank');
+    window.open('https://cal.com/rev-calculator/revenuecalculator-strategy-session', '_blank');
     
     toast({
       title: "Strategic Consultation Booking",

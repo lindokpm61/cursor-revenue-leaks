@@ -88,7 +88,7 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
 
   const handleBookConsultation = () => {
     console.log('Book consultation clicked');
-    window.open('https://calendly.com/revenuecalculator/strategy-session', '_blank');
+    window.open('https://cal.com/rev-calculator/revenuecalculator-strategy-session', '_blank');
     
     toast({
       title: "Strategic Consultation Booking",

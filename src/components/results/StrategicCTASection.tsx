@@ -36,8 +36,7 @@ export const StrategicCTASection = ({
 
   const handleBookConsultation = () => {
     console.log('Book strategy consultation clicked');
-    // Updated to use a proper Calendly URL - replace with your actual Calendly link
-    window.open('https://calendly.com/revenuecalculator/strategy-session', '_blank');
+    window.open('https://cal.com/rev-calculator/revenuecalculator-strategy-session', '_blank');
   };
 
   return (
