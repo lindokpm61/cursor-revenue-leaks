@@ -272,130 +272,112 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
                         ))}
                       </ul>
                       
-                      {/* Premium Content Blur */}
+                      {/* Show additional actions without CTA */}
                       {phase.actions.length > 2 && (
-                        <div className="relative mt-2">
-                          <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 blur-sm opacity-50">
+                        <div className="mt-2">
+                          <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 opacity-60">
                             {phase.actions.slice(2).map((action, actionIndex) => (
                               <li key={actionIndex + 2} className="text-small text-muted-foreground">
                                 • {action.title} ({action.weeks}w, {action.owner})
                               </li>
                             ))}
                           </ul>
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                              Unlock {phase.actions.length - 2} More Actions
-                            </Button>
-                          </div>
+                          <p className="text-xs text-muted-foreground mt-2 italic">
+                            +{phase.actions.length - 2} additional detailed actions available
+                          </p>
                         </div>
                       )}
                     </div>
                   </div>
                 ))}
                 
-                {/* Additional Phases - Blurred */}
+                {/* Additional Phases - Show without heavy blur overlay */}
                 {timeline.length > 1 && (
-                  <div className="relative">
-                    <div className="space-y-4 blur-sm opacity-60">
-                      {timeline.slice(1).map((phase, index) => (
-                        <div key={phase.id} className="border rounded-lg p-4 bg-muted/30">
-                          <div className="h-6 bg-muted rounded mb-3"></div>
-                          <div className="h-4 bg-muted/70 rounded w-3/4 mb-2"></div>
-                          <div className="h-3 bg-muted/50 rounded w-1/2"></div>
+                  <div className="space-y-4">
+                    {timeline.slice(1).map((phase, index) => (
+                      <div key={phase.id} className="border rounded-lg p-4 bg-muted/20 opacity-70">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-small font-medium text-muted-foreground">
+                            {index + 2}
+                          </div>
+                          <h5 className="text-h3 text-muted-foreground">{phase.title}</h5>
+                          <Badge className="bg-muted text-muted-foreground border-muted">
+                            {phase.difficulty}
+                          </Badge>
                         </div>
-                      ))}
-                    </div>
-                    
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="bg-background/95 backdrop-blur-sm border border-primary/20 rounded-lg p-6 shadow-lg text-center max-w-md">
-                        <h3 className="text-lg font-semibold text-foreground mb-2">🚀 Complete Growth Strategy</h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Unlock {timeline.length - 1} additional optimization phases with detailed implementation guides and resource planning.
+                        <p className="text-body text-muted-foreground/70 mb-2">{phase.description}</p>
+                        <div className="flex items-center gap-4 text-small text-muted-foreground/70">
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            Months {phase.startMonth}-{phase.endMonth}
+                          </span>
+                          <span className="font-medium">
+                            {UnifiedResultsService.formatCurrency(phase.recoveryPotential)} growth potential
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2 italic">
+                          {phase.actions.length} detailed implementation actions available
                         </p>
-                        <div className="flex gap-2 justify-center">
-                          <Button className="bg-gradient-to-r from-primary to-primary-accent text-primary-foreground hover:from-primary/90 hover:to-primary-accent/90">
-                            Unlock Full Strategy
-                          </Button>
-                          <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-                            Schedule Demo
-                          </Button>
-                        </div>
                       </div>
+                    ))}
+                    
+                    <div className="text-center p-4 bg-primary/5 rounded-lg border border-primary/20">
+                      <p className="text-sm text-muted-foreground">
+                        Complete strategy includes {timeline.length - 1} additional optimization phases
+                      </p>
                     </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Investment ROI Summary with Blur */}
+            {/* Investment ROI Summary - Clean display without overlay */}
             {timeline.length > 0 && (() => {
               const currentARR = data?.calculator_data?.companyInfo?.currentARR || 0;
               const investment = calculateSimpleInvestment(timeline, currentARR);
               const totalRecovery = timeline.reduce((sum, phase) => sum + phase.recoveryPotential, 0);
               
               return (
-                <div className="relative">
-                  <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="h-4 w-4 text-green-600" />
-                      <span className="text-h3 text-green-800">🚀 Growth ROI Summary</span>
+                <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <span className="text-h3 text-green-800">🚀 Growth ROI Summary</span>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-small">
+                    <div>
+                      <div className="text-h3 text-gray-800">Total Investment</div>
+                      <div className="text-body text-gray-600">{UnifiedResultsService.formatCurrency(investment.implementationCost)}</div>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-small">
-                      <div>
-                        <div className="text-h3 text-gray-800">Total Investment</div>
-                        <div className="text-body text-gray-600">{UnifiedResultsService.formatCurrency(investment.implementationCost)}</div>
-                      </div>
-                      <div>
-                        <div className="text-h3 text-gray-800">Annual Growth</div>
-                        <div className="text-body text-green-600">{UnifiedResultsService.formatCurrency(totalRecovery)}</div>
-                      </div>
-                      <div className="blur-sm">
-                        <div className="text-h3 text-gray-800">Payback Period</div>
-                        <div className="text-body text-gray-600">{investment.paybackMonths} months</div>
-                      </div>
-                      <div className="blur-sm">
-                        <div className="text-h3 text-gray-800">Year 1 ROI</div>
-                        <div className="text-body text-green-600">
-                          {Math.round(((totalRecovery - investment.totalAnnualInvestment) / investment.totalAnnualInvestment) * 100)}%
-                        </div>
+                    <div>
+                      <div className="text-h3 text-gray-800">Annual Growth</div>
+                      <div className="text-body text-green-600">{UnifiedResultsService.formatCurrency(totalRecovery)}</div>
+                    </div>
+                    <div className="opacity-60">
+                      <div className="text-h3 text-gray-800">Payback Period</div>
+                      <div className="text-body text-gray-600">{investment.paybackMonths} months</div>
+                    </div>
+                    <div className="opacity-60">
+                      <div className="text-h3 text-gray-800">Year 1 ROI</div>
+                      <div className="text-body text-green-600">
+                        {Math.round(((totalRecovery - investment.totalAnnualInvestment) / investment.totalAnnualInvestment) * 100)}%
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Premium ROI CTA Overlay */}
-                  <div className="absolute top-1/2 right-4 transform -translate-y-1/2">
-                    <div className="bg-background/95 backdrop-blur-sm border border-primary/20 rounded-lg p-4 shadow-lg text-center">
-                      <p className="text-sm font-medium text-foreground mb-2">See Complete ROI Analysis</p>
-                      <Button size="sm" className="bg-gradient-to-r from-primary to-primary-accent text-primary-foreground">
-                        Unlock Full Metrics
-                      </Button>
-                    </div>
-                  </div>
+                  <p className="text-xs text-muted-foreground mt-2 text-center">
+                    Complete ROI analysis available with detailed metrics
+                  </p>
                 </div>
               );
             })()}
 
-            {/* Implementation Notes with CTA */}
-            <div className="p-4 bg-gradient-to-r from-primary/10 via-primary-accent/10 to-primary/10 border border-primary/20 rounded-lg">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div>
-                  <h6 className="text-h3 text-foreground mb-2">🎯 Ready to Execute Your Growth Plan?</h6>
-                  <ul className="text-small text-muted-foreground space-y-1">
-                    <li>• High growth potential detected - prioritize quick wins first</li>
-                    <li>• Phased approach recommended for sustainable growth</li>
-                    <li>• Monitor KPIs closely during optimization</li>
-                  </ul>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Button className="bg-gradient-to-r from-primary to-primary-accent text-primary-foreground hover:from-primary/90 hover:to-primary-accent/90">
-                    <Download className="h-4 w-4 mr-2" />
-                    Get Full Strategy
-                  </Button>
-                  <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-                    Expert Consultation
-                  </Button>
-                </div>
-              </div>
+            {/* Simple Implementation Note - No CTA */}
+            <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+              <h6 className="text-h3 text-foreground mb-2">📋 Implementation Notes</h6>
+              <ul className="text-small text-muted-foreground space-y-1">
+                <li>• High growth potential detected - prioritize quick wins first</li>
+                <li>• Phased approach recommended for sustainable growth</li>
+                <li>• Monitor KPIs closely during optimization</li>
+              </ul>
             </div>
           </div>
         ) : (

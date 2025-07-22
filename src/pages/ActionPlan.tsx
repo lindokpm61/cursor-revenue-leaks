@@ -319,118 +319,45 @@ const ActionPlan = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <div className="relative">
-              <ActionPlanComponent 
-                calculations={calculations} 
-                data={transformedData}
-              />
-              
-              {/* Strategic CTA Banner */}
-              <div className="mt-6 p-6 bg-gradient-to-r from-primary/10 via-primary-accent/10 to-primary/10 border border-primary/20 rounded-lg">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div className="text-center md:text-left">
-                    <h3 className="text-lg font-semibold text-foreground mb-1">🎯 Ready to Execute Your Growth Plan?</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Get personalized implementation support and accelerate your revenue optimization journey.
-                    </p>
-                  </div>
-                  <div className="flex gap-3">
-                    <Button className="bg-gradient-to-r from-primary to-primary-accent text-primary-foreground hover:from-primary/90 hover:to-primary-accent/90 shadow-lg">
-                      Start Implementation
-                    </Button>
-                    <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-                      Expert Consultation
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ActionPlanComponent 
+              calculations={calculations} 
+              data={transformedData}
+            />
           </TabsContent>
 
           <TabsContent value="timeline" className="space-y-6">
-            <div className="relative">
-              <ActionPlanTimeline
-                phases={timeline}
-                totalRecovery={unifiedResults.conservativeRecovery}
-                totalInvestment={investment.implementationCost}
-                paybackMonths={investment.paybackMonths}
-                formatCurrency={UnifiedResultsService.formatCurrency}
-                confidenceLevel="medium"
-              />
-              
-              {/* Premium Content Blur Overlay */}
-              <div className="absolute inset-0 top-1/2 bg-gradient-to-t from-background/95 via-background/80 to-transparent backdrop-blur-sm rounded-lg">
-                <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center">
-                  <div className="bg-background/95 backdrop-blur-sm border border-primary/20 rounded-lg p-6 shadow-lg max-w-md">
-                    <h3 className="text-lg font-semibold text-foreground mb-2">🚀 Unlock Complete Timeline</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Get detailed implementation steps, resource planning, and milestone tracking for your complete growth strategy.
-                    </p>
-                    <div className="flex gap-2">
-                      <Button className="bg-gradient-to-r from-primary to-primary-accent text-primary-foreground hover:from-primary/90 hover:to-primary-accent/90">
-                        Unlock Full Plan
-                      </Button>
-                      <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-                        Schedule Demo
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ActionPlanTimeline
+              phases={timeline}
+              totalRecovery={unifiedResults.conservativeRecovery}
+              totalInvestment={investment.implementationCost}
+              paybackMonths={investment.paybackMonths}
+              formatCurrency={UnifiedResultsService.formatCurrency}
+              confidenceLevel="medium"
+            />
           </TabsContent>
 
           <TabsContent value="scenarios" className="space-y-6">
-            <div className="relative">
-              <ActionPlanScenarioPlanning
-                baseRecovery={unifiedResults.conservativeRecovery}
-                baseInvestment={investment.implementationCost}
-                formatCurrency={UnifiedResultsService.formatCurrency}
-              />
-              
-              {/* Premium Scenario Planning Overlay */}
-              <div className="absolute inset-0 top-2/3 bg-gradient-to-t from-background/95 via-background/70 to-transparent backdrop-blur-sm rounded-lg">
-                <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center">
-                  <div className="bg-background/95 backdrop-blur-sm border border-primary/20 rounded-lg p-6 shadow-lg max-w-lg">
-                    <h3 className="text-lg font-semibold text-foreground mb-2">📊 Advanced Scenario Modeling</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Access Monte Carlo simulations, sensitivity analysis, and custom scenario building tools to optimize your growth strategy.
-                    </p>
-                    <div className="flex gap-2 justify-center">
-                      <Button className="bg-gradient-to-r from-primary to-primary-accent text-primary-foreground hover:from-primary/90 hover:to-primary-accent/90">
-                        Unlock Advanced Tools
-                      </Button>
-                      <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-                        Book Strategy Session
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ActionPlanScenarioPlanning
+              baseRecovery={unifiedResults.conservativeRecovery}
+              baseInvestment={investment.implementationCost}
+              formatCurrency={UnifiedResultsService.formatCurrency}
+            />
           </TabsContent>
         </Tabs>
 
-        {/* Footer Actions */}
+        {/* Single Strategic Footer CTA */}
         <div className="mt-12 pt-8 border-t border-border">
-          <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
-            <div>
-              <h3 className="text-h3 text-foreground mb-1">Ready to Accelerate Growth?</h3>
-              <p className="text-small text-muted-foreground">
-                Our team can help you execute this optimization plan and maximize your revenue potential.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" asChild className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-                <Link to="/contact">
-                  <Target className="h-4 w-4 mr-2" />
-                  Schedule Strategy Call
-                </Link>
+          <div className="text-center p-6 bg-gradient-to-r from-primary/10 via-primary-accent/10 to-primary/10 border border-primary/20 rounded-lg">
+            <h3 className="text-h2 text-foreground mb-2">Ready to Accelerate Growth?</h3>
+            <p className="text-body text-muted-foreground mb-6 max-w-2xl mx-auto">
+              Transform this strategic analysis into results. Get expert implementation support and unlock your complete growth potential.
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Button className="bg-gradient-to-r from-primary to-primary-accent text-primary-foreground hover:from-primary/90 hover:to-primary-accent/90 px-8 py-3">
+                Get Complete Strategy
               </Button>
-              <Button asChild className="bg-gradient-to-r from-primary to-primary-accent text-primary-foreground hover:from-primary/90 hover:to-primary-accent/90">
-                <Link to={`/results/${id}`}>
-                  View Full Analysis
-                </Link>
+              <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-3">
+                Schedule Strategy Call
               </Button>
             </div>
           </div>
