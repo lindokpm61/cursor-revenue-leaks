@@ -634,6 +634,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      is_admin_user: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_email_unsubscribed: {
         Args: { email_address: string }
         Returns: boolean
