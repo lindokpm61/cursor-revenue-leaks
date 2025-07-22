@@ -424,64 +424,84 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
                 </div>
               </div>
 
-              {/* Implementation Phases */}
-              <div>
-                <h3 className="text-lg font-semibold mb-6 text-primary">🎯 Strategic Implementation Phases</h3>
-                {phases.length === 0 ? (
-                  <div className="p-6 text-center bg-muted/30 rounded-lg">
-                    <AlertTriangle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-muted-foreground">
-                      No significant optimization opportunities identified at current thresholds.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {phases.map((phase, index) => (
-                      <Card key={phase.id} className="border-border/30">
-                        <CardContent className="p-4 sm:p-6">
-                          <div className="space-y-4">
-                            <div className="flex items-start gap-3 sm:gap-4">
-                              <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 text-primary font-bold text-lg flex-shrink-0">
-                                {index + 1}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                                  <h4 className="text-lg sm:text-xl font-semibold leading-tight">{phase.title}</h4>
-                                  <Badge className={getDifficultyColor(phase.difficulty)}>
-                                    {phase.difficulty}
-                                  </Badge>
+              {/* Implementation Phases with Strategic Blur Overlay */}
+              <div className="relative min-h-[600px]">
+                <div>
+                  <h3 className="text-lg font-semibold mb-6 text-primary">🎯 Strategic Implementation Phases</h3>
+                  {phases.length === 0 ? (
+                    <div className="p-6 text-center bg-muted/30 rounded-lg">
+                      <AlertTriangle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-muted-foreground">
+                        No significant optimization opportunities identified at current thresholds.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {phases.map((phase, index) => (
+                        <Card key={phase.id} className="border-border/30">
+                          <CardContent className="p-4 sm:p-6">
+                            <div className="space-y-4">
+                              <div className="flex items-start gap-3 sm:gap-4">
+                                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 text-primary font-bold text-lg flex-shrink-0">
+                                  {index + 1}
                                 </div>
-                                <p className="text-sm text-muted-foreground mb-1">Month {phase.startMonth}-{phase.endMonth}</p>
-                                <p className="text-sm text-muted-foreground leading-relaxed">{phase.description}</p>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                                    <h4 className="text-lg sm:text-xl font-semibold leading-tight">{phase.title}</h4>
+                                    <Badge className={getDifficultyColor(phase.difficulty)}>
+                                      {phase.difficulty}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground mb-1">Month {phase.startMonth}-{phase.endMonth}</p>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">{phase.description}</p>
+                                </div>
+                              </div>
+                              
+                              <div className="bg-primary/5 rounded-lg p-3 border border-primary/10">
+                                <div className="text-center sm:text-left">
+                                  <div className="text-xl sm:text-2xl font-bold text-revenue-primary mb-1">
+                                    {formatCurrency(phase.recoveryPotential)}
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">Recovery Potential</p>
+                                </div>
                               </div>
                             </div>
-                            
-                            <div className="bg-primary/5 rounded-lg p-3 border border-primary/10">
-                              <div className="text-center sm:text-left">
-                                <div className="text-xl sm:text-2xl font-bold text-revenue-primary mb-1">
-                                  {formatCurrency(phase.recoveryPotential)}
-                                </div>
-                                <p className="text-sm text-muted-foreground">Recovery Potential</p>
-                              </div>
-                            </div>
-                          </div>
 
-                          <div className="mt-4">
-                            <h5 className="font-medium mb-3">Key Actions:</h5>
-                            <ul className="space-y-2">
-                              {phase.actions.map((action, actionIndex) => (
-                                <li key={actionIndex} className="flex items-center gap-2 text-sm">
-                                  <CheckCircle className="h-4 w-4 text-revenue-success" />
-                                  {action.title}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                            <div className="mt-4">
+                              <h5 className="font-medium mb-3">Key Actions:</h5>
+                              <ul className="space-y-2">
+                                {phase.actions.map((action, actionIndex) => (
+                                  <li key={actionIndex} className="flex items-center gap-2 text-sm">
+                                    <CheckCircle className="h-4 w-4 text-revenue-success" />
+                                    {action.title}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Strategic Implementation Plan Overlay */}
+                <div className="absolute inset-0 bg-background/90 backdrop-blur-md rounded-lg flex items-center justify-center z-10 border border-border/50">
+                  <div className="text-center p-8 max-w-lg mx-auto">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Target className="w-8 h-8 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-primary mb-2">
+                      Complete Implementation Strategy Available
+                    </h3>
+                    <p className="text-muted-foreground mb-6">
+                      Access your detailed strategic roadmap with phase-by-phase execution plans, resource requirements, and success metrics.
+                    </p>
+                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                      Get Complete Strategy
+                    </Button>
                   </div>
-                )}
+                </div>
               </div>
 
               {/* Milestones with Strategic Blur Overlay */}
