@@ -11,6 +11,8 @@ import { SaveResultsRegistrationModal } from "./SaveResultsRegistrationModal";
 import { validateRecoveryAssumptions, type ConfidenceFactors } from '@/lib/calculator/enhancedCalculations';
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
+import { ProgressIndicator } from "@/components/ui/progress-indicator";
 
 interface ResultsStepProps {
   data: CalculatorData;
@@ -23,6 +25,7 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
   const { 
     handleSave, 
     saving, 
+    saveProgress,
     showRegistrationModal, 
     pendingData, 
     handleRegistrationSuccess, 
@@ -153,111 +156,127 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
         </div>
       </div>
       
-      {/* Strategic Action CTA */}
-      <div className="bg-gradient-to-r from-primary/20 via-revenue-growth/15 to-primary/20 border-2 border-primary/30 rounded-xl p-8 text-center space-y-6">
-        <div className="space-y-4">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Target className="h-8 w-8 text-primary" />
-            <h3 className="text-h1 font-bold text-primary">
-              STRATEGIC REVENUE OPTIMIZATION PLAN
-            </h3>
-          </div>
-          <div className="text-h2 font-bold text-primary mb-2">
-            {formatCurrency(calculations.totalLeakage)} Annual Growth Opportunity
-          </div>
-          <p className="text-body text-primary/90 max-w-2xl mx-auto font-medium">
-            {isSaved 
-              ? "📊 Strategic analysis saved! Book a consultation to implement these optimization strategies and unlock substantial revenue growth."
-              : "💰 Your business has significant revenue optimization potential. Book a strategy session to discuss implementation and unlock substantial growth opportunities."
-            }
-          </p>
-          
-          {isSaved && (
-            <div className="flex items-center justify-center gap-2 text-revenue-success">
-              <CheckCircle className="h-5 w-5" />
-              <span className="font-medium">Strategic Analysis Saved to Dashboard</span>
+      {/* Strategic Action CTA with Loading States */}
+      <LoadingOverlay 
+        isLoading={saving} 
+        progress={saveProgress}
+        text="Saving strategic analysis to your dashboard..."
+      >
+        <div className="bg-gradient-to-r from-primary/20 via-revenue-growth/15 to-primary/20 border-2 border-primary/30 rounded-xl p-8 text-center space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Target className="h-8 w-8 text-primary" />
+              <h3 className="text-h1 font-bold text-primary">
+                STRATEGIC REVENUE OPTIMIZATION PLAN
+              </h3>
             </div>
-          )}
-        </div>
-        
-        <div className="space-y-4">
-          <Button
-            onClick={handleBookConsultation}
-            size="lg"
-            className="bg-gradient-to-r from-primary to-revenue-growth text-white font-bold px-8 py-4 h-14 text-lg shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto"
-          >
-            <Calendar className="h-5 w-5 mr-3" />
-            🚀 BOOK STRATEGY CONSULTATION - Free 30min Session
-          </Button>
-          
-          <p className="text-xs text-primary font-bold">
-            ↑ BOOK NOW: Strategic consultation available - Speak with revenue optimization specialist
-          </p>
-        </div>
+            <div className="text-h2 font-bold text-primary mb-2">
+              {formatCurrency(calculations.totalLeakage)} Annual Growth Opportunity
+            </div>
+            <p className="text-body text-primary/90 max-w-2xl mx-auto font-medium">
+              {isSaved 
+                ? "📊 Strategic analysis saved! Book a consultation to implement these optimization strategies and unlock substantial revenue growth."
+                : "💰 Your business has significant revenue optimization potential. Book a strategy session to discuss implementation and unlock substantial growth opportunities."
+              }
+            </p>
+            
+            {isSaved && (
+              <div className="flex items-center justify-center gap-2 text-revenue-success">
+                <CheckCircle className="h-5 w-5" />
+                <span className="font-medium">Strategic Analysis Saved to Dashboard</span>
+              </div>
+            )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
-          {isSaved ? (
-            <Button
-              onClick={navigateToDashboard}
-              variant="outline"
-              size="lg"
-              className="hover:bg-primary hover:text-primary-foreground border-primary text-primary"
-            >
-              <LayoutDashboard className="h-4 w-4 mr-2" />
-              View Strategic Dashboard
-            </Button>
-          ) : (
-            <Button
-              onClick={handleSaveClick}
-              disabled={saving}
-              variant="outline"
-              size="lg"
-              className="hover:bg-primary hover:text-primary-foreground border-primary text-primary disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving Strategic Analysis...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  {user ? "Save Strategic Analysis" : "Create Account to Save Analysis"}
-                </>
-              )}
-            </Button>
-          )}
+            {saving && saveProgress !== undefined && (
+              <div className="max-w-md mx-auto">
+                <ProgressIndicator 
+                  progress={saveProgress} 
+                  text="Securing your strategic analysis..."
+                />
+              </div>
+            )}
+          </div>
           
-          <Button
-            onClick={handleShareAnalysis}
-            variant="outline"
-            size="lg"
-            className="hover:bg-revenue-growth hover:text-white border-revenue-growth text-revenue-growth"
-          >
-            <Share2 className="h-4 w-4 mr-2" />
-            Share Strategic Analysis
-          </Button>
-
-          {isSaved && (
+          <div className="space-y-4">
             <Button
               onClick={handleBookConsultation}
+              size="lg"
+              className="bg-gradient-to-r from-primary to-revenue-growth text-white font-bold px-8 py-4 h-14 text-lg shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto"
+            >
+              <Calendar className="h-5 w-5 mr-3" />
+              🚀 BOOK STRATEGY CONSULTATION - Free 30min Session
+            </Button>
+            
+            <p className="text-xs text-primary font-bold">
+              ↑ BOOK NOW: Strategic consultation available - Speak with revenue optimization specialist
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+            {isSaved ? (
+              <Button
+                onClick={navigateToDashboard}
+                variant="outline"
+                size="lg"
+                className="hover:bg-primary hover:text-primary-foreground border-primary text-primary"
+              >
+                <LayoutDashboard className="h-4 w-4 mr-2" />
+                View Strategic Dashboard
+              </Button>
+            ) : (
+              <Button
+                onClick={handleSaveClick}
+                disabled={saving}
+                variant="outline"
+                size="lg"
+                className="hover:bg-primary hover:text-primary-foreground border-primary text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving Strategic Analysis...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    {user ? "Save Strategic Analysis" : "Create Account to Save Analysis"}
+                  </>
+                )}
+              </Button>
+            )}
+            
+            <Button
+              onClick={handleShareAnalysis}
               variant="outline"
               size="lg"
-              className="hover:bg-primary hover:text-white border-primary text-primary"
+              className="hover:bg-revenue-growth hover:text-white border-revenue-growth text-revenue-growth"
+              disabled={saving}
             >
-              <Calendar className="h-4 w-4 mr-2" />
-              Strategy Consultation
+              <Share2 className="h-4 w-4 mr-2" />
+              Share Strategic Analysis
             </Button>
-          )}
+
+            {isSaved && (
+              <Button
+                onClick={handleBookConsultation}
+                variant="outline"
+                size="lg"
+                className="hover:bg-primary hover:text-white border-primary text-primary"
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                Strategy Consultation
+              </Button>
+            )}
+          </div>
+          
+          <p className="text-xs text-muted-foreground">
+            {isSaved 
+              ? "Strategic analysis secured • Share with team • Book optimization consultation"
+              : "No verification required • Instant strategic access • 100% confidential revenue assessment"
+            }
+          </p>
         </div>
-        
-        <p className="text-xs text-muted-foreground">
-          {isSaved 
-            ? "Strategic analysis secured • Share with team • Book optimization consultation"
-            : "No verification required • Instant strategic access • 100% confidential revenue assessment"
-          }
-        </p>
-      </div>
+      </LoadingOverlay>
       
       {/* Full Results - Always Visible */}
       <RevenueCharts 

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,12 +31,15 @@ import { AnalysisBreadcrumb } from "@/components/navigation/AnalysisBreadcrumb";
 import { AnalysisProgress } from "@/components/navigation/AnalysisProgress";
 import { ExecutiveFirstSummary } from "@/components/results/ExecutiveFirstSummary";
 import { MobileNavigationMenu } from "@/components/navigation/MobileNavigationMenu";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const CleanResults = () => {
   const { id } = useParams<{ id: string }>();
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<string>("overview");
+  const [sectionsLoading, setSectionsLoading] = useState<Record<string, boolean>>({});
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -68,11 +72,8 @@ const CleanResults = () => {
         throw new Error(`Access denied. Submission belongs to user ${data.user_id}, current user is ${user?.id}`);
       }
 
-      // DEBUG: Log raw submission data
       console.log('=== RAW SUBMISSION DATA ===');
       console.log('Raw submission from database:', data);
-      console.log('Legacy total_leak from DB:', data.total_leak);
-      console.log('Legacy recovery_potential_70 from DB:', data.recovery_potential_70);
 
       setSubmission(data);
     } catch (error) {
@@ -84,6 +85,22 @@ const CleanResults = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSectionChange = async (sectionId: string) => {
+    // Add loading state for section transitions
+    setSectionsLoading(prev => ({ ...prev, [sectionId]: true }));
+    
+    // Simulate loading delay for section content
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    setActiveSection(sectionId);
+    setSectionsLoading(prev => ({ ...prev, [sectionId]: false }));
+    
+    const element = document.getElementById(`${sectionId}-section`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -102,11 +119,7 @@ const CleanResults = () => {
   };
 
   const handleQuickWins = () => {
-    setActiveSection('actions');
-    const element = document.getElementById('actions-section');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    handleSectionChange('actions');
   };
 
   const handleBookCall = () => {
@@ -115,10 +128,39 @@ const CleanResults = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Calculator className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-body text-muted-foreground">Loading your results...</p>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="space-y-6">
+            {/* Header skeleton */}
+            <div className="flex items-center justify-between">
+              <LoadingSkeleton className="h-8 w-48" />
+              <LoadingSkeleton className="h-10 w-32" />
+            </div>
+            
+            {/* Progress skeleton */}
+            <LoadingSkeleton className="h-4 w-full" />
+            
+            {/* Navigation skeleton */}
+            <div className="flex gap-2">
+              {[...Array(5)].map((_, i) => (
+                <LoadingSkeleton key={i} className="h-10 w-24" />
+              ))}
+            </div>
+            
+            {/* Content skeleton */}
+            <div className="space-y-4">
+              <LoadingSkeleton variant="chart" />
+              <LoadingSkeleton variant="text" lines={3} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <LoadingSkeleton className="h-32" />
+                <LoadingSkeleton className="h-32" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-center mt-8">
+            <LoadingSpinner size="lg" text="Loading your strategic analysis..." />
+          </div>
         </div>
       </div>
     );
@@ -165,26 +207,9 @@ const CleanResults = () => {
     created_at: submission.created_at
   };
 
-  // DEBUG: Log submission data transformation
-  console.log('=== SUBMISSION DATA TRANSFORMATION ===');
-  console.log('Transformed submissionData:', submissionData);
-
   // Calculate unified results
   const calculations = UnifiedResultsService.calculateResults(submissionData);
-  
-  // DEBUG: Log UnifiedResultsService calculations
-  console.log('=== UNIFIED RESULTS SERVICE CALCULATIONS ===');
-  console.log('UnifiedResultsService calculations:', calculations);
-  console.log('Total Loss from UnifiedService:', calculations.totalLoss);
-  console.log('Conservative Recovery from UnifiedService:', calculations.conservativeRecovery);
-  console.log('Optimistic Recovery from UnifiedService:', calculations.optimisticRecovery);
-  
   const formatCurrency = UnifiedResultsService.formatCurrency;
-
-  // DEBUG: Test formatCurrency function
-  console.log('=== FORMAT CURRENCY TEST ===');
-  console.log('formatCurrency(calculations.totalLoss):', formatCurrency(calculations.totalLoss));
-  console.log('formatCurrency(1230000):', formatCurrency(1230000));
 
   const sections = [
     { id: 'overview', label: 'Strategic Overview', icon: Target },
@@ -224,7 +249,7 @@ const CleanResults = () => {
             <MobileNavigationMenu
               sections={sections}
               activeSection={activeSection}
-              onSectionChange={setActiveSection}
+              onSectionChange={handleSectionChange}
               currentSectionLabel={currentSectionLabel}
             />
 
@@ -265,15 +290,22 @@ const CleanResults = () => {
             {sections.map((section) => {
               const Icon = section.icon;
               const isActive = activeSection === section.id;
+              const isLoading = sectionsLoading[section.id];
+              
               return (
                 <Button
                   key={section.id}
                   variant={isActive ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setActiveSection(section.id)}
+                  onClick={() => handleSectionChange(section.id)}
+                  disabled={isLoading}
                   className="flex items-center gap-2"
                 >
-                  <Icon className="h-4 w-4" />
+                  {isLoading ? (
+                    <LoadingSpinner size="sm" />
+                  ) : (
+                    <Icon className="h-4 w-4" />
+                  )}
                   <span>{section.label}</span>
                 </Button>
               );
@@ -281,56 +313,122 @@ const CleanResults = () => {
           </div>
         </div>
 
-        {/* Content Sections */}
+        {/* Content Sections with Loading States */}
         {activeSection === 'overview' && (
-          <UnifiedStrategicAnalysis
-            calculations={calculations}
-            companyName={submission.company_name}
-            formatCurrency={formatCurrency}
-            onGetActionPlan={handleGetActionPlan}
-            onQuickWins={() => setActiveSection('actions')}
-            onBookCall={() => window.open('https://cal.com/rev-calculator/revenuecalculator-strategy-session', '_blank')}
-          />
+          <div id="overview-section">
+            {sectionsLoading.overview ? (
+              <div className="space-y-6">
+                <LoadingSkeleton variant="chart" />
+                <LoadingSkeleton variant="text" lines={4} />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[...Array(3)].map((_, i) => (
+                    <LoadingSkeleton key={i} className="h-24" />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <UnifiedStrategicAnalysis
+                calculations={calculations}
+                companyName={submission.company_name}
+                formatCurrency={formatCurrency}
+                onGetActionPlan={handleGetActionPlan}
+                onQuickWins={handleQuickWins}
+                onBookCall={handleBookCall}
+              />
+            )}
+          </div>
         )}
 
         {activeSection === 'breakdown' && (
-          <UnifiedRevenueCharts
-            calculations={calculations}
-            formatCurrency={formatCurrency}
-          />
+          <div id="breakdown-section">
+            {sectionsLoading.breakdown ? (
+              <div className="space-y-6">
+                <LoadingSkeleton variant="chart" className="h-80" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[...Array(4)].map((_, i) => (
+                    <LoadingSkeleton key={i} className="h-32" />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <UnifiedRevenueCharts
+                calculations={calculations}
+                formatCurrency={formatCurrency}
+              />
+            )}
+          </div>
         )}
 
         {activeSection === 'benchmarking' && (
-          <IndustryBenchmarking 
-            submission={submission}
-            formatCurrency={formatCurrency}
-            calculations={calculations}
-          />
+          <div id="benchmarking-section">
+            {sectionsLoading.benchmarking ? (
+              <div className="space-y-6">
+                <LoadingSkeleton variant="text" lines={2} />
+                <LoadingSkeleton variant="chart" className="h-64" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <LoadingSkeleton className="h-40" />
+                  <LoadingSkeleton className="h-40" />
+                </div>
+              </div>
+            ) : (
+              <IndustryBenchmarking 
+                submission={submission}
+                formatCurrency={formatCurrency}
+                calculations={calculations}
+              />
+            )}
+          </div>
         )}
 
         {activeSection === 'actions' && (
           <div className="space-y-8" id="actions-section">
-            <PriorityActions 
-              submission={submission}
-              formatCurrency={formatCurrency}
-              calculations={calculations}
-            />
+            {sectionsLoading.actions ? (
+              <div className="space-y-4">
+                <LoadingSkeleton variant="text" lines={1} />
+                {[...Array(4)].map((_, i) => (
+                  <LoadingSkeleton key={i} className="h-28" />
+                ))}
+              </div>
+            ) : (
+              <PriorityActions 
+                submission={submission}
+                formatCurrency={formatCurrency}
+                calculations={calculations}
+              />
+            )}
           </div>
         )}
 
         {activeSection === 'timeline' && (
-          <div className="space-y-8">
-            <ImplementationTimeline 
-              submission={submission}
-              formatCurrency={formatCurrency}
-              validatedValues={{
-                totalLeak: calculations.totalLoss,
-                leadResponseLoss: calculations.leadResponseLoss,
-                selfServeLoss: calculations.selfServeGap,
-                recoveryPotential70: calculations.conservativeRecovery,
-                recoveryPotential85: calculations.optimisticRecovery
-              }}
-            />
+          <div className="space-y-8" id="timeline-section">
+            {sectionsLoading.timeline ? (
+              <div className="space-y-6">
+                <LoadingSkeleton variant="text" lines={2} />
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex gap-4">
+                      <LoadingSkeleton variant="circular" />
+                      <div className="flex-1 space-y-2">
+                        <LoadingSkeleton className="h-6 w-3/4" />
+                        <LoadingSkeleton variant="text" lines={2} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <ImplementationTimeline 
+                submission={submission}
+                formatCurrency={formatCurrency}
+                validatedValues={{
+                  totalLeak: calculations.totalLoss,
+                  leadResponseLoss: calculations.leadResponseLoss,
+                  selfServeLoss: calculations.selfServeGap,
+                  recoveryPotential70: calculations.conservativeRecovery,
+                  recoveryPotential85: calculations.optimisticRecovery
+                }}
+              />
+            )}
           </div>
         )}
       </div>
