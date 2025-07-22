@@ -38,7 +38,7 @@ const ActionPlan = () => {
         console.error('Error loading submission:', error);
         toast({
           title: "Error",
-          description: "Failed to load action plan data",
+          description: "Failed to load growth plan data",
           variant: "destructive",
         });
         navigate("/dashboard");
@@ -48,7 +48,7 @@ const ActionPlan = () => {
       if (!submissionData) {
         toast({
           title: "Not Found",
-          description: "Action plan not found",
+          description: "Growth plan not found",
           variant: "destructive",
         });
         navigate("/dashboard");
@@ -60,7 +60,7 @@ const ActionPlan = () => {
       console.error('Error loading submission:', error);
       toast({
         title: "Error",
-        description: "Failed to load action plan data",
+        description: "Failed to load growth plan data",
         variant: "destructive",
       });
       navigate("/dashboard");
@@ -74,7 +74,7 @@ const ActionPlan = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Calculator className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-body text-muted-foreground">Loading action plan...</p>
+          <p className="text-body text-muted-foreground">Loading growth plan...</p>
         </div>
       </div>
     );
@@ -84,9 +84,9 @@ const ActionPlan = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-h1 text-foreground mb-4">Action Plan Not Found</h1>
+          <h1 className="text-h1 text-foreground mb-4">Growth Plan Not Found</h1>
           <p className="text-body text-muted-foreground mb-6">
-            The requested action plan could not be found.
+            The requested growth plan could not be found.
           </p>
           <Link to="/dashboard">
             <Button>
@@ -148,7 +148,7 @@ const ActionPlan = () => {
 
   const unifiedResults = UnifiedResultsService.calculateResults(submissionDataForResults);
 
-  console.log('=== ACTION PLAN DEBUG - UNIFIED RESULTS ===');
+  console.log('=== GROWTH PLAN DEBUG - UNIFIED RESULTS ===');
   console.log('Self-serve gap from UnifiedResultsService:', unifiedResults.selfServeGap);
   console.log('Total loss:', unifiedResults.totalLoss);
   console.log('Input data check:', {
@@ -301,7 +301,7 @@ const ActionPlan = () => {
           </div>
         </div>
 
-        {/* Tabbed Action Plan Content */}
+        {/* Tabbed Growth Plan Content */}
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview" className="flex items-center gap-2">
