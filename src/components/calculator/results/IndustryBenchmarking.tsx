@@ -372,92 +372,112 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
                 </div>
               </div>
 
-              {/* Performance Analysis */}
-              <div>
-                <h3 className="text-lg font-semibold mb-6 text-primary">📊 Performance Benchmarking: Current Position → Growth Potential</h3>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {metrics.map((metric) => {
-                    const Icon = metric.icon;
-                    const performanceIcon = getPerformanceIcon(metric.performance);
-                    const gauge = getPerformanceGauge(metric);
-                    const PerformanceIcon = performanceIcon.icon;
+              {/* Performance Analysis with Strategic Blur Overlay */}
+              <div className="relative min-h-[600px]">
+                <div>
+                  <h3 className="text-lg font-semibold mb-6 text-primary">📊 Performance Benchmarking: Current Position → Growth Potential</h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {metrics.map((metric) => {
+                      const Icon = metric.icon;
+                      const performanceIcon = getPerformanceIcon(metric.performance);
+                      const gauge = getPerformanceGauge(metric);
+                      const PerformanceIcon = performanceIcon.icon;
 
-                    return (
-                      <Card key={metric.id} className="border-border/30">
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 rounded-lg bg-primary/10">
-                                <Icon className="h-5 w-5 text-primary" />
-                              </div>
-                              <div>
-                                <h4 className="font-semibold">{metric.title}</h4>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <div className={`p-1 rounded ${performanceIcon.bg}`}>
-                                    <PerformanceIcon className={`h-3 w-3 ${performanceIcon.color}`} />
+                      return (
+                        <Card key={metric.id} className="border-border/30">
+                          <CardContent className="p-6">
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-primary/10">
+                                  <Icon className="h-5 w-5 text-primary" />
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold">{metric.title}</h4>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <div className={`p-1 rounded ${performanceIcon.bg}`}>
+                                      <PerformanceIcon className={`h-3 w-3 ${performanceIcon.color}`} />
+                                    </div>
+                                    <span className={`text-sm font-medium ${performanceIcon.color}`}>
+                                      {getPerformanceLabel(metric.performance)}
+                                    </span>
                                   </div>
-                                  <span className={`text-sm font-medium ${performanceIcon.color}`}>
-                                    {getPerformanceLabel(metric.performance)}
-                                  </span>
                                 </div>
                               </div>
                             </div>
-                          </div>
 
-                            <div className="space-y-4">
-                             <div className="grid grid-cols-3 gap-4 text-sm">
-                               <div>
-                                 <div className="text-muted-foreground">Your Performance</div>
-                                 <div className="font-bold text-lg">
-                                   {metric.userValue}{metric.unit}
-                                 </div>
-                               </div>
-                               <div>
-                                 <div className="text-muted-foreground">Industry Average</div>
-                                 <div className="font-medium text-lg">
-                                   {metric.industryAvg}{metric.unit}
-                                 </div>
-                               </div>
-                               <div>
-                                 <div className="text-muted-foreground">Best-in-Class</div>
-                                 <div className="font-bold text-lg text-revenue-primary">
-                                   {Math.round(metric.bestInClass * 10) / 10}{metric.unit}
-                                 </div>
-                               </div>
-                             </div>
-
-                             <div className="space-y-3">
-                               <div className="flex justify-between text-sm">
-                                 <span>Progress to Best-in-Class</span>
-                                 <span className="font-medium">{Math.round(gauge.value)}%</span>
-                               </div>
-                               <div className="relative">
-                                 <Progress value={gauge.value} className="h-4" />
-                                 <div className="absolute inset-0 flex items-center justify-center">
-                                   <div className="text-xs font-medium text-white mix-blend-difference">
-                                     {metric.performance === 'best-in-class' ? '🏆' : `${Math.round(gauge.value)}%`}
+                              <div className="space-y-4">
+                               <div className="grid grid-cols-3 gap-4 text-sm">
+                                 <div>
+                                   <div className="text-muted-foreground">Your Performance</div>
+                                   <div className="font-bold text-lg">
+                                     {metric.userValue}{metric.unit}
                                    </div>
-                                </div>
-                              </div>
-                               
-                               {/* Revenue Opportunity Display */}
-                               {metric.revenueOpportunity > 0 && (
-                                 <div className="mt-2 p-2 bg-revenue-primary/10 rounded text-xs">
-                                   <span className="font-medium text-revenue-primary">
-                                     💰 {formatCurrency(metric.revenueOpportunity)} annual opportunity
-                                   </span>
                                  </div>
-                               )}
-                            </div>
+                                 <div>
+                                   <div className="text-muted-foreground">Industry Average</div>
+                                   <div className="font-medium text-lg">
+                                     {metric.industryAvg}{metric.unit}
+                                   </div>
+                                 </div>
+                                 <div>
+                                   <div className="text-muted-foreground">Best-in-Class</div>
+                                   <div className="font-bold text-lg text-revenue-primary">
+                                     {Math.round(metric.bestInClass * 10) / 10}{metric.unit}
+                                   </div>
+                                 </div>
+                               </div>
 
-                             <div className="text-sm bg-muted/30 p-4 rounded-lg border-l-2 border-l-primary">
-                               {getContextualMessage(metric)}
-                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+                               <div className="space-y-3">
+                                 <div className="flex justify-between text-sm">
+                                   <span>Progress to Best-in-Class</span>
+                                   <span className="font-medium">{Math.round(gauge.value)}%</span>
+                                 </div>
+                                 <div className="relative">
+                                   <Progress value={gauge.value} className="h-4" />
+                                   <div className="absolute inset-0 flex items-center justify-center">
+                                     <div className="text-xs font-medium text-white mix-blend-difference">
+                                       {metric.performance === 'best-in-class' ? '🏆' : `${Math.round(gauge.value)}%`}
+                                     </div>
+                                  </div>
+                                </div>
+                                 
+                                 {/* Revenue Opportunity Display */}
+                                 {metric.revenueOpportunity > 0 && (
+                                   <div className="mt-2 p-2 bg-revenue-primary/10 rounded text-xs">
+                                     <span className="font-medium text-revenue-primary">
+                                       💰 {formatCurrency(metric.revenueOpportunity)} annual opportunity
+                                     </span>
+                                   </div>
+                                 )}
+                              </div>
+
+                               <div className="text-sm bg-muted/30 p-4 rounded-lg border-l-2 border-l-primary">
+                                 {getContextualMessage(metric)}
+                               </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Strategic Performance Analysis Overlay */}
+                <div className="absolute inset-0 bg-background/65 backdrop-blur-sm rounded-lg flex items-center justify-center z-10 border border-border/50">
+                  <div className="text-center p-8 max-w-lg mx-auto">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <BarChart3 className="w-8 h-8 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-primary mb-2">
+                      Detailed Performance Analysis Available
+                    </h3>
+                    <p className="text-muted-foreground mb-6">
+                      Get comprehensive benchmarking insights with industry comparisons, competitive positioning, and strategic improvement recommendations.
+                    </p>
+                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                      Get Performance Analysis
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -483,48 +503,68 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
                 </div>
               )}
 
-              {/* Industry Context */}
-              <Card className="border-primary/20 bg-gradient-to-r from-background to-primary/5">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <TrendingUp className="h-5 w-5 text-primary" />
-                    </div>
-                    <h3 className="text-lg font-semibold">Industry Context & Opportunities</h3>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h4 className="font-medium mb-3 text-revenue-danger">Priority Improvements:</h4>
-                      <ul className="space-y-2">
-                         {metrics.filter(m => m.performance === 'below-average').map(metric => (
-                           <li key={metric.id} className="flex items-center gap-2 text-sm">
-                             <AlertTriangle className="h-4 w-4 text-revenue-danger" />
-                             <span>{metric.title}: {Math.abs(metric.gapToAverage).toFixed(0)} {metric.unit} gap to average</span>
-                           </li>
-                         ))}
-                      </ul>
+              {/* Industry Context with Strategic Blur Overlay */}
+              <div className="relative min-h-[300px]">
+                <Card className="border-primary/20 bg-gradient-to-r from-background to-primary/5">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <TrendingUp className="h-5 w-5 text-primary" />
+                      </div>
+                      <h3 className="text-lg font-semibold">Industry Context & Opportunities</h3>
                     </div>
                     
-                    <div>
-                      <h4 className="font-medium mb-3 text-revenue-success">Current Strengths:</h4>
-                      <ul className="space-y-2">
-                         {competitiveAdvantages.map(metric => (
-                           <li key={metric.id} className="flex items-center gap-2 text-sm">
-                             <CheckCircle className="h-4 w-4 text-revenue-success" />
-                             <span>{metric.title}: {metric.performance === 'best-in-class' ? 'Best-in-class performance' : 'Above average'}</span>
-                           </li>
-                         ))}
-                        {competitiveAdvantages.length === 0 && (
-                          <li className="text-sm text-muted-foreground">
-                            Focus on reaching industry benchmarks first
-                          </li>
-                        )}
-                      </ul>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-medium mb-3 text-revenue-danger">Priority Improvements:</h4>
+                        <ul className="space-y-2">
+                           {metrics.filter(m => m.performance === 'below-average').map(metric => (
+                             <li key={metric.id} className="flex items-center gap-2 text-sm">
+                               <AlertTriangle className="h-4 w-4 text-revenue-danger" />
+                               <span>{metric.title}: {Math.abs(metric.gapToAverage).toFixed(0)} {metric.unit} gap to average</span>
+                             </li>
+                           ))}
+                        </ul>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-medium mb-3 text-revenue-success">Current Strengths:</h4>
+                        <ul className="space-y-2">
+                           {competitiveAdvantages.map(metric => (
+                             <li key={metric.id} className="flex items-center gap-2 text-sm">
+                               <CheckCircle className="h-4 w-4 text-revenue-success" />
+                               <span>{metric.title}: {metric.performance === 'best-in-class' ? 'Best-in-class performance' : 'Above average'}</span>
+                             </li>
+                           ))}
+                          {competitiveAdvantages.length === 0 && (
+                            <li className="text-sm text-muted-foreground">
+                              Focus on reaching industry benchmarks first
+                            </li>
+                          )}
+                        </ul>
+                      </div>
                     </div>
+                  </CardContent>
+                </Card>
+
+                {/* Strategic Industry Analysis Overlay */}
+                <div className="absolute inset-0 bg-background/65 backdrop-blur-sm rounded-lg flex items-center justify-center z-10 border border-border/50">
+                  <div className="text-center p-8 max-w-lg mx-auto">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <TrendingUp className="w-8 h-8 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-primary mb-2">
+                      Strategic Competitive Analysis Available
+                    </h3>
+                    <p className="text-muted-foreground mb-6">
+                      Access detailed industry comparisons, competitive positioning insights, and strategic recommendations for market leadership.
+                    </p>
+                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                      Get Competitive Analysis
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </CardContent>
           </CollapsibleContent>
         </Collapsible>
