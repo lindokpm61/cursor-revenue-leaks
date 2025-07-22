@@ -26,96 +26,76 @@ export const ExecutiveSummary = ({ data, calculations, formatCurrency }: Executi
   
   return (
     <div className="space-y-8">
-      {/* Crisis Context Banner */}
-      <div className="bg-gradient-to-r from-destructive/20 to-revenue-warning/20 border-2 border-destructive/30 rounded-lg p-6 animate-pulse">
+      {/* Strategic Opportunity Banner */}
+      <div className="bg-gradient-to-r from-primary/20 to-revenue-growth/20 border-2 border-primary/30 rounded-lg p-6">
         <div className="flex items-start gap-4">
-          <div className="p-3 rounded-lg bg-destructive/30 animate-pulse">
-            <AlertTriangle className="h-6 w-6 text-destructive" />
+          <div className="p-3 rounded-lg bg-primary/30">
+            <Target className="h-6 w-6 text-primary" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-xl mb-3 text-destructive">🚨 REVENUE CRISIS ASSESSMENT</h3>
-            <p className="text-sm text-destructive/90 mb-4 font-medium">
-              URGENT: Your business is hemorrhaging revenue RIGHT NOW. Every minute of delay increases your financial bleeding. 
-              This assessment uses 2025 crisis validation benchmarks to identify immediate stoppage opportunities.
+            <h3 className="font-semibold text-xl mb-3 text-primary">📊 STRATEGIC REVENUE ANALYSIS</h3>
+            <p className="text-sm text-primary/90 mb-4 font-medium">
+              OPPORTUNITY: Your business has significant revenue optimization potential. Our analysis identifies key areas where strategic improvements can unlock substantial growth. 
+              This assessment uses 2025 industry benchmarks to highlight high-impact optimization opportunities.
             </p>
             <div className="flex flex-wrap gap-2">
-              <Badge variant="destructive" className="text-xs animate-pulse">
+              <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
                 <Clock className="h-3 w-3 mr-1" />
-                BLEEDING: {formatCurrency(hourlyBleed)}/hour
+                POTENTIAL: {formatCurrency(hourlyBleed)}/hour recoverable
               </Badge>
-              <Badge variant="destructive" className="text-xs">
-                <AlertTriangle className="h-3 w-3 mr-1" />
-                CRITICAL: {leakagePercentage.toFixed(1)}% of ARR bleeding
+              <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
+                <Target className="h-3 w-3 mr-1" />
+                OPPORTUNITY: {leakagePercentage.toFixed(1)}% revenue optimization potential
               </Badge>
-              <Badge variant="outline" className="text-xs border-destructive text-destructive">
-                Emergency Recovery Protocol
+              <Badge variant="outline" className="text-xs border-primary text-primary">
+                Strategic Growth Protocol
               </Badge>
-              <Badge variant="outline" className="text-xs border-destructive text-destructive">
-                Crisis Intervention Required
+              <Badge variant="outline" className="text-xs border-primary text-primary">
+                Revenue Optimization Available
               </Badge>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Crisis Metrics Cards */}
+      {/* Strategic Opportunity Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-white to-destructive/10 border-destructive/30 border-2 shadow-lg animate-attention-pulse">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <TrendingDown className="h-4 w-4 text-destructive animate-pulse" />
-              <span className="text-sm font-bold">🩸 BLEEDING NOW</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <p className="text-2xl font-bold text-destructive leading-tight mb-1">
-              {formatCurrency(calculations.totalLeakage)}
-            </p>
-            <p className="text-xs text-destructive/80 font-medium leading-tight">
-              revenue hemorrhaging annually
-            </p>
-            <p className="text-xs text-destructive/70 mt-1">
-              Daily loss: {formatCurrency(dailyBleed)}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-white to-revenue-warning/10 border-revenue-warning/30 border-2 shadow-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Target className="h-4 w-4 text-revenue-warning" />
-              <span className="text-sm font-bold">🚑 Emergency Stoppage</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <p className="text-2xl font-bold text-revenue-warning leading-tight mb-1">
-              {formatCurrency(calculations.potentialRecovery70)}
-            </p>
-            <p className="text-xs text-muted-foreground leading-tight">
-              immediate bleeding control
-            </p>
-            <p className="text-xs text-revenue-warning/80 mt-1 font-medium">
-              70% crisis recovery rate
-            </p>
-          </CardContent>
-        </Card>
-
         <Card className="bg-gradient-to-br from-white to-primary/10 border-primary/30 border-2 shadow-lg">
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
-              <Zap className="h-4 w-4 text-primary" />
-              <span className="text-sm font-bold">⚡ Maximum Recovery</span>
+              <TrendingDown className="h-4 w-4 text-primary" />
+              <span className="text-sm font-bold">💰 OPPORTUNITY VALUE</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <p className="text-2xl font-bold text-primary leading-tight mb-1">
-              {formatCurrency(calculations.potentialRecovery85)}
+              {formatCurrency(calculations.totalLeakage)}
+            </p>
+            <p className="text-xs text-primary/80 font-medium leading-tight">
+              annual revenue opportunity
+            </p>
+            <p className="text-xs text-primary/70 mt-1">
+              Daily potential: {formatCurrency(dailyBleed)}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-white to-revenue-growth/10 border-revenue-growth/30 border-2 shadow-lg">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Target className="h-4 w-4 text-revenue-growth" />
+              <span className="text-sm font-bold">🎯 Quick Wins</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <p className="text-2xl font-bold text-revenue-growth leading-tight mb-1">
+              {formatCurrency(calculations.potentialRecovery70)}
             </p>
             <p className="text-xs text-muted-foreground leading-tight">
-              full crisis intervention
+              strategic optimization potential
             </p>
-            <p className="text-xs text-primary/80 mt-1 font-medium">
-              85% emergency success rate
+            <p className="text-xs text-revenue-growth/80 mt-1 font-medium">
+              70% achievement confidence
             </p>
           </CardContent>
         </Card>
@@ -123,48 +103,68 @@ export const ExecutiveSummary = ({ data, calculations, formatCurrency }: Executi
         <Card className="bg-gradient-to-br from-white to-revenue-success/10 border-revenue-success/30 border-2 shadow-lg">
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-revenue-success" />
-              <span className="text-sm font-bold">📈 Crisis Impact</span>
+              <Zap className="h-4 w-4 text-revenue-success" />
+              <span className="text-sm font-bold">⚡ Maximum Potential</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <p className="text-2xl font-bold text-revenue-success leading-tight mb-1">
+              {formatCurrency(calculations.potentialRecovery85)}
+            </p>
+            <p className="text-xs text-muted-foreground leading-tight">
+              full strategic implementation
+            </p>
+            <p className="text-xs text-revenue-success/80 mt-1 font-medium">
+              85% optimal execution rate
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-white to-primary/10 border-primary/30 border-2 shadow-lg">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-primary" />
+              <span className="text-sm font-bold">📈 Growth Impact</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <p className="text-2xl font-bold text-primary leading-tight mb-1">
               {currentARR > 0 
                 ? Math.round((potentialRecovery70 / currentARR) * 100)
                 : 0}%
             </p>
             <p className="text-xs text-muted-foreground leading-tight">
-              of current ARR at risk
+              of current ARR growth potential
             </p>
-            <p className="text-xs text-revenue-success/80 mt-1 font-medium">
-              Recoverable with intervention
+            <p className="text-xs text-primary/80 mt-1 font-medium">
+              Achievable through optimization
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Crisis Timeline */}
-      <div className="bg-gradient-to-r from-destructive/10 to-revenue-warning/10 border-2 border-destructive/20 rounded-lg p-6">
+      {/* Implementation Timeline */}
+      <div className="bg-gradient-to-r from-primary/10 to-revenue-growth/10 border-2 border-primary/20 rounded-lg p-6">
         <div className="flex items-center gap-3 mb-4">
-          <Clock className="h-6 w-6 text-destructive animate-pulse" />
-          <h4 className="text-lg font-bold text-destructive">⏰ BLEEDING TIMELINE - Every Second Counts</h4>
+          <Clock className="h-6 w-6 text-primary" />
+          <h4 className="text-lg font-bold text-primary">🚀 OPTIMIZATION TIMELINE - Strategic Implementation</h4>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-          <div className="text-center p-3 rounded-lg bg-destructive/20 border border-destructive/30">
-            <div className="font-bold text-destructive">Next Hour</div>
-            <div className="text-destructive/80">{formatCurrency(hourlyBleed)} lost</div>
+          <div className="text-center p-3 rounded-lg bg-primary/20 border border-primary/30">
+            <div className="font-bold text-primary">Next Hour</div>
+            <div className="text-primary/80">{formatCurrency(hourlyBleed)} opportunity</div>
           </div>
-          <div className="text-center p-3 rounded-lg bg-revenue-warning/20 border border-revenue-warning/30">
-            <div className="font-bold text-revenue-warning">Next 24 Hours</div>
-            <div className="text-revenue-warning/80">{formatCurrency(dailyBleed)} bleeding</div>
+          <div className="text-center p-3 rounded-lg bg-revenue-growth/20 border border-revenue-growth/30">
+            <div className="font-bold text-revenue-growth">Next 24 Hours</div>
+            <div className="text-revenue-growth/80">{formatCurrency(dailyBleed)} potential</div>
           </div>
-          <div className="text-center p-3 rounded-lg bg-orange-100 border border-orange-300">
-            <div className="font-bold text-orange-700">Next Week</div>
-            <div className="text-orange-600">{formatCurrency(dailyBleed * 7)} hemorrhage</div>
+          <div className="text-center p-3 rounded-lg bg-revenue-success/20 border border-revenue-success/30">
+            <div className="font-bold text-revenue-success">Next Week</div>
+            <div className="text-revenue-success/80">{formatCurrency(dailyBleed * 7)} growth opportunity</div>
           </div>
-          <div className="text-center p-3 rounded-lg bg-red-100 border border-red-300">
-            <div className="font-bold text-red-700">If No Action</div>
-            <div className="text-red-600">{formatCurrency(totalLeakage)} annual loss</div>
+          <div className="text-center p-3 rounded-lg bg-primary/20 border border-primary/30">
+            <div className="font-bold text-primary">Annual Potential</div>
+            <div className="text-primary/80">{formatCurrency(totalLeakage)} optimization value</div>
           </div>
         </div>
       </div>

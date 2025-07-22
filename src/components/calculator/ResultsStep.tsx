@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { CalculatorData, Calculations } from "./useCalculatorData";
-import { Save, Calendar, Share2, CheckCircle, LayoutDashboard, Bug, Loader2, AlertTriangle, Clock } from "lucide-react";
+import { Save, Calendar, Share2, CheckCircle, LayoutDashboard, Bug, Loader2, AlertTriangle, Clock, Target } from "lucide-react";
 import { ExecutiveSummary } from "./results/ExecutiveSummary";
 import { RevenueCharts } from "./results/RevenueCharts";
 import { DetailedBreakdown } from "./results/DetailedBreakdown";
@@ -91,8 +91,8 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
     window.open('https://calendly.com/your-consultation', '_blank');
     
     toast({
-      title: "Emergency Consultation Booking",
-      description: "Opening calendar to schedule your crisis intervention call",
+      title: "Strategic Consultation Booking",
+      description: "Opening calendar to schedule your revenue optimization strategy session",
     });
   };
 
@@ -100,8 +100,8 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
     console.log('Share analysis clicked');
     navigator.clipboard.writeText(window.location.href);
     toast({
-      title: "Crisis Analysis Shared",
-      description: "Link copied - share this bleeding assessment with your team",
+      title: "Strategic Analysis Shared",
+      description: "Link copied - share this revenue optimization assessment with your team",
     });
   };
 
@@ -135,47 +135,47 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
           formatCurrency={formatCurrency} 
         />
         
-        {/* Crisis Urgency + Social Proof */}
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-center p-6 bg-gradient-to-r from-destructive/10 via-revenue-warning/10 to-destructive/10 rounded-xl border-2 border-destructive/20">
+        {/* Strategic Opportunity + Social Proof */}
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-center p-6 bg-gradient-to-r from-primary/10 via-revenue-growth/10 to-primary/10 rounded-xl border-2 border-primary/20">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <div className="flex -space-x-2">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-r from-destructive to-revenue-warning flex items-center justify-center text-xs font-bold text-white border-2 border-background">
+                <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-revenue-growth flex items-center justify-center text-xs font-bold text-white border-2 border-background">
                   {String.fromCharCode(65 + i)}
                 </div>
               ))}
             </div>
-            <span className="font-medium">Join 2,847+ executives who stopped their revenue bleeding</span>
+            <span className="font-medium">Join 2,847+ executives who unlocked their revenue potential</span>
           </div>
-          <div className="text-sm text-destructive font-bold animate-pulse">
-            🚨 BLEEDING CONTINUES: {formatCurrency(dailyBleed)} lost daily
+          <div className="text-sm text-primary font-bold">
+            💰 OPPORTUNITY AVAILABLE: {formatCurrency(dailyBleed)} daily potential
           </div>
         </div>
       </div>
       
-      {/* Crisis Action CTA */}
-      <div className="bg-gradient-to-r from-destructive/20 via-revenue-warning/15 to-destructive/20 border-2 border-destructive/30 rounded-xl p-8 text-center space-y-6 animate-attention-pulse">
+      {/* Strategic Action CTA */}
+      <div className="bg-gradient-to-r from-primary/20 via-revenue-growth/15 to-primary/20 border-2 border-primary/30 rounded-xl p-8 text-center space-y-6">
         <div className="space-y-4">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <AlertTriangle className="h-8 w-8 text-destructive animate-pulse" />
-            <h3 className="text-h1 font-bold text-destructive">
-              EMERGENCY BLEEDING STOPPAGE PLAN
+            <Target className="h-8 w-8 text-primary" />
+            <h3 className="text-h1 font-bold text-primary">
+              STRATEGIC REVENUE OPTIMIZATION PLAN
             </h3>
           </div>
-          <div className="text-h2 font-bold text-destructive mb-2">
-            {formatCurrency(calculations.totalLeakage)} Annual Hemorrhage
+          <div className="text-h2 font-bold text-primary mb-2">
+            {formatCurrency(calculations.totalLeakage)} Annual Growth Opportunity
           </div>
-          <p className="text-body text-destructive/90 max-w-2xl mx-auto font-medium">
+          <p className="text-body text-primary/90 max-w-2xl mx-auto font-medium">
             {isSaved 
-              ? "🩸 Crisis assessment saved! Take immediate action to stop the bleeding before it gets worse."
-              : "🚨 Your business is hemorrhaging revenue RIGHT NOW. Every minute of delay costs you money."
+              ? "📊 Strategic analysis saved! Implement these optimization strategies to unlock substantial revenue growth."
+              : "💰 Your business has significant revenue optimization potential. Strategic improvements can unlock substantial growth opportunities."
             }
           </p>
           
           {isSaved && (
             <div className="flex items-center justify-center gap-2 text-revenue-success">
               <CheckCircle className="h-5 w-5" />
-              <span className="font-medium">Crisis Assessment Saved to Dashboard</span>
+              <span className="font-medium">Strategic Analysis Saved to Dashboard</span>
             </div>
           )}
         </div>
@@ -184,14 +184,14 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
           <Button
             onClick={handleBookConsultation}
             size="lg"
-            className="bg-gradient-to-r from-destructive to-revenue-warning text-white font-bold px-8 py-4 h-14 text-lg shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto animate-pulse"
+            className="bg-gradient-to-r from-primary to-revenue-growth text-white font-bold px-8 py-4 h-14 text-lg shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto"
           >
             <Calendar className="h-5 w-5 mr-3" />
-            🚑 STOP THE BLEEDING - Emergency Consultation
+            🚀 UNLOCK YOUR POTENTIAL - Strategy Consultation
           </Button>
           
-          <p className="text-xs text-destructive font-bold">
-            ↑ URGENT: Crisis intervention required - Speak with revenue bleeding specialist NOW
+          <p className="text-xs text-primary font-bold">
+            ↑ OPPORTUNITY: Strategic consultation available - Speak with revenue optimization specialist
           </p>
         </div>
 
@@ -201,10 +201,10 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
               onClick={navigateToDashboard}
               variant="outline"
               size="lg"
-              className="hover:bg-destructive hover:text-destructive-foreground border-destructive text-destructive"
+              className="hover:bg-primary hover:text-primary-foreground border-primary text-primary"
             >
               <LayoutDashboard className="h-4 w-4 mr-2" />
-              View Crisis Dashboard
+              View Strategic Dashboard
             </Button>
           ) : (
             <Button
@@ -212,17 +212,17 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
               disabled={saving}
               variant="outline"
               size="lg"
-              className="hover:bg-destructive hover:text-destructive-foreground border-destructive text-destructive disabled:opacity-50 disabled:cursor-not-allowed"
+              className="hover:bg-primary hover:text-primary-foreground border-primary text-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving Crisis Assessment...
+                  Saving Strategic Analysis...
                 </>
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
-                  {user ? "Save Crisis Assessment" : "Create Account to Save Assessment"}
+                  {user ? "Save Strategic Analysis" : "Create Account to Save Analysis"}
                 </>
               )}
             </Button>
@@ -232,10 +232,10 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
             onClick={handleShareAnalysis}
             variant="outline"
             size="lg"
-            className="hover:bg-revenue-warning hover:text-white border-revenue-warning text-revenue-warning"
+            className="hover:bg-revenue-growth hover:text-white border-revenue-growth text-revenue-growth"
           >
             <Share2 className="h-4 w-4 mr-2" />
-            Share Crisis Assessment
+            Share Strategic Analysis
           </Button>
 
           {isSaved && (
@@ -243,18 +243,18 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
               onClick={handleBookConsultation}
               variant="outline"
               size="lg"
-              className="hover:bg-destructive hover:text-white border-destructive text-destructive"
+              className="hover:bg-primary hover:text-white border-primary text-primary"
             >
               <Calendar className="h-4 w-4 mr-2" />
-              Emergency Consultation
+              Strategy Consultation
             </Button>
           )}
         </div>
         
         <p className="text-xs text-muted-foreground">
           {isSaved 
-            ? "Crisis assessment secured • Share with team • Book emergency intervention"
-            : "No verification required • Instant crisis access • 100% confidential bleeding assessment"
+            ? "Strategic analysis secured • Share with team • Book optimization consultation"
+            : "No verification required • Instant strategic access • 100% confidential revenue assessment"
           }
         </p>
       </div>
@@ -286,20 +286,20 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
 
       <ActionPlan calculations={calculations} data={data} />
 
-      {/* Floating Crisis Reminder */}
+      {/* Floating Strategic Reminder */}
       <div className="sticky bottom-4 mx-auto max-w-md">
-        <div className="bg-background/95 backdrop-blur-sm border-2 border-destructive/30 rounded-full p-4 shadow-lg animate-pulse">
+        <div className="bg-background/95 backdrop-blur-sm border-2 border-primary/30 rounded-full p-4 shadow-lg">
           <div className="flex items-center justify-between gap-4">
             <div className="text-sm">
               {isSaved ? (
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-revenue-success" />
-                  <span className="font-bold text-revenue-success">Crisis Saved</span>
+                  <span className="font-bold text-revenue-success">Analysis Saved</span>
                 </div>
               ) : (
                 <>
-                  <span className="font-bold text-destructive">🩸 {formatCurrency(calculations.totalLeakage)}</span>
-                  <span className="text-destructive/80"> bleeding annually</span>
+                  <span className="font-bold text-primary">💰 {formatCurrency(calculations.totalLeakage)}</span>
+                  <span className="text-primary/80"> opportunity annually</span>
                 </>
               )}
             </div>
@@ -308,17 +308,17 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
                 onClick={navigateToDashboard}
                 size="sm"
                 variant="outline"
-                className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
               >
-                Crisis Dashboard
+                Strategic Dashboard
               </Button>
             ) : (
               <Button
                 onClick={handleBookConsultation}
                 size="sm"
-                className="bg-gradient-to-r from-destructive to-revenue-warning animate-pulse"
+                className="bg-gradient-to-r from-primary to-revenue-growth"
               >
-                🚑 Stop Bleeding
+                🚀 Unlock Potential
               </Button>
             )}
           </div>
