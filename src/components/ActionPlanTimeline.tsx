@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ import {
   CheckCircle
 } from "lucide-react";
 import { ActionPlanChecklistItem } from "./ActionPlanChecklistItem";
+import { BlurOverlay } from "@/components/ui/blur-overlay";
 import type { TimelinePhase } from "@/lib/calculator/unifiedCalculations";
 
 interface ActionPlanTimelineProps {
@@ -169,22 +171,21 @@ export const ActionPlanTimeline = ({
           </div>
         )}
 
-        {/* Phases */}
+        {/* Phase Overview - SHOW WHAT TO DO */}
         {phases.map((phase, index) => {
           const isExpanded = expandedPhases.has(phase.id);
           const progress = getPhaseProgress(phase);
-          const isCurrentPhase = index === 0; // Simplified current phase logic
-          const isProcessAutomation = phase.title.toLowerCase().includes('process automation');
+          const isCurrentPhase = index === 0;
           
           return (
-            <div key={phase.id} className={`space-y-4 ${isProcessAutomation ? 'relative' : ''}`}>
+            <div key={phase.id} className="space-y-4">
               <div 
                 className={`p-4 rounded-lg border cursor-pointer transition-all ${
                   isCurrentPhase 
                     ? 'border-primary bg-primary/5' 
                     : 'border-border bg-background hover:bg-muted/50'
-                } ${isProcessAutomation ? 'blur-sm opacity-60' : ''}`}
-                onClick={() => !isProcessAutomation && togglePhase(phase.id)}
+                }`}
+                onClick={() => togglePhase(phase.id)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -198,7 +199,7 @@ export const ActionPlanTimeline = ({
                     <div>
                       <h3 className="font-semibold text-foreground">{phase.title}</h3>
                       <p className="text-sm text-muted-foreground">
-                        Months {phase.startMonth}-{phase.endMonth} • {(phase.actions || []).length} actions
+                        Months {phase.startMonth}-{phase.endMonth} • {(phase.actions || []).length} strategic actions
                       </p>
                     </div>
                   </div>
@@ -217,8 +218,8 @@ export const ActionPlanTimeline = ({
                 {/* Progress Bar */}
                 <div className="mt-3">
                   <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">Phase Progress</span>
-                    <span className="text-muted-foreground">{Math.round(progress)}% complete</span>
+                    <span className="text-muted-foreground">Strategic Focus</span>
+                    <span className="text-muted-foreground">{phase.difficulty} implementation</span>
                   </div>
                   <Progress value={progress} className="h-2" />
                 </div>
@@ -226,79 +227,40 @@ export const ActionPlanTimeline = ({
                 <p className="text-sm text-muted-foreground mt-2">{phase.description}</p>
               </div>
 
-              {/* Expanded Phase Details */}
-              {isExpanded && !isProcessAutomation && (
-                <div className="ml-6 space-y-3 animate-fade-in relative">
+              {/* Expanded Phase Overview - Show direction without details */}
+              {isExpanded && (
+                <div className="ml-6 space-y-3 animate-fade-in">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     {phase.difficulty === 'easy' && <CheckCircle className="h-4 w-4 text-green-600" />}
                     {phase.difficulty === 'medium' && <Clock className="h-4 w-4 text-yellow-600" />}
                     {phase.difficulty === 'hard' && <AlertCircle className="h-4 w-4 text-red-600" />}
-                    <span>Difficulty: {phase.difficulty}</span>
+                    <span>Strategic Priority: {phase.difficulty}</span>
                     {(phase.prerequisites || []).length > 0 && (
                       <span className="ml-4">
-                        Prerequisites: {(phase.prerequisites || []).join(", ")}
+                        Dependencies: {(phase.prerequisites || []).length} items
                       </span>
                     )}
                   </div>
 
-                  {/* Action Items */}
-                  <div className="space-y-3 relative">
-                    {(phase.actions || []).slice(0, 2).map((action, actionIndex) => (
-                      <ActionPlanChecklistItem
-                        key={actionIndex}
-                        id={`${phase.id}-${action.title}`}
-                        title={action.title}
-                        description={`${action.weeks} week implementation • Owner: ${action.owner}`}
-                        weeks={action.weeks}
-                        owner={action.owner}
-                        recoveryPotential={phase.recoveryPotential / Math.max((phase.actions || []).length, 1)}
-                        difficulty={phase.difficulty}
-                        riskLevel={getRiskLevel(phase.difficulty)}
-                        prerequisites={phase.prerequisites || []}
-                        isCompleted={completedActions.has(`${phase.id}-${action.title}`)}
-                        onToggle={handleActionToggle}
-                        formatCurrency={formatCurrency}
-                      />
-                    ))}
-                    
-                    {/* Premium Content Blur for Additional Actions */}
-                    {(phase.actions || []).length > 2 && (
-                      <div className="relative">
-                        <div className="space-y-3 blur-sm opacity-60">
-                          {(phase.actions || []).slice(2).map((action, actionIndex) => (
-                            <div key={actionIndex + 2} className="p-3 border border-border rounded-lg bg-muted/30">
-                              <div className="h-4 bg-muted rounded mb-2"></div>
-                              <div className="h-3 bg-muted/70 rounded w-3/4"></div>
-                            </div>
-                          ))}
-                        </div>
-                        
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="bg-background/95 backdrop-blur-sm border border-primary/20 rounded-lg p-4 shadow-lg text-center">
-                            <p className="text-sm font-medium text-foreground mb-2">
-                              +{(phase.actions || []).length - 2} more detailed actions
-                            </p>
-                            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                              Unlock Details
-                            </Button>
+                  {/* Key Focus Areas - Show what, not how */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-foreground">Strategic Focus Areas</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {(phase.actions || []).slice(0, 2).map((action, actionIndex) => (
+                        <div key={actionIndex} className="p-3 border border-border/50 rounded-lg bg-background/50">
+                          <div className="font-medium text-sm text-foreground">{action.title}</div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {action.weeks} week focus • Led by {action.owner}
                           </div>
                         </div>
-                      </div>
+                      ))}
+                    </div>
+                    
+                    {(phase.actions || []).length > 2 && (
+                      <p className="text-sm text-muted-foreground italic">
+                        +{(phase.actions || []).length - 2} additional strategic initiatives included
+                      </p>
                     )}
-                  </div>
-                </div>
-              )}
-              
-              {/* Process Automation CTA Overlay */}
-              {isProcessAutomation && (
-                <div className="absolute inset-0 flex items-center justify-center z-10">
-                  <div className="bg-background/95 backdrop-blur-sm border border-primary/20 rounded-lg p-4 shadow-lg text-center">
-                    <p className="text-sm font-medium text-foreground mb-2">
-                      Advanced Automation Phase
-                    </p>
-                    <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                      Unlock Automation
-                    </Button>
                   </div>
                 </div>
               )}
@@ -306,8 +268,78 @@ export const ActionPlanTimeline = ({
           );
         })}
 
-        {/* ROI Summary with CTA */}
-        <div className="mt-8 relative">
+        {/* Detailed Implementation - BLUR THE HOW */}
+        <BlurOverlay 
+          title="Get Detailed Implementation Roadmap"
+          description="Access step-by-step execution plans, resource requirements, risk mitigation strategies, and success metrics"
+          ctaText="Book Implementation Strategy Session"
+          onUnlock={() => window.open('https://calendly.com/strategy-session', '_blank')}
+          blurLevel="medium"
+        >
+          <div className="p-6 bg-muted/20 rounded-xl border space-y-6">
+            <h4 className="text-lg font-semibold text-foreground">Detailed Implementation Checklist</h4>
+            
+            {phases.map((phase, phaseIndex) => (
+              <div key={phase.id} className="border-l-2 border-primary/30 pl-4">
+                <h5 className="font-medium text-foreground mb-3">
+                  Phase {phaseIndex + 1}: {phase.title} - Detailed Actions
+                </h5>
+                <div className="space-y-2">
+                  {(phase.actions || []).map((action, actionIndex) => (
+                    <ActionPlanChecklistItem
+                      key={actionIndex}
+                      id={`${phase.id}-${action.title}`}
+                      title={action.title}
+                      description={`${action.weeks} week implementation • Owner: ${action.owner} • Detailed workflow provided`}
+                      weeks={action.weeks}
+                      owner={action.owner}
+                      recoveryPotential={phase.recoveryPotential / Math.max((phase.actions || []).length, 1)}
+                      difficulty={phase.difficulty}
+                      riskLevel={getRiskLevel(phase.difficulty)}
+                      prerequisites={phase.prerequisites || []}
+                      isCompleted={completedActions.has(`${phase.id}-${action.title}`)}
+                      onToggle={handleActionToggle}
+                      formatCurrency={formatCurrency}
+                    />
+                  ))}
+                </div>
+                
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+                  <div className="p-2 bg-background/50 rounded">
+                    <div className="font-medium">Risk Factors</div>
+                    <div className="text-muted-foreground">Identified & mitigated</div>
+                  </div>
+                  <div className="p-2 bg-background/50 rounded">
+                    <div className="font-medium">Resource Requirements</div>
+                    <div className="text-muted-foreground">Detailed breakdown</div>
+                  </div>
+                  <div className="p-2 bg-background/50 rounded">
+                    <div className="font-medium">Success Metrics</div>
+                    <div className="text-muted-foreground">KPI tracking plan</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Implementation Support Framework */}
+            <div className="mt-6 p-4 bg-background/50 rounded-lg">
+              <h5 className="font-medium text-foreground mb-2">Implementation Support Framework</h5>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <div className="font-medium mb-1">Change Management Protocol</div>
+                  <div className="text-muted-foreground">Team training, communication plans, adoption strategies</div>
+                </div>
+                <div>
+                  <div className="font-medium mb-1">Quality Assurance Process</div>
+                  <div className="text-muted-foreground">Testing procedures, validation checkpoints, rollback plans</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </BlurOverlay>
+
+        {/* ROI Analysis - Show impact, blur detailed metrics */}
+        <div className="relative">
           <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="h-5 w-5 text-green-600" />
@@ -322,35 +354,31 @@ export const ActionPlanTimeline = ({
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-600">Break-even</div>
+                <div className="text-sm text-gray-600">Break-even Timeline</div>
                 <div className="text-lg font-bold text-blue-700">Month {paybackMonths}</div>
               </div>
-              <div className="text-sm text-gray-600 blur-sm">Net Benefit (Year 1)</div>
-              <div className="text-sm text-gray-600 blur-sm">Confidence Level</div>
+              <div className="text-sm text-gray-600 opacity-60">Net Benefit Analysis</div>
+              <div className="text-sm text-gray-600 opacity-60">Risk Assessment</div>
             </div>
-          </div>
-          
-          {/* ROI CTA Overlay */}
-          <div className="absolute top-1/2 right-4 transform -translate-y-1/2">
-            <div className="bg-background/95 backdrop-blur-sm border border-primary/20 rounded-lg p-4 shadow-lg text-center">
-              <p className="text-sm font-medium text-foreground mb-2">See Complete ROI Analysis</p>
-              <Button size="sm" className="bg-gradient-to-r from-primary to-primary-accent text-primary-foreground">
-                Unlock Full Metrics
-              </Button>
+            
+            <div className="mt-3 text-center">
+              <p className="text-sm text-muted-foreground">
+                Complete financial analysis and risk modeling available in strategy consultation
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Implementation Tips */}
+        {/* Implementation Guidance */}
         {confidenceLevel === 'low' && (
           <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <div className="flex items-start gap-2">
               <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
               <div>
-                <h5 className="font-medium text-yellow-800">Implementation Guidance</h5>
+                <h5 className="font-medium text-yellow-800">Strategic Implementation Guidance</h5>
                 <p className="text-sm text-yellow-700 mt-1">
-                  Low confidence estimates suggest starting with quick wins and validating assumptions before major investments. 
-                  Consider pilot programs for higher-risk initiatives.
+                  Conservative estimates suggest validating assumptions and starting with pilot programs. 
+                  Strategy consultation recommended for optimal implementation approach.
                 </p>
               </div>
             </div>

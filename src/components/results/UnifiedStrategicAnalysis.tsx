@@ -137,104 +137,136 @@ export const UnifiedStrategicAnalysis = ({
         </Card>
       </div>
 
-      {/* Strategic Context with Blur Overlay */}
-      <BlurOverlay 
-        title="Unlock Complete Strategic Analysis"
-        description="Get detailed implementation roadmap and strategic recommendations"
-        ctaText="Book Strategy Consultation"
-        onUnlock={onBookCall}
-        blurLevel="medium"
-      >
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Strategic Performance Context
-            </CardTitle>
-            <CardDescription>
-              Understanding your revenue optimization opportunity
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="text-center p-4 border rounded-lg">
-                <div className="text-xl md:text-2xl font-bold text-foreground mb-2">
-                  {formatCurrency(calculations.performanceMetrics.currentARR)}
-                </div>
-                <div className="text-sm text-muted-foreground">Current ARR</div>
-                <div className="text-xs text-primary mt-1">
-                  {calculations.lossPercentageOfARR.toFixed(1)}% optimization opportunity
-                </div>
+      {/* Strategic Context - NOW VISIBLE */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Strategic Performance Context
+          </CardTitle>
+          <CardDescription>
+            Understanding your revenue optimization opportunity
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-xl md:text-2xl font-bold text-foreground mb-2">
+                {formatCurrency(calculations.performanceMetrics.currentARR)}
               </div>
-              
-              <div className="text-center p-4 border rounded-lg">
-                <div className="text-xl md:text-2xl font-bold text-primary mb-2">
-                  {Math.round(calculations.recoveryPercentageOfLoss)}%
-                </div>
-                <div className="text-sm text-muted-foreground">Recovery Rate</div>
-                <div className="text-xs text-revenue-growth mt-1">
-                  Conservative estimate
-                </div>
-              </div>
-              
-              <div className="text-center p-4 border rounded-lg">
-                <div className="text-xl md:text-2xl font-bold text-revenue-growth mb-2">
-                  {calculations.lossBreakdown.length}
-                </div>
-                <div className="text-sm text-muted-foreground">Optimization Areas</div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  Identified improvement categories
-                </div>
-              </div>
-              
-              <div className="text-center p-4 border rounded-lg">
-                <div className="text-xl md:text-2xl font-bold text-primary mb-2">
-                  6-12
-                </div>
-                <div className="text-sm text-muted-foreground">Month Timeline</div>
-                <div className="text-xs text-primary mt-1">
-                  To achieve full recovery
-                </div>
+              <div className="text-sm text-muted-foreground">Current ARR</div>
+              <div className="text-xs text-primary mt-1">
+                {calculations.lossPercentageOfARR.toFixed(1)}% optimization opportunity
               </div>
             </div>
+            
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-xl md:text-2xl font-bold text-primary mb-2">
+                {Math.round(calculations.recoveryPercentageOfLoss)}%
+              </div>
+              <div className="text-sm text-muted-foreground">Recovery Rate</div>
+              <div className="text-xs text-revenue-growth mt-1">
+                Conservative estimate
+              </div>
+            </div>
+            
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-xl md:text-2xl font-bold text-revenue-growth mb-2">
+                {calculations.lossBreakdown.length}
+              </div>
+              <div className="text-sm text-muted-foreground">Optimization Areas</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Identified improvement categories
+              </div>
+            </div>
+            
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-xl md:text-2xl font-bold text-primary mb-2">
+                6-12
+              </div>
+              <div className="text-sm text-muted-foreground">Month Timeline</div>
+              <div className="text-xs text-primary mt-1">
+                To achieve full recovery
+              </div>
+            </div>
+          </div>
 
-            <div className="mt-8 bg-gradient-to-r from-primary/10 to-revenue-growth/10 p-6 rounded-xl border border-primary/20">
-              <div className="flex items-start gap-4">
-                <div className="p-2 rounded-lg bg-primary text-primary-foreground">
-                  <Target className="h-5 w-5" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-primary mb-2">
-                    Strategic Revenue Optimization
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Your analysis shows {formatCurrency(calculations.totalLoss)} in annual revenue optimization 
-                    potential across {calculations.lossBreakdown.length} key areas. With focused execution, 
-                    you can recover {formatCurrency(calculations.conservativeRecovery)} within 6-12 months.
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <div className="font-medium text-foreground">Primary Focus Areas:</div>
-                      <div className="text-primary">
-                        {calculations.lossBreakdown
-                          .sort((a, b) => b.amount - a.amount)
-                          .slice(0, 2)
-                          .map(item => item.title)
-                          .join(' & ')
-                        }
-                      </div>
+          <div className="mt-8 bg-gradient-to-r from-primary/10 to-revenue-growth/10 p-6 rounded-xl border border-primary/20">
+            <div className="flex items-start gap-4">
+              <div className="p-2 rounded-lg bg-primary text-primary-foreground">
+                <Target className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-primary mb-2">
+                  Strategic Revenue Optimization
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Your analysis shows {formatCurrency(calculations.totalLoss)} in annual revenue optimization 
+                  potential across {calculations.lossBreakdown.length} key areas. With focused execution, 
+                  you can recover {formatCurrency(calculations.conservativeRecovery)} within 6-12 months.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="font-medium text-foreground">Primary Focus Areas:</div>
+                    <div className="text-primary">
+                      {calculations.lossBreakdown
+                        .sort((a, b) => b.amount - a.amount)
+                        .slice(0, 2)
+                        .map(item => item.title)
+                        .join(' & ')
+                      }
                     </div>
-                    <div>
-                      <div className="font-medium text-foreground">Expected Timeline:</div>
-                      <div className="text-primary">60% recovery in 6 months</div>
-                    </div>
+                  </div>
+                  <div>
+                    <div className="font-medium text-foreground">Expected Timeline:</div>
+                    <div className="text-primary">60% recovery in 6 months</div>
                   </div>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </BlurOverlay>
+          </div>
+
+          {/* Implementation Methodology - NEW BLUR POINT */}
+          <BlurOverlay 
+            title="Get Your Implementation Roadmap"
+            description="Discover the exact methodology and step-by-step implementation plan to achieve these results"
+            ctaText="Book Strategy Session"
+            onUnlock={onBookCall}
+            blurLevel="medium"
+          >
+            <div className="mt-6 p-6 bg-muted/20 rounded-xl border">
+              <h4 className="text-lg font-semibold text-foreground mb-4">Implementation Methodology</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h5 className="font-medium text-foreground mb-2">Phase 1: Quick Wins (30 days)</h5>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Lead response automation setup</li>
+                    <li>• Payment recovery workflow</li>
+                    <li>• Basic process documentation</li>
+                    <li>• Performance tracking implementation</li>
+                  </ul>
+                </div>
+                <div>
+                  <h5 className="font-medium text-foreground mb-2">Phase 2: Strategic Implementation (90 days)</h5>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Advanced automation deployment</li>
+                    <li>• Conversion optimization program</li>
+                    <li>• Process efficiency overhaul</li>
+                    <li>• Performance optimization cycles</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="mt-4 p-4 bg-background/50 rounded-lg">
+                <div className="text-sm text-muted-foreground">
+                  <strong>Risk Mitigation Framework:</strong> Step-by-step change management protocols, 
+                  fallback procedures, and performance monitoring to ensure smooth implementation without 
+                  disrupting current operations.
+                </div>
+              </div>
+            </div>
+          </BlurOverlay>
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Target, AlertTriangle, Clock, TrendingUp, Download } from "lucide-react";
 import { Calculations } from "../useCalculatorData";
 import { UnifiedResultsService, type SubmissionData } from "@/lib/results/UnifiedResultsService";
+import { BlurOverlay } from "@/components/ui/blur-overlay";
 
 interface ActionPlanProps {
   calculations: Calculations;
@@ -231,11 +232,11 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
               </p>
             </div>
 
-            {/* Timeline Phases */}
+            {/* Overview Timeline - SHOW WHAT */}
             <div className="relative">
-              <h4 className="text-h3 text-foreground mb-4">Optimization Timeline</h4>
+              <h4 className="text-h3 text-foreground mb-4">Optimization Overview</h4>
               <div className="space-y-4">
-                {timeline.slice(0, 1).map((phase, index) => (
+                {timeline.map((phase, index) => (
                   <div key={phase.id} className="border rounded-lg p-4 bg-background">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
@@ -261,78 +262,79 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
                       </div>
                     </div>
                     
-                    {/* Actions List - Show only first 2 actions */}
+                    {/* Key Focus Areas - Show direction without details */}
                     <div className="mt-3 space-y-2">
-                      <h6 className="text-small font-medium">Key Actions:</h6>
+                      <h6 className="text-small font-medium">Key Focus Areas:</h6>
                       <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {phase.actions.slice(0, 2).map((action, actionIndex) => (
                           <li key={actionIndex} className="text-small text-muted-foreground">
-                            • {action.title} ({action.weeks}w, {action.owner})
+                            • {action.title} ({action.owner})
                           </li>
                         ))}
                       </ul>
-                      
-                      {/* Show additional actions without CTA */}
-                      {phase.actions.length > 2 && (
-                        <div className="mt-2">
-                          <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 opacity-60">
-                            {phase.actions.slice(2).map((action, actionIndex) => (
-                              <li key={actionIndex + 2} className="text-small text-muted-foreground">
-                                • {action.title} ({action.weeks}w, {action.owner})
-                              </li>
-                            ))}
-                          </ul>
-                          <p className="text-xs text-muted-foreground mt-2 italic">
-                            +{phase.actions.length - 2} additional detailed actions available
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                
-                {/* Additional Phases - Show without heavy blur overlay */}
-                {timeline.length > 1 && (
-                  <div className="space-y-4">
-                    {timeline.slice(1).map((phase, index) => (
-                      <div key={phase.id} className="border rounded-lg p-4 bg-muted/20 opacity-70">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-small font-medium text-muted-foreground">
-                            {index + 2}
-                          </div>
-                          <h5 className="text-h3 text-muted-foreground">{phase.title}</h5>
-                          <Badge className="bg-muted text-muted-foreground border-muted">
-                            {phase.difficulty}
-                          </Badge>
-                        </div>
-                        <p className="text-body text-muted-foreground/70 mb-2">{phase.description}</p>
-                        <div className="flex items-center gap-4 text-small text-muted-foreground/70">
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-4 w-4" />
-                            Months {phase.startMonth}-{phase.endMonth}
-                          </span>
-                          <span className="font-medium">
-                            {UnifiedResultsService.formatCurrency(phase.recoveryPotential)} growth potential
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-2 italic">
-                          {phase.actions.length} detailed implementation actions available
-                        </p>
-                      </div>
-                    ))}
-                    
-                    <div className="text-center p-4 bg-primary/5 rounded-lg border border-primary/20">
-                      <p className="text-sm text-muted-foreground">
-                        Complete strategy includes {timeline.length - 1} additional optimization phases
+                      <p className="text-xs text-muted-foreground mt-2 italic">
+                        Strategic focus includes {phase.actions.length} specific implementation actions
                       </p>
                     </div>
                   </div>
-                )}
+                ))}
               </div>
             </div>
 
-            {/* Investment ROI Summary - Clean display without overlay */}
-            {timeline.length > 0 && (() => {
+            {/* Implementation Details - BLUR THE HOW */}
+            <BlurOverlay 
+              title="Get Detailed Implementation Plan"
+              description="Access step-by-step execution roadmap, timelines, responsibilities, and risk mitigation strategies"
+              ctaText="Book Implementation Strategy Call"
+              onUnlock={() => window.open('https://calendly.com/strategy-session', '_blank')}
+              blurLevel="medium"
+            >
+              <div className="p-6 bg-muted/20 rounded-xl border">
+                <h4 className="text-lg font-semibold text-foreground mb-4">Detailed Implementation Roadmap</h4>
+                <div className="space-y-6">
+                  {timeline.map((phase, index) => (
+                    <div key={phase.id} className="border-l-2 border-primary/20 pl-4">
+                      <h5 className="font-medium text-foreground mb-2">
+                        Phase {index + 1}: {phase.title}
+                      </h5>
+                      <div className="space-y-2">
+                        {phase.actions.map((action, actionIndex) => (
+                          <div key={actionIndex} className="flex items-center justify-between p-2 bg-background/50 rounded">
+                            <span className="text-sm text-muted-foreground">
+                              Week {actionIndex * 2 + 1}-{actionIndex * 2 + action.weeks}: {action.title}
+                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {action.owner}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-2 text-xs text-muted-foreground">
+                        Risk Level: {phase.difficulty} • Dependencies mapped • Resource requirements calculated
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-3 bg-background rounded">
+                    <div className="font-medium text-sm">Change Management</div>
+                    <div className="text-xs text-muted-foreground">Team training protocols</div>
+                  </div>
+                  <div className="p-3 bg-background rounded">
+                    <div className="font-medium text-sm">Quality Assurance</div>
+                    <div className="text-xs text-muted-foreground">Testing & validation steps</div>
+                  </div>
+                  <div className="p-3 bg-background rounded">
+                    <div className="font-medium text-sm">Performance Tracking</div>
+                    <div className="text-xs text-muted-foreground">KPI monitoring dashboards</div>
+                  </div>
+                </div>
+              </div>
+            </BlurOverlay>
+
+            {/* Investment ROI Summary - Show impact, blur detailed analysis */}
+            {(() => {
               const currentARR = data?.calculator_data?.companyInfo?.currentARR || 0;
               const investment = calculateSimpleInvestment(timeline, currentARR);
               const totalRecovery = timeline.reduce((sum, phase) => sum + phase.recoveryPotential, 0);
@@ -341,31 +343,33 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
                 <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <TrendingUp className="h-4 w-4 text-green-600" />
-                    <span className="text-h3 text-green-800">🚀 Growth ROI Summary</span>
+                    <span className="text-h3 text-green-800">🚀 Growth Impact Summary</span>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-small">
                     <div>
-                      <div className="text-h3 text-gray-800">Total Investment</div>
+                      <div className="text-h3 text-gray-800">Implementation Investment</div>
                       <div className="text-body text-gray-600">{UnifiedResultsService.formatCurrency(investment.implementationCost)}</div>
                     </div>
                     <div>
-                      <div className="text-h3 text-gray-800">Annual Growth</div>
+                      <div className="text-h3 text-gray-800">Annual Growth Potential</div>
                       <div className="text-body text-green-600">{UnifiedResultsService.formatCurrency(totalRecovery)}</div>
                     </div>
-                    <div className="opacity-60">
-                      <div className="text-h3 text-gray-800">Payback Period</div>
-                      <div className="text-body text-gray-600">{investment.paybackMonths} months</div>
+                    <div>
+                      <div className="text-h3 text-gray-800">Strategic Timeline</div>
+                      <div className="text-body text-gray-600">{investment.paybackMonths} month payback</div>
                     </div>
-                    <div className="opacity-60">
-                      <div className="text-h3 text-gray-800">Year 1 ROI</div>
+                    <div>
+                      <div className="text-h3 text-gray-800">Growth Multiplier</div>
                       <div className="text-body text-green-600">
-                        {Math.round(((totalRecovery - investment.totalAnnualInvestment) / investment.totalAnnualInvestment) * 100)}%
+                        {Math.round(totalRecovery / investment.implementationCost * 10) / 10}x ROI
                       </div>
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2 text-center">
-                    Complete ROI analysis available with detailed metrics
-                  </p>
+                  <div className="mt-4 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Complete financial analysis and risk assessment available in strategy consultation
+                    </p>
+                  </div>
                 </div>
               );
             })()}
@@ -375,24 +379,23 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
           // Fallback to static plan
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h4 className="text-h3 text-foreground">Quick Wins (0-60 days)</h4>
+              <h4 className="text-h3 text-foreground">Strategic Focus Areas</h4>
               <ul className="space-y-2 text-body text-muted-foreground">
-                <li>• Implement automated lead response system</li>
-                <li>• Set up failed payment recovery workflows</li>
-                <li>• Review and optimize onboarding flow</li>
-                <li>• Automate most time-consuming manual tasks</li>
+                <li>• Lead response optimization systems</li>
+                <li>• Payment recovery automation</li>
+                <li>• Conversion flow enhancement</li>
+                <li>• Process efficiency improvement</li>
               </ul>
             </div>
             <div className="space-y-4">
-              <h4 className="text-h3 text-foreground">Long-term Impact (3-8 months)</h4>
+              <h4 className="text-h3 text-foreground">Expected Timeline</h4>
               <ul className="space-y-2 text-body text-muted-foreground">
-                <li>• Advanced lead scoring and qualification</li>
-                <li>• Predictive churn prevention</li>
-                <li>• Self-serve optimization program</li>
-                <li>• Complete process automation suite</li>
+                <li>• Quick wins in 30-60 days</li>
+                <li>• Strategic improvements in 3-6 months</li>
+                <li>• Full optimization in 6-12 months</li>
+                <li>• Ongoing performance enhancement</li>
               </ul>
             </div>
-            
           </div>
         )}
       </CardContent>
