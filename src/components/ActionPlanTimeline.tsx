@@ -103,7 +103,7 @@ export const ActionPlanTimeline = ({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-primary" />
-            Implementation Timeline & Recovery Plan
+            Optimization Timeline & Growth Plan
           </CardTitle>
           <Badge className={getConfidenceColor(confidenceLevel)}>
             {confidenceLevel} confidence
@@ -115,7 +115,7 @@ export const ActionPlanTimeline = ({
           <div className="p-3 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
             <div className="flex items-center gap-2 text-green-800">
               <TrendingUp className="h-4 w-4" />
-              <span className="text-sm font-medium">Total Recovery</span>
+              <span className="text-sm font-medium">Growth Potential</span>
             </div>
             <p className="text-lg font-bold text-green-900">{formatCurrency(totalRecovery)}</p>
           </div>
@@ -123,7 +123,7 @@ export const ActionPlanTimeline = ({
           <div className="p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
             <div className="flex items-center gap-2 text-blue-800">
               <DollarSign className="h-4 w-4" />
-              <span className="text-sm font-medium">Investment Required</span>
+              <span className="text-sm font-medium">Investment Needed</span>
             </div>
             <p className="text-lg font-bold text-blue-900">{formatCurrency(totalInvestment)}</p>
           </div>
@@ -131,7 +131,7 @@ export const ActionPlanTimeline = ({
           <div className="p-3 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border border-purple-200">
             <div className="flex items-center gap-2 text-purple-800">
               <Clock className="h-4 w-4" />
-              <span className="text-sm font-medium">Payback Period</span>
+              <span className="text-sm font-medium">ROI Timeline</span>
             </div>
             <p className="text-lg font-bold text-purple-900">{paybackMonths} months</p>
           </div>
@@ -139,7 +139,7 @@ export const ActionPlanTimeline = ({
 
         {/* Cumulative Recovery Visualization */}
         <div className="mt-4 p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/20">
-          <h4 className="font-medium text-foreground mb-3">Progressive Recovery Timeline</h4>
+          <h4 className="font-medium text-foreground mb-3">Progressive Growth Timeline</h4>
           <div className="space-y-2">
             {cumulativeRecovery.map((milestone, index) => (
               <div key={index} className="flex items-center justify-between text-sm">
@@ -163,9 +163,9 @@ export const ActionPlanTimeline = ({
             <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
               <Calendar className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-medium text-foreground mb-2">No Implementation Phases</h3>
+            <h3 className="text-lg font-medium text-foreground mb-2">No Optimization Phases</h3>
             <p className="text-muted-foreground">
-              Based on the current data, no significant improvement opportunities were identified that meet the implementation threshold.
+              Based on your current data, we've identified excellent optimization opportunities that require a custom strategy approach.
             </p>
           </div>
         )}
@@ -208,7 +208,7 @@ export const ActionPlanTimeline = ({
                       <p className="text-sm font-medium text-primary">
                         {formatCurrency(phase.recoveryPotential)}
                       </p>
-                      <p className="text-xs text-muted-foreground">recovery potential</p>
+                      <p className="text-xs text-muted-foreground">growth potential</p>
                     </div>
                     {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                   </div>
@@ -271,7 +271,7 @@ export const ActionPlanTimeline = ({
         <div className="mt-8 p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp className="h-5 w-5 text-green-600" />
-            <h4 className="font-semibold text-green-800">Implementation ROI Summary</h4>
+            <h4 className="font-semibold text-green-800">Growth ROI Summary</h4>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

@@ -122,10 +122,10 @@ export const ActionPlanScenarioPlanning = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-primary" />
-          Scenario Planning & Risk Assessment
+          Growth Strategy & Success Planning
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Compare different implementation approaches based on your risk tolerance and resource availability
+          Compare different optimization approaches based on your growth goals and resource capabilities
         </p>
       </CardHeader>
 
@@ -147,7 +147,7 @@ export const ActionPlanScenarioPlanning = ({
                 <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
                   <div className="flex items-center gap-2 text-primary mb-2">
                     <TrendingUp className="h-4 w-4" />
-                    <span className="text-sm font-medium">Annual Recovery</span>
+                    <span className="text-sm font-medium">Annual Growth</span>
                   </div>
                   <p className="text-2xl font-bold text-primary">
                     {formatCurrency(scenario.annualRecovery)}
@@ -256,13 +256,13 @@ export const ActionPlanScenarioPlanning = ({
         </Tabs>
 
         {/* Recommendation */}
-        <div className="mt-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
-          <h4 className="font-medium text-primary mb-2">💡 Recommendation</h4>
+        <div className="mt-6 p-4 bg-gradient-to-r from-primary/5 to-primary-accent/5 border border-primary/20 rounded-lg">
+          <h4 className="font-medium text-primary mb-2">🚀 Growth Strategy Recommendation</h4>
           <p className="text-sm text-muted-foreground">
-            Based on your revenue profile and current maturity, we recommend starting with the{' '}
+            Based on your revenue profile and growth potential, we recommend starting with the{' '}
             <span className="font-medium text-foreground">Balanced</span> approach. 
-            This provides optimal risk-adjusted returns while maintaining implementation feasibility.
-            You can always accelerate to the Aggressive scenario once initial wins are achieved.
+            This provides optimal risk-adjusted returns while maintaining execution feasibility.
+            You can always accelerate to the Aggressive scenario once initial success is achieved.
           </p>
         </div>
       </CardContent>

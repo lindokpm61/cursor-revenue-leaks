@@ -255,12 +255,12 @@ const ActionPlan = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <UnifiedHeader 
-        title="Strategic Action Plan"
-        subtitle={`Implementation roadmap for ${submission.company_name}`}
-        backTo={`/results/${id}`}
-        context="action-plan"
-      />
+        <UnifiedHeader 
+          title="Strategic Growth Plan"
+          subtitle={`Revenue optimization roadmap for ${submission.company_name}`}
+          backTo={`/results/${id}`}
+          context="action-plan"
+        />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Navigation Breadcrumb */}
@@ -280,9 +280,9 @@ const ActionPlan = () => {
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-h1 text-foreground mb-2">Strategic Action Plan</h1>
+              <h1 className="text-h1 text-foreground mb-2">Strategic Growth Plan</h1>
               <p className="text-body text-muted-foreground">
-                Implementation roadmap for {submission.company_name}
+                Revenue optimization roadmap for {submission.company_name}
               </p>
             </div>
             
@@ -293,9 +293,9 @@ const ActionPlan = () => {
                   Back to Results
                 </Button>
               </Link>
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button className="bg-gradient-to-r from-primary to-primary-accent text-primary-foreground hover:from-primary/90 hover:to-primary-accent/90 shadow-lg">
                 <Download className="h-4 w-4 mr-2" />
-                Export Plan
+                Export Growth Plan
               </Button>
             </div>
           </div>
@@ -306,15 +306,15 @@ const ActionPlan = () => {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <Target className="h-4 w-4" />
-              Strategic Overview
+              Growth Overview
             </TabsTrigger>
             <TabsTrigger value="timeline" className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              Implementation Timeline
+              Optimization Timeline
             </TabsTrigger>
             <TabsTrigger value="scenarios" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
-              Scenario Planning
+              Success Planning
             </TabsTrigger>
           </TabsList>
 
@@ -349,19 +349,19 @@ const ActionPlan = () => {
         <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
             <div>
-              <h3 className="text-h3 text-foreground mb-1">Need Help Implementing?</h3>
+              <h3 className="text-h3 text-foreground mb-1">Ready to Accelerate Growth?</h3>
               <p className="text-small text-muted-foreground">
-                Our team can help you execute this strategic plan effectively.
+                Our team can help you execute this optimization plan and maximize your revenue potential.
               </p>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" asChild>
+              <Button variant="outline" asChild className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
                 <Link to="/contact">
                   <Target className="h-4 w-4 mr-2" />
-                  Schedule Consultation
+                  Schedule Strategy Call
                 </Link>
               </Button>
-              <Button asChild>
+              <Button asChild className="bg-gradient-to-r from-primary to-primary-accent text-primary-foreground hover:from-primary/90 hover:to-primary-accent/90">
                 <Link to={`/results/${id}`}>
                   View Full Analysis
                 </Link>
