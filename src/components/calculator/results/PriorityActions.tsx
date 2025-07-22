@@ -335,10 +335,10 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
                 </div>
               </div>
 
-              {/* Blur Overlay for Professional Enhancement */}
-              <div className="relative">
+              {/* Priority Actions with Blur Overlay */}
+              <div className="relative min-h-[400px]">
+                {/* Priority Sections Content */}
                 <div className="space-y-6">
-                  {/* High Priority Sections */}
                   {urgentActions.length > 0 && (
                     <PriorityActionSection
                       title="🎯 HIGH PRIORITY (Maximum Impact Opportunities)"
@@ -359,8 +359,8 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
                 </div>
 
                 {/* Professional Consultation Overlay */}
-                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                  <div className="text-center p-8 max-w-lg">
+                <div className="absolute inset-0 bg-background/90 backdrop-blur-md rounded-lg flex items-center justify-center z-10 border border-border/50">
+                  <div className="text-center p-8 max-w-lg mx-auto">
                     <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Target className="w-8 h-8 text-primary" />
                     </div>
