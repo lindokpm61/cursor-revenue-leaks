@@ -273,7 +273,7 @@ const ActionPlan = () => {
             Results
           </Link>
           <ChevronRight className="h-4 w-4" />
-          <span className="text-foreground">Action Plan</span>
+          <span className="text-foreground">Growth Plan</span>
         </div>
 
         {/* Header Section */}
