@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Activity, 
   AlertTriangle, 
@@ -17,6 +18,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { IntegrationHealthDashboard } from '@/components/admin/IntegrationHealthDashboard';
 
 interface HealthData {
   timestamp: string;
@@ -167,155 +169,168 @@ const AdminSystemHealth: React.FC = () => {
         </div>
       </div>
 
-      {/* Alerts */}
-      {healthData.alerts.length > 0 && (
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold">Active Alerts</h2>
-          {healthData.alerts.map((alert, index) => (
-            <Alert key={index} variant={getAlertVariant(alert.severity)}>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription className="flex items-center justify-between">
-                <span>{alert.message}</span>
-                <Badge variant="outline">{alert.severity}</Badge>
-              </AlertDescription>
-            </Alert>
-          ))}
-        </div>
-      )}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="overview">System Overview</TabsTrigger>
+          <TabsTrigger value="integrations">Integration Health</TabsTrigger>
+        </TabsList>
 
-      {/* System Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Database</CardTitle>
-            <Database className={`h-4 w-4 ${getStatusColor(healthData.system.database.healthy)}`} />
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              {getStatusIcon(healthData.system.database.healthy)}
-              <span className="text-2xl font-bold">
-                {healthData.system.database.healthy ? 'Online' : 'Offline'}
-              </span>
+        <TabsContent value="overview" className="space-y-6">
+          {/* Alerts */}
+          {healthData.alerts.length > 0 && (
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold">Active Alerts</h2>
+              {healthData.alerts.map((alert, index) => (
+                <Alert key={index} variant={getAlertVariant(alert.severity)}>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription className="flex items-center justify-between">
+                    <span>{alert.message}</span>
+                    <Badge variant="outline">{alert.severity}</Badge>
+                  </AlertDescription>
+                </Alert>
+              ))}
             </div>
-            {healthData.system.database.response_time && (
-              <p className="text-xs text-muted-foreground">
-                {healthData.system.database.response_time}ms response
-              </p>
-            )}
-          </CardContent>
-        </Card>
+          )}
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Uptime</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {healthData.recent_activity.uptime_percentage}%
-            </div>
-            <p className="text-xs text-muted-foreground">Last 24 hours</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Response Time</CardTitle>
-            <Clock className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {healthData.recent_activity.avg_response_time_ms}ms
-            </div>
-            <p className="text-xs text-muted-foreground">Average</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Errors</CardTitle>
-            <AlertTriangle className={`h-4 w-4 ${healthData.recent_activity.errors_24h > 0 ? 'text-red-600' : 'text-green-600'}`} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {healthData.recent_activity.errors_24h}
-            </div>
-            <p className="text-xs text-muted-foreground">Last 24 hours</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Integration Status */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Integration Status</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Object.entries(healthData.integrations).map(([name, status]) => (
-            <Card key={name}>
+          {/* System Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium capitalize">
-                  {name.replace('_', ' ')}
-                </CardTitle>
-                <Wifi className={`h-4 w-4 ${getStatusColor(status.healthy)}`} />
+                <CardTitle className="text-sm font-medium">Database</CardTitle>
+                <Database className={`h-4 w-4 ${getStatusColor(healthData.system.database.healthy)}`} />
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  {getStatusIcon(status.healthy)}
-                  <span className="font-medium">
-                    {status.healthy ? 'Connected' : 'Disconnected'}
+                  {getStatusIcon(healthData.system.database.healthy)}
+                  <span className="text-2xl font-bold">
+                    {healthData.system.database.healthy ? 'Online' : 'Offline'}
                   </span>
                 </div>
-                {status.response_time && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {status.response_time}ms
+                {healthData.system.database.response_time && (
+                  <p className="text-xs text-muted-foreground">
+                    {healthData.system.database.response_time}ms response
                   </p>
-                )}
-                {status.error && (
-                  <p className="text-xs text-red-600 mt-1">{status.error}</p>
                 )}
               </CardContent>
             </Card>
-          ))}
-        </div>
-      </div>
 
-      {/* Activity Metrics */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Recent Activity (24h)</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Workflows Triggered</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {healthData.recent_activity.workflows_triggered_24h}
-              </div>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Uptime</CardTitle>
+                <TrendingUp className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {healthData.recent_activity.uptime_percentage}%
+                </div>
+                <p className="text-xs text-muted-foreground">Last 24 hours</p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Emails Sent</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {healthData.recent_activity.emails_sent_24h}
-              </div>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Response Time</CardTitle>
+                <Clock className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {healthData.recent_activity.avg_response_time_ms}ms
+                </div>
+                <p className="text-xs text-muted-foreground">Average</p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">CRM Syncs</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {healthData.recent_activity.crm_syncs_24h}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Errors</CardTitle>
+                <AlertTriangle className={`h-4 w-4 ${healthData.recent_activity.errors_24h > 0 ? 'text-red-600' : 'text-green-600'}`} />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {healthData.recent_activity.errors_24h}
+                </div>
+                <p className="text-xs text-muted-foreground">Last 24 hours</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Integration Status */}
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Integration Status</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {Object.entries(healthData.integrations).map(([name, status]) => (
+                <Card key={name}>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium capitalize">
+                      {name.replace('_', ' ')}
+                    </CardTitle>
+                    <Wifi className={`h-4 w-4 ${getStatusColor(status.healthy)}`} />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(status.healthy)}
+                      <span className="font-medium">
+                        {status.healthy ? 'Connected' : 'Disconnected'}
+                      </span>
+                    </div>
+                    {status.response_time && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {status.response_time}ms
+                      </p>
+                    )}
+                    {status.error && (
+                      <p className="text-xs text-red-600 mt-1">{status.error}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Activity Metrics */}
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Recent Activity (24h)</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Workflows Triggered</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {healthData.recent_activity.workflows_triggered_24h}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Emails Sent</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {healthData.recent_activity.emails_sent_24h}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">CRM Syncs</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {healthData.recent_activity.crm_syncs_24h}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="integrations" className="space-y-6">
+          <IntegrationHealthDashboard />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
