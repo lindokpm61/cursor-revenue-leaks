@@ -484,42 +484,62 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
                 )}
               </div>
 
-              {/* Milestones */}
+              {/* Milestones with Strategic Blur Overlay */}
               {milestones.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                    <Target className="h-5 w-5" />
-                    Key Milestones
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {milestones.map((milestone, index) => {
-                      const Icon = milestone.icon;
-                      return (
-                        <Card key={index} className="border-border/30">
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="p-2 rounded-lg bg-primary/10">
-                                <Icon className="h-5 w-5 text-primary" />
+                <div className="relative min-h-[400px]">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      Key Milestones
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {milestones.map((milestone, index) => {
+                        const Icon = milestone.icon;
+                        return (
+                          <Card key={index} className="border-border/30">
+                            <CardContent className="p-4">
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="p-2 rounded-lg bg-primary/10">
+                                  <Icon className="h-5 w-5 text-primary" />
+                                </div>
+                                <div>
+                                  <div className="font-medium text-sm text-primary">{milestone.day}</div>
+                                  <h4 className="font-semibold">{milestone.title}</h4>
+                                </div>
                               </div>
-                              <div>
-                                <div className="font-medium text-sm text-primary">{milestone.day}</div>
-                                <h4 className="font-semibold">{milestone.title}</h4>
+                              <p className="text-sm text-muted-foreground mb-3">
+                                {milestone.description}
+                              </p>
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                  <span>Progress</span>
+                                  <span>{milestone.progress}%</span>
+                                </div>
+                                <Progress value={milestone.progress} className="h-2" />
                               </div>
-                            </div>
-                            <p className="text-sm text-muted-foreground mb-3">
-                              {milestone.description}
-                            </p>
-                            <div className="space-y-2">
-                              <div className="flex justify-between text-sm">
-                                <span>Progress</span>
-                                <span>{milestone.progress}%</span>
-                              </div>
-                              <Progress value={milestone.progress} className="h-2" />
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Strategic Implementation Plan Overlay */}
+                  <div className="absolute inset-0 bg-background/90 backdrop-blur-md rounded-lg flex items-center justify-center z-10 border border-border/50">
+                    <div className="text-center p-8 max-w-lg mx-auto">
+                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Calendar className="w-8 h-8 text-primary" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-primary mb-2">
+                        Detailed Implementation Roadmap Available
+                      </h3>
+                      <p className="text-muted-foreground mb-6">
+                        Get your step-by-step implementation guide with timelines, resource allocation, and milestone tracking for optimal revenue recovery.
+                      </p>
+                      <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                        Get Implementation Plan
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
