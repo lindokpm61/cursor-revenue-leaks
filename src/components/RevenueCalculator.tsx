@@ -594,7 +594,7 @@ export const RevenueCalculator = () => {
                 }}
               >
                 <TrendingUp className="h-4 w-4 mr-2" />
-                View Action Plan
+                View Growth Plan
               </Button>
             </div>
             

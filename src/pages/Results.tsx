@@ -182,7 +182,7 @@ const Results = () => {
     if (!user) {
       toast({
         title: "Authentication Required",
-        description: "Please log in to access your strategic action plan.",
+        description: "Please log in to access your strategic growth plan.",
         variant: "destructive",
       });
       return;
@@ -353,7 +353,7 @@ const Results = () => {
           <TabsContent value="actions">
             <div className="space-y-6">
               <div className="bg-revenue-growth/10 border-2 border-revenue-growth/20 rounded-xl p-4">
-                <h3 className="text-lg font-bold text-revenue-growth mb-2">🎯 STRATEGIC ACTION PLAN</h3>
+                <h3 className="text-lg font-bold text-revenue-growth mb-2">🎯 STRATEGIC GROWTH PLAN</h3>
                 <p className="text-sm text-revenue-growth/80">
                   Priority actions to maximize revenue optimization opportunities
                 </p>
@@ -406,7 +406,7 @@ const Results = () => {
                 className="bg-primary hover:bg-primary/90"
               >
                 <Target className="h-4 w-4 mr-2" />
-                GET STRATEGIC ACTION PLAN
+                GET STRATEGIC GROWTH PLAN
               </Button>
               <Button 
                 onClick={handleBookCall}

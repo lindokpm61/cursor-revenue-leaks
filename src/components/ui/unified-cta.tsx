@@ -35,9 +35,9 @@ export const UnifiedCTA = ({
         };
       case 'results':
         return {
-          text: "Get Action Plan",
+          text: "Get Growth Plan",
           icon: Target,
-          description: data?.formatCurrency ? `Secure ${data.formatCurrency(data.recovery || 0)} recovery plan` : "Get your strategic action plan"
+          description: data?.formatCurrency ? `Secure ${data.formatCurrency(data.recovery || 0)} growth strategy` : "Get your strategic growth plan"
         };
       case 'action-plan':
         return {

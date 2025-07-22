@@ -51,7 +51,7 @@ export const FloatingCTABar = ({
               className="bg-white text-primary hover:bg-white/90"
             >
               <Target className="h-4 w-4 mr-2" />
-              Get Action Plan
+              Get Growth Plan
             </Button>
             
             {onDismiss && (

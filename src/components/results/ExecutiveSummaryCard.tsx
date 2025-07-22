@@ -49,7 +49,7 @@ export const ExecutiveSummaryCard = ({
       // If no user, trigger registration modal (if onGetActionPlan is provided)
       onGetActionPlan?.();
     } else {
-      // If user is authenticated, go directly to action plan page
+      // If user is authenticated, go directly to growth plan page
       navigate(`/action-plan/${submission.id}`);
     }
   };
@@ -213,7 +213,7 @@ export const ExecutiveSummaryCard = ({
             className="w-full text-h3 font-bold px-8 py-4 h-[56px] transition-all duration-300 shadow-lg hover:shadow-xl"
           >
             <Target className="h-6 w-6 mr-3" />
-            {user ? 'Get Action Plan' : 'Get Action Plan (Register)'}
+            {user ? 'Get Growth Plan' : 'Get Growth Plan (Register)'}
           </Button>
 
           {/* SECONDARY ACTIONS with generous spacing */}
@@ -291,7 +291,7 @@ export const ExecutiveSummaryCard = ({
           className="w-full text-h3 font-bold px-8 py-4 h-[56px] transition-all duration-300 shadow-lg hover:shadow-xl"
         >
           <Target className="h-6 w-6 mr-3" />
-          {user ? 'Get Action Plan' : 'Get Action Plan (Register)'}
+          {user ? 'Get Growth Plan' : 'Get Growth Plan (Register)'}
         </Button>
 
         {/* SECONDARY ACTIONS with reduced visual weight */}
