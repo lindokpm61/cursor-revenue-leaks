@@ -1,5 +1,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Target, TrendingUp, BarChart3 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
@@ -161,46 +162,66 @@ export const UnifiedRevenueCharts = ({ calculations, formatCurrency }: UnifiedRe
         </Card>
       </div>
 
-      {/* Opportunity Breakdown Chart */}
-      <Card className="border-primary/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-primary" />
-            Strategic Revenue Opportunity Sources
-            <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">PRIORITIZED ANALYSIS</Badge>
-          </CardTitle>
-          <CardDescription>
-            Data-driven insights for strategic revenue optimization initiatives
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={calculations.lossBreakdown} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="title" />
-              <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
-              <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-              <Bar dataKey="amount" fill="hsl(var(--primary))" />
-            </BarChart>
-          </ResponsiveContainer>
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
-            {calculations.lossBreakdown.map((item, index) => (
-              <div key={index} className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                <div className="text-sm font-medium mb-1 text-primary">{item.title}</div>
-                <div className="text-lg font-bold text-primary">
-                  {formatCurrency(item.amount)}
+      {/* Opportunity Breakdown Chart with Strategic Blur Overlay */}
+      <div className="relative min-h-[500px]">
+        <Card className="border-primary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" />
+              Strategic Revenue Opportunity Sources
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">PRIORITIZED ANALYSIS</Badge>
+            </CardTitle>
+            <CardDescription>
+              Data-driven insights for strategic revenue optimization initiatives
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart data={calculations.lossBreakdown} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="title" />
+                <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
+                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                <Bar dataKey="amount" fill="hsl(var(--primary))" />
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+              {calculations.lossBreakdown.map((item, index) => (
+                <div key={index} className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <div className="text-sm font-medium mb-1 text-primary">{item.title}</div>
+                  <div className="text-lg font-bold text-primary">
+                    {formatCurrency(item.amount)}
+                  </div>
+                  <div className="text-xs text-muted-foreground mb-2">
+                    {item.percentage.toFixed(1)}% of opportunity
+                  </div>
+                  <Badge variant="outline" className="text-xs border-revenue-growth text-revenue-growth">
+                    {formatCurrency(item.amount / 12)}/month
+                  </Badge>
                 </div>
-                <div className="text-xs text-muted-foreground mb-2">
-                  {item.percentage.toFixed(1)}% of opportunity
-                </div>
-                <Badge variant="outline" className="text-xs border-revenue-growth text-revenue-growth">
-                  {formatCurrency(item.amount / 12)}/month
-                </Badge>
-              </div>
-            ))}
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Strategic Revenue Analysis Overlay */}
+        <div className="absolute inset-0 bg-background/65 backdrop-blur-sm rounded-lg flex items-center justify-center z-10 border border-border/50">
+          <div className="text-center p-8 max-w-lg mx-auto">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <BarChart3 className="w-8 h-8 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold text-primary mb-2">
+              Complete Revenue Analysis Available
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              Access detailed revenue optimization insights, source-by-source breakdowns, and strategic priority rankings for maximum impact.
+            </p>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              Get Revenue Analysis
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
