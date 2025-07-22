@@ -216,8 +216,11 @@ export const UnifiedRevenueCharts = ({ calculations, formatCurrency }: UnifiedRe
             <p className="text-muted-foreground mb-6">
               Access detailed revenue optimization insights, source-by-source breakdowns, and strategic priority rankings for maximum impact.
             </p>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              Get Revenue Analysis
+            <Button 
+              onClick={() => window.open('https://cal.com/rev-calculator/revenuecalculator-strategy-session', '_blank')}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              Book Strategy Session
             </Button>
           </div>
         </div>
