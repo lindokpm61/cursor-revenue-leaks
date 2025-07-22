@@ -60,7 +60,7 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
   // Use centralized priority calculations
   const priorityActions = calculatePriorityActions(submission);
 
-  // Convert PriorityAction to ActionItem format with crisis language
+  // Convert PriorityAction to ActionItem format with strategic language
   const getActionItems = (): ActionItem[] => {
     return priorityActions.map((action: PriorityAction) => {
       // Map icons for emergency context
@@ -93,25 +93,25 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
             '📈 ONGOING: Monitor and stop bleeding weekly'
           ];
           dependencies = [
-            'Emergency CRM system with crisis automation',
-            'Crisis response team training',
-            'Lead bleeding scoring model',
-            'Emergency notification systems'
+            'Advanced CRM system with automation',
+            'Team training and development',
+            'Lead scoring optimization model',
+            'Automated notification systems'
           ];
-          whyItMatters = `💥 REVENUE CRISIS: Every hour of delay costs you ${formatCurrency(dailyLoss/24)} and makes you 7x less likely to stop the bleeding. This is your most critical hemorrhaging point.`;
-          complexity = 'High Crisis Priority - immediate emergency response required';
+          whyItMatters = `🎯 STRATEGIC OPPORTUNITY: Every hour of improvement captures ${formatCurrency(dailyLoss/24)} and increases conversion likelihood by 7x. This is your highest-impact optimization area.`;
+          complexity = 'High Strategic Priority - systematic implementation approach required';
           break;
 
         case 'selfserve-optimization':
           implementationSteps = [
-            '🔍 EMERGENCY: Map user journey bleeding points',
-            '📉 CRITICAL: Analyze conversion hemorrhaging funnel',
-            '🧪 URGENT: A/B test emergency conversion fixes',
-            '🚀 VITAL: Deploy emergency user guidance system',
-            '⚡ IMMEDIATE: Optimize trial bleeding experience',
-            '🎯 ESSENTIAL: Add emergency progress indicators',
-            '📚 CRITICAL: Create emergency self-service resources',
-            '💰 ONGOING: Test and stop pricing page bleeding'
+            '🔍 ANALYZE: Map user journey optimization points',
+            '📉 RESEARCH: Analyze conversion funnel performance',
+            '🧪 TEST: A/B test conversion improvements',
+            '🚀 DEPLOY: Implement user guidance system',
+            '⚡ OPTIMIZE: Enhance trial experience',
+            '🎯 IMPROVE: Add progress indicators',
+            '📚 CREATE: Develop self-service resources',
+            '💰 ITERATE: Test and optimize pricing page'
           ];
           dependencies = [
             'Emergency UX crisis team',
@@ -119,8 +119,8 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
             'User bleeding feedback systems',
             'Emergency development resources'
           ];
-          whyItMatters = `🩸 CONVERSION CRISIS: Your conversion is bleeding ${formatCurrency(dailyLoss)} daily. Every 1% improvement stops significant revenue hemorrhaging.`;
-          complexity = 'Critical Crisis - requires immediate emergency development';
+          whyItMatters = `📈 CONVERSION OPPORTUNITY: Your conversion optimization can capture ${formatCurrency(dailyLoss)} daily. Every 1% improvement unlocks significant revenue growth.`;
+          complexity = 'Strategic Priority - requires systematic development approach';
           break;
 
         case 'process-automation':
@@ -174,15 +174,15 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
 
       switch (action.id) {
         case 'lead-response':
-          currentMetric = `⚠️ ${submission.lead_response_time || 0}h bleeding response time`;
-          targetMetric = '✅ < 1h emergency response (crisis stopped)';
+          currentMetric = `📊 ${submission.lead_response_time || 0}h current response time`;
+          targetMetric = '✅ < 1h optimized response (strategic target)';
           currentProgress = Math.max(0, Math.min(100, 100 - ((submission.lead_response_time || 0) - 1.0) * 20));
           targetProgress = 95;
           break;
         case 'selfserve-optimization':
           const targetConversion = Math.min(15, (submission.free_to_paid_conversion || 0) * 2.5);
-          currentMetric = `🩸 ${submission.free_to_paid_conversion || 0}% bleeding conversion`;
-          targetMetric = `🚀 ${targetConversion.toFixed(1)}% emergency recovery rate`;
+          currentMetric = `📈 ${submission.free_to_paid_conversion || 0}% current conversion`;
+          targetMetric = `🚀 ${targetConversion.toFixed(1)}% strategic target rate`;
           currentProgress = ((submission.free_to_paid_conversion || 0) / targetConversion) * 100;
           targetProgress = 90;
           break;
@@ -204,13 +204,13 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
 
       return {
         id: action.id,
-        title: `🚨 ${action.title.replace('Optimization', 'Emergency Recovery')}`,
-        description: action.description.replace('Optimize', 'STOP BLEEDING in').replace('Improve', 'EMERGENCY FIX for'),
+        title: `🎯 ${action.title.replace('Optimization', 'Strategic Enhancement')}`,
+        description: action.description.replace('Optimize', 'STRATEGICALLY IMPROVE').replace('Improve', 'SYSTEMATICALLY ENHANCE'),
         currentMetric,
         targetMetric,
         potentialRecovery: action.recoveryAmount,
         difficulty: action.effort as 'Easy' | 'Medium' | 'Hard',
-        timeframe: action.timeframe.replace('weeks', 'weeks (EMERGENCY)'),
+        timeframe: action.timeframe.replace('weeks', 'weeks (STRATEGIC)'),
         icon: iconMap[action.id] || AlertTriangle,
         priority: action.urgency === 'Critical' || action.urgency === 'High' ? 'urgent' : 'medium',
         currentProgress,
@@ -270,9 +270,9 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
               <AlertTriangle className="h-6 w-6 text-destructive-foreground" />
             </div>
             <div>
-              <CardTitle className="text-2xl text-destructive">🚨 EMERGENCY INTERVENTION PRIORITIES</CardTitle>
-              <p className="text-destructive/80 mt-1">
-                No critical bleeding detected. Continue crisis monitoring.
+              <CardTitle className="text-2xl text-primary">🎯 STRATEGIC OPTIMIZATION PRIORITIES</CardTitle>
+              <p className="text-primary/80 mt-1">
+                No critical opportunities detected. Continue strategic monitoring.
               </p>
             </div>
           </div>
@@ -291,9 +291,9 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
                 <AlertTriangle className="h-6 w-6 text-destructive-foreground" />
               </div>
               <div>
-                <CardTitle className="text-2xl text-destructive">🚨 EMERGENCY INTERVENTION PRIORITIES</CardTitle>
-                <p className="text-destructive/80 mt-1">
-                  Critical bleeding points requiring immediate emergency response
+                <CardTitle className="text-2xl text-primary">🎯 STRATEGIC OPTIMIZATION PRIORITIES</CardTitle>
+                <p className="text-primary/80 mt-1">
+                  Key opportunity areas requiring strategic implementation
                 </p>
               </div>
             </div>
@@ -311,26 +311,26 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
                 <div className="flex items-center gap-3 mb-4">
                   <Clock className="h-6 w-6 text-destructive animate-pulse" />
                   <div>
-                    <h3 className="font-semibold text-destructive text-lg">⏰ REVENUE BLEEDING IN PROGRESS</h3>
-                    <p className="text-destructive/80">Every moment of delay increases your financial hemorrhaging</p>
+                    <h3 className="font-semibold text-primary text-lg">⏰ REVENUE OPTIMIZATION IN PROGRESS</h3>
+                    <p className="text-primary/80">Strategic implementation timeline for maximum revenue impact</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                   <div>
-                    <span className="font-medium text-destructive">Daily Bleeding:</span>
-                    <div className="text-destructive font-bold">{formatCurrency(totalDailyLoss)}</div>
+                    <span className="font-medium text-primary">Monthly Opportunity:</span>
+                    <div className="text-primary font-bold">{formatCurrency(totalDailyLoss * 30)}</div>
                   </div>
                   <div>
-                    <span className="font-medium text-destructive">Emergency Actions:</span>
-                    <div className="text-destructive font-bold">{actions.length} critical</div>
+                    <span className="font-medium text-primary">Strategic Actions:</span>
+                    <div className="text-primary font-bold">{actions.length} prioritized</div>
                   </div>
                   <div>
-                    <span className="font-medium text-destructive">Crisis Window:</span>
-                    <div className="text-destructive font-bold">72 hours</div>
+                    <span className="font-medium text-primary">Implementation Window:</span>
+                    <div className="text-primary font-bold">3-6 months</div>
                   </div>
                   <div>
-                    <span className="font-medium text-destructive">Recovery Rate:</span>
-                    <div className="text-destructive font-bold">85% if immediate</div>
+                    <span className="font-medium text-primary">Expected ROI:</span>
+                    <div className="text-primary font-bold">300-500%</div>
                   </div>
                 </div>
               </div>
@@ -338,7 +338,7 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
               {/* Emergency Priority Sections */}
               {urgentActions.length > 0 && (
                 <PriorityActionSection
-                  title="🚨 CRITICAL EMERGENCY (Stop Bleeding NOW)"
+                  title="🎯 HIGH PRIORITY (Maximum Impact Opportunities)"
                   actions={urgentActions}
                   formatCurrency={formatCurrency}
                   sectionType="urgent"
@@ -347,7 +347,7 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
 
               {mediumActions.length > 0 && (
                 <PriorityActionSection
-                  title="⚠️ SECONDARY EMERGENCY (Crisis Stabilization)"
+                  title="📈 MEDIUM PRIORITY (Strategic Growth Initiatives)"
                   actions={mediumActions}
                   formatCurrency={formatCurrency}
                   sectionType="medium"
@@ -358,12 +358,12 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
               {actions.length > 0 && (
                 <div className="mt-8 bg-gradient-to-r from-destructive/10 to-destructive/5 border-2 border-destructive/20 rounded-lg p-6">
                   <div className="text-center">
-                    <h3 className="text-xl font-bold text-destructive mb-2">
-                      🩸 STOP THE BLEEDING NOW
+                    <h3 className="text-xl font-bold text-primary mb-2">
+                      🚀 UNLOCK YOUR REVENUE POTENTIAL
                     </h3>
-                    <p className="text-destructive/80 mb-4">
-                      Your business is hemorrhaging {formatCurrency(totalDailyLoss)} daily. 
-                      Every hour of delay costs you {formatCurrency(totalDailyLoss/24)}.
+                    <p className="text-primary/80 mb-4">
+                      Strategic optimization can capture {formatCurrency(totalDailyLoss * 30)} monthly. 
+                      Professional implementation accelerates results by {formatCurrency(totalDailyLoss/24)}/hour.
                     </p>
                     <StrategicCTASection
                       totalLeak={unifiedCalculations.totalLoss}

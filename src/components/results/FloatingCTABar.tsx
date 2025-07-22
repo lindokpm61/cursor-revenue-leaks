@@ -37,10 +37,10 @@ export const FloatingCTABar = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Badge variant="secondary" className="bg-white/20 text-white">
-              {formatCurrency(totalLeak)} at Risk
+              {formatCurrency(totalLeak)} Opportunity
             </Badge>
             <span className="font-medium">
-              Ready to secure your revenue recovery?
+              Ready to unlock your revenue optimization strategy?
             </span>
           </div>
           

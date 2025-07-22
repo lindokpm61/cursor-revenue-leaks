@@ -101,8 +101,8 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
       const recoveryRate = 0.65; // 65% recovery rate
       phases.push({
         id: 'lead-response',
-        title: 'Lead Response Crisis Containment',
-        description: 'Emergency implementation of automated response systems to stop lead bleeding',
+        title: 'Lead Response Optimization Initiative',
+        description: 'Strategic implementation of automated response systems to maximize lead conversion',
         startMonth: 1,
         endMonth: 3,
         difficulty: 'easy',
@@ -121,8 +121,8 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
       const recoveryRate = 0.55; // 55% recovery rate for self-serve
       phases.push({
         id: 'self-serve',
-        title: 'Conversion Failure Emergency Response',
-        description: 'Immediate onboarding fixes to stop conversion bleeding',
+        title: 'Conversion Optimization Strategy',
+        description: 'Strategic onboarding improvements to enhance conversion rates',
         startMonth: 2,
         endMonth: 5,
         difficulty: 'medium',
@@ -141,8 +141,8 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
       const recoveryRate = 0.70; // 70% recovery rate for payment issues
       phases.push({
         id: 'payment-recovery',
-        title: 'Payment Failure Emergency Protocol',
-        description: 'Critical payment system fixes to stop revenue bleeding',
+        title: 'Payment Recovery Enhancement',
+        description: 'Strategic payment system improvements to maximize revenue retention',
         startMonth: 3,
         endMonth: 6,
         difficulty: 'medium',
@@ -161,8 +161,8 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
       const recoveryRate = 0.75; // 75% recovery rate for automation
       phases.push({
         id: 'process-automation', 
-        title: 'Process Inefficiency Crisis Intervention',
-        description: 'Emergency automation to stop manual process bleeding',
+        title: 'Process Automation Initiative',
+        description: 'Strategic automation implementation to optimize operational efficiency',
         startMonth: 4,
         endMonth: 8,
         difficulty: 'hard',
@@ -306,16 +306,16 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
         <Collapsible open={isContentOpen} onOpenChange={setIsContentOpen}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-r from-destructive to-orange-500">
-                <Siren className="h-6 w-6 text-destructive-foreground animate-pulse" />
+              <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-revenue-growth">
+                <Target className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-                <CardTitle className="text-2xl text-destructive flex items-center gap-2">
-                  EMERGENCY REVENUE RECOVERY PROTOCOL
-                  <Badge variant="destructive" className="animate-pulse">URGENT</Badge>
+                <CardTitle className="text-2xl text-primary flex items-center gap-2">
+                  STRATEGIC REVENUE OPTIMIZATION ROADMAP
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">COMPREHENSIVE</Badge>
                 </CardTitle>
                 <p className="text-muted-foreground mt-1">
-                  {phases.length}-phase emergency intervention • Stop {Math.round(recoveryPercentage)}% of revenue bleeding immediately
+                  {phases.length}-phase strategic implementation • Capture {Math.round(recoveryPercentage)}% of revenue opportunity systematically
                 </p>
               </div>
             </div>
@@ -330,16 +330,16 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
             <CardContent className="space-y-8 pt-6">
               {/* Critical Revenue Bleeding Summary */}
               <div className="grid grid-cols-4 gap-4">
-                <div className="p-4 rounded-lg bg-gradient-to-r from-destructive/10 to-destructive/20 border-2 border-destructive/30">
+                <div className="p-4 rounded-lg bg-gradient-to-r from-primary/10 to-primary/20 border-2 border-primary/30">
                   <div className="flex items-center gap-2 mb-2">
-                    <Siren className="h-5 w-5 text-destructive animate-pulse" />
-                    <span className="text-sm font-medium text-muted-foreground">Emergency Recovery</span>
+                    <Target className="h-5 w-5 text-primary" />
+                    <span className="text-sm font-medium text-muted-foreground">Strategic Recovery</span>
                   </div>
-                  <div className="text-2xl font-bold text-destructive">
+                  <div className="text-2xl font-bold text-primary">
                     {formatCurrency(totalRecovery)}
                   </div>
-                  <div className="text-sm text-orange-600 mt-1">
-                    Stop {Math.round(recoveryPercentage)}% of bleeding
+                  <div className="text-sm text-primary mt-1">
+                    Capture {Math.round(recoveryPercentage)}% of opportunity
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
                     Daily savings: {formatCurrency(totalRecovery / 365)}
@@ -348,8 +348,8 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
                 
                 <div className="p-4 rounded-lg bg-gradient-to-r from-orange-500/10 to-orange-500/20 border border-orange-500/30">
                   <div className="flex items-center gap-2 mb-2">
-                    <Timer className="h-5 w-5 text-orange-600" />
-                    <span className="text-sm font-medium text-muted-foreground">Crisis Timeline</span>
+                    <Timer className="h-5 w-5 text-revenue-growth" />
+                    <span className="text-sm font-medium text-muted-foreground">Implementation Timeline</span>
                   </div>
                   <div className="text-2xl font-bold text-orange-600">
                     {phases.length > 0 ? Math.max(...phases.map(p => p.endMonth)) : 12} months
@@ -362,19 +362,19 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
                   </div>
                 </div>
 
-                <div className="p-4 rounded-lg bg-gradient-to-r from-revenue-warning/10 to-revenue-warning/20 border border-revenue-warning/30">
+                <div className="p-4 rounded-lg bg-gradient-to-r from-revenue-primary/10 to-revenue-primary/20 border border-revenue-primary/30">
                   <div className="flex items-center gap-2 mb-2">
-                    <DollarSign className="h-5 w-5 text-revenue-warning" />
-                    <span className="text-sm font-medium text-muted-foreground">Emergency Investment</span>
+                    <DollarSign className="h-5 w-5 text-revenue-primary" />
+                    <span className="text-sm font-medium text-muted-foreground">Strategic Investment</span>
                   </div>
-                  <div className="text-2xl font-bold text-revenue-warning">
+                  <div className="text-2xl font-bold text-revenue-primary">
                     {formatCurrency(investment.totalAnnualInvestment)}
                   </div>
                   <div className="text-sm text-muted-foreground mt-1">
-                    Crisis intervention cost
+                    Strategic implementation cost
                   </div>
-                  <div className="text-xs text-revenue-warning mt-1">
-                    vs. bleeding: {formatCurrency((unifiedCalcs.totalLoss || 0) - investment.totalAnnualInvestment)}
+                  <div className="text-xs text-revenue-success mt-1">
+                    vs. opportunity: {formatCurrency((unifiedCalcs.totalLoss || 0) - investment.totalAnnualInvestment)}
                   </div>
                 </div>
                 
@@ -397,10 +397,10 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
 
               {/* Emergency Recovery Timeline Chart */}
               <div>
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-destructive">
-                  <Siren className="h-5 w-5 animate-pulse" />
-                  Emergency Revenue Recovery Timeline
-                  <Badge variant="destructive" className="text-xs">BLEEDING STOPS HERE</Badge>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-primary">
+                  <Target className="h-5 w-5" />
+                  Strategic Revenue Optimization Timeline
+                  <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">OPPORTUNITY CAPTURE</Badge>
                 </h3>
                 <div className="h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -409,14 +409,14 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
                       <XAxis dataKey="month" />
                       <YAxis tickFormatter={(value) => formatCurrency(value)} />
                       <Tooltip 
-                        formatter={(value: number) => [formatCurrency(value), 'Revenue Bleeding Stopped']}
-                        labelFormatter={(label) => `Crisis Timeline: ${label}`}
+                        formatter={(value: number) => [formatCurrency(value), 'Revenue Opportunity Captured']}
+                        labelFormatter={(label) => `Strategic Timeline: ${label}`}
                       />
                       <Area 
                         type="monotone" 
                         dataKey="cumulative" 
-                        stroke="hsl(var(--destructive))" 
-                        fill="hsl(var(--destructive)/0.2)"
+                        stroke="hsl(var(--primary))" 
+                        fill="hsl(var(--primary)/0.2)"
                         strokeWidth={3}
                       />
                     </AreaChart>
@@ -426,7 +426,7 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
 
               {/* Implementation Phases */}
               <div>
-                <h3 className="text-lg font-semibold mb-6 text-destructive">🚨 Emergency Intervention Phases</h3>
+                <h3 className="text-lg font-semibold mb-6 text-primary">🎯 Strategic Implementation Phases</h3>
                 {phases.length === 0 ? (
                   <div className="p-6 text-center bg-muted/30 rounded-lg">
                     <AlertTriangle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
