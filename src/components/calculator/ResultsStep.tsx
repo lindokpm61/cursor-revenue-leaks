@@ -88,7 +88,7 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
 
   const handleBookConsultation = () => {
     console.log('Book consultation clicked');
-    window.open('https://calendly.com/your-consultation', '_blank');
+    window.open('https://calendly.com/revenuecalculator/strategy-session', '_blank');
     
     toast({
       title: "Strategic Consultation Booking",
@@ -167,8 +167,8 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
           </div>
           <p className="text-body text-primary/90 max-w-2xl mx-auto font-medium">
             {isSaved 
-              ? "📊 Strategic analysis saved! Implement these optimization strategies to unlock substantial revenue growth."
-              : "💰 Your business has significant revenue optimization potential. Strategic improvements can unlock substantial growth opportunities."
+              ? "📊 Strategic analysis saved! Book a consultation to implement these optimization strategies and unlock substantial revenue growth."
+              : "💰 Your business has significant revenue optimization potential. Book a strategy session to discuss implementation and unlock substantial growth opportunities."
             }
           </p>
           
@@ -187,11 +187,11 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
             className="bg-gradient-to-r from-primary to-revenue-growth text-white font-bold px-8 py-4 h-14 text-lg shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto"
           >
             <Calendar className="h-5 w-5 mr-3" />
-            🚀 UNLOCK YOUR POTENTIAL - Strategy Consultation
+            🚀 BOOK STRATEGY CONSULTATION - Free 30min Session
           </Button>
           
           <p className="text-xs text-primary font-bold">
-            ↑ OPPORTUNITY: Strategic consultation available - Speak with revenue optimization specialist
+            ↑ BOOK NOW: Strategic consultation available - Speak with revenue optimization specialist
           </p>
         </div>
 
@@ -318,7 +318,7 @@ export const ResultsStep = ({ data, calculations }: ResultsStepProps) => {
                 size="sm"
                 className="bg-gradient-to-r from-primary to-revenue-growth"
               >
-                🚀 Unlock Potential
+                📅 Book Call
               </Button>
             )}
           </div>

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +36,12 @@ export const ActionPlanTimeline = ({
 }: ActionPlanTimelineProps) => {
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set(phases.length > 0 ? [phases[0].id] : []));
   const [completedActions, setCompletedActions] = useState<Set<string>>(new Set());
+
+  const handleBookStrategicCall = () => {
+    console.log('Book strategic call clicked from Action Plan Timeline');
+    // Updated to use a proper Calendly URL - replace with your actual Calendly link
+    window.open('https://calendly.com/revenuecalculator/strategy-session', '_blank');
+  };
 
   const togglePhase = (phaseId: string) => {
     const newExpanded = new Set(expandedPhases);

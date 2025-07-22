@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -195,7 +194,14 @@ const Results = () => {
   };
 
   const handleBookCall = () => {
-    window.open('https://calendly.com/strategy-session', '_blank');
+    console.log('Book strategy call clicked from Results page');
+    // Updated to use a proper Calendly URL - replace with your actual Calendly link
+    window.open('https://calendly.com/revenuecalculator/strategy-session', '_blank');
+    
+    toast({
+      title: "Strategic Consultation Booking",
+      description: "Opening calendar to schedule your strategy session",
+    });
   };
 
   const handleDownloadReport = () => {
@@ -415,7 +421,7 @@ const Results = () => {
                 className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
               >
                 <Calendar className="h-4 w-4 mr-2" />
-                BOOK STRATEGY CONSULTATION
+                BOOK STRATEGY CONSULTATION - Free 30min
               </Button>
             </div>
           </div>

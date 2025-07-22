@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +34,12 @@ export const StrategicCTASection = ({
     return "Book your strategic consultation today";
   };
 
+  const handleBookConsultation = () => {
+    console.log('Book strategy consultation clicked');
+    // Updated to use a proper Calendly URL - replace with your actual Calendly link
+    window.open('https://calendly.com/revenuecalculator/strategy-session', '_blank');
+  };
+
   return (
     <Card className="bg-gradient-to-r from-primary/10 to-revenue-growth/10 border-primary/30">
       <CardContent className="p-8">
@@ -67,9 +72,13 @@ export const StrategicCTASection = ({
           </div>
 
           <div className="flex justify-center">
-            <Button size="lg" className="bg-primary hover:bg-primary/90 px-8">
+            <Button 
+              size="lg" 
+              className="bg-primary hover:bg-primary/90 px-8"
+              onClick={handleBookConsultation}
+            >
               <Calendar className="h-4 w-4 mr-2" />
-              Book Strategy Session
+              Book Strategy Session - Free 30min
             </Button>
           </div>
 
