@@ -1,66 +1,143 @@
-
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { AuthProvider } from "./components/auth/AuthProvider";
-import { ExperimentProvider } from "./components/experiments/ExperimentProvider";
-import { LandingPageABTest } from "./components/experiments/LandingPageABTest";
+import React from "react";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider } from "./context/AuthContext";
+import { ExperimentProvider } from "./context/ExperimentContext";
+import { ErrorBoundary } from 'react-error-boundary';
+import ErrorScreen from "./components/ErrorScreen";
+import PublicLayout from "./layouts/PublicLayout";
+import AuthLayout from "./layouts/AuthLayout";
 import AdminLayout from "./layouts/AdminLayout";
-import Dashboard from "./pages/Dashboard";
-import Landing from "./pages/Landing";
-import ActionPlan from "./pages/ActionPlan";
-import Results from "./pages/Results";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import CleanResults from "./pages/CleanResults";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+import LandingPage from "./pages/LandingPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import CalculatorPage from "./pages/CalculatorPage";
+import ResultsPage from "./pages/ResultsPage";
+import AccountPage from "./pages/AccountPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
-import AdminExperiments from "./pages/admin/AdminExperiments";
-import AdminSystemHealth from "./pages/admin/AdminSystemHealth";
-import AdminIntegrations from "./pages/admin/AdminIntegrations";
-import AdminUsers from "./pages/admin/AdminUsers";
 import AdminLeads from "./pages/admin/AdminLeads";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminIntegrations from "./pages/admin/AdminIntegrations";
+import AdminSystemHealth from "./pages/admin/AdminSystemHealth";
+import AdminExperiments from "./pages/admin/AdminExperiments";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AuthGuard from "./components/AuthGuard";
+import GuestGuard from "./components/GuestGuard";
+import AdminGuard from "./components/AdminGuard";
+import AdminEmails from "./pages/admin/AdminEmails";
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ExperimentProvider>
+    <div className="min-h-screen bg-background">
+      <Toaster />
+      <ErrorBoundary FallbackComponent={ErrorScreen}>
         <AuthProvider>
-          <Router>
-            <div className="min-h-screen bg-background">
-              <Routes>
-                <Route path="/" element={<LandingPageABTest />} />
-                <Route path="/calculator" element={<Index />} />
-                <Route path="/landing" element={<Landing />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/action-plan/:id" element={<ActionPlan />} />
-                <Route path="/results/:id" element={<CleanResults />} />
-                
-                {/* Admin Routes with AdminLayout wrapper */}
-                <Route path="/admin" element={<AdminLayout />}>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="analytics" element={<AdminAnalytics />} />
-                  <Route path="experiments" element={<AdminExperiments />} />
-                  <Route path="system-health" element={<AdminSystemHealth />} />
-                  <Route path="integrations" element={<AdminIntegrations />} />
-                  <Route path="users" element={<AdminUsers />} />
-                  <Route path="leads" element={<AdminLeads />} />
-                  <Route path="settings" element={<AdminSettings />} />
-                </Route>
-                
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </div>
-          </Router>
+          <ExperimentProvider>
+            <QueryClientProvider client={queryClient}>
+              <BrowserRouter>
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/" element={<PublicLayout><LandingPage /></PublicLayout>} />
+                  <Route path="/calculator" element={<PublicLayout><CalculatorPage /></PublicLayout>} />
+                  <Route path="/results" element={<PublicLayout><ResultsPage /></PublicLayout>} />
+
+                  {/* Auth Routes */}
+                  <Route path="/login" element={
+                    <GuestGuard>
+                      <AuthLayout><LoginPage /></AuthLayout>
+                    </GuestGuard>
+                  } />
+                  <Route path="/register" element={
+                    <GuestGuard>
+                      <AuthLayout><RegisterPage /></AuthLayout>
+                    </GuestGuard>
+                  } />
+
+                  {/* Protected Routes */}
+                  <Route path="/account" element={
+                    <AuthGuard>
+                      <PublicLayout><AccountPage /></PublicLayout>
+                    </AuthGuard>
+                  } />
+
+                  {/* Admin Routes */}
+                  <Route path="/admin" element={
+                    <AuthGuard>
+                      <AdminLayout>
+                        <AdminDashboard />
+                      </AdminLayout>
+                    </AuthGuard>
+                  } />
+                  <Route path="/admin/analytics" element={
+                    <AuthGuard>
+                      <AdminLayout>
+                        <AdminAnalytics />
+                      </AdminLayout>
+                    </AuthGuard>
+                  } />
+                  <Route path="/admin/leads" element={
+                    <AuthGuard>
+                      <AdminLayout>
+                        <AdminLeads />
+                      </AdminLayout>
+                    </AuthGuard>
+                  } />
+                  <Route path="/admin/users" element={
+                    <AuthGuard>
+                      <AdminLayout>
+                        <AdminUsers />
+                      </AdminLayout>
+                    </AuthGuard>
+                  } />
+                  <Route path="/admin/emails" element={
+                    <AuthGuard>
+                      <AdminLayout>
+                        <AdminEmails />
+                      </AdminLayout>
+                    </AuthGuard>
+                  } />
+                  <Route path="/admin/integrations" element={
+                    <AuthGuard>
+                      <AdminLayout>
+                        <AdminIntegrations />
+                      </AdminLayout>
+                    </AuthGuard>
+                  } />
+                  <Route path="/admin/system-health" element={
+                    <AuthGuard>
+                      <AdminLayout>
+                        <AdminSystemHealth />
+                      </AdminLayout>
+                    </AuthGuard>
+                  } />
+                  <Route path="/admin/experiments" element={
+                    <AuthGuard>
+                      <AdminLayout>
+                        <AdminExperiments />
+                      </AdminLayout>
+                    </AuthGuard>
+                  } />
+                  <Route path="/admin/settings" element={
+                    <AuthGuard>
+                      <AdminLayout>
+                        <AdminSettings />
+                      </AdminLayout>
+                    </AuthGuard>
+                  } />
+
+                  {/* Catch-all route */}
+                  <Route path="*" element={<PublicLayout><LandingPage /></PublicLayout>} />
+                </Routes>
+              </BrowserRouter>
+            </QueryClientProvider>
+          </ExperimentProvider>
         </AuthProvider>
-      </ExperimentProvider>
-    </QueryClientProvider>
+      </ErrorBoundary>
+    </div>
   );
 }
 
