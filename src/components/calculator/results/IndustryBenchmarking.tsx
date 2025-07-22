@@ -474,8 +474,11 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
                     <p className="text-muted-foreground mb-6">
                       Get comprehensive benchmarking insights with industry comparisons, competitive positioning, and strategic improvement recommendations.
                     </p>
-                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                      Get Performance Analysis
+                    <Button 
+                      onClick={() => window.open('https://cal.com/rev-calculator/revenuecalculator-strategy-session', '_blank')}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                    >
+                      Book Strategy Session
                     </Button>
                   </div>
                 </div>
@@ -559,8 +562,11 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
                     <p className="text-muted-foreground mb-6">
                       Access detailed industry comparisons, competitive positioning insights, and strategic recommendations for market leadership.
                     </p>
-                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                      Get Competitive Analysis
+                    <Button 
+                      onClick={() => window.open('https://cal.com/rev-calculator/revenuecalculator-strategy-session', '_blank')}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                    >
+                      Book Strategy Session
                     </Button>
                   </div>
                 </div>
