@@ -228,7 +228,7 @@ export const ActionPlanTimeline = ({
 
               {/* Expanded Phase Details */}
               {isExpanded && (
-                <div className="ml-6 space-y-3 animate-fade-in">
+                <div className="ml-6 space-y-3 animate-fade-in relative">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     {phase.difficulty === 'easy' && <CheckCircle className="h-4 w-4 text-green-600" />}
                     {phase.difficulty === 'medium' && <Clock className="h-4 w-4 text-yellow-600" />}
@@ -242,8 +242,8 @@ export const ActionPlanTimeline = ({
                   </div>
 
                   {/* Action Items */}
-                  <div className="space-y-3">
-                    {(phase.actions || []).map((action, actionIndex) => (
+                  <div className="space-y-3 relative">
+                    {(phase.actions || []).slice(0, 2).map((action, actionIndex) => (
                       <ActionPlanChecklistItem
                         key={actionIndex}
                         id={`${phase.id}-${action.title}`}
@@ -260,6 +260,31 @@ export const ActionPlanTimeline = ({
                         formatCurrency={formatCurrency}
                       />
                     ))}
+                    
+                    {/* Premium Content Blur for Additional Actions */}
+                    {(phase.actions || []).length > 2 && (
+                      <div className="relative">
+                        <div className="space-y-3 blur-sm opacity-60">
+                          {(phase.actions || []).slice(2).map((action, actionIndex) => (
+                            <div key={actionIndex + 2} className="p-3 border border-border rounded-lg bg-muted/30">
+                              <div className="h-4 bg-muted rounded mb-2"></div>
+                              <div className="h-3 bg-muted/70 rounded w-3/4"></div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="bg-background/95 backdrop-blur-sm border border-primary/20 rounded-lg p-4 shadow-lg text-center">
+                            <p className="text-sm font-medium text-foreground mb-2">
+                              +{(phase.actions || []).length - 2} more detailed actions
+                            </p>
+                            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                              Unlock Details
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -267,33 +292,37 @@ export const ActionPlanTimeline = ({
           );
         })}
 
-        {/* ROI Summary */}
-        <div className="mt-8 p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="h-5 w-5 text-green-600" />
-            <h4 className="font-semibold text-green-800">Growth ROI Summary</h4>
+        {/* ROI Summary with CTA */}
+        <div className="mt-8 relative">
+          <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingUp className="h-5 w-5 text-green-600" />
+              <h4 className="font-semibold text-green-800">Growth ROI Summary</h4>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <div className="text-sm text-gray-600">Year 1 ROI</div>
+                <div className="text-lg font-bold text-green-700">
+                  {Math.round(((totalRecovery - totalInvestment) / totalInvestment) * 100)}%
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-600">Break-even</div>
+                <div className="text-lg font-bold text-blue-700">Month {paybackMonths}</div>
+              </div>
+              <div className="text-sm text-gray-600 blur-sm">Net Benefit (Year 1)</div>
+              <div className="text-sm text-gray-600 blur-sm">Confidence Level</div>
+            </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <div className="text-sm text-gray-600">Year 1 ROI</div>
-              <div className="text-lg font-bold text-green-700">
-                {Math.round(((totalRecovery - totalInvestment) / totalInvestment) * 100)}%
-              </div>
-            </div>
-            <div>
-              <div className="text-sm text-gray-600">Break-even</div>
-              <div className="text-lg font-bold text-blue-700">Month {paybackMonths}</div>
-            </div>
-            <div>
-              <div className="text-sm text-gray-600">Net Benefit (Year 1)</div>
-              <div className="text-lg font-bold text-purple-700">
-                {formatCurrency(totalRecovery - totalInvestment)}
-              </div>
-            </div>
-            <div>
-              <div className="text-sm text-gray-600">Confidence Level</div>
-              <div className="text-lg font-bold text-gray-700 capitalize">{confidenceLevel}</div>
+          {/* ROI CTA Overlay */}
+          <div className="absolute top-1/2 right-4 transform -translate-y-1/2">
+            <div className="bg-background/95 backdrop-blur-sm border border-primary/20 rounded-lg p-4 shadow-lg text-center">
+              <p className="text-sm font-medium text-foreground mb-2">See Complete ROI Analysis</p>
+              <Button size="sm" className="bg-gradient-to-r from-primary to-primary-accent text-primary-foreground">
+                Unlock Full Metrics
+              </Button>
             </div>
           </div>
         </div>
