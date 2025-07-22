@@ -341,8 +341,8 @@ async function checkSystemHealth(supabaseClient: any): Promise<SystemHealth> {
   try {
     // Test database connectivity and performance
     const { data, error } = await supabaseClient
-      .from('submissions')
-      .select('count')
+      .from('calculator_submissions')
+      .select('id')
       .limit(1);
     
     const responseTime = Date.now() - startTime;
