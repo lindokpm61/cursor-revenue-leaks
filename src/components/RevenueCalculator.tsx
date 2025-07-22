@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ChevronRight, ChevronLeft, Calculator, TrendingUp, AlertTriangle, AlertCircle } from "lucide-react";
+import { ChevronRight, ChevronLeft, Calculator, TrendingUp, AlertTriangle, AlertCircle, Target, BarChart3 } from "lucide-react";
 import { CompanyInfoStep } from "./calculator/CompanyInfoStep";
 import { LeadGenerationStep } from "./calculator/LeadGenerationStep";
 import { SelfServeStep } from "./calculator/SelfServeStep";
@@ -353,40 +353,40 @@ export const RevenueCalculator = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-6">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-revenue-danger to-revenue-warning rounded-xl blur-sm opacity-60"></div>
-              <div className="relative p-4 rounded-xl bg-gradient-to-r from-revenue-danger to-revenue-warning shadow-attention-glow">
-                <AlertCircle className="h-10 w-10 text-white animate-pulse" />
+              <div className="absolute inset-0 bg-gradient-to-r from-primary to-revenue-growth rounded-xl blur-sm opacity-60"></div>
+              <div className="relative p-4 rounded-xl bg-gradient-to-r from-primary to-revenue-growth shadow-attention-glow">
+                <TrendingUp className="h-10 w-10 text-white" />
               </div>
             </div>
             <div>
-              <h1 className="text-hero bg-gradient-to-r from-revenue-danger via-revenue-warning to-revenue-danger bg-clip-text text-transparent font-black tracking-tight">
-                REVENUE BLEEDING CRISIS ANALYZER
+              <h1 className="text-hero bg-gradient-to-r from-primary via-revenue-growth to-primary bg-clip-text text-transparent font-black tracking-tight">
+                STRATEGIC REVENUE OPTIMIZER
               </h1>
               <div className="flex items-center justify-center gap-2 mt-2">
-                <div className="w-2 h-2 bg-revenue-danger rounded-full animate-pulse"></div>
-                <span className="text-small text-revenue-danger font-bold uppercase tracking-wider">EMERGENCY ASSESSMENT</span>
-                <div className="w-2 h-2 bg-revenue-danger rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                <span className="text-small text-primary font-bold uppercase tracking-wider">OPPORTUNITY ASSESSMENT</span>
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
               </div>
             </div>
           </div>
           <p className="text-h3 text-muted-foreground max-w-2xl mx-auto text-center leading-relaxed">
-            <span className="font-bold text-revenue-danger uppercase tracking-wide">STOP YOUR REVENUE HEMORRHAGING</span><br/>
-            Get an emergency diagnosis of where your revenue is bleeding most critically - every minute counts
+            <span className="font-bold text-primary uppercase tracking-wide">UNLOCK YOUR REVENUE POTENTIAL</span><br/>
+            Discover strategic opportunities to optimize your revenue performance - every insight drives growth
           </p>
           
-          {/* Crisis indicators */}
+          {/* Strategic indicators */}
           <div className="flex items-center justify-center gap-6 mt-6 text-small">
-            <div className="flex items-center gap-2 text-revenue-danger">
-              <AlertTriangle className="w-4 h-4 animate-pulse" />
-              <span className="font-semibold">No delay - instant crisis diagnosis</span>
+            <div className="flex items-center gap-2 text-primary">
+              <Target className="w-4 h-4" />
+              <span className="font-semibold">Instant strategic insights</span>
             </div>
-            <div className="flex items-center gap-2 text-revenue-warning">
-              <AlertTriangle className="w-4 h-4 animate-pulse" />
-              <span className="font-semibold">Emergency action plan</span>
+            <div className="flex items-center gap-2 text-revenue-growth">
+              <BarChart3 className="w-4 h-4" />
+              <span className="font-semibold">Growth opportunity plan</span>
             </div>
-            <div className="flex items-center gap-2 text-revenue-danger">
-              <AlertTriangle className="w-4 h-4 animate-pulse" />
-              <span className="font-semibold">Critical for revenue-bleeding companies</span>
+            <div className="flex items-center gap-2 text-primary">
+              <TrendingUp className="w-4 h-4" />
+              <span className="font-semibold">Essential for revenue optimization</span>
             </div>
           </div>
         </div>
