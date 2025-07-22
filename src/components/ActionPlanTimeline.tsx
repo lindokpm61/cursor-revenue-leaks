@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -137,11 +136,11 @@ export const ActionPlanTimeline = ({
           </div>
         </div>
 
-        {/* Cumulative Recovery Visualization - Blurred */}
-        <div className="mt-4 p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/20 relative">
+        {/* Cumulative Recovery Visualization */}
+        <div className="mt-4 p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/20">
           <h4 className="font-medium text-foreground mb-3">Progressive Growth Timeline</h4>
-          <div className="space-y-2 blur-sm opacity-60">
-            {cumulativeRecovery.slice(0, 2).map((milestone, index) => (
+          <div className="space-y-2">
+            {cumulativeRecovery.map((milestone, index) => (
               <div key={index} className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Month {milestone.month}: {milestone.phase}</span>
                 <div className="flex items-center gap-2">
@@ -152,28 +151,6 @@ export const ActionPlanTimeline = ({
                 </div>
               </div>
             ))}
-            {cumulativeRecovery.length > 2 && (
-              <div className="space-y-2">
-                {Array.from({ length: Math.min(cumulativeRecovery.length - 2, 3) }).map((_, index) => (
-                  <div key={index + 2} className="flex items-center justify-between text-sm">
-                    <div className="h-4 bg-muted rounded w-1/2"></div>
-                    <div className="h-4 bg-muted rounded w-1/3"></div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          
-          {/* Timeline CTA Overlay */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="bg-background/95 backdrop-blur-sm border border-primary/20 rounded-lg p-4 shadow-lg text-center">
-              <p className="text-sm font-medium text-foreground mb-2">
-                View Complete Growth Timeline
-              </p>
-              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                Unlock Timeline
-              </Button>
-            </div>
           </div>
         </div>
       </CardHeader>
@@ -197,16 +174,17 @@ export const ActionPlanTimeline = ({
           const isExpanded = expandedPhases.has(phase.id);
           const progress = getPhaseProgress(phase);
           const isCurrentPhase = index === 0; // Simplified current phase logic
+          const isProcessAutomation = phase.title.toLowerCase().includes('process automation');
           
           return (
-            <div key={phase.id} className="space-y-4">
+            <div key={phase.id} className={`space-y-4 ${isProcessAutomation ? 'relative' : ''}`}>
               <div 
                 className={`p-4 rounded-lg border cursor-pointer transition-all ${
                   isCurrentPhase 
                     ? 'border-primary bg-primary/5' 
                     : 'border-border bg-background hover:bg-muted/50'
-                }`}
-                onClick={() => togglePhase(phase.id)}
+                } ${isProcessAutomation ? 'blur-sm opacity-60' : ''}`}
+                onClick={() => !isProcessAutomation && togglePhase(phase.id)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -249,7 +227,7 @@ export const ActionPlanTimeline = ({
               </div>
 
               {/* Expanded Phase Details */}
-              {isExpanded && (
+              {isExpanded && !isProcessAutomation && (
                 <div className="ml-6 space-y-3 animate-fade-in relative">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     {phase.difficulty === 'easy' && <CheckCircle className="h-4 w-4 text-green-600" />}
@@ -307,6 +285,20 @@ export const ActionPlanTimeline = ({
                         </div>
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Process Automation CTA Overlay */}
+              {isProcessAutomation && (
+                <div className="absolute inset-0 flex items-center justify-center z-10">
+                  <div className="bg-background/95 backdrop-blur-sm border border-primary/20 rounded-lg p-4 shadow-lg text-center">
+                    <p className="text-sm font-medium text-foreground mb-2">
+                      Advanced Automation Phase
+                    </p>
+                    <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                      Unlock Automation
+                    </Button>
                   </div>
                 </div>
               )}
