@@ -497,8 +497,11 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
                     <p className="text-muted-foreground mb-6">
                       Access your detailed strategic roadmap with phase-by-phase execution plans, resource requirements, and success metrics.
                     </p>
-                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                      Get Complete Strategy
+                    <Button 
+                      onClick={() => window.open('https://cal.com/rev-calculator/revenuecalculator-strategy-session', '_blank')}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                    >
+                      Book Strategy Session
                     </Button>
                   </div>
                 </div>
@@ -556,8 +559,11 @@ export const ImplementationTimeline = ({ submission, formatCurrency, validatedVa
                       <p className="text-muted-foreground mb-6">
                         Get your step-by-step implementation guide with timelines, resource allocation, and milestone tracking for optimal revenue recovery.
                       </p>
-                      <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                        Get Implementation Plan
+                      <Button 
+                        onClick={() => window.open('https://cal.com/rev-calculator/revenuecalculator-strategy-session', '_blank')}
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                      >
+                        Book Strategy Session
                       </Button>
                     </div>
                   </div>
