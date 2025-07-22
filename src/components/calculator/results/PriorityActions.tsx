@@ -83,14 +83,14 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
       switch (action.id) {
         case 'lead-response':
           implementationSteps = [
-            '🚨 EMERGENCY: Audit current lead hemorrhaging workflow',
-            '⚡ IMMEDIATE: Set up emergency lead triage system',
-            '📱 URGENT: Configure instant crisis response alerts',
-            '📊 CRITICAL: Implement bleeding tracking dashboard',
-            '👥 ESSENTIAL: Train team on 1-hour emergency SLA',
-            '🔄 VITAL: Set up automatic escalation for missed leads',
-            '💉 LIFESAVING: Deploy automated follow-up sequences',
-            '📈 ONGOING: Monitor and stop bleeding weekly'
+            '🔍 ANALYZE: Review current lead response workflow',
+            '⚡ OPTIMIZE: Set up automated lead triage system',
+            '📱 ENHANCE: Configure instant response alerts',
+            '📊 TRACK: Implement response tracking dashboard',
+            '👥 TRAIN: Train team on 1-hour response SLA',
+            '🔄 AUTOMATE: Set up automatic escalation workflows',
+            '💡 DEPLOY: Deploy automated follow-up sequences',
+            '📈 MONITOR: Monitor and optimize performance weekly'
           ];
           dependencies = [
             'Advanced CRM system with automation',
@@ -98,7 +98,7 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
             'Lead scoring optimization model',
             'Automated notification systems'
           ];
-          whyItMatters = `🎯 STRATEGIC OPPORTUNITY: Every hour of improvement captures ${formatCurrency(dailyLoss/24)} and increases conversion likelihood by 7x. This is your highest-impact optimization area.`;
+          whyItMatters = `🎯 STRATEGIC OPPORTUNITY: Every hour of improvement captures ${formatCurrency(dailyLoss/24)} and increases conversion likelihood by 7x. This is your highest-impact opportunity area.`;
           complexity = 'High Strategic Priority - systematic implementation approach required';
           break;
 
@@ -114,10 +114,10 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
             '💰 ITERATE: Test and optimize pricing page'
           ];
           dependencies = [
-            'Emergency UX crisis team',
-            'Crisis testing and analytics tools',
-            'User bleeding feedback systems',
-            'Emergency development resources'
+            'UX optimization team',
+            'Testing and analytics tools',
+            'User feedback systems',
+            'Development resources'
           ];
           whyItMatters = `📈 CONVERSION OPPORTUNITY: Your conversion optimization can capture ${formatCurrency(dailyLoss)} daily. Every 1% improvement unlocks significant revenue growth.`;
           complexity = 'Strategic Priority - requires systematic development approach';
@@ -125,44 +125,44 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
 
         case 'process-automation':
           implementationSteps = [
-            '📋 EMERGENCY: Map all manual bleeding processes',
-            '🔴 CRITICAL: Identify emergency automation opportunities',
-            '🛠️ URGENT: Deploy crisis workflow automation',
-            '📄 VITAL: Create emergency standardized procedures',
-            '🔔 IMMEDIATE: Set up emergency automated alerts',
-            '👥 ESSENTIAL: Train team on crisis automation',
-            '📊 CRITICAL: Monitor emergency efficiency gains',
-            '🔄 ONGOING: Scale automation to stop all bleeding'
+            '📋 ANALYZE: Map all manual processes',
+            '🔍 IDENTIFY: Identify automation opportunities',
+            '🛠️ DEVELOP: Deploy workflow automation',
+            '📄 CREATE: Create standardized procedures',
+            '🔔 SETUP: Set up automated alerts',
+            '👥 TRAIN: Train team on automation',
+            '📊 MONITOR: Monitor efficiency gains',
+            '🔄 SCALE: Scale automation across processes'
           ];
           dependencies = [
-            'Emergency automation platform',
-            'Crisis process training',
-            'Emergency integration capabilities',
-            'Crisis documentation systems'
+            'Automation platform',
+            'Process training',
+            'Integration capabilities',
+            'Documentation systems'
           ];
-          whyItMatters = `⚙️ EFFICIENCY CRISIS: Manual processes are bleeding ${formatCurrency(dailyLoss)} daily. Automation stops this hemorrhaging within 30 days.`;
-          complexity = 'Medium Crisis - emergency implementation required';
+          whyItMatters = `⚙️ EFFICIENCY OPPORTUNITY: Manual processes are costing ${formatCurrency(dailyLoss)} daily. Automation captures this value within 30 days.`;
+          complexity = 'Medium Priority - systematic implementation required';
           break;
 
         case 'payment-recovery':
           implementationSteps = [
-            '🆘 EMERGENCY: Implement smart payment crisis recovery',
-            '📧 CRITICAL: Set up emergency dunning sequences',
-            '📱 URGENT: Add payment failure emergency alerts',
-            '💳 VITAL: Configure multiple emergency payment methods',
-            '⏸️ IMMEDIATE: Implement account pause crisis options',
-            '🔄 ESSENTIAL: Set up emergency win-back campaigns',
-            '📈 CRITICAL: Monitor crisis recovery rates',
-            '🎯 ONGOING: Add proactive payment crisis monitoring'
+            '💳 SETUP: Implement smart payment recovery',
+            '📧 CONFIGURE: Set up dunning sequences',
+            '📱 ADD: Add payment failure alerts',
+            '💳 ENABLE: Configure multiple payment methods',
+            '⏸️ IMPLEMENT: Implement account pause options',
+            '🔄 SETUP: Set up win-back campaigns',
+            '📈 MONITOR: Monitor recovery rates',
+            '🎯 ADD: Add proactive payment monitoring'
           ];
           dependencies = [
-            'Emergency payment processor',
-            'Crisis email automation',
-            'Emergency customer success team',
-            'Crisis billing integrations'
+            'Payment processor',
+            'Email automation',
+            'Customer success team',
+            'Billing integrations'
           ];
-          whyItMatters = `💸 PAYMENT CRISIS: Failed payments are bleeding ${formatCurrency(dailyLoss)} daily. Emergency recovery systems can stop 80% of this hemorrhaging.`;
-          complexity = 'Low Crisis - mostly emergency configuration';
+          whyItMatters = `💸 PAYMENT OPPORTUNITY: Failed payments are costing ${formatCurrency(dailyLoss)} daily. Recovery systems can capture 80% of this value.`;
+          complexity = 'Low Priority - mostly configuration required';
           break;
       }
 
@@ -282,88 +282,93 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
   }
 
   return (
-    <Card className="border-destructive/20 shadow-lg">
+    <Card className="border-border/50 shadow-lg">
       <CardHeader>
         <Collapsible open={isContentOpen} onOpenChange={setIsContentOpen}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-r from-destructive to-destructive/80 animate-pulse">
-                <AlertTriangle className="h-6 w-6 text-destructive-foreground" />
+              <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-blue-500">
+                <Target className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
                 <CardTitle className="text-2xl text-primary">🎯 STRATEGIC OPTIMIZATION PRIORITIES</CardTitle>
-                <p className="text-primary/80 mt-1">
-                  Key opportunity areas requiring strategic implementation
+                <p className="text-muted-foreground mt-1">
+                  Key opportunity areas for strategic revenue enhancement
                 </p>
               </div>
             </div>
-            <Collapsible asChild>
-              <Button variant="ghost" size="sm" className="ml-4 text-destructive hover:bg-destructive/10">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="ml-4">
                 <ChevronDown className={`h-4 w-4 transition-transform ${isContentOpen ? 'rotate-180' : ''}`} />
               </Button>
-            </Collapsible>
+            </CollapsibleTrigger>
           </div>
 
           <CollapsibleContent>
             <CardContent className="space-y-8 pt-6">
-              {/* Crisis Alert */}
-              <div className="bg-gradient-to-r from-destructive/20 to-destructive/10 border-2 border-destructive/30 rounded-lg p-6">
+              {/* Strategic Opportunity Alert */}
+              <div className="bg-gradient-to-r from-primary/20 to-primary/10 border-2 border-primary/30 rounded-lg p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <Clock className="h-6 w-6 text-destructive animate-pulse" />
+                  <Clock className="h-6 w-6 text-primary" />
                   <div>
-                    <h3 className="font-semibold text-primary text-lg">⏰ REVENUE OPTIMIZATION IN PROGRESS</h3>
-                    <p className="text-primary/80">Strategic implementation timeline for maximum revenue impact</p>
+                    <h3 className="font-semibold text-primary text-lg">⏰ STRATEGIC IMPLEMENTATION ROADMAP</h3>
+                    <p className="text-muted-foreground">Systematic approach for maximum revenue optimization</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                   <div>
-                    <span className="font-medium text-primary">Monthly Opportunity:</span>
+                    <span className="font-medium text-muted-foreground">Monthly Opportunity:</span>
                     <div className="text-primary font-bold">{formatCurrency(totalDailyLoss * 30)}</div>
                   </div>
                   <div>
-                    <span className="font-medium text-primary">Strategic Actions:</span>
+                    <span className="font-medium text-muted-foreground">Strategic Actions:</span>
                     <div className="text-primary font-bold">{actions.length} prioritized</div>
                   </div>
                   <div>
-                    <span className="font-medium text-primary">Implementation Window:</span>
+                    <span className="font-medium text-muted-foreground">Implementation Window:</span>
                     <div className="text-primary font-bold">3-6 months</div>
                   </div>
                   <div>
-                    <span className="font-medium text-primary">Expected ROI:</span>
+                    <span className="font-medium text-muted-foreground">Expected ROI:</span>
                     <div className="text-primary font-bold">300-500%</div>
                   </div>
                 </div>
               </div>
 
-              {/* Emergency Priority Sections */}
-              {urgentActions.length > 0 && (
-                <PriorityActionSection
-                  title="🎯 HIGH PRIORITY (Maximum Impact Opportunities)"
-                  actions={urgentActions}
-                  formatCurrency={formatCurrency}
-                  sectionType="urgent"
-                />
-              )}
+              {/* Blur Overlay for Professional Enhancement */}
+              <div className="relative">
+                <div className="space-y-6">
+                  {/* High Priority Sections */}
+                  {urgentActions.length > 0 && (
+                    <PriorityActionSection
+                      title="🎯 HIGH PRIORITY (Maximum Impact Opportunities)"
+                      actions={urgentActions}
+                      formatCurrency={formatCurrency}
+                      sectionType="urgent"
+                    />
+                  )}
 
-              {mediumActions.length > 0 && (
-                <PriorityActionSection
-                  title="📈 MEDIUM PRIORITY (Strategic Growth Initiatives)"
-                  actions={mediumActions}
-                  formatCurrency={formatCurrency}
-                  sectionType="medium"
-                />
-              )}
+                  {mediumActions.length > 0 && (
+                    <PriorityActionSection
+                      title="📈 MEDIUM PRIORITY (Strategic Growth Initiatives)"
+                      actions={mediumActions}
+                      formatCurrency={formatCurrency}
+                      sectionType="medium"
+                    />
+                  )}
+                </div>
 
-              {/* Emergency CTA Section */}
-              {actions.length > 0 && (
-                <div className="mt-8 bg-gradient-to-r from-destructive/10 to-destructive/5 border-2 border-destructive/20 rounded-lg p-6">
-                  <div className="text-center">
-                    <h3 className="text-xl font-bold text-primary mb-2">
-                      🚀 UNLOCK YOUR REVENUE POTENTIAL
+                {/* Professional Consultation Overlay */}
+                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                  <div className="text-center p-8 max-w-lg">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Target className="w-8 h-8 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-primary mb-2">
+                      Strategic Implementation Plan Available
                     </h3>
-                    <p className="text-primary/80 mb-4">
-                      Strategic optimization can capture {formatCurrency(totalDailyLoss * 30)} monthly. 
-                      Professional implementation accelerates results by {formatCurrency(totalDailyLoss/24)}/hour.
+                    <p className="text-muted-foreground mb-6">
+                      Get your detailed action plan with prioritized steps, implementation timelines, and ROI projections.
                     </p>
                     <StrategicCTASection
                       totalLeak={unifiedCalculations.totalLoss}
@@ -373,7 +378,7 @@ export const PriorityActions = ({ submission, formatCurrency, calculatorData, va
                     />
                   </div>
                 </div>
-              )}
+              </div>
             </CardContent>
           </CollapsibleContent>
         </Collapsible>
