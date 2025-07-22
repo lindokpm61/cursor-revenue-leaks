@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -111,7 +110,7 @@ const CleanResults = () => {
   };
 
   const handleBookCall = () => {
-    navigation.openExternalLink('https://calendly.com/your-calendar');
+    navigation.openExternalLink('https://cal.com/rev-calculator/revenuecalculator-strategy-session');
   };
 
   if (loading) {

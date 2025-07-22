@@ -97,7 +97,7 @@ export const PriorityActionCards = ({ latestAnalysis, formatCurrency }: Priority
       effort: 'Low',
       icon: Users,
       color: 'primary',
-      action: () => window.open('https://calendly.com/strategy-session', '_blank'),
+      action: () => window.open('https://cal.com/rev-calculator/revenuecalculator-strategy-session', '_blank'),
       buttonText: 'Book Strategy Session',
       priority: calculations.totalLoss > 1000000 ? 1 : 3
     }

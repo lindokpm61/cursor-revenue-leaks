@@ -49,7 +49,7 @@ export const BlurOverlay = ({
             </p>
             
             <Button 
-              onClick={onUnlock || (() => window.open('https://calendly.com/strategy-session', '_blank'))}
+              onClick={onUnlock || (() => window.open('https://cal.com/rev-calculator/revenuecalculator-strategy-session', '_blank'))}
               className="w-full bg-primary hover:bg-primary/90"
             >
               <Calendar className="h-4 w-4 mr-2" />
