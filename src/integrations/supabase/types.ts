@@ -180,40 +180,85 @@ export type Database = {
       }
       email_sequence_queue: {
         Row: {
+          bounced_at: string | null
+          clicked_at: string | null
           contact_data: Json | null
           contact_email: string
           created_at: string
+          error_message: string | null
           id: string
+          opened_at: string | null
+          retry_count: number | null
           scheduled_for: string
           sent_at: string | null
           sequence_type: string
           status: string
           temp_id: string
+          unsubscribed_at: string | null
           updated_at: string
         }
         Insert: {
+          bounced_at?: string | null
+          clicked_at?: string | null
           contact_data?: Json | null
           contact_email: string
           created_at?: string
+          error_message?: string | null
           id?: string
+          opened_at?: string | null
+          retry_count?: number | null
           scheduled_for: string
           sent_at?: string | null
           sequence_type: string
           status?: string
           temp_id: string
+          unsubscribed_at?: string | null
           updated_at?: string
         }
         Update: {
+          bounced_at?: string | null
+          clicked_at?: string | null
           contact_data?: Json | null
           contact_email?: string
           created_at?: string
+          error_message?: string | null
           id?: string
+          opened_at?: string | null
+          retry_count?: number | null
           scheduled_for?: string
           sent_at?: string | null
           sequence_type?: string
           status?: string
           temp_id?: string
+          unsubscribed_at?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      email_unsubscribes: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          reason: string | null
+          temp_id: string | null
+          unsubscribed_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          reason?: string | null
+          temp_id?: string | null
+          unsubscribed_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          reason?: string | null
+          temp_id?: string | null
+          unsubscribed_at?: string
         }
         Relationships: []
       }
@@ -581,7 +626,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_email_unsubscribe: {
+        Args: {
+          email_address: string
+          unsubscribe_reason?: string
+          submission_temp_id?: string
+        }
+        Returns: undefined
+      }
+      is_email_unsubscribed: {
+        Args: { email_address: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
