@@ -60,13 +60,19 @@ const AdminUsers = () => {
 
   const loadUserData = async () => {
     try {
+      console.log('Starting to load user data...');
       const response = await userService.getUsersWithAnalytics(500);
       
+      console.log('Raw response from getUsersWithAnalytics:', response);
+      
       if (response.error) {
+        console.error('Error from getUsersWithAnalytics:', response.error);
         throw response.error;
       }
 
       if (response.data) {
+        console.log('Users data received:', response.data);
+        console.log('Number of users:', response.data.length);
         setUsers(response.data);
         
         // Calculate comprehensive stats

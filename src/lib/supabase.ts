@@ -62,11 +62,15 @@ export const userService = {
     const { supabase } = await import('@/integrations/supabase/client');
     
     try {
+      console.log('getUsersWithAnalytics: Starting data fetch...');
+      
       // Get users from auth.users via profiles table
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .limit(limit);
+
+      console.log('Profiles query result:', { profiles, profilesError });
 
       if (profilesError) {
         return { data: null, error: profilesError };
@@ -75,7 +79,9 @@ export const userService = {
       // Get submission counts for each user
       const { data: submissions, error: submissionsError } = await supabase
         .from('calculator_submissions')
-        .select('user_id, id, recovery_potential_85, created_at');
+        .select('user_id, id, recovery_potential_85, created_at, company_name');
+
+      console.log('Submissions query result:', { submissions, submissionsError });
 
       if (submissionsError) {
         console.warn('Could not fetch submissions:', submissionsError);
@@ -86,28 +92,46 @@ export const userService = {
         const userSubmissions = submissions?.filter(s => s.user_id === profile.id) || [];
         const totalSubmissions = userSubmissions.length;
         const totalPipelineValue = userSubmissions.reduce((sum, s) => sum + (s.recovery_potential_85 || 0), 0);
-        const firstSubmission = userSubmissions.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())[0];
-        const lastSubmission = userSubmissions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+        const avgLeadScore = totalSubmissions > 0 ? Math.round(totalPipelineValue / totalSubmissions / 10000) : 0;
+        
+        // Get unique companies analyzed
+        const uniqueCompanies = new Set(userSubmissions.map(s => s.company_name).filter(Boolean)).size;
+        
+        const firstSubmission = userSubmissions.sort((a, b) => 
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        )[0];
+        const lastSubmission = userSubmissions.sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )[0];
+
+        console.log(`Processing user ${profile.id}:`, {
+          totalSubmissions,
+          totalPipelineValue,
+          avgLeadScore,
+          uniqueCompanies,
+          userSubmissions: userSubmissions.length
+        });
 
         return {
           user_id: profile.id,
-          email: profile.id, // We don't have direct access to email from auth.users
+          email: `user-${profile.id.slice(0, 8)}@example.com`, // Placeholder email since we can't access auth.users
           created_at: profile.created_at,
           email_confirmed_at: profile.created_at, // Assume confirmed if they have a profile
           last_sign_in_at: profile.updated_at,
-          user_role: 'user', // Default role
-          user_company: profile.company_name,
+          user_role: profile.role || 'user',
+          user_company: profile.company_name || profile.actual_company_name,
           user_type: profile.user_type || 'standard',
           total_submissions: totalSubmissions,
-          companies_analyzed: totalSubmissions, // Each submission = 1 company
+          companies_analyzed: uniqueCompanies,
           first_submission_date: firstSubmission?.created_at || null,
           last_submission_date: lastSubmission?.created_at || null,
-          avg_lead_score: 0, // Would need calculation
+          avg_lead_score: avgLeadScore,
           total_pipeline_value: totalPipelineValue,
-          account_status: 'active'
+          account_status: totalSubmissions > 0 ? 'active' : 'inactive'
         };
       }) || [];
 
+      console.log('Final usersWithAnalytics:', usersWithAnalytics);
       return { data: usersWithAnalytics, error: null };
     } catch (error) {
       return { data: null, error };
