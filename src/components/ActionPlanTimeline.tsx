@@ -278,7 +278,7 @@ export const ActionPlanTimeline = ({
           title="Get Detailed Implementation Roadmap"
           description="Access step-by-step execution plans, resource requirements, risk mitigation strategies, and success metrics"
           ctaText="Book Implementation Strategy Session"
-          onUnlock={() => window.open('https://calendly.com/strategy-session', '_blank')}
+          onUnlock={() => window.open('https://cal.com/rev-calculator/revenuecalculator-strategy-session', '_blank')}
           blurLevel="medium"
         >
           <div className="p-6 bg-muted/20 rounded-xl border space-y-6">

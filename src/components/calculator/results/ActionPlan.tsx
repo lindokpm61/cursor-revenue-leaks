@@ -286,7 +286,7 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
               title="Get Detailed Implementation Plan"
               description="Access step-by-step execution roadmap, timelines, responsibilities, and risk mitigation strategies"
               ctaText="Book Implementation Strategy Call"
-              onUnlock={() => window.open('https://calendly.com/strategy-session', '_blank')}
+              onUnlock={() => window.open('https://cal.com/rev-calculator/revenuecalculator-strategy-session', '_blank')}
               blurLevel="medium"
             >
               <div className="p-6 bg-muted/20 rounded-xl border">

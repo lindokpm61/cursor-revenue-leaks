@@ -289,7 +289,7 @@ const CleanResults = () => {
             formatCurrency={formatCurrency}
             onGetActionPlan={handleGetActionPlan}
             onQuickWins={() => setActiveSection('actions')}
-            onBookCall={() => window.open('https://calendly.com/strategy-session', '_blank')}
+            onBookCall={() => window.open('https://cal.com/rev-calculator/revenuecalculator-strategy-session', '_blank')}
           />
         )}
 
