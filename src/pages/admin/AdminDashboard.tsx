@@ -12,14 +12,15 @@ interface Submission {
   created_at: string;
   user_id: string;
   company_name: string;
-  recovery_potential: number;
+  recovery_potential_85?: number;
   // Add other submission properties as needed
 }
 
 interface UserProfile {
   id: string;
-  email: string;
-  full_name: string;
+  created_at: string;
+  user_type?: string;
+  company_name?: string;
   // Add other profile properties as needed
 }
 
@@ -44,28 +45,26 @@ export default function AdminDashboard() {
       setLoading(true);
 
       // Fetch metrics
-      const { data: metricsData, error: metricsError } = await supabase
+      const { count: totalSubmissions } = await supabase
         .from('calculator_submissions')
-        .select('count(*), avg(recovery_potential)');
+        .select('*', { count: 'exact', head: true });
 
-      if (metricsError) throw metricsError;
+      const { data: avgData } = await supabase
+        .from('calculator_submissions')
+        .select('recovery_potential_85');
 
-      const totalSubmissions = parseInt(metricsData?.[0]?.count || '0', 10);
-      const avgRecoveryPotential = parseFloat(metricsData?.[0]?.avg || '0');
+      const avgRecoveryPotential = avgData?.length ? 
+        avgData.reduce((sum, row) => sum + (row.recovery_potential_85 || 0), 0) / avgData.length : 0;
 
       // Fetch total users
-      const { data: usersData, error: usersError } = await supabase
+      const { count: userCount } = await supabase
         .from('profiles')
-        .select('count(*)');
-
-      if (usersError) throw usersError;
-
-      const totalUsers = parseInt(usersData?.[0]?.count || '0', 10);
+        .select('*', { count: 'exact', head: true });
 
       setMetrics({
-        total_submissions: totalSubmissions,
+        total_submissions: totalSubmissions || 0,
         avg_recovery_potential: avgRecoveryPotential,
-        total_users: totalUsers,
+        total_users: userCount || 0,
       });
 
       // Fetch recent submissions
@@ -252,7 +251,7 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Potential: ${submission.recovery_potential}
+                      Potential: ${submission.recovery_potential_85 || 0}
                     </div>
                   </div>
                 ))}
@@ -275,13 +274,13 @@ export default function AdminDashboard() {
                 {recentUsers.map((user) => (
                   <div key={user.id} className="py-2">
                     <div className="flex items-center justify-between">
-                      <div className="text-sm font-medium">{user.full_name}</div>
+                      <div className="text-sm font-medium">{user.company_name || 'Unknown User'}</div>
                       <div className="text-xs text-muted-foreground">
                         {new Date(user.created_at).toLocaleDateString()}
                       </div>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {user.email}
+                      {user.user_type || 'Standard'}
                     </div>
                   </div>
                 ))}
