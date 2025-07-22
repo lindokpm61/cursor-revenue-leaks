@@ -345,21 +345,29 @@ const ActionPlan = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Single Strategic Footer CTA */}
+        {/* Unified CTA Section */}
         <div className="mt-12 pt-8 border-t border-border">
-          <div className="text-center p-6 bg-gradient-to-r from-primary/10 via-primary-accent/10 to-primary/10 border border-primary/20 rounded-lg">
-            <h3 className="text-h2 text-foreground mb-2">Ready to Accelerate Growth?</h3>
-            <p className="text-body text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Transform this strategic analysis into results. Get expert implementation support and unlock your complete growth potential.
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Button className="bg-gradient-to-r from-primary to-primary-accent text-primary-foreground hover:from-primary/90 hover:to-primary-accent/90 px-8 py-3">
-                Get Complete Strategy
-              </Button>
-              <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-3">
-                Schedule Strategy Call
-              </Button>
+          <div className="p-6 bg-background border border-border rounded-lg text-center">
+            <div className="mb-4">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h3 className="text-h2 text-foreground mb-2">Unlock Complete Strategic Analysis</h3>
+              <p className="text-muted-foreground">
+                Get detailed implementation roadmap and strategic recommendations
+              </p>
             </div>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 text-base">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H3a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Book Strategy Consultation
+              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Button>
           </div>
         </div>
       </div>

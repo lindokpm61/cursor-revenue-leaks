@@ -370,14 +370,28 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
               );
             })()}
 
-            {/* Simple Implementation Note - No CTA */}
-            <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
-              <h6 className="text-h3 text-foreground mb-2">📋 Implementation Notes</h6>
-              <ul className="text-small text-muted-foreground space-y-1">
-                <li>• High growth potential detected - prioritize quick wins first</li>
-                <li>• Phased approach recommended for sustainable growth</li>
-                <li>• Monitor KPIs closely during optimization</li>
-              </ul>
+            {/* Unified CTA Section */}
+            <div className="p-6 bg-background border border-border rounded-lg text-center">
+              <div className="mb-4">
+                <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <h3 className="text-h2 text-foreground mb-2">Unlock Complete Strategic Analysis</h3>
+                <p className="text-muted-foreground">
+                  Get detailed implementation roadmap and strategic recommendations
+                </p>
+              </div>
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 text-base">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H3a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Book Strategy Consultation
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Button>
             </div>
           </div>
         ) : (
@@ -402,13 +416,28 @@ export const ActionPlan = ({ calculations, data }: ActionPlanProps) => {
               </ul>
             </div>
             
-            <div className="md:col-span-2 mt-6 p-4 bg-background rounded-lg border">
-              <p className="text-body font-medium text-foreground mb-2">
-                💡 Priority Focus: {topPriority.name}
-              </p>
-              <p className="text-small text-muted-foreground">
-                This area represents your largest revenue leak and should be addressed first for maximum impact.
-              </p>
+            {/* Unified CTA Section */}
+            <div className="md:col-span-2 mt-6 p-6 bg-background border border-border rounded-lg text-center">
+              <div className="mb-4">
+                <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <h3 className="text-h2 text-foreground mb-2">Unlock Complete Strategic Analysis</h3>
+                <p className="text-muted-foreground">
+                  Get detailed implementation roadmap and strategic recommendations
+                </p>
+              </div>
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 text-base">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H3a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Book Strategy Consultation
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Button>
             </div>
           </div>
         )}
