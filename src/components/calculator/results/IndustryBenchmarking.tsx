@@ -194,7 +194,7 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
       case 'best-in-class': return '🏆 Best-in-Class';
       case 'above-average': return '✅ Above Average';
       case 'average': return '📊 Industry Average';
-      case 'below-average': return '🚨 Critical Failure';
+      case 'below-average': return '📈 Growth Opportunity';
       default: return 'Unknown';
     }
   };
@@ -317,18 +317,18 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
       <CardHeader>
         <Collapsible open={isContentOpen} onOpenChange={setIsContentOpen}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-r from-destructive to-orange-500">
-                <BarChart3 className="h-6 w-6 text-destructive-foreground" />
-              </div>
-              <div>
-                <CardTitle className="text-2xl text-destructive flex items-center gap-2">
-                  <AlertTriangle className="h-6 w-6 animate-pulse" />
-                  REVENUE FAILURE POINT ANALYSIS
-                  <Badge variant="destructive" className="animate-pulse">CRITICAL</Badge>
-                </CardTitle>
-                <p className="text-muted-foreground mt-1">
-                  Every metric below industry standard is bleeding revenue • Immediate intervention required
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-blue-500">
+                  <BarChart3 className="h-6 w-6 text-primary-foreground" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl text-primary flex items-center gap-2">
+                    <TrendingUp className="h-6 w-6" />
+                    PERFORMANCE INSIGHTS & OPPORTUNITIES
+                    <Badge variant="secondary">ANALYSIS READY</Badge>
+                  </CardTitle>
+                  <p className="text-muted-foreground mt-1">
+                    Strategic benchmarking analysis complete • Growth opportunities identified
                   {confidenceLevel.level !== 'high' && (
                     <span className="text-orange-600"> • {confidenceLevel.level} confidence</span>
                   )}
@@ -344,37 +344,37 @@ export const IndustryBenchmarking = ({ submission, formatCurrency, calculations,
 
           <CollapsibleContent>
             <CardContent className="space-y-8 pt-6">
-              {/* Critical Revenue Bleeding Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 bg-gradient-to-r from-destructive/10 to-orange-500/10 rounded-lg border-2 border-destructive/30">
+              {/* Strategic Opportunity Summary */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 bg-gradient-to-r from-primary/10 to-blue-500/10 rounded-lg border-2 border-primary/30">
                 <div>
-                  <h3 className="font-semibold text-sm text-destructive mb-1">🚨 Revenue Hemorrhaging</h3>
-                  <p className="text-sm text-muted-foreground">Annual losses from failure points</p>
-                  <div className="text-xl font-bold text-destructive">
-                    {totalRevenueOpportunity > 0 ? formatCurrency(totalRevenueOpportunity) : 'No Bleeding'}
+                  <h3 className="font-semibold text-sm text-primary mb-1">💰 Growth Opportunity</h3>
+                  <p className="text-sm text-muted-foreground">Annual revenue potential</p>
+                  <div className="text-xl font-bold text-primary">
+                    {totalRevenueOpportunity > 0 ? formatCurrency(totalRevenueOpportunity) : 'Optimized'}
                   </div>
-                  <div className="text-xs text-orange-600 mt-1">
-                    {totalRevenueOpportunity > 0 ? formatCurrency(totalRevenueOpportunity / 365) + '/day' : ''}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-sm text-orange-600 mb-1">⚠️ Critical Failure Points</h3>
-                  <p className="text-sm text-muted-foreground">{strategicOpportunities.length} metrics below industry standard</p>
-                  <div className="text-lg font-bold text-orange-600">
-                    {strategicOpportunities.length > 0 ? `${strategicOpportunities.length} emergency zones` : 'No critical issues'}
+                  <div className="text-xs text-blue-600 mt-1">
+                    {totalRevenueOpportunity > 0 ? formatCurrency(totalRevenueOpportunity / 365) + '/day potential' : ''}
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm text-revenue-success mb-1">✅ Stable Performance</h3>
+                  <h3 className="font-semibold text-sm text-blue-600 mb-1">📈 Improvement Areas</h3>
+                  <p className="text-sm text-muted-foreground">{strategicOpportunities.length} optimization opportunities</p>
+                  <div className="text-lg font-bold text-blue-600">
+                    {strategicOpportunities.length > 0 ? `${strategicOpportunities.length} growth areas` : 'Performance optimized'}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm text-revenue-success mb-1">✅ Strong Performance</h3>
                   <p className="text-sm text-muted-foreground">{competitiveAdvantages.length} above-average metrics</p>
                   <div className="text-lg font-bold text-revenue-success">
-                    {competitiveAdvantages.length} secure areas
+                    {competitiveAdvantages.length} competitive advantages
                   </div>
                 </div>
               </div>
 
-              {/* Performance Zones */}
+              {/* Performance Analysis */}
               <div>
-                <h3 className="text-lg font-semibold mb-6 text-destructive">🚨 Revenue Failure Analysis: Below Standard → Emergency Recovery</h3>
+                <h3 className="text-lg font-semibold mb-6 text-primary">📊 Performance Benchmarking: Current Position → Growth Potential</h3>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {metrics.map((metric) => {
                     const Icon = metric.icon;
