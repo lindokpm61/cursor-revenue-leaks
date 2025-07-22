@@ -101,6 +101,57 @@ export type Database = {
         }
         Relationships: []
       }
+      conversion_events: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          page_url: string | null
+          referrer_url: string | null
+          session_id: string | null
+          temp_id: string | null
+          user_agent: string | null
+          user_id: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          page_url?: string | null
+          referrer_url?: string | null
+          session_id?: string | null
+          temp_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          page_url?: string | null
+          referrer_url?: string | null
+          session_id?: string | null
+          temp_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
       email_engagement_events: {
         Row: {
           created_at: string
@@ -426,6 +477,60 @@ export type Database = {
           status?: string | null
           traffic_allocation?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      integration_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          execution_time_ms: number | null
+          id: string
+          integration_type: string
+          max_retries: number | null
+          next_retry_at: string | null
+          request_data: Json | null
+          response_data: Json | null
+          retry_count: number | null
+          status: string
+          submission_id: string | null
+          temp_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          integration_type: string
+          max_retries?: number | null
+          next_retry_at?: string | null
+          request_data?: Json | null
+          response_data?: Json | null
+          retry_count?: number | null
+          status?: string
+          submission_id?: string | null
+          temp_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          integration_type?: string
+          max_retries?: number | null
+          next_retry_at?: string | null
+          request_data?: Json | null
+          response_data?: Json | null
+          retry_count?: number | null
+          status?: string
+          submission_id?: string | null
+          temp_id?: string | null
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }

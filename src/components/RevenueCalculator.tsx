@@ -25,6 +25,9 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAbandonmentDetection } from "@/hooks/useAbandonmentDetection";
 import { AbandonmentWarning } from "@/components/AbandonmentWarning";
+import { MobileCalculatorNavigation } from "./mobile/MobileCalculatorNavigation";
+import { useMobileCalculator } from "@/hooks/useMobileCalculator";
+import { conversionTracker } from "@/lib/conversion-tracker";
 
 const steps = [
   { id: 1, title: "Company Info", description: "Basic company information" },
@@ -40,6 +43,13 @@ export const RevenueCalculator = () => {
   const [tempId, setTempId] = useState<string | null>(null);
   const { data, updateData, calculations } = useCalculatorData();
   const { toast } = useToast();
+  
+  // Mobile calculator navigation
+  const mobileCalculator = useMobileCalculator({
+    totalSteps: steps.length,
+    currentStep,
+    onStepChange: setCurrentStep
+  });
   
   // Exit intent detection
   const exitIntent = useExitIntent({
@@ -87,6 +97,11 @@ export const RevenueCalculator = () => {
     const initializeCalculator = async () => {
       try {
         console.log('🔄 Initializing calculator...');
+        
+        // Track calculator start
+        if (tempId) {
+          await conversionTracker.trackCalculatorStart(tempId);
+        }
         
         // Force clear ALL invalid temp_id formats from localStorage immediately
         const currentTempId = localStorage.getItem('calculator_temp_id');
@@ -606,6 +621,15 @@ export const RevenueCalculator = () => {
             </div>
           </div>
         )}
+        
+        {/* Mobile Navigation */}
+        <MobileCalculatorNavigation
+          currentStep={currentStep}
+          totalSteps={steps.length}
+          onPrevious={prevStep}
+          onNext={nextStep}
+          canProceed={currentStep === 1 ? (!!data.companyInfo.companyName?.trim() && !!data.companyInfo.email?.trim()) : true}
+        />
       </div>
     </div>
   );
