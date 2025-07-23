@@ -10,6 +10,10 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Results from "./pages/Results";
+import CleanResults from "./pages/CleanResults";
+import ActionPlan from "./pages/ActionPlan";
+import Dashboard from "./pages/Dashboard";
+import TestSync from "./pages/TestSync";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminLeads from "./pages/admin/AdminLeads";
@@ -38,6 +42,10 @@ function App() {
                   <Route path="/" element={<Index />} />
                   <Route path="/landing" element={<Landing />} />
                   <Route path="/results" element={<Results />} />
+                  <Route path="/results/:id" element={<CleanResults />} />
+                  <Route path="/action-plan/:id" element={<ActionPlan />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/test-sync" element={<TestSync />} />
 
                   {/* Auth Routes */}
                   <Route path="/login" element={<Login />} />
