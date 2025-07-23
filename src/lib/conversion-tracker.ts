@@ -1,3 +1,4 @@
+
 import { enhancedIntegrationLogger } from './enhanced-integration-logger';
 
 interface TrackingData {
@@ -10,6 +11,7 @@ interface TrackingData {
 
 class ConversionTracker {
   private sessionId: string;
+  private gaInitialized: boolean = false;
   
   constructor() {
     this.sessionId = this.getOrCreateSessionId();
@@ -26,25 +28,40 @@ class ConversionTracker {
   }
 
   private initializeGoogleAnalytics(): void {
-    // Initialize GA4 if not already present
-    if (typeof window !== 'undefined' && !window.gtag) {
-      const script = document.createElement('script');
-      script.async = true;
-      script.src = 'https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID';
-      document.head.appendChild(script);
+    // Only initialize in browser environment and if not already initialized
+    if (typeof window === 'undefined' || this.gaInitialized) return;
 
-      window.dataLayer = window.dataLayer || [];
-      function gtag(...args: any[]) {
-        window.dataLayer.push(args);
-      }
-      window.gtag = gtag;
-      
-      gtag('js', new Date());
-      gtag('config', 'GA_MEASUREMENT_ID', {
-        page_title: document.title,
-        page_location: window.location.href
-      });
+    // Check if GA is already loaded
+    if (window.gtag) {
+      this.gaInitialized = true;
+      return;
     }
+
+    // Use environment-specific GA measurement ID
+    const GA_MEASUREMENT_ID = import.meta.env.PROD ? 'G-XXXXXXXXXX' : 'G-TEST123456';
+    
+    // Create and load GA script
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+    document.head.appendChild(script);
+
+    // Initialize dataLayer and gtag
+    window.dataLayer = window.dataLayer || [];
+    function gtag(...args: any[]) {
+      window.dataLayer.push(args);
+    }
+    window.gtag = gtag;
+    
+    gtag('js', new Date());
+    gtag('config', GA_MEASUREMENT_ID, {
+      page_title: document.title,
+      page_location: window.location.href,
+      send_page_view: true
+    });
+
+    this.gaInitialized = true;
+    console.log('Google Analytics initialized with ID:', GA_MEASUREMENT_ID);
   }
 
   async trackEvent(data: TrackingData): Promise<void> {
@@ -63,17 +80,26 @@ class ConversionTracker {
     };
 
     // Log to database
-    await enhancedIntegrationLogger.logConversionEvent(eventData);
+    try {
+      await enhancedIntegrationLogger.logConversionEvent(eventData);
+    } catch (error) {
+      console.error('Failed to log conversion event:', error);
+    }
     
-    // Send to Google Analytics
-    if (window.gtag) {
-      window.gtag('event', data.event_type, {
-        event_category: 'Calculator',
-        event_label: data.event_data?.step || 'unknown',
-        value: data.event_data?.value || 0,
-        custom_parameter_1: data.temp_id,
-        custom_parameter_2: data.user_id
-      });
+    // Send to Google Analytics if initialized
+    if (this.gaInitialized && window.gtag) {
+      try {
+        window.gtag('event', data.event_type, {
+          event_category: 'Calculator',
+          event_label: data.event_data?.step || 'unknown',
+          value: data.event_data?.value || 0,
+          custom_parameter_1: data.temp_id,
+          custom_parameter_2: data.user_id,
+          session_id: this.sessionId
+        });
+      } catch (error) {
+        console.error('Failed to send GA event:', error);
+      }
     }
   }
 
