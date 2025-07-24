@@ -1,0 +1,19 @@
+project_id = "odgibblnukklsehfwjky"
+
+[functions.send-email]
+verify_jwt = false
+
+[functions.email-queue-processor]
+verify_jwt = false
+
+[functions.email-automation]
+verify_jwt = false
+
+[functions.email-tracking]
+verify_jwt = false
+
+[functions.email-unsubscribe]
+verify_jwt = false
+
+[functions.test-email]
+verify_jwt = false
